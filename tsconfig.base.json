@@ -10,7 +10,10 @@
     "importHelpers": true,
     "target": "es2022",
     "module": "commonjs",
-    "lib": ["es2020", "dom"],
+    "lib": [
+      "es2020",
+      "dom"
+    ],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
@@ -28,7 +31,9 @@
       "@school-expense-ecosystem/auth/data-access": [
         "./libs/auth/data-access/src/index.ts"
       ],
-      "@school-expense-ecosystem/shared/ui": ["./libs/shared/ui/src/index.ts"],
+      "@school-expense-ecosystem/shared/ui": [
+        "./libs/shared/ui/src/index.ts"
+      ],
       "@school-expense-ecosystem/auth/features": [
         "./libs/auth/features/src/index.ts"
       ],
@@ -41,15 +46,28 @@
       "@school-expense-ecosystem/expenses/features": [
         "./libs/expenses/features/src/index.ts"
       ],
-      "utils": ["./libs/expenses/utils/src/index.ts"],
+      "@school-expense-ecosystem/expenses/utils": [
+        "./libs/expenses/utils/src/index.ts"
+      ],
       "@school-expense-ecosystem/backend/auth/data-access": [
         "./libs/auth/data-access-backend/src/index.ts"
       ],
       "@school-expense-ecosystem/backend/auth/features": [
         "./libs/auth/features-backend/src/index.ts"
       ],
-      "@school-expense-ecosystem/shared/ui-react": ["./libs/shared/ui-react/src/index.ts"]
+      "@school-expense-ecosystem/shared/ui-react": [
+        "./libs/shared/ui-react/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/data-access": [
+        "./libs/finance/data-access/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/budget-manager": [
+        "./libs/finance/features/budget-manager/src/index.ts"
+      ]
     }
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }
