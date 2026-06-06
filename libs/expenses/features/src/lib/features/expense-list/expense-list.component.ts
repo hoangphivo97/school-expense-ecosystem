@@ -6,14 +6,14 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, SettingsServiceService } from '@micro-expense-tracker/shared/ui';
+import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, SettingsServiceService } from '@school-expense-ecosystem/shared/ui';
 import {
   FilterParams,
-} from '@micro-expense-tracker/shared/types';
+} from '@school-expense-ecosystem/shared/types';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
-import { PaidMethodEnum, EditExpense, ExpenseList, parseRouterFilterParams } from '@micro-expense-tracker/expenses/data-access';
+import { PaidMethodEnum, EditExpense, ExpenseList, parseRouterFilterParams } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
-import { ExpenseService } from '@micro-expense-tracker/expenses/data-access';
+import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,7 +21,7 @@ import {
   DateFormatValue,
   LocalStorageKey,
   ModalMessage,
-} from '@micro-expense-tracker/shared/constants';
+} from '@school-expense-ecosystem/shared/constants';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,8 +29,8 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {
   DialogActionEnum,
   DialogData
-} from '@micro-expense-tracker/shared/types';
-import { LocalStorageService } from '@micro-expense-tracker/shared/data-access';;
+} from '@school-expense-ecosystem/shared/types';
+import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';;
 import { MatInputModule } from '@angular/material/input';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatPaginator } from '@angular/material/paginator';

@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as admin from 'firebase-admin';
-import { UserInDb } from '@micro-expense-tracker/auth/data-access';
+import { UserInDb } from '@school-expense-ecosystem/auth/data-access';
 
 @Injectable()
 export class UserService implements OnModuleInit {

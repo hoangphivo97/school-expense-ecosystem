@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Switch from '@mui/material/Switch';
-import { DarkModeToggleProps } from '@micro-expense-tracker/shared/types';
+import { DarkModeToggleProps } from '@school-expense-ecosystem/shared/types';
 
 const MaterialUISwitch = styled(Switch)(() => ({
   width: 62,

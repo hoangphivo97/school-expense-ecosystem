@@ -7,7 +7,7 @@ const config: ModuleFederationConfig = {
   ],
   shared: (libraryName, defaultConfig) => {
      // Loại trừ các thư viện UI/Features khỏi việc bị tự động share
-     if (libraryName.startsWith('@micro-expense-tracker/')) {
+     if (libraryName.startsWith('@school-expense-ecosystem/')) {
          return false; 
      }
      return defaultConfig;

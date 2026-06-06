@@ -11,7 +11,7 @@ import { MatLabel } from '@angular/material/form-field';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
-import { ExpenseService } from '@micro-expense-tracker/expenses/data-access';
+import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
   DateAdapter,
@@ -19,13 +19,13 @@ import {
   MatDateFormats,
   MatOption,
 } from '@angular/material/core';
-import { CustomDateAdapter } from '@micro-expense-tracker/shared/utils';
+import { CustomDateAdapter } from '@school-expense-ecosystem/shared/utils';
 import {
   DialogActionEnum, DialogData
-} from '@micro-expense-tracker/shared/types';
+} from '@school-expense-ecosystem/shared/types';
 import { DecimalPipe } from '@angular/common';
 import { MatSelect } from '@angular/material/select';
-import { PaidMethodStringValue } from '@micro-expense-tracker/shared/constants';
+import { PaidMethodStringValue } from '@school-expense-ecosystem/shared/constants';
 import { Timestamp } from '@angular/fire/firestore';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -33,7 +33,7 @@ import {
   EditExpense,
   PaidMethodDropdownList,
   PaidMethodEnum
-} from '@micro-expense-tracker/expenses/data-access';
+} from '@school-expense-ecosystem/expenses/data-access';
 
 export const MY_DATE_FORMATS: MatDateFormats = {
   parse: {

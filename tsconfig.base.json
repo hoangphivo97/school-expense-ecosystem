@@ -16,39 +16,39 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "@micro-expense-tracker/shared/types": [
+      "@school-expense-ecosystem/shared/types": [
         "./libs/shared/types/src/index.ts"
       ],
-      "@micro-expense-tracker/shared/utils": [
+      "@school-expense-ecosystem/shared/utils": [
         "./libs/shared/utils/src/index.ts"
       ],
-      "@micro-expense-tracker/shared/data-access": [
+      "@school-expense-ecosystem/shared/data-access": [
         "./libs/shared/data-access/src/index.ts"
       ],
-      "@micro-expense-tracker/auth/data-access": [
+      "@school-expense-ecosystem/auth/data-access": [
         "./libs/auth/data-access/src/index.ts"
       ],
-      "@micro-expense-tracker/shared/ui": ["./libs/shared/ui/src/index.ts"],
-      "@micro-expense-tracker/auth/features": [
+      "@school-expense-ecosystem/shared/ui": ["./libs/shared/ui/src/index.ts"],
+      "@school-expense-ecosystem/auth/features": [
         "./libs/auth/features/src/index.ts"
       ],
-      "@micro-expense-tracker/shared/constants": [
+      "@school-expense-ecosystem/shared/constants": [
         "./libs/shared/constants/src/index.ts"
       ],
-      "@micro-expense-tracker/expenses/data-access": [
+      "@school-expense-ecosystem/expenses/data-access": [
         "./libs/expenses/data-access/src/index.ts"
       ],
-      "@micro-expense-tracker/expenses/features": [
+      "@school-expense-ecosystem/expenses/features": [
         "./libs/expenses/features/src/index.ts"
       ],
       "utils": ["./libs/expenses/utils/src/index.ts"],
-      "@micro-expense-tracker/backend/auth/data-access": [
+      "@school-expense-ecosystem/backend/auth/data-access": [
         "./libs/auth/data-access-backend/src/index.ts"
       ],
-      "@micro-expense-tracker/backend/auth/features": [
+      "@school-expense-ecosystem/backend/auth/features": [
         "./libs/auth/features-backend/src/index.ts"
       ],
-      "shared/ui-react": ["./libs/shared/ui-react/src/index.ts"]
+      "@school-expense-ecosystem/shared/ui-react": ["./libs/shared/ui-react/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

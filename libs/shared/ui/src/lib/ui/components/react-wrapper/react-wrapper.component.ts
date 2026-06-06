@@ -12,11 +12,11 @@ import {
 } from '@module-federation/enhanced/runtime';
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { ReactComponentType } from '@micro-expense-tracker/shared/types';
+import { ReactComponentType } from '@school-expense-ecosystem/shared/types';
 
-import { ThemeService } from '@micro-expense-tracker/shared/data-access';
+import { ThemeService } from '@school-expense-ecosystem/shared/data-access';
 import { NgZone } from '@angular/core';
-import { DarkModeToggleProps } from '@micro-expense-tracker/shared/types'
+import { DarkModeToggleProps } from '@school-expense-ecosystem/shared/types'
 
 @Component({
   selector: 'lib-react-wrapper',

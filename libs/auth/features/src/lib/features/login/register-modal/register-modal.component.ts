@@ -4,10 +4,10 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { BaseModalComponent } from '@micro-expense-tracker/shared/ui';
+import { BaseModalComponent } from '@school-expense-ecosystem/shared/ui';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { DialogActionEnum } from '@micro-expense-tracker/shared/types';
-import { ConfirmExitModal } from '@micro-expense-tracker/shared/constants';
+import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
+import { ConfirmExitModal } from '@school-expense-ecosystem/shared/constants';
 
 @Component({
   selector: 'lib-register-modal',

@@ -1,5 +1,5 @@
 import { Timestamp } from '@angular/fire/firestore';
-import { DropdownList } from '@micro-expense-tracker/shared/types';
+import { DropdownList } from '@school-expense-ecosystem/shared/types';
 
 export interface ExpenseList {
   id: string;

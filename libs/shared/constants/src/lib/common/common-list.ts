@@ -1,4 +1,4 @@
-import { NavItem } from '@micro-expense-tracker/shared/types';
+import { NavItem } from '@school-expense-ecosystem/shared/types';
 
 export const months = [
   { value: 1, label: 'January' },

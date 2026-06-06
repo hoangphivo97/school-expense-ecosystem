@@ -9,7 +9,7 @@ import { firebaseConfig } from './environment/environment';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideStore } from '@ngrx/store';
 import { initializeApp } from 'firebase/app';
-import { authInterceptor } from '@micro-expense-tracker/auth/data-access';
+import { authInterceptor } from '@school-expense-ecosystem/auth/data-access';
 
 export const appConfig: ApplicationConfig = {
   providers: [

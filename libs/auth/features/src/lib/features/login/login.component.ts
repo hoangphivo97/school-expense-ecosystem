@@ -6,12 +6,12 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService, AuthStore, LoginResponse } from '@micro-expense-tracker/auth/data-access';
+import { AuthService, AuthStore, LoginResponse } from '@school-expense-ecosystem/auth/data-access';
 import { catchError, tap, throwError } from 'rxjs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { FirebaseError } from 'firebase/app';
-import { ErrorModalService } from '@micro-expense-tracker/shared/ui';
+import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { RegisterModalComponent } from './register-modal/register-modal.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 

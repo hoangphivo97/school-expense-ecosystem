@@ -6,7 +6,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { DialogActionEnum, DialogData } from '@micro-expense-tracker/shared/types';
+import { DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
 import { MatButton } from '@angular/material/button';
 import { ErrorModalService } from '../error-modal/error-modal.service';
 

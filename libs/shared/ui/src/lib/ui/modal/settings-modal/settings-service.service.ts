@@ -2,8 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { doc, Firestore, getDoc } from '@angular/fire/firestore';
 import { BehaviorSubject, from, map, Observable, of } from 'rxjs';
 import { Auth } from '@angular/fire/auth';
-import { UserSettings } from '@micro-expense-tracker/shared/types';
-import { DateFormatValue } from '@micro-expense-tracker/shared/constants';
+import { UserSettings } from '@school-expense-ecosystem/shared/types';
+import { DateFormatValue } from '@school-expense-ecosystem/shared/constants';
 
 @Injectable({
   providedIn: 'root',

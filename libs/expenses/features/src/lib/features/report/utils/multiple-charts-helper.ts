@@ -6,11 +6,11 @@ import {
   ApexTitleSubtitle,
   ChartType,
 } from 'ng-apexcharts';
-import { AxisChartOptions, NonAxisChartOptions } from '@micro-expense-tracker/expenses/data-access';
+import { AxisChartOptions, NonAxisChartOptions } from '@school-expense-ecosystem/expenses/data-access';
 import { formatDate } from '@angular/common';
-import { tsToDate, tsToMs } from '@micro-expense-tracker/shared/utils';
+import { tsToDate, tsToMs } from '@school-expense-ecosystem/shared/utils';
 import { Timestamp } from '@angular/fire/firestore';
-import { ExpenseList } from '@micro-expense-tracker/expenses/data-access';
+import { ExpenseList } from '@school-expense-ecosystem/expenses/data-access';
 
 export type LineOpts = {
   series: ApexAxisChartSeries;

@@ -15,9 +15,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableDataSource } from '@angular/material/table';
 import {
   FilterParams,
-} from '@micro-expense-tracker/shared/types';
+} from '@school-expense-ecosystem/shared/types';
 import { CommonModule } from '@angular/common';
-import { months } from '@micro-expense-tracker/shared/constants';
+import { months } from '@school-expense-ecosystem/shared/constants';
 import {
   FormControl,
   FormGroup,

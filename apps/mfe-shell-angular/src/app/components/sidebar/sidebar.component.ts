@@ -7,17 +7,17 @@ import {
   Output,
 } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { AuthService } from '@micro-expense-tracker/auth/data-access';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
-import { DialogActionEnum, NavItem } from '@micro-expense-tracker/shared/types';
+import { DialogActionEnum, NavItem } from '@school-expense-ecosystem/shared/types';
 import { MatDialog } from '@angular/material/dialog';
 import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { navItems } from '@micro-expense-tracker/shared/constants';
+import { navItems } from '@school-expense-ecosystem/shared/constants';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { ReactWrapperComponent } from '@micro-expense-tracker/shared/ui';
+import { ReactWrapperComponent } from '@school-expense-ecosystem/shared/ui';
 import { A11yModule } from "@angular/cdk/a11y";
 import { toSignal } from '@angular/core/rxjs-interop';
 

@@ -13,13 +13,13 @@ import {
   CurrencyStringValue,
   DateFormatStringValue,
   DateFormatValue,
-} from '@micro-expense-tracker/shared/constants';
+} from '@school-expense-ecosystem/shared/constants';
 import {
   CurrencyEnum,
   CurrencyDropdownList,
   DateFormatDropdownList,
   DialogActionEnum, DialogData
-} from '@micro-expense-tracker/shared/types';
+} from '@school-expense-ecosystem/shared/types';
 
 @Component({
   selector: 'lib-settings-modal',

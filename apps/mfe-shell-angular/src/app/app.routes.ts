@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@micro-expense-tracker/auth/data-access';
+import { authGuard } from '@school-expense-ecosystem/auth/data-access';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 
@@ -10,7 +10,7 @@ export const routes: Routes = [
     children: [
       {
         path: '', 
-        loadComponent: () => import('@micro-expense-tracker/auth/features').then(m => m.LoginComponent)
+        loadComponent: () => import('@school-expense-ecosystem/auth/features').then(m => m.LoginComponent)
       }
     ]
   },
@@ -23,7 +23,7 @@ export const routes: Routes = [
       {
         path: '',
         loadChildren: () =>
-          import('@micro-expense-tracker/expenses/features').then(
+          import('@school-expense-ecosystem/expenses/features').then(
             (m) => m.EXPENSES_ROUTES
           ),
       },

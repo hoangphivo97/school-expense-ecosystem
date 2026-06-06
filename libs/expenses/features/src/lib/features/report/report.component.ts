@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { HeaderComponent, FilterComponent } from '@micro-expense-tracker/shared/ui';
+import { HeaderComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
 import { MatIcon } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import {
@@ -7,7 +7,7 @@ import {
   makeLineChart,
   makePieChart,
 } from '../report/utils/multiple-charts-helper';
-import { calcChangePct, calcKPIs, getPrevMonth, parseRouterFilterParams, ExpenseService , ExpenseList } from '@micro-expense-tracker/expenses/data-access';
+import { calcChangePct, calcKPIs, getPrevMonth, parseRouterFilterParams, ExpenseService , ExpenseList } from '@school-expense-ecosystem/expenses/data-access';
 import {
   filter,
   map,
@@ -16,9 +16,9 @@ import {
 } from 'rxjs';
 import {
   FilterParams,
-} from '@micro-expense-tracker/shared/types';
+} from '@school-expense-ecosystem/shared/types';
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { mainColorPieChart } from '@micro-expense-tracker/shared/constants';
+import { mainColorPieChart } from '@school-expense-ecosystem/shared/constants';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 

@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { PaidMethodEnum } from '@micro-expense-tracker/expenses/data-access';
+import { PaidMethodEnum } from '@school-expense-ecosystem/expenses/data-access';
 
 @Pipe({
   name: 'enumToString',

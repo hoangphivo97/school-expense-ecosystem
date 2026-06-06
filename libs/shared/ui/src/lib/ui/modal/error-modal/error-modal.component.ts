@@ -7,7 +7,7 @@ import {
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
-import { DialogError } from '@micro-expense-tracker/shared/types';
+import { DialogError } from '@school-expense-ecosystem/shared/types';
 import { MatIconModule } from '@angular/material/icon';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBug } from '@fortawesome/free-solid-svg-icons';

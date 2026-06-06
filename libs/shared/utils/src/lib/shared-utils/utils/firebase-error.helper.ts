@@ -1,5 +1,5 @@
 import { FirebaseError } from 'firebase/app';
-import { DialogError } from '@micro-expense-tracker/shared/types';
+import { DialogError } from '@school-expense-ecosystem/shared/types';
 
 export function getFriendlyFirebaseError(error: FirebaseError): DialogError {
   switch (error.code) {

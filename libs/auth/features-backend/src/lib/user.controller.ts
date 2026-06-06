@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { LoginDto, UserService } from '@micro-expense-tracker/backend/auth/data-access';
+import { LoginDto, UserService } from '@school-expense-ecosystem/backend/auth/data-access';
 import * as admin from 'firebase-admin';
-import { UserInDb } from '@micro-expense-tracker/auth/data-access';
+import { UserInDb } from '@school-expense-ecosystem/auth/data-access';
 
 @Controller('auth')
 export class UserController {

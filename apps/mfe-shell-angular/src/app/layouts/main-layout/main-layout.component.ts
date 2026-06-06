@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { AuthService } from '@micro-expense-tracker/auth/data-access';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { MatIcon } from '@angular/material/icon';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 

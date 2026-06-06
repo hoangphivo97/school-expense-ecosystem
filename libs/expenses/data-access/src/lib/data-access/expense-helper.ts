@@ -1,4 +1,4 @@
-import { FilterParams } from '@micro-expense-tracker/shared/types';
+import { FilterParams } from '@school-expense-ecosystem/shared/types';
 import { ExpenseList } from './interfaces/expense.interface';
 import { Params } from '@angular/router';
 

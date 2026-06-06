@@ -20,7 +20,7 @@ import {
   CreateExpense,
   ExpenseList
 } from './interfaces/expense.interface';
-import { FilterParams } from '@micro-expense-tracker/shared/types';
+import { FilterParams } from '@school-expense-ecosystem/shared/types';
 
 @Injectable({
   providedIn: 'root',

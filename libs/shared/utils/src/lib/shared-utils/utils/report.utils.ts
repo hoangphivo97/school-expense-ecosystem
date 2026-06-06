@@ -1,4 +1,4 @@
-import { FilterParams } from '@micro-expense-tracker/shared/types';
+import { FilterParams } from '@school-expense-ecosystem/shared/types';
 
 export type MonthFilter = { year: number; month: number };
 export type YearFilter = { year: number };
