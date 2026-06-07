@@ -83,3 +83,6 @@ expense-tracker-web-app-7c1d1-firebase-adminsdk-vu2nw-272986a332.json
 
 storybook-static
 .angular
+
+#Yarn
+.yarn/install-state.gz
