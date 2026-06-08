@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as admin from 'firebase-admin';
-import { UserInDb } from '@school-expense-ecosystem/auth/data-access';
+import { UserInDb } from '../lib/interface/user-db.interface';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -50,10 +50,8 @@ export class UserService implements OnModuleInit {
       throw new BadRequestException('User not found');
     }
 
-    // 🚀 FIX 1: Ép kiểu dữ liệu Firestore doc về UserInDb từ Shared Lib
     const user = snapshot.docs[0].data() as UserInDb;
     
-    // 🚀 FIX 2: Không cần dùng dạng chuỗi user['password'] nữa vì IDE đã tự hiểu nhờ có Type chuẩn
     const isPasswordValid = await bcrypt.compare(password, user.password || '');
     
     if (!isPasswordValid) {

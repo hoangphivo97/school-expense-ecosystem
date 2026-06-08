@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { LoginDto, UserService } from '@school-expense-ecosystem/backend/auth/data-access';
+import { LoginDto, UserService, UserInDb } from '@school-expense-ecosystem/backend/auth/data-access';
 import * as admin from 'firebase-admin';
-import { UserInDb } from '@school-expense-ecosystem/auth/data-access';
+import { Role } from '../../../types/src/lib/enums/role.enum';
 
 @Controller('auth')
 export class UserController {
@@ -47,7 +47,7 @@ export class UserController {
         uid,
         email: userEmail,
         username: name ?? 'Unknown User',
-        role: 'User',
+        role: Role.LEVEL_3_USER,
       });
     }
 

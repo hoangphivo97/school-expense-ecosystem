@@ -1,0 +1,84 @@
+<div class="max-w-7xl mx-auto p-6 mt-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-xl font-bold text-gray-800 tracking-tight mb-1">ACTIVE FACULTY BUDGETS</h2>
+      <p class="text-xs text-gray-400 mb-6">Real-time financial status tracking for the current fiscal year.</p>
+
+      @if (deployedBudgets.length === 0) {
+        <div class="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+          <p class="text-sm text-gray-500 font-medium">No budgets deployed yet. Use the manager panel to initialize.</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th class="py-3 px-4">Faculty / Department</th>
+                <th class="py-3 px-4 text-right">Students</th>
+                <th class="py-3 px-4 text-right">Quota / Head</th>
+                <th class="py-3 px-4 text-right">Total Ceiling</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 text-sm text-gray-600">
+              @for (budget of deployedBudgets(); track budget.id) {
+                <tr class="hover:bg-gray-50/70 transition-colors">
+                  <td class="py-4 px-4 font-semibold text-gray-800">{{ budget.facultyName }}</td>
+                  <td class="py-4 px-4 text-right font-mono">{{ budget.studentCount }}</td>
+                  <td class="py-4 px-4 text-right font-mono text-gray-500">{{ budget.quotaPerStudent | currency:'VND':'symbol':'1.0-0' }}</td>
+                  <td class="py-4 px-4 text-right font-bold font-mono text-blue-600">{{ budget.totalBudgetCeiling | currency:'VND':'symbol':'1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-fit">
+      <h2 class="text-lg font-bold text-gray-800 tracking-tight mb-1">INITIALIZE BUDGET</h2>
+      <p class="text-xs text-gray-400 mb-6">Deploy new top-down foundational ceiling caps.</p>
+
+      <form (submit)="onSubmit($event)" class="space-y-4">
+        <div class="flex flex-col gap-1.5">
+          <label for="facultyId" class="text-xs font-semibold text-gray-600">Target Faculty:</label>
+          <select id="facultyId" [formField]="budgetForm.facultyId" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-blue-500">
+            <option value="">-- Select Department --</option>
+            @for (fac of faculties; track fac.id) {
+              <option [value]="fac.id">{{ fac.name }}</option>
+            }
+          </select>
+          @if (budgetForm.facultyId().touched() && budgetForm.facultyId().invalid()) {
+            <div class="text-[11px] text-red-500 font-medium">Selecting a target faculty is required.</div>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="studentCount" class="text-xs font-semibold text-gray-600">Active Student Count:</label>
+          <input id="studentCount" type="number" [formField]="budgetForm.studentCount" placeholder="e.g., 1500" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-blue-500" />
+          @if (budgetForm.studentCount().touched() && budgetForm.studentCount().invalid()) {
+            <div class="text-[11px] text-red-500 font-medium">Must be a valid positive integer.</div>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="quotaPerStudent" class="text-xs font-semibold text-gray-600">Quota per Student (VND):</label>
+          <input id="quotaPerStudent" type="number" [formField]="budgetForm.quotaPerStudent" placeholder="e.g., 200000" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-blue-500" />
+          @if (budgetForm.quotaPerStudent().touched() && budgetForm.quotaPerStudent().invalid()) {
+            <div class="text-[11px] text-red-500 font-medium">Standard quota allocation is required.</div>
+          }
+        </div>
+
+        <div class="p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex justify-between items-center my-4">
+          <span class="text-xs font-semibold text-blue-800">Projection:</span>
+          <span class="text-base font-bold font-mono text-blue-900">{{ computedTotalCeiling() | currency:'VND':'symbol':'1.0-0' }}</span>
+        </div>
+
+        <button type="submit" [disabled]="budgetForm().invalid()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors shadow-sm text-xs uppercase tracking-wider">
+          DEPLOY BUDGET
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
