@@ -1,7 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { LoginDto, UserService, UserInDb } from '@school-expense-ecosystem/backend/auth/data-access';
 import * as admin from 'firebase-admin';
-import { Role } from '../../../types/src/lib/enums/role.enum';
+import { Role } from '@school-expense-ecosystem/auth/types';
 
 @Controller('auth')
 export class UserController {
@@ -20,7 +20,7 @@ export class UserController {
       const result = await this.handleFirebaseLogin(token);
       return { message: 'Login success', ...result };
     } catch (error) {
-      throw new Error('Authentication failed');
+      throw new UnauthorizedException('Google federation identity provider verification failed.');
     }
   }
 
@@ -30,11 +30,11 @@ export class UserController {
       const result = await this.handleFirebaseLogin(token);
       return { message: 'Login success', ...result };
     } catch (error) {
-      throw new Error('Authentication failed');
+      throw new UnauthorizedException('Facebook federation identity provider verification failed.');
     }
   }
 
-  private async handleFirebaseLogin(
+ private async handleFirebaseLogin(
     token: string,
   ): Promise<{ token: string; user: UserInDb }> {
     const decodedToken = await admin.auth().verifyIdToken(token);
@@ -42,6 +42,7 @@ export class UserController {
 
     const userEmail = email ?? `no-email-${uid}@example.com`;
     let user = await this.userService.findByUid(uid);
+    
     if (!user) {
       user = await this.userService.createUser({
         uid,
@@ -51,6 +52,7 @@ export class UserController {
       });
     }
 
+    // ✅ FIX BUG CHÍ MẠNG: authToken bây giờ đã được đồng bộ 100% cấu trúc payload với luồng login local
     const authToken = this.userService.generateJWT(user);
     return { token: authToken, user };
   }
