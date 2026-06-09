@@ -41,14 +41,28 @@
       "@school-expense-ecosystem/expenses/features": [
         "./libs/expenses/features/src/index.ts"
       ],
-      "utils": ["./libs/expenses/utils/src/index.ts"],
+      "@school-expense-ecosystem/expenses/utils": [
+        "./libs/expenses/utils/src/index.ts"
+      ],
       "@school-expense-ecosystem/backend/auth/data-access": [
         "./libs/auth/data-access-backend/src/index.ts"
       ],
       "@school-expense-ecosystem/backend/auth/features": [
         "./libs/auth/features-backend/src/index.ts"
       ],
-      "@school-expense-ecosystem/shared/ui-react": ["./libs/shared/ui-react/src/index.ts"]
+      "@school-expense-ecosystem/shared/ui-react": [
+        "./libs/shared/ui-react/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/data-access": [
+        "./libs/finance/data-access/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/features": [
+        "./libs/finance/features/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/backend": [
+        "./libs/finance/backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/auth/types": ["./libs/auth/types/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

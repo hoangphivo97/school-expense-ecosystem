@@ -25,6 +25,7 @@ export const navItems = [
     key: NavItem.REPORT,
   },
   { icon: 'message', label: 'Messages', key: NavItem.MESSAGE },
+  { icon: 'dashboard', label: 'Budget Manager', key: NavItem.BUDGET_MANAGER}
 ];
 
 export const mainColorPieChart: string[] = [

@@ -4,7 +4,7 @@
     "outDir": "./out-tsc/app",
     "types": ["node", "@angular/localize"],
     "target": "es2022",
-    "module": "esnext",
+    "module": "preserve",
   },
   "files": ["src/main.ts", "src/main.server.ts"],
   "include": ["src/**/*.d.ts"],

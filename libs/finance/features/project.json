@@ -1,0 +1,13 @@
+{
+  "name": "finance-features",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/finance/features/src/",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:finance, type:features"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
