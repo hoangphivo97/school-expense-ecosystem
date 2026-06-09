@@ -52,7 +52,7 @@ export class LoginComponent implements OnInit {
       .signInWithUserAccount(userNameValue, passWordValue)
       .pipe(
         tap((res: LoginResponse) => {
-          this.updateTokenAndReRoute(res.token, '/expense');
+          this.updateTokenAndReRoute(res.token, '/dashboard');
         }),
         catchError((err: FirebaseError) => {
           // console.error('Đăng nhập thất bại:', err);
@@ -72,7 +72,7 @@ export class LoginComponent implements OnInit {
       .signInWithGoogleAccount()
       .pipe(
         tap((res: any) => {
-          this.updateTokenAndReRoute(res.token, '/expense');
+          this.updateTokenAndReRoute(res.token, '/dashboard');
           this.loading = false;
         }),
         catchError((err: FirebaseError) => {
@@ -93,7 +93,7 @@ export class LoginComponent implements OnInit {
       .signInWithFacebookAccount()
       .pipe(
         tap((res: any) => {
-          this.updateTokenAndReRoute(res.token, '/expense');
+          this.updateTokenAndReRoute(res.token, '/dashboard');
           this.loading = false;
         }),
         catchError((err: FirebaseError) => {

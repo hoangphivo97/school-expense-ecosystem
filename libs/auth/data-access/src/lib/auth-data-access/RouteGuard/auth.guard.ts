@@ -1,23 +1,21 @@
-import { CanActivate, Router, UrlTree } from '@angular/router';
-import { inject, Injectable } from '@angular/core';
+import { inject } from '@angular/core';
+import { Router, CanActivateFn } from '@angular/router';
+import { filter, map, take } from 'rxjs/operators';
 import { AuthService } from './auth.service';
-import { filter, map, Observable, take } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class authGuard implements CanActivate {
-  private router = inject(Router);
-  private auth = inject(AuthService);
+export const authGuard: CanActivateFn = (route, state) => {
+  const router = inject(Router);
+  const authService = inject(AuthService);
 
-  canActivate(): Observable<boolean | UrlTree> {
-    return this.auth.isLoading$.pipe(
-      filter((loading) => !loading),
-      take(1),
-      map(() => {
-        const user = this.auth.currentUser;
-        return user ? true : this.router.createUrlTree(['/auth']);
-      }),
-    );
-  }
-}
+  return authService.isLoading$.pipe(
+    // Wait until the authentication store finishes loading the state from storage
+    filter((loading) => !loading),
+    take(1),
+    map(() => {
+      const user = authService.currentUser;
+      
+      // If user context exists, authorize entry; otherwise deflect to the root auth gateway
+      return user ? true : router.createUrlTree(['/auth']);
+    })
+  );
+};
