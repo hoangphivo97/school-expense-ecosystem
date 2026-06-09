@@ -12,7 +12,7 @@ import {
 import { BehaviorSubject, from, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { UserSession } from '@school-expense-ecosystem/auth/data-access';
+import { UserSession } from '@school-expense-ecosystem/auth/types';
 
 @Injectable({
   providedIn: 'root',

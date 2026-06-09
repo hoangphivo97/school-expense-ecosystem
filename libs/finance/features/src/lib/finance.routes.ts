@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { rolesGuard } from '@school-expense-ecosystem/auth/data-access';
 import { Role } from '@school-expense-ecosystem/auth/types';
 
-export const financeRoutes: Routes = [
+export const FINANCE_ROUTES: Routes = [
   {
     path: '',
     children: [

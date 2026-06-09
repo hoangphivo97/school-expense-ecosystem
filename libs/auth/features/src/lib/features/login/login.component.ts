@@ -6,7 +6,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService, AuthStore, LoginResponse } from '@school-expense-ecosystem/auth/data-access';
+import { AuthService, AuthStore } from '@school-expense-ecosystem/auth/data-access';
+import { LoginResponse } from '@school-expense-ecosystem/auth/types';
 import { catchError, tap, throwError } from 'rxjs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
