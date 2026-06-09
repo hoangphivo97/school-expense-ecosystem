@@ -28,7 +28,7 @@ export default [
             // 2. Rulse for Domain Auth
             {
               sourceTag: 'scope:auth',
-              onlyDependOnLibsWithTags: ['scope:auth', 'scope:shared','scope:features'],
+              onlyDependOnLibsWithTags: ['scope:auth', 'scope:shared','scope:features', 'scope:data-access', 'scope: data-access-backend'],
             },
             // 3. Rules Domain Expenses
             {

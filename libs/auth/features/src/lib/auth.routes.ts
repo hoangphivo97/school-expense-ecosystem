@@ -11,12 +11,12 @@ export const AUTH_ROUTES: Routes = [
   },
   {
     path: 'onboarding',
-    canActivate: [authGuard], // 🛡️ Security Check: Requires valid session token, but bypasses onboardingGuard to prevent loops
-    component: OnboardingComponent // Points directly to /auth/onboarding
+    canActivate: [authGuard],
+    component: OnboardingComponent
   },
   {
     path: 'waiting-approval',
-    canActivate: [authGuard], // 🛡️ Security Check: Requires valid session token, but bypasses onboardingGuard to prevent loops
-    component: WaitingApprovalComponent // Points directly to /auth/waiting-approval
+    canActivate: [authGuard],
+    component: WaitingApprovalComponent
   }
 ];

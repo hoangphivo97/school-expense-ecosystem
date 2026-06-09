@@ -9,7 +9,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "emitDecoratorMetadata": false,
-    "module": "preserve"
+    "module": "esnext"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
@@ -21,5 +21,11 @@
   "files": [],
   "include": [],
   "references": [
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
   ]
 }

@@ -10,7 +10,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('@school-expense-ecosystem/auth/features').then(m => m.LoginComponent)
+        loadChildren: () => import('@school-expense-ecosystem/auth/features').then(m => m.AUTH_ROUTES)
       }
     ]
   },
@@ -42,8 +42,8 @@ export const routes: Routes = [
     ],
   },
   // 404 fallback
-  {
-    // path: '**',
-    // redirectTo: '/expense',
-  },
+  // {
+  //   path: '**',
+  //   redirectTo: '/expense',
+  // },
 ];

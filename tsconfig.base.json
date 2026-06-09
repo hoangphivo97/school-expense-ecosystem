@@ -72,7 +72,7 @@
       ],
       "@school-expense-ecosystem/dashboard/features": [
         "./libs/dashboard/features/src/index.ts"
-      ],
+      ]
     }
   },
   "exclude": [
