@@ -1,7 +1,7 @@
 import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { LoginDto, UserService, UserInDb } from '@school-expense-ecosystem/backend/auth/data-access';
 import * as admin from 'firebase-admin';
-import { Role } from '@school-expense-ecosystem/auth/types';
+import { Role, UserStatus } from '@school-expense-ecosystem/auth/types';
 
 @Controller('auth')
 export class UserController {
@@ -49,6 +49,7 @@ export class UserController {
         email: userEmail,
         username: name ?? 'Unknown User',
         role: Role.LEVEL_3_USER,
+        status: UserStatus.PENDING
       });
     }
 
