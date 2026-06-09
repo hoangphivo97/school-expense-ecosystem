@@ -66,11 +66,15 @@ export default [
             },
             {
               sourceTag: 'type:types',
-              onlyDependOnLibsWithTags: [],
+              onlyDependOnLibsWithTags: ['type:types'],
             },
             {
               sourceTag: 'type:constants',
               onlyDependOnLibsWithTags: ['type:types'],
+            },
+            {
+              sourceTag: 'scope:finance',
+              onlyDependOnLibsWithTags: ['scope:finance', 'scope:auth', 'scope:shared']
             },
           ],
         },
