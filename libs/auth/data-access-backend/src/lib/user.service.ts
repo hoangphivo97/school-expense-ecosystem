@@ -40,33 +40,37 @@ export class UserService implements OnModuleInit {
   }
 
   generateJWT(user: UserInDb): string {
-    return this.jwtService.sign({
+    const payload: UserInDb = {
       uid: user.uid,
       email: user.email,
       username: user.username,
       role: user.role,
       facultyId: user.facultyId,
-      userType: user.userType
-    });
+      userType: user.userType,
+      status: user.status,
+      createdAt: user.createdAt
+    }
+    return this.jwtService.sign(payload);
   }
 
-  async validateUser(username: string, password: string): Promise<UserInDb> {
-    const snapshot = await this.db.collection('users').where('username', '==', username).limit(1).get();
+async validateUser(email: string, password: string): Promise<UserInDb> {
+  const snapshot = await this.db.collection('users').where('email', '==', email).limit(1).get();
 
-    if (snapshot.empty) {
-      throw new BadRequestException('User not found');
-    }
-
-    const user = snapshot.docs[0].data() as UserInDb;
-
-    const isPasswordValid = await bcrypt.compare(password, user.password || '');
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid password');
-    }
-
-    return user;
+  if (snapshot.empty) {
+    throw new BadRequestException('Email or password incorrect');
   }
+
+  const user = snapshot.docs[0].data() as UserInDb;
+
+  // So sánh mật khẩu đã hash lưu trong Firestore với mật khẩu user nhập vào
+  const isPasswordValid = await bcrypt.compare(password, user.password || '');
+
+  if (!isPasswordValid) {
+    throw new UnauthorizedException('Email or password incorrect');
+  }
+
+  return user;
+}
 
   // Issue JWT token for the user after successful login
   async login(user: UserInDb): Promise<{ access_token: string }> {

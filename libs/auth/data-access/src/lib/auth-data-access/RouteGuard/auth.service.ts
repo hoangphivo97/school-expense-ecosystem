@@ -12,7 +12,7 @@ import {
 import { BehaviorSubject, from, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { UserSession } from '@school-expense-ecosystem/auth/data-access';
+import { UserSession } from '@school-expense-ecosystem/auth/types';
 
 @Injectable({
   providedIn: 'root',
@@ -55,12 +55,12 @@ export class AuthService {
     return this.signInWithProvider(provider, this.apiGoogleUrl);
   }
 
-  signInWithFacebookAccount(): Observable<object> {
-    const provider = new FacebookAuthProvider();
-    provider.addScope('email');
+  // signInWithFacebookAccount(): Observable<object> {
+  //   const provider = new FacebookAuthProvider();
+  //   provider.addScope('email');
 
-    return this.signInWithProvider(provider, this.apiFacebookUrl);
-  }
+  //   return this.signInWithProvider(provider, this.apiFacebookUrl);
+  // }
 
   private signInWithProvider(
     provider: AuthProvider,

@@ -2,20 +2,18 @@
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
     "isolatedModules": true,
-    "target": "es2022",
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "emitDecoratorMetadata": false,
-    "module": "esnext"
+    "module": "preserve"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "typeCheckHostBindings": true,
     "strictTemplates": true
   },
   "files": [],

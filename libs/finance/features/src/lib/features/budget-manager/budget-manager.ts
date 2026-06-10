@@ -9,7 +9,6 @@ import { FacultyId } from '@school-expense-ecosystem/auth/types';
   selector: 'lib-budget-manager',
   imports: [FormField, CommonModule],
   templateUrl: './budget-manager.html',
-  styleUrl: './budget-manager.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BudgetManager {

@@ -16,26 +16,43 @@ export default [
           enforceBuildableLibDependency: true,
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
           depConstraints: [
-            // 1. App (Shell, Remote) Rules
+            // App (Shell, Remote) Rules
             {
               sourceTag: 'scope:app',
               onlyDependOnLibsWithTags: [
                 'scope:auth',
                 'scope:expenses',
                 'scope:shared',
+                'scope:finance',
+                'scope:dashboard'
+              ],
+            }, //Backend Rules
+            {
+              sourceTag: 'scope:backend',
+              onlyDependOnLibsWithTags: [
+                'scope:backend',
+                'scope:auth',
+                'scope:finance',
+                'scope:shared',
               ],
             },
-            // 2. Rulse for Domain Auth
+            // Rulse for Domain Auth
             {
               sourceTag: 'scope:auth',
-              onlyDependOnLibsWithTags: ['scope:auth', 'scope:shared','scope:features'],
+              onlyDependOnLibsWithTags: [
+                'scope:auth',
+                'scope:shared',
+                'scope:features',
+                'scope:data-access',
+                'scope: data-access-backend',
+              ],
             },
-            // 3. Rules Domain Expenses
+            // Rules Domain Expenses
             {
               sourceTag: 'scope:expenses',
               onlyDependOnLibsWithTags: ['scope:expenses', 'scope:shared'],
             },
-            // 4. Rules for Shared
+            // Rules for Shared
             {
               sourceTag: 'scope:shared',
               onlyDependOnLibsWithTags: ['scope:shared'],
@@ -49,7 +66,7 @@ export default [
                 'type:shared-utils',
                 'type:types',
                 'type:constants',
-                'type:data-access'
+                'type:data-access',
               ],
             },
             {
@@ -74,7 +91,11 @@ export default [
             },
             {
               sourceTag: 'scope:finance',
-              onlyDependOnLibsWithTags: ['scope:finance', 'scope:auth', 'scope:shared']
+              onlyDependOnLibsWithTags: [
+                'scope:finance',
+                'scope:auth',
+                'scope:shared',
+              ],
             },
           ],
         },
