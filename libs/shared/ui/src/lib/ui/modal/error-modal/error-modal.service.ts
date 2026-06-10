@@ -3,6 +3,7 @@ import { FirebaseError } from 'firebase/app';
 import { ErrorModalComponent } from '../../modal/error-modal/error-modal.component';
 import { MatDialog } from '@angular/material/dialog';
 import { getFriendlyFirebaseError } from '@school-expense-ecosystem/shared/utils';
+import { DialogError } from '@school-expense-ecosystem/shared/types';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,14 @@ export class ErrorModalService {
     this.dialog.open(ErrorModalComponent, {
       width: '400px',
       data: getFriendlyFirebaseError(error),
+      disableClose: true,
+    });
+  }
+
+  openCustomErrorModal(dialogData: DialogError) {
+    this.dialog.open(ErrorModalComponent, {
+      width: '400px',
+      data: dialogData,
       disableClose: true,
     });
   }

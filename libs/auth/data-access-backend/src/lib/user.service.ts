@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,6 +9,8 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as admin from 'firebase-admin';
 import { UserInDb } from '../lib/interface/user-db.interface';
+import { OnboardingDto } from './DTO/onboarding.dto';
+import { UserStatus } from '@school-expense-ecosystem/auth/types';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -48,29 +51,30 @@ export class UserService implements OnModuleInit {
       facultyId: user.facultyId,
       userType: user.userType,
       status: user.status,
+      fullName: user.fullName,
       createdAt: user.createdAt
     }
     return this.jwtService.sign(payload);
   }
 
-async validateUser(email: string, password: string): Promise<UserInDb> {
-  const snapshot = await this.db.collection('users').where('email', '==', email).limit(1).get();
+  async validateUser(email: string, password: string): Promise<UserInDb> {
+    const snapshot = await this.db.collection('users').where('email', '==', email).limit(1).get();
 
-  if (snapshot.empty) {
-    throw new BadRequestException('Email or password incorrect');
+    if (snapshot.empty) {
+      throw new BadRequestException('Email or password incorrect');
+    }
+
+    const user = snapshot.docs[0].data() as UserInDb;
+
+    // So sánh mật khẩu đã hash lưu trong Firestore với mật khẩu user nhập vào
+    const isPasswordValid = await bcrypt.compare(password, user.password || '');
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Email or password incorrect');
+    }
+
+    return user;
   }
-
-  const user = snapshot.docs[0].data() as UserInDb;
-
-  // So sánh mật khẩu đã hash lưu trong Firestore với mật khẩu user nhập vào
-  const isPasswordValid = await bcrypt.compare(password, user.password || '');
-
-  if (!isPasswordValid) {
-    throw new UnauthorizedException('Email or password incorrect');
-  }
-
-  return user;
-}
 
   // Issue JWT token for the user after successful login
   async login(user: UserInDb): Promise<{ access_token: string }> {
@@ -78,4 +82,26 @@ async validateUser(email: string, password: string): Promise<UserInDb> {
       access_token: this.generateJWT(user),
     };
   }
+
+  async completeOnboarding(uid: string, dto: OnboardingDto): Promise<UserInDb> {
+    // 1. Kiểm tra User có tồn tại trong hệ thống hay không
+    const user = await this.findByUid(uid);
+    if (!user) {
+      throw new NotFoundException('User profile not found in database.');
+    }
+
+    const updatedData: Partial<UserInDb> = {
+      fullName: dto.fullName,
+      facultyId: dto.facultyId,
+      userType: dto.userType,
+      userCode: dto.userCode,
+      dateOfBirth: dto.dateOfBirth,
+      status: UserStatus.PENDING || user.status 
+    };
+
+    await this.db.collection('users').doc(uid).update(updatedData);
+
+    return { ...user, ...updatedData };
+  }
 }
+

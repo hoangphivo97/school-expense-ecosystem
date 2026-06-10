@@ -4,7 +4,6 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   UserCredential,
-  FacebookAuthProvider,
   AuthProvider,
   User,
   onAuthStateChanged,
@@ -12,7 +11,7 @@ import {
 import { BehaviorSubject, from, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { UserSession } from '@school-expense-ecosystem/auth/types';
+import { OnboardingData, OnboardingResponse, UserSession } from '@school-expense-ecosystem/auth/types';
 
 @Injectable({
   providedIn: 'root',
@@ -21,7 +20,7 @@ export class AuthService {
   private auth = inject(Auth);
   private apiUrl = 'http://localhost:3000/auth';
   private apiGoogleUrl = 'http://localhost:3000/auth/google-login';
-  private apiFacebookUrl = 'http://localhost:3000/auth/facebook-login';
+  // private apiFacebookUrl = 'http://localhost:3000/auth/facebook-login';
   private user$ = new BehaviorSubject<User | null>(null);
   private loading$ = new BehaviorSubject<boolean>(true);
   private http = inject(HttpClient);
@@ -53,6 +52,10 @@ export class AuthService {
     const provider = new GoogleAuthProvider();
 
     return this.signInWithProvider(provider, this.apiGoogleUrl);
+  }
+
+  completeOnboarding(onboardingData: OnboardingData): Observable<OnboardingResponse> {
+    return this.http.post<OnboardingResponse>(`${this.apiUrl}/onboarding`, onboardingData);
   }
 
   // signInWithFacebookAccount(): Observable<object> {

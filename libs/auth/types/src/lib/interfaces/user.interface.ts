@@ -10,15 +10,33 @@ export interface LoginResponse {
 export interface UserBase {
   uid: string;
   username: string;
-  role: Role;         
+  fullName?: string;
+  role: Role;
   email: string;
-  facultyId?: FacultyId;  
+  facultyId?: FacultyId;
   userType?: UserType;
+  userCode?: string;
+  dateOfBirth?: string;
   status: UserStatus;
   createdAt?: string;
 }
 
 // Interface for store localStorage/Session
 export interface UserSession extends UserBase {
-  token: string; 
+  token: string;
+}
+
+export interface OnboardingResponse {
+  message: string;
+  token: string;
+  user: UserBase;
+}
+
+export interface OnboardingData {
+  fullName: string;
+  userCode: string;
+  dateOfBirth: string;
+  facultyId: FacultyId;
+  userType: UserType;
+
 }
