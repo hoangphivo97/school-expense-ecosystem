@@ -5,6 +5,7 @@ import { UserType } from '../enums/user-type.enum';
 
 export interface LoginResponse {
   token: string;
+  user: UserBase;
 }
 
 export interface UserBase {
@@ -19,11 +20,6 @@ export interface UserBase {
   dateOfBirth?: string;
   status: UserStatus;
   createdAt?: string;
-}
-
-// Interface for store localStorage/Session
-export interface UserSession extends UserBase {
-  token: string;
 }
 
 export interface OnboardingResponse {

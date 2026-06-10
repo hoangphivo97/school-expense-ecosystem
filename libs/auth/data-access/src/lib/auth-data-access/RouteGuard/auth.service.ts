@@ -11,7 +11,7 @@ import {
 import { BehaviorSubject, from, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { OnboardingData, OnboardingResponse, UserSession } from '@school-expense-ecosystem/auth/types';
+import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +19,6 @@ import { OnboardingData, OnboardingResponse, UserSession } from '@school-expense
 export class AuthService {
   private auth = inject(Auth);
   private apiUrl = 'http://localhost:3000/api/auth';
-  // private apiFacebookUrl = 'http://localhost:3000/auth/facebook-login';
   private user$ = new BehaviorSubject<User | null>(null);
   private loading$ = new BehaviorSubject<boolean>(true);
   private http = inject(HttpClient);
@@ -42,9 +41,9 @@ export class AuthService {
   signInWithUserAccount(
     username: string,
     password: string,
-  ): Observable<UserSession> {
+  ): Observable<LoginResponse> {
     const loginData = { username, password };
-    return this.http.post<UserSession>(`${this.apiUrl}/login`, loginData);
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, loginData);
   }
 
   signInWithGoogleAccount(): Observable<object> {
@@ -56,13 +55,6 @@ export class AuthService {
   completeOnboarding(onboardingData: OnboardingData): Observable<OnboardingResponse> {
     return this.http.post<OnboardingResponse>(`${this.apiUrl}/onboarding`, onboardingData);
   }
-
-  // signInWithFacebookAccount(): Observable<object> {
-  //   const provider = new FacebookAuthProvider();
-  //   provider.addScope('email');
-
-  //   return this.signInWithProvider(provider, this.apiFacebookUrl);
-  // }
 
   private signInWithProvider(
     provider: AuthProvider,
@@ -84,7 +76,7 @@ export class AuthService {
     this.router.navigate(['/auth']);
   }
 
-  getIdToken(forceRefresh = false) {
+  getFirebaseToken(forceRefresh = false) {
     const user = this.auth.currentUser;
     return user ? user.getIdToken(forceRefresh) : '';
   }

@@ -52,10 +52,9 @@ export class LoginComponent implements OnInit {
       .signInWithUserAccount(userNameValue, passWordValue)
       .pipe(
         tap((res: LoginResponse) => {
-          this.updateTokenAndReRoute(res.token);
+          this.updateTokenAndReRoute(res.token, res.user);
         }),
         catchError((err: FirebaseError) => {
-          // console.error('Đăng nhập thất bại:', err);
           this.errorModalService.openErrorModal(err);
           return throwError(() => err);
         }),
@@ -72,7 +71,7 @@ export class LoginComponent implements OnInit {
       .signInWithGoogleAccount()
       .pipe(
         tap((res: any) => {
-          this.updateTokenAndReRoute(res.token);
+          this.updateTokenAndReRoute(res.token, res.user);
           this.loading = false;
         }),
         catchError((err: FirebaseError) => {
@@ -85,41 +84,19 @@ export class LoginComponent implements OnInit {
       .subscribe();
   }
 
-  // loginWithFacebook() {
-  //   if (this.loading) return;
-  //   this.loading = true;
+  updateTokenAndReRoute(token: string, user: any) {
+    this.authStore.update({ token, user });
 
-  //   this.authService
-  //     .signInWithFacebookAccount()
-  //     .pipe(
-  //       tap((res: any) => {
-  //         this.updateTokenAndReRoute(res.token);
-  //         this.loading = false;
-  //       }),
-  //       catchError((err: FirebaseError) => {
-  //         this.errorModalService.openErrorModal(err);
-  //         this.loading = false;
-  //         return throwError(() => err);
-  //       }),
-  //     )
-  //     .pipe(takeUntilDestroyed(this.destroyRef))
-  //     .subscribe();
-  // }
-
-  updateTokenAndReRoute(token: string) {
-    this.authStore.setToken(token);
-    const user = this.authStore.getValue().user;
-
-    if(!user){
+    if (!user) {
       this.router.navigate(['/auth']);
       return;
     }
 
-    if(user.status === UserStatus.ONBOARDING){
+    if (user.status === UserStatus.ONBOARDING) {
       this.router.navigate(['/auth/onboarding']);
-    } else if (user.status === UserStatus.PENDING){
+    } else if (user.status === UserStatus.PENDING) {
       this.router.navigate(['/auth/waiting-approval']);
-    } else if (user.status === UserStatus.ACTIVE){
+    } else if (user.status === UserStatus.ACTIVE) {
       this.router.navigate(['/dashboard']);
     } else {
       this.router.navigate(['/auth']);
