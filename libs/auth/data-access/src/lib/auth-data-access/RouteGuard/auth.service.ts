@@ -18,8 +18,7 @@ import { OnboardingData, OnboardingResponse, UserSession } from '@school-expense
 })
 export class AuthService {
   private auth = inject(Auth);
-  private apiUrl = 'http://localhost:3000/auth';
-  private apiGoogleUrl = 'http://localhost:3000/auth/google-login';
+  private apiUrl = 'http://localhost:3000/api/auth';
   // private apiFacebookUrl = 'http://localhost:3000/auth/facebook-login';
   private user$ = new BehaviorSubject<User | null>(null);
   private loading$ = new BehaviorSubject<boolean>(true);
@@ -51,7 +50,7 @@ export class AuthService {
   signInWithGoogleAccount(): Observable<object> {
     const provider = new GoogleAuthProvider();
 
-    return this.signInWithProvider(provider, this.apiGoogleUrl);
+    return this.signInWithProvider(provider, `${this.apiUrl}/google-login`);
   }
 
   completeOnboarding(onboardingData: OnboardingData): Observable<OnboardingResponse> {
