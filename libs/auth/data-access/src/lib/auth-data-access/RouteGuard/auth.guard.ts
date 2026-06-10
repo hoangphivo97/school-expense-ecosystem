@@ -1,21 +1,20 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { filter, map, take } from 'rxjs/operators';
-import { AuthService } from './auth.service';
+import { map, take } from 'rxjs/operators';
+import { AuthQuery } from './Akita/auth.query';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-  const authService = inject(AuthService);
+  const authQuery = inject(AuthQuery);
 
-  return authService.isLoading$.pipe(
-    // Wait until the authentication store finishes loading the state from storage
-    filter((loading) => !loading),
+  return authQuery.user$.pipe(
     take(1),
-    map(() => {
-      const user = authService.currentUser;
+    map((user) => {
+      if (user) {
+        return true;
+      }
       
-      // If user context exists, authorize entry; otherwise deflect to the root auth gateway
-      return user ? true : router.createUrlTree(['/auth']);
+      return router.createUrlTree(['/auth']);
     })
   );
 };

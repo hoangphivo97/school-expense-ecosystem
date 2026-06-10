@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, AuthStore } from '@school-expense-ecosystem/auth/data-access';
-import { LoginResponse } from '@school-expense-ecosystem/auth/types';
+import { LoginResponse, UserStatus } from '@school-expense-ecosystem/auth/types';
 import { catchError, tap, throwError } from 'rxjs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
@@ -52,7 +52,7 @@ export class LoginComponent implements OnInit {
       .signInWithUserAccount(userNameValue, passWordValue)
       .pipe(
         tap((res: LoginResponse) => {
-          this.updateTokenAndReRoute(res.token, '/dashboard');
+          this.updateTokenAndReRoute(res.token);
         }),
         catchError((err: FirebaseError) => {
           // console.error('Đăng nhập thất bại:', err);
@@ -72,7 +72,7 @@ export class LoginComponent implements OnInit {
       .signInWithGoogleAccount()
       .pipe(
         tap((res: any) => {
-          this.updateTokenAndReRoute(res.token, '/dashboard');
+          this.updateTokenAndReRoute(res.token);
           this.loading = false;
         }),
         catchError((err: FirebaseError) => {
@@ -93,7 +93,7 @@ export class LoginComponent implements OnInit {
       .signInWithFacebookAccount()
       .pipe(
         tap((res: any) => {
-          this.updateTokenAndReRoute(res.token, '/dashboard');
+          this.updateTokenAndReRoute(res.token);
           this.loading = false;
         }),
         catchError((err: FirebaseError) => {
@@ -106,10 +106,26 @@ export class LoginComponent implements OnInit {
       .subscribe();
   }
 
-  updateTokenAndReRoute(token: string, direction: string) {
-    this.authStore.update({ token: token });
-    localStorage.setItem('token', token);
-    this.router.navigate([direction]);
+  updateTokenAndReRoute(token: string) {
+    this.authStore.setToken(token);
+    const user = this.authStore.getValue().user;
+
+    if(!user){
+      this.router.navigate(['/auth']);
+      return;
+    }
+    console.log(user)
+    console.log(user.status)
+
+    if(user.status === UserStatus.ONBOARDING){
+      this.router.navigate(['/auth/onboarding']);
+    } else if (user.status === UserStatus.PENDING){
+      this.router.navigate(['/auth/waiting-approval']);
+    } else if (user.status === UserStatus.ACTIVE){
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/auth']);
+    }
   }
 
   openRegisterModal() {

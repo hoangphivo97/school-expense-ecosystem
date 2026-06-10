@@ -49,11 +49,10 @@ export class UserController {
         email: userEmail,
         username: name ?? 'Unknown User',
         role: Role.LEVEL_3_USER,
-        status: UserStatus.PENDING
+        status: UserStatus.ONBOARDING
       });
     }
 
-    // ✅ FIX BUG CHÍ MẠNG: authToken bây giờ đã được đồng bộ 100% cấu trúc payload với luồng login local
     const authToken = this.userService.generateJWT(user);
     return { token: authToken, user };
   }

@@ -40,14 +40,17 @@ export class UserService implements OnModuleInit {
   }
 
   generateJWT(user: UserInDb): string {
-    return this.jwtService.sign({
+    const payload: UserInDb = {
       uid: user.uid,
       email: user.email,
       username: user.username,
       role: user.role,
       facultyId: user.facultyId,
-      userType: user.userType
-    });
+      userType: user.userType,
+      status: user.status,
+      createdAt: user.createdAt
+    }
+    return this.jwtService.sign(payload);
   }
 
   async validateUser(username: string, password: string): Promise<UserInDb> {
