@@ -55,12 +55,12 @@ export class AuthService {
     return this.signInWithProvider(provider, this.apiGoogleUrl);
   }
 
-  signInWithFacebookAccount(): Observable<object> {
-    const provider = new FacebookAuthProvider();
-    provider.addScope('email');
+  // signInWithFacebookAccount(): Observable<object> {
+  //   const provider = new FacebookAuthProvider();
+  //   provider.addScope('email');
 
-    return this.signInWithProvider(provider, this.apiFacebookUrl);
-  }
+  //   return this.signInWithProvider(provider, this.apiFacebookUrl);
+  // }
 
   private signInWithProvider(
     provider: AuthProvider,

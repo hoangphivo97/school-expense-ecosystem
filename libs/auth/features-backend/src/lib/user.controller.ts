@@ -9,9 +9,14 @@ export class UserController {
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    const validatedUser = await this.userService.validateUser(loginDto.username, loginDto.password);
+    const validatedUser = await this.userService.validateUser(loginDto.email, loginDto.password);
+    const authToken = this.userService.generateJWT(validatedUser);
 
-    return this.userService.login(validatedUser);
+    return { 
+      message: 'Login success', 
+      token: authToken, 
+      user: validatedUser 
+    };
   }
 
   @Post('google-login')
@@ -24,15 +29,15 @@ export class UserController {
     }
   }
 
-  @Post('facebook-login')
-  async facebookLogin(@Body('token') token: string) {
-    try {
-      const result = await this.handleFirebaseLogin(token);
-      return { message: 'Login success', ...result };
-    } catch (error) {
-      throw new UnauthorizedException('Facebook federation identity provider verification failed.');
-    }
-  }
+  // @Post('facebook-login')
+  // async facebookLogin(@Body('token') token: string) {
+  //   try {
+  //     const result = await this.handleFirebaseLogin(token);
+  //     return { message: 'Login success', ...result };
+  //   } catch (error) {
+  //     throw new UnauthorizedException('Facebook federation identity provider verification failed.');
+  //   }
+  // }
 
  private async handleFirebaseLogin(
     token: string,

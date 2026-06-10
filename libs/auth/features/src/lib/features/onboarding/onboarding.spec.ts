@@ -1,16 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Onboarding } from './onboarding';
+import { OnboardingComponent } from './onboarding';
+import { describe, beforeEach, it , expect} from '@jest/globals';
 
 describe('Onboarding', () => {
-  let component: Onboarding;
-  let fixture: ComponentFixture<Onboarding>;
+  let component: OnboardingComponent;
+  let fixture: ComponentFixture<OnboardingComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Onboarding],
+      imports: [OnboardingComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Onboarding);
+    fixture = TestBed.createComponent(OnboardingComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

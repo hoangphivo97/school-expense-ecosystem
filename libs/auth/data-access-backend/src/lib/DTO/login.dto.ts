@@ -1,9 +1,9 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
 
 export class LoginDto {
-  @IsString()
-  @IsNotEmpty({ message: 'Tên đăng nhập không được để trống' })
-  username!: string;
+  @IsEmail({}, { message: 'Email không đúng định dạng' })
+  @IsNotEmpty({ message: 'Email không được để trống' })
+  email!: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Mật khẩu không được để trống' })

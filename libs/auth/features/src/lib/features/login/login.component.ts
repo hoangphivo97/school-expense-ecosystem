@@ -85,26 +85,26 @@ export class LoginComponent implements OnInit {
       .subscribe();
   }
 
-  loginWithFacebook() {
-    if (this.loading) return;
-    this.loading = true;
+  // loginWithFacebook() {
+  //   if (this.loading) return;
+  //   this.loading = true;
 
-    this.authService
-      .signInWithFacebookAccount()
-      .pipe(
-        tap((res: any) => {
-          this.updateTokenAndReRoute(res.token);
-          this.loading = false;
-        }),
-        catchError((err: FirebaseError) => {
-          this.errorModalService.openErrorModal(err);
-          this.loading = false;
-          return throwError(() => err);
-        }),
-      )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
-  }
+  //   this.authService
+  //     .signInWithFacebookAccount()
+  //     .pipe(
+  //       tap((res: any) => {
+  //         this.updateTokenAndReRoute(res.token);
+  //         this.loading = false;
+  //       }),
+  //       catchError((err: FirebaseError) => {
+  //         this.errorModalService.openErrorModal(err);
+  //         this.loading = false;
+  //         return throwError(() => err);
+  //       }),
+  //     )
+  //     .pipe(takeUntilDestroyed(this.destroyRef))
+  //     .subscribe();
+  // }
 
   updateTokenAndReRoute(token: string) {
     this.authStore.setToken(token);
@@ -114,8 +114,6 @@ export class LoginComponent implements OnInit {
       this.router.navigate(['/auth']);
       return;
     }
-    console.log(user)
-    console.log(user.status)
 
     if(user.status === UserStatus.ONBOARDING){
       this.router.navigate(['/auth/onboarding']);

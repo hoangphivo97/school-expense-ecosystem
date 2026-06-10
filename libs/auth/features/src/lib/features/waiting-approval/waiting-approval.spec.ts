@@ -1,16 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { WaitingApproval } from './waiting-approval';
+import { WaitingApprovalComponent } from './waiting-approval';
+import { describe, beforeEach, it , expect} from '@jest/globals';
 
-describe('WaitingApproval', () => {
-  let component: WaitingApproval;
-  let fixture: ComponentFixture<WaitingApproval>;
+describe('WaitingApprovalComponent', () => {
+  let component: WaitingApprovalComponent;
+  let fixture: ComponentFixture<WaitingApprovalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WaitingApproval],
+      imports: [WaitingApprovalComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(WaitingApproval);
+    fixture = TestBed.createComponent(WaitingApprovalComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
