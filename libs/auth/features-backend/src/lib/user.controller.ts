@@ -1,7 +1,8 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
-import { LoginDto, UserService, UserInDb } from '@school-expense-ecosystem/backend/auth/data-access';
+import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { LoginDto, UserService, UserInDb, OnboardingDto } from '@school-expense-ecosystem/backend/auth/data-access';
 import * as admin from 'firebase-admin';
 import { Role, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class UserController {
@@ -12,10 +13,10 @@ export class UserController {
     const validatedUser = await this.userService.validateUser(loginDto.email, loginDto.password);
     const authToken = this.userService.generateJWT(validatedUser);
 
-    return { 
-      message: 'Login success', 
-      token: authToken, 
-      user: validatedUser 
+    return {
+      message: 'Login success',
+      token: authToken,
+      user: validatedUser
     };
   }
 
@@ -39,7 +40,31 @@ export class UserController {
   //   }
   // }
 
- private async handleFirebaseLogin(
+  @Post('onboarding')
+  @UseGuards(JwtAuthGuard)
+  async completeOnboarding(@Req() req: any, @Body() onboardingDto: OnboardingDto) {
+
+    const uid = req.user?.uid;
+
+    if (!uid) {
+      throw new UnauthorizedException('Invalid or expired active session.');
+    }
+
+    // 1. Attempt call Service to update DB
+    const updatedUser = await this.userService.completeOnboarding(uid, onboardingDto);
+
+    // Payload of old JWT contain old data(status: ONBOARDING, ...).
+    // Create new token
+    const freshToken = this.userService.generateJWT(updatedUser);
+
+    return {
+      message: 'Onboarding data processed successfully.',
+      token: freshToken,
+      user: updatedUser
+    };
+  }
+
+  private async handleFirebaseLogin(
     token: string,
   ): Promise<{ token: string; user: UserInDb }> {
     const decodedToken = await admin.auth().verifyIdToken(token);
@@ -47,7 +72,7 @@ export class UserController {
 
     const userEmail = email ?? `no-email-${uid}@example.com`;
     let user = await this.userService.findByUid(uid);
-    
+
     if (!user) {
       user = await this.userService.createUser({
         uid,

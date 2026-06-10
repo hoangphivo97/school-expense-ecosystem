@@ -537,7 +537,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/animations@npm:^22.0.0":
+"@angular/animations@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/animations@npm:22.0.0"
   dependencies:
@@ -630,17 +630,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/cdk@npm:^20.0.0":
-  version: 20.2.14
-  resolution: "@angular/cdk@npm:20.2.14"
+"@angular/cdk@npm:22.0.0":
+  version: 22.0.0
+  resolution: "@angular/cdk@npm:22.0.0"
   dependencies:
     parse5: "npm:^8.0.0"
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": ^20.0.0 || ^21.0.0
-    "@angular/core": ^20.0.0 || ^21.0.0
+    "@angular/common": ^22.0.0 || ^23.0.0
+    "@angular/core": ^22.0.0 || ^23.0.0
+    "@angular/platform-browser": ^22.0.0 || ^23.0.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/8f6463252d942cc2a62b861fcb206abeca097e89018191c7d8f390187a7ff6917ee42918e53b4da40e2f9d407fb42bb94b515d82e1daa17fa0c7be4d4fce6de8
+  checksum: 10c0/67f9ee6add9be9aa8de2a8b59fb292d7ca1e97773c3b6e76f8ce7d7d38b2d038a62378755607da0b152172f8dd0aed16b149ba27f09e254c3345a10755410976
   languageName: node
   linkType: hard
 
@@ -672,7 +673,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/common@npm:^22.0.0":
+"@angular/common@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/common@npm:22.0.0"
   dependencies:
@@ -684,7 +685,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/compiler-cli@npm:^22.0.0":
+"@angular/compiler-cli@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/compiler-cli@npm:22.0.0"
   dependencies:
@@ -709,7 +710,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/compiler@npm:^22.0.0":
+"@angular/compiler@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/compiler@npm:22.0.0"
   dependencies:
@@ -718,7 +719,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/core@npm:^22.0.0":
+"@angular/core@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/core@npm:22.0.0"
   dependencies:
@@ -762,7 +763,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/forms@npm:^22.0.0":
+"@angular/forms@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/forms@npm:22.0.0"
   dependencies:
@@ -778,7 +779,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/localize@npm:^22.0.0":
+"@angular/localize@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/localize@npm:22.0.0"
   dependencies:
@@ -797,23 +798,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/material@npm:^20.0.0":
-  version: 20.2.14
-  resolution: "@angular/material@npm:20.2.14"
+"@angular/material@npm:22.0.0":
+  version: 22.0.0
+  resolution: "@angular/material@npm:22.0.0"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/cdk": 20.2.14
-    "@angular/common": ^20.0.0 || ^21.0.0
-    "@angular/core": ^20.0.0 || ^21.0.0
-    "@angular/forms": ^20.0.0 || ^21.0.0
-    "@angular/platform-browser": ^20.0.0 || ^21.0.0
+    "@angular/cdk": 22.0.0
+    "@angular/common": ^22.0.0 || ^23.0.0
+    "@angular/core": ^22.0.0 || ^23.0.0
+    "@angular/forms": ^22.0.0 || ^23.0.0
+    "@angular/platform-browser": ^22.0.0 || ^23.0.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/6acfc033f7817f0237968fcc5e24500d949afecf88e3d6e20fcbcdeeac4747942a97e210475511d96db1157519df4e5089d8a36e2f1ad53fad5169bb452c0b40
+  checksum: 10c0/035b6c97ae163c45337fc7187027167ab42f2d3917957d8631f64111fb35b10bc8ff4b3e6efa0fff4980bee825f759b7ea429b5a5ed793e98be44cda36499a47
   languageName: node
   linkType: hard
 
-"@angular/platform-browser-dynamic@npm:^22.0.0":
+"@angular/platform-browser-dynamic@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/platform-browser-dynamic@npm:22.0.0"
   dependencies:
@@ -827,7 +828,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/platform-browser@npm:^22.0.0":
+"@angular/platform-browser@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/platform-browser@npm:22.0.0"
   dependencies:
@@ -843,7 +844,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/platform-server@npm:^22.0.0":
+"@angular/platform-server@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/platform-server@npm:22.0.0"
   dependencies:
@@ -859,7 +860,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/router@npm:^22.0.0":
+"@angular/router@npm:22.0.0":
   version: 22.0.0
   resolution: "@angular/router@npm:22.0.0"
   dependencies:
@@ -6619,6 +6620,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/passport@npm:^11.0.5":
+  version: 11.0.5
+  resolution: "@nestjs/passport@npm:11.0.5"
+  peerDependencies:
+    "@nestjs/common": ^10.0.0 || ^11.0.0
+    passport: ^0.5.0 || ^0.6.0 || ^0.7.0
+  checksum: 10c0/24175f6791abf02b70c3c0705ce56fefd3981fdece0da7e58325f790ce71aa6932b31a87a2ceaa52b6d9d8edab3a7c049f6081e4b4d59bcdfcaa00383b64ae02
+  languageName: node
+  linkType: hard
+
 "@nestjs/platform-express@npm:^11.0.0":
   version: 11.1.24
   resolution: "@nestjs/platform-express@npm:11.1.24"
@@ -9865,7 +9876,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:9.0.10, @types/jsonwebtoken@npm:^9.0.4":
+"@types/jsonwebtoken@npm:*, @types/jsonwebtoken@npm:9.0.10, @types/jsonwebtoken@npm:^9.0.4":
   version: 9.0.10
   resolution: "@types/jsonwebtoken@npm:9.0.10"
   dependencies:
@@ -9927,6 +9938,35 @@ __metadata:
   version: 4.0.2
   resolution: "@types/parse-json@npm:4.0.2"
   checksum: 10c0/b1b863ac34a2c2172fbe0807a1ec4d5cb684e48d422d15ec95980b81475fac4fdb3768a8b13eef39130203a7c04340fc167bae057c7ebcafd7dec9fe6c36aeb1
+  languageName: node
+  linkType: hard
+
+"@types/passport-jwt@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@types/passport-jwt@npm:4.0.1"
+  dependencies:
+    "@types/jsonwebtoken": "npm:*"
+    "@types/passport-strategy": "npm:*"
+  checksum: 10c0/0ced0eaa7bb379d674821108d9bc6758223f1a5f2b9790ec78d3eaaccce6a58a424cf8ed22b53d813740ec53d929e21d92cf794ef0fb30c732866750763c0d7a
+  languageName: node
+  linkType: hard
+
+"@types/passport-strategy@npm:*":
+  version: 0.2.38
+  resolution: "@types/passport-strategy@npm:0.2.38"
+  dependencies:
+    "@types/express": "npm:*"
+    "@types/passport": "npm:*"
+  checksum: 10c0/d7d2b1782a0845bd8914250aa9213a23c8d9c2225db46d854b77f2bf0129a789f46d4a5e9ad336eca277fc7e0a051c0a2942da5c864e7c6710763f102d9d4295
+  languageName: node
+  linkType: hard
+
+"@types/passport@npm:*, @types/passport@npm:^1.0.17":
+  version: 1.0.17
+  resolution: "@types/passport@npm:1.0.17"
+  dependencies:
+    "@types/express": "npm:*"
+  checksum: 10c0/09039429a9178117a80880c4e7d437abc83216eac5e0c97bc6f14a03a59193386cff484931dc880693f8b13a512c366ef7a51ecd8cc1a63f17366be68161f633
   languageName: node
   linkType: hard
 
@@ -21397,10 +21437,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"passport-strategy@npm:^1.0.0":
+"passport-strategy@npm:1.x.x, passport-strategy@npm:^1.0.0":
   version: 1.0.0
   resolution: "passport-strategy@npm:1.0.0"
   checksum: 10c0/cf4cd32e1bf2538a239651581292fbb91ccc83973cde47089f00d2014c24bed63d3e65af21da8ddef649a8896e089eb9c3ac9ca639f36c797654ae9ee4ed65e1
+  languageName: node
+  linkType: hard
+
+"passport@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "passport@npm:0.7.0"
+  dependencies:
+    passport-strategy: "npm:1.x.x"
+    pause: "npm:0.0.1"
+    utils-merge: "npm:^1.0.1"
+  checksum: 10c0/08c940b86e4adbfe43e753f8097300a5a9d1ce9a3aa002d7b12d27770943a1a87202c54597c0f04dbfd4117d67de76303433577512fc19c7e364fec37b0d3fc5
   languageName: node
   linkType: hard
 
@@ -21491,6 +21542,13 @@ __metadata:
   version: 2.0.1
   resolution: "pathval@npm:2.0.1"
   checksum: 10c0/460f4709479fbf2c45903a65655fc8f0a5f6d808f989173aeef5fdea4ff4f303dc13f7870303999add60ec49d4c14733895c0a869392e9866f1091fa64fd7581
+  languageName: node
+  linkType: hard
+
+"pause@npm:0.0.1":
+  version: 0.0.1
+  resolution: "pause@npm:0.0.1"
+  checksum: 10c0/f362655dfa7f44b946302c5a033148852ed5d05f744bd848b1c7eae6a543f743e79c7751ee896ba519fd802affdf239a358bb2ea5ca1b1c1e4e916279f83ab75
   languageName: node
   linkType: hard
 
@@ -23597,21 +23655,21 @@ __metadata:
     "@angular-devkit/build-angular": "npm:^22.0.0"
     "@angular-devkit/core": "npm:^22.0.0"
     "@angular-devkit/schematics": "npm:^22.0.0"
-    "@angular/animations": "npm:^22.0.0"
-    "@angular/cdk": "npm:^20.0.0"
+    "@angular/animations": "npm:22.0.0"
+    "@angular/cdk": "npm:22.0.0"
     "@angular/cli": "npm:^22.0.0"
-    "@angular/common": "npm:^22.0.0"
-    "@angular/compiler": "npm:^22.0.0"
-    "@angular/compiler-cli": "npm:^22.0.0"
-    "@angular/core": "npm:^22.0.0"
+    "@angular/common": "npm:22.0.0"
+    "@angular/compiler": "npm:22.0.0"
+    "@angular/compiler-cli": "npm:22.0.0"
+    "@angular/core": "npm:22.0.0"
     "@angular/fire": "npm:^20.0.1"
-    "@angular/forms": "npm:^22.0.0"
-    "@angular/localize": "npm:^22.0.0"
-    "@angular/material": "npm:^20.0.0"
-    "@angular/platform-browser": "npm:^22.0.0"
-    "@angular/platform-browser-dynamic": "npm:^22.0.0"
-    "@angular/platform-server": "npm:^22.0.0"
-    "@angular/router": "npm:^22.0.0"
+    "@angular/forms": "npm:22.0.0"
+    "@angular/localize": "npm:22.0.0"
+    "@angular/material": "npm:22.0.0"
+    "@angular/platform-browser": "npm:22.0.0"
+    "@angular/platform-browser-dynamic": "npm:22.0.0"
+    "@angular/platform-server": "npm:22.0.0"
+    "@angular/router": "npm:22.0.0"
     "@babel/core": "npm:^7.14.5"
     "@babel/preset-react": "npm:^7.14.5"
     "@datorama/akita": "npm:^8.0.1"
@@ -23628,6 +23686,7 @@ __metadata:
     "@nestjs/core": "npm:^11.0.0"
     "@nestjs/jwt": "npm:^11.0.2"
     "@nestjs/mongoose": "npm:^11.0.4"
+    "@nestjs/passport": "npm:^11.0.5"
     "@nestjs/platform-express": "npm:^11.0.0"
     "@nestjs/schematics": "npm:^11.0.0"
     "@nestjs/testing": "npm:^11.0.0"
@@ -23665,6 +23724,8 @@ __metadata:
     "@types/express": "npm:^4.17.17"
     "@types/jest": "npm:^29.5.14"
     "@types/node": "npm:20.19.9"
+    "@types/passport": "npm:^1.0.17"
+    "@types/passport-jwt": "npm:^4.0.1"
     "@types/react": "npm:^19.0.0"
     "@types/react-dom": "npm:^19.0.0"
     "@typescript-eslint/utils": "npm:^8.40.0"
@@ -23702,6 +23763,7 @@ __metadata:
     mongoose: "npm:^9.0.2"
     ng-apexcharts: "npm:^1.12.0"
     nx: "npm:22.7.5"
+    passport: "npm:^0.7.0"
     passport-jwt: "npm:^4.0.1"
     prettier: "npm:~3.6.2"
     react: "npm:^19.2.3"
@@ -25954,7 +26016,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"utils-merge@npm:1.0.1":
+"utils-merge@npm:1.0.1, utils-merge@npm:^1.0.1":
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: 10c0/02ba649de1b7ca8854bfe20a82f1dfbdda3fb57a22ab4a8972a63a34553cf7aa51bc9081cf7e001b035b88186d23689d69e71b510e610a09a4c66f68aa95b672
