@@ -1,31 +1,18 @@
 import { Routes } from '@angular/router';
-import { rolesGuard } from '@school-expense-ecosystem/auth/data-access';
-import { Role } from '@school-expense-ecosystem/auth/types';
+import { ExpenseListComponent } from './features/expense-list/expense-list.component';
+import { ReportComponent } from './features/report/report.component';
 
-export const EXPENSES_ROUTES: Routes = [
+export const EXPENSE_ROUTES_EXPENSE_LIST: Routes = [
   {
     path: '',
-    children: [
-      {
-        path: 'expense',
-        canActivate: [rolesGuard],
-        data: {
-          allowedRoles: [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER]
-        },
-        loadComponent: () =>
-          import('./features/expense-list/expense-list.component').then(
-            (m) => m.ExpenseListComponent
-          ),
-      },
-      {
-        path: 'report',
-        canActivate: [rolesGuard],
-        data: {
-          allowedRoles: [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN]
-        },
-        loadComponent: () =>
-          import('./features/report/report.component').then((m) => m.ReportComponent),
-      },
-    ]
+    component: ExpenseListComponent
   }
-];
+]
+
+export const EXPENSE_ROUTES_REPORT: Routes = [
+  {
+    path: '',
+    component: ReportComponent
+
+  }
+]

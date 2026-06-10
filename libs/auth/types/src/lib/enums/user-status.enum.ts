@@ -1,5 +1,6 @@
 export enum UserStatus {
   PENDING = 'pending',
   ACTIVE = 'active', 
-  REJECTED = 'rejected'
+  REJECTED = 'rejected',
+  ONBOARDING = 'onboarding'
 }

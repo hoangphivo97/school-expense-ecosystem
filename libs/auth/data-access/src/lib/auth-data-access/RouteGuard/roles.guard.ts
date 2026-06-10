@@ -17,18 +17,17 @@ export const rolesGuard: CanActivateFn = (route, state) => {
     map((user) => {
       // 1. Standard authentication check
       if (!user) {
-        return router.createUrlTree(['/auth/login']);
+        return router.createUrlTree(['/auth']);
       }
 
       /**
-       * 🚨 ANTI-INFINITE LOOP SHIELD:
        * If the user session exists but lacks an assigned role, it indicates an unboarded or corrupted account state.
        * We must actively evict the toxic token/session before redirecting to prevent the Auth/Guest rebound loop.
        */
       if (!user.role) {
         console.warn('Security Alert: Authenticated user lacks a valid system role. Evicting session.');
         authService.signOut(); // 🧼 Wipe out localstorage tokens/Akita store state cleanly
-        return router.createUrlTree(['/auth/login']);
+        return router.createUrlTree(['/auth']);
       }
 
       // 2. Standard authorization check
