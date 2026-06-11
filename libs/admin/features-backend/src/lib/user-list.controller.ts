@@ -1,8 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { UserListService } from './user-list.service';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
+import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/backend/auth/features'
 
 @Controller('admin/users')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.LEVEL_0_ADMIN)
 export class UserListController {
   constructor(private readonly userListService: UserListService) {}
 
