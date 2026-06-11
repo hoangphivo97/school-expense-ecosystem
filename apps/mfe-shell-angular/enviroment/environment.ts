@@ -5,4 +5,5 @@ export const enviroment = {
   firebase: firebaseConfig,
   useAuthEmulator: true, // <— flag cho test
   authEmulatorHost: 'http://localhost:9099',
+  apiUrl: 'http://localhost:3000'
 };

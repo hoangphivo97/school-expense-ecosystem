@@ -13,13 +13,14 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
 import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
+import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens'; 
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private auth = inject(Auth);
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = `${API_BASE_URL}/api/auth`;
   private user$ = new BehaviorSubject<User | null>(null);
   private loading$ = new BehaviorSubject<boolean>(true);
   private http = inject(HttpClient);

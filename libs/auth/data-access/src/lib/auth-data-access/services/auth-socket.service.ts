@@ -3,6 +3,7 @@ import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
 import { AuthService } from './auth.service';
 import { UserStatus } from '@school-expense-ecosystem/auth/types';
 import { io, Socket } from "socket.io-client";
+import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
 
 @Injectable({ providedIn: 'root' })
@@ -31,7 +32,7 @@ export class AuthSocketService {
   private connectSocket(userId: string): void {
     if (this.socket?.connected) return;
 
-    this.socket = io('http://localhost:3000/auth-status', {
+    this.socket = io(`${API_BASE_URL}/auth-status`, {
       query: { userId }
     });
 

@@ -1,0 +1,43 @@
+// Custom alignment tweaks alongside Bootstrap styles
+.mat-field-custom-width {
+  max-width: 340px;
+}
+
+.font-monospace-utils code {
+  font-family: var(--bs-font-monospace);
+  color: #6f42c1;
+  background-color: #f8f9fa;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+
+// Customized typography and color weights for badge chips
+.badge-custom-role {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+  padding: 0.4em 0.7em;
+  border-radius: 4px;
+}
+
+.badge-custom-status {
+  font-weight: 600;
+  padding: 0.4em 0.7em;
+  border-radius: 4px;
+  text-transform: capitalize;
+
+  &.status-active {
+    background-color: #dcfce7;
+    color: #15803d;
+  }
+
+  &.status-pending {
+    background-color: #fef9c3;
+    color: #a16207;
+  }
+
+  &.status-rejected {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+}
