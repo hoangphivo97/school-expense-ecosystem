@@ -1,20 +1,15 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { map, take } from 'rxjs/operators';
-import { AuthQuery } from './Akita/auth.query';
+import { AuthSignalStore } from './auth-signal.store';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-  const authQuery = inject(AuthQuery);
+  const authStore = inject(AuthSignalStore);
 
-  return authQuery.user$.pipe(
-    take(1),
-    map((user) => {
-      if (user) {
-        return true;
-      }
-      
-      return router.createUrlTree(['/auth']);
-    })
-  );
+  if (authStore.user()) {
+    return true; 
+  }
+
+  // Target route redirection to login interface if token resolution evaluates to void
+  return router.createUrlTree(['/auth']); 
 };

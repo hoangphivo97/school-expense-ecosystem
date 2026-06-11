@@ -12,6 +12,7 @@ import { BehaviorSubject, from, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
+import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
 
 @Injectable({
   providedIn: 'root',
@@ -23,6 +24,7 @@ export class AuthService {
   private loading$ = new BehaviorSubject<boolean>(true);
   private http = inject(HttpClient);
   private router = inject(Router);
+  private authStore = inject(AuthSignalStore)
 
   constructor() {
     onAuthStateChanged(this.auth, (user: User | null) => {
@@ -72,8 +74,14 @@ export class AuthService {
   }
 
   async signOut() {
-    await this.auth.signOut();
-    this.router.navigate(['/auth']);
+    try {
+      await this.auth.signOut();
+    } catch (error) {
+      console.error('Backend sign-out failed:', error);
+    } finally {
+      this.authStore.updateAuthState(null, null);
+      this.router.navigate(['/auth']);
+    }
   }
 
   getFirebaseToken(forceRefresh = false) {

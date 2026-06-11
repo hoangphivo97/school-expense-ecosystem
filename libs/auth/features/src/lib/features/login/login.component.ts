@@ -6,7 +6,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService, AuthStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse, UserStatus } from '@school-expense-ecosystem/auth/types';
 import { catchError, tap, throwError } from 'rxjs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   readonly router = inject(Router);
   public readonly authService = inject(AuthService)
-  private readonly authStore = inject(AuthStore)
+  private readonly authStore = inject(AuthSignalStore)
   private readonly errorModalService = inject(ErrorModalService);
 
   loading = false;
@@ -85,7 +85,7 @@ export class LoginComponent implements OnInit {
   }
 
   updateTokenAndReRoute(token: string, user: any) {
-    this.authStore.update({ token, user });
+    this.authStore.updateAuthState(token, user);
 
     if (!user) {
       this.router.navigate(['/auth']);
