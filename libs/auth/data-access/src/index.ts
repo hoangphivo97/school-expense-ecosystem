@@ -6,3 +6,4 @@ export * from './lib/auth-data-access/RouteGuard/auth.guard'
 export * from './lib/auth-data-access/RouteGuard/unauth.guard';
 export * from './lib/auth-data-access/RouteGuard/auth-signal.store';
 export * from './lib/auth-data-access/RouteGuard/waiting-approval.guard';
+export * from './lib/auth-data-access/services/auth-socket.service';

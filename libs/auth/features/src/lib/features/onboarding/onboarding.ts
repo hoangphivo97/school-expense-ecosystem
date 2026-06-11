@@ -89,7 +89,7 @@ export class OnboardingComponent implements OnInit {
         tap((response) => {
           this.loading = false;
 
-          this.authStore.saveSession(response.token)
+          this.authStore.updateAuthState(response.token)
           
           this.router.navigate(['/auth/waiting-approval']);
         }),

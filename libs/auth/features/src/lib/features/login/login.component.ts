@@ -85,7 +85,7 @@ export class LoginComponent implements OnInit {
   }
 
   updateTokenAndReRoute(token: string, user: any) {
-    this.authStore.saveSession(token, user);
+    this.authStore.updateAuthState(token, user);
 
     if (!user) {
       this.router.navigate(['/auth']);
