@@ -16,7 +16,7 @@ export const AUTH_ROUTES: Routes = [
   },
   {
     path: 'waiting-approval',
-    canActivate: [authGuard, waitingApprovalGuard],
+    canActivate: [authGuard],
     component: WaitingApprovalComponent
   }
 ];

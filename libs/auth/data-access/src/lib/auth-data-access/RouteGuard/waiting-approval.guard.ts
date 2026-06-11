@@ -1,5 +1,4 @@
-import { inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformServer } from '@angular/common';
+import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthSignalStore } from './auth-signal.store';
 import { UserStatus } from '@school-expense-ecosystem/auth/types';
@@ -7,11 +6,6 @@ import { UserStatus } from '@school-expense-ecosystem/auth/types';
 export const waitingApprovalGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const authStore = inject(AuthSignalStore);
-  const platformId = inject(PLATFORM_ID);
-
-  if (isPlatformServer(platformId)) {
-    return true;
-  }
 
   const user = authStore.user();
   if (!user) {

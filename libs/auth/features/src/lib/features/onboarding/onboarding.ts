@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthService } from '@school-expense-ecosystem/auth/data-access';
+import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 import { catchError, tap, throwError } from 'rxjs';
 
 @Component({
@@ -34,6 +34,7 @@ export class OnboardingComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router)
+  private readonly authStore = inject(AuthSignalStore)
 
   loading = false;
   onboardingForm!: FormGroup;
@@ -87,10 +88,8 @@ export class OnboardingComponent implements OnInit {
       .pipe(
         tap((response) => {
           this.loading = false;
-          
-          // BEST PRACTICE: Overwrite the old token in your local state/localStorage 
-          // with the fresh, updated token containing the new roles and completed claims
-          // e.g., localStorage.setItem('token', response.token);
+
+          this.authStore.saveSession(response.token)
           
           this.router.navigate(['/auth/waiting-approval']);
         }),
