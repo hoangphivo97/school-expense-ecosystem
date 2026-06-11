@@ -72,6 +72,9 @@
       ],
       "@school-expense-ecosystem/dashboard/features": [
         "./libs/dashboard/features/src/index.ts"
+      ],
+      "@school-expense-ecosystem/auth/ui": [
+        "./libs/auth/ui/src/index.ts"
       ]
     }
   },

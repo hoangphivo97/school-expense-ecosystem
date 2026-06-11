@@ -1,0 +1,17 @@
+.waiting-card {
+  max-width: 520px;
+  width: 100%;
+  border-radius: 12px;
+  background-color: var(--mat-sys-surface, #ffffff);
+
+  .status-icon {
+    font-size: 72px;
+    height: 72px;
+    width: 72px;
+    line-height: 72px;
+  }
+
+  .alert {
+    border-radius: 8px;
+  }
+}
