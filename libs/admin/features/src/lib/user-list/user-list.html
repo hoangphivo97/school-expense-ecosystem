@@ -1,0 +1,90 @@
+<p>UserList works!</p>
+<div class="container mt-4">
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      
+      <div class="row align-items-center mb-3">
+        <div class="col-md-7 col-12">
+          <h2 class="fw-bold text-dark mb-3 mb-md-0">System User Directory</h2>
+        </div>
+        <div class="col-md-5 col-12 d-flex justify-content-md-end">
+          <mat-form-field appearance="outline" class="w-100 mat-field-custom-width">
+            <mat-label>Search by name, email or ID...</mat-label>
+            <input
+              matInput
+              type="text"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      @if (isLoading()) {
+        <div class="d-flex flex-column align-items-center justify-content-center my-5 py-4">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p class="text-muted mt-3 fw-medium small">Synchronizing directory records...</p>
+        </div>
+      } 
+      @else if (errorMessage()) {
+        <div class="alert alert-danger d-flex align-items-center justify-content-between m-0" role="alert">
+          <div class="d-flex align-items-center">
+            <span class="fs-5 me-2">⚠️</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
+          <button (click)="loadUsers()" class="btn btn-outline-danger btn-sm fw-semibold">
+            Retry Connection
+          </button>
+        </div>
+      } 
+      @else {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle border-0 mb-0">
+            <thead class="table-light text-uppercase font-monospace small text-muted">
+              <tr>
+                <th class="py-3 px-4 border-0">Full Name</th>
+                <th class="py-3 border-0">Email Address</th>
+                <th class="py-3 border-0">Student/Staff ID</th>
+                <th class="py-3 border-0">System Role</th>
+                <th class="py-3 px-4 border-0 text-end">Account Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of filteredUsers(); track user.uid) {
+                <tr>
+                  <td class="py-3 px-4 border-bottom fw-semibold text-dark">
+                    {{ user.fullName }}
+                  </td>
+                  <td class="py-3 border-bottom text-secondary">
+                    {{ user.email }}
+                  </td>
+                  <td class="py-3 border-bottom font-monospace-utils">
+                    <code>{{ user.userCode || 'N/A' }}</code>
+                  </td>
+                  <td class="py-3 border-bottom">
+                    <span class="badge badge-custom-role text-xs">
+                      {{ user.role }}
+                    </span>
+                  </td>
+                  <td class="py-3 px-4 border-bottom text-end">
+                    <span class="badge badge-custom-status" [ngClass]="'status-' + user.status?.toLowerCase()">
+                      {{ user.status }}
+                    </span>
+                  </td>
+                </tr>
+              } 
+              @empty {
+                <tr>
+                  <td colspan="5" class="text-center py-5 border-0 text-muted">
+                    <p class="mb-0 fs-6 fst-italic">No user records matched your criteria.</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+    </div>
+  </div>
+</div>

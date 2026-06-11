@@ -78,6 +78,15 @@
       ],
       "@school-expense-ecosystem/admin/features-backend": [
         "./libs/admin/features-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/admin/features": [
+        "./libs/admin/features/src/index.ts"
+      ],
+      "@school-expense-ecosystem/admin/data-access": [
+        "./libs/admin/data-access/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/tokens": [
+        "./libs/shared/tokens/src/index.ts"
       ]
     }
   },

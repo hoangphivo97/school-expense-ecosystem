@@ -1,5 +1,5 @@
 export default {
-  displayName: 'admin-features-backend',
+  displayName: 'user-list-backend',
   preset: '../../../jest.preset.js',
   testEnvironment: 'node',
   transform: {

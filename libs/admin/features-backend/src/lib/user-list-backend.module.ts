@@ -7,4 +7,4 @@ import { UserListController } from './user-list.controller';
   providers: [UserListService],
   exports: [UserListService],
 })
-export class AdminFeaturesBackendModule {}
+export class UserListBackendModule {}

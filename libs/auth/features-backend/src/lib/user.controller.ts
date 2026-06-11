@@ -2,7 +2,7 @@ import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@
 import { LoginDto, UserService, UserInDb, OnboardingDto } from '@school-expense-ecosystem/backend/auth/data-access';
 import * as admin from 'firebase-admin';
 import { Role, UserStatus } from '@school-expense-ecosystem/auth/types';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class UserController {
@@ -29,16 +29,6 @@ export class UserController {
       throw new UnauthorizedException('Google federation identity provider verification failed.');
     }
   }
-
-  // @Post('facebook-login')
-  // async facebookLogin(@Body('token') token: string) {
-  //   try {
-  //     const result = await this.handleFirebaseLogin(token);
-  //     return { message: 'Login success', ...result };
-  //   } catch (error) {
-  //     throw new UnauthorizedException('Facebook federation identity provider verification failed.');
-  //   }
-  // }
 
   @Post('onboarding')
   @UseGuards(JwtAuthGuard)
