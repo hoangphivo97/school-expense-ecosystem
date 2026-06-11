@@ -1,35 +1,29 @@
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { map, take } from 'rxjs/operators';
-import { AuthQuery } from './Akita/auth.query';
 import { UserStatus } from '@school-expense-ecosystem/auth/types';
+import { AuthSignalStore } from './auth-signal.store';
+import { isPlatformServer } from '@angular/common';
 
 export const unauthGuard: CanActivateFn = (route, state) => {
-  const authQuery = inject(AuthQuery);
+  const authStore = inject(AuthSignalStore);
   const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
 
-  return authQuery.select('user').pipe(
-    take(1),
-    map((user) => {
-      if (!user) {
-        return true;
-      }
+  if (isPlatformServer(platformId)) {
+    return true;
+  }
 
-      if (user.status === UserStatus.ONBOARDING) {
-        if (state.url === '/auth/onboarding') return true;
-        return router.createUrlTree(['/auth/onboarding']);
-      }
+  const user = authStore.user();
 
-      if (user.status === UserStatus.PENDING) {
-        if (state.url === '/auth/waiting-approval') return true; 
-        return router.createUrlTree(['/auth/waiting-approval']);
-      }
+  if (user) {
+    if (user.status === UserStatus.ONBOARDING) {
+      return router.createUrlTree(['/auth/onboarding']);
+    } else if (user.status === UserStatus.PENDING) {
+      return router.createUrlTree(['/auth/waiting-approval']);
+    } else if (user.status === UserStatus.ACTIVE) {
+      return router.createUrlTree(['/dashboard']);
+    }
+  }
 
-      if (user.status === UserStatus.ACTIVE) {
-        return router.createUrlTree(['/dashboard']);
-      }
-
-      return true;
-    })
-  );
+  return true;
 };

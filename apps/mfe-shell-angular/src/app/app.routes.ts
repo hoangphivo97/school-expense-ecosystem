@@ -50,7 +50,7 @@ export const routes: Routes = [
         path: 'budget-manager',
         canActivate: [rolesGuard],
         data: {
-          allowedRoles: [Role.LEVEL_1_FINANCE]
+          roles: [Role.LEVEL_1_FINANCE]
         },
         loadChildren: () =>
           import('@school-expense-ecosystem/finance/features').then(

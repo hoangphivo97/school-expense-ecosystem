@@ -1,41 +1,42 @@
 // libs/auth/data-access/src/lib/auth-data-access/RouteGuard/roles.guard.ts
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { map, take } from 'rxjs/operators';
-import { AuthQuery } from './Akita/auth.query';
-import { AuthService } from './auth.service'; // ✅ Import your AuthService or AuthStore to handle logout
+import { AuthService } from '../services/auth.service';
+import { AuthSignalStore } from './auth-signal.store';
+import { isPlatformServer } from '@angular/common';
+import { Role } from '@school-expense-ecosystem/auth/types';
 
 export const rolesGuard: CanActivateFn = (route, state) => {
-  const authQuery = inject(AuthQuery);
+  const authStore = inject(AuthSignalStore);
   const authService = inject(AuthService); // ✅ Inject service to clear broken sessions
   const router = inject(Router);
-  
-  const allowedRoles = route.data?.['allowedRoles'];
+  const platformId = inject(PLATFORM_ID);
 
-  return authQuery.select('user').pipe(
-    take(1),
-    map((user) => {
-      // 1. Standard authentication check
-      if (!user) {
-        return router.createUrlTree(['/auth']);
-      }
+  if (isPlatformServer(platformId)) {
+    return true;
+  }
 
-      /**
-       * If the user session exists but lacks an assigned role, it indicates an unboarded or corrupted account state.
-       * We must actively evict the toxic token/session before redirecting to prevent the Auth/Guest rebound loop.
-       */
-      if (!user.role) {
-        console.warn('Security Alert: Authenticated user lacks a valid system role. Evicting session.');
-        authService.signOut(); // 🧼 Wipe out localstorage tokens/Akita store state cleanly
-        return router.createUrlTree(['/auth']);
-      }
+  const user = authStore.user();
+  if (!user) {
+    return router.createUrlTree(['/auth']);
+  }
 
-      // 2. Standard authorization check
-      if (allowedRoles && !allowedRoles.includes(user.role)) {
-        return router.createUrlTree(['/dashboard']);
-      }
+  const expectedRoles = route.data['roles'] as Role[];
+  if (!expectedRoles || expectedRoles.length === 0) {
+    return true;
+  }
 
-      return true;
-    })
-  );
+  /**
+   * Synchronous validation checking if user properties contain matching role criteria matches
+   */
+  const hasRequiredRole = expectedRoles.includes(user.role);
+
+  if (hasRequiredRole) {
+    return true;
+  }
+
+  /**
+   * Access denied due to privilege mismatch. Forwarding user back to core workspace dashboard
+   */
+  return router.createUrlTree(['/dashboard']);
 };

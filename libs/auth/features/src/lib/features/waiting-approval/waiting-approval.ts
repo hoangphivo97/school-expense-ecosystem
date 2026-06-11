@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthQuery, AuthService } from '@school-expense-ecosystem/auth/data-access';
+import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 import { UserStatus } from '@school-expense-ecosystem/auth/types';
 import { MatButton } from '@angular/material/button';
 
@@ -20,14 +20,14 @@ import { MatButton } from '@angular/material/button';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WaitingApprovalComponent {
-  private readonly authQuery = inject(AuthQuery);
+  private readonly authStore = inject(AuthSignalStore);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService)
 
   /**
    * Continuous reactive stream track converted into a modern Angular Signal
    */
-  readonly user = toSignal(this.authQuery.user$);
+  readonly user = this.authStore.user;
 
   constructor() {
     /**
@@ -38,9 +38,13 @@ export class WaitingApprovalComponent {
       const currentStatus = this.user()?.status;
 
       if (currentStatus === UserStatus.ACTIVE) {
-        this.router.navigate(['/dashboard']); 
+        Promise.resolve().then(() => {
+          this.router.navigate(['/dashboard']);
+        });
       } else if (currentStatus === UserStatus.REJECTED) {
-        this.router.navigate(['/auth/rejected']);
+        Promise.resolve().then(() => {
+          this.router.navigate(['/auth/rejected']);
+        });
       }
     });
   }

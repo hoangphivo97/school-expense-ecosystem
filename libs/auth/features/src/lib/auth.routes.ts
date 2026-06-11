@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@school-expense-ecosystem/auth/data-access';
+import { authGuard, waitingApprovalGuard } from '@school-expense-ecosystem/auth/data-access';
 import { LoginComponent } from './features/login/login.component';
 import { OnboardingComponent } from './features/onboarding/onboarding';
 import { WaitingApprovalComponent } from './features/waiting-approval/waiting-approval';
@@ -16,7 +16,7 @@ export const AUTH_ROUTES: Routes = [
   },
   {
     path: 'waiting-approval',
-    canActivate: [authGuard],
+    canActivate: [authGuard, waitingApprovalGuard],
     component: WaitingApprovalComponent
   }
 ];
