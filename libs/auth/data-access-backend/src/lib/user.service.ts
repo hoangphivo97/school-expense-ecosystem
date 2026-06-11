@@ -1,16 +1,14 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
 import * as admin from 'firebase-admin';
 import { UserInDb } from '../lib/interface/user-db.interface';
 import { OnboardingDto } from './DTO/onboarding.dto';
-import { UserStatus } from '@school-expense-ecosystem/auth/types';
+import { Role, UserStatus } from '@school-expense-ecosystem/auth/types';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -57,34 +55,34 @@ export class UserService implements OnModuleInit {
     return this.jwtService.sign(payload);
   }
 
-  async validateUser(email: string, password: string): Promise<UserInDb> {
-    const snapshot = await this.db.collection('users').where('email', '==', email).limit(1).get();
+  async handleFirebaseLogin(token: string): Promise<{ token: string; user: UserInDb }> {
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      const { uid, email, name } = decodedToken;
 
-    if (snapshot.empty) {
-      throw new BadRequestException('Email or password incorrect');
+      const userEmail = email ?? `no-email-${uid}@example.com`;
+
+      let user = await this.findByUid(uid);
+
+      if (!user) {
+        user = await this.createUser({
+          uid,
+          email: userEmail,
+          username: name ?? 'Unknown User',
+          role: Role.LEVEL_3_USER,
+          status: UserStatus.ONBOARDING
+        });
+      }
+
+      const authToken = this.generateJWT(user);
+
+      return { token: authToken, user };
+    } catch (error) {
+      throw new UnauthorizedException('Fail to verify your account or session token expired');
     }
-
-    const user = snapshot.docs[0].data() as UserInDb;
-
-    // So sánh mật khẩu đã hash lưu trong Firestore với mật khẩu user nhập vào
-    const isPasswordValid = await bcrypt.compare(password, user.password || '');
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Email or password incorrect');
-    }
-
-    return user;
-  }
-
-  // Issue JWT token for the user after successful login
-  async login(user: UserInDb): Promise<{ access_token: string }> {
-    return {
-      access_token: this.generateJWT(user),
-    };
   }
 
   async completeOnboarding(uid: string, dto: OnboardingDto): Promise<UserInDb> {
-    // 1. Kiểm tra User có tồn tại trong hệ thống hay không
     const user = await this.findByUid(uid);
     if (!user) {
       throw new NotFoundException('User profile not found in database.');
@@ -96,7 +94,7 @@ export class UserService implements OnModuleInit {
       userType: dto.userType,
       userCode: dto.userCode,
       dateOfBirth: dto.dateOfBirth,
-      status: UserStatus.PENDING || user.status 
+      status: UserStatus.PENDING || user.status
     };
 
     await this.db.collection('users').doc(uid).update(updatedData);

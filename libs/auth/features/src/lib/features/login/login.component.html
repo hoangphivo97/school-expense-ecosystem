@@ -3,18 +3,21 @@
     <div class="block">
       <p class="title"><b>Sign in</b></p>
       <div class="form">
-        <label for="email">Email</label>
+        <label for="email">Email address</label>
         <input
-          formControlName="userName"
+          formControlName="email"
           class="username"
-          type="text"
-          placeholder="your@email.com / username"
+          type="email"
+          id="email"
+          placeholder="your@email.com"
         />
+        
         <label for="password">Password</label>
         <input
           formControlName="passWord"
           class="password"
           type="password"
+          id="password"
           placeholder="*****"
         />
       </div>
@@ -22,7 +25,12 @@
         <mat-checkbox class="check">Remember me</mat-checkbox>
       </div>
       <div class="button-group">
-        <button type="submit" (click)="loginAction()" class="login-action">
+        <button 
+          type="submit" 
+          (click)="loginAction()" 
+          [disabled]="loginForm.invalid || loading"
+          class="login-action"
+        >
           Sign in
         </button>
       </div>
@@ -32,22 +40,15 @@
       <div class="seperate">
         <span class="or">or</span>
       </div>
-      <button class="google-login-btn" (click)="loginWithGoogle()">
+      <button class="google-login-btn" type="button" (click)="loginWithGoogle()">
         <img
           src="https://www.svgrepo.com/show/475656/google-color.svg"
           alt="Google Logo"
         />
         Sign in with Google
       </button>
-      <!-- <button class="facebook-login-btn" (click)="loginWithFacebook()">
-        <img
-          src="https://www.svgrepo.com/show/452196/facebook-1.svg"
-          alt="Facebook Logo"
-        />
-        Sign in with Facebook
-      </button> -->
       <div class="sign-up-section">
-        <p>Don't have account ? <a class="signup-btn">Sign up</a></p>
+        <p>Don't have account ? <a class="signup-btn" (click)="openRegisterModal()">Sign up</a></p>
       </div>
     </div>
   </form>

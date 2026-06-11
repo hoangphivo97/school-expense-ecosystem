@@ -7,25 +7,28 @@ import {
   AuthProvider,
   User,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
 } from '@angular/fire/auth';
 import { BehaviorSubject, from, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
 import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
-import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens'; 
+import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private auth = inject(Auth);
-  private apiUrl = `${API_BASE_URL}/api/auth`;
-  private user$ = new BehaviorSubject<User | null>(null);
-  private loading$ = new BehaviorSubject<boolean>(true);
+  private readonly baseUrl = inject(API_BASE_URL);
   private http = inject(HttpClient);
   private router = inject(Router);
   private authStore = inject(AuthSignalStore)
+
+  private apiUrl = `${this.baseUrl}/api/auth`;
+  private user$ = new BehaviorSubject<User | null>(null);
+  private loading$ = new BehaviorSubject<boolean>(true);
 
   constructor() {
     onAuthStateChanged(this.auth, (user: User | null) => {
@@ -41,12 +44,19 @@ export class AuthService {
     });
   }
 
-  signInWithUserAccount(
-    username: string,
-    password: string,
-  ): Observable<LoginResponse> {
-    const loginData = { username, password };
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, loginData);
+  signInWithUserAccount(email: string, password: string): Observable<LoginResponse> {
+    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+      switchMap((result: UserCredential) =>
+        from(result.user.getIdToken()).pipe(
+          switchMap((token: string) =>
+            this.http.post<LoginResponse>(`${this.apiUrl}/login`, { 
+              uid: result.user.uid, 
+              token 
+            })
+          )
+        )
+      )
+    );
   }
 
   signInWithGoogleAccount(): Observable<object> {

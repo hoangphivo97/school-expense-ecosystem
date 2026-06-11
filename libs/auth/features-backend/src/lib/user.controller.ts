@@ -9,25 +9,21 @@ export class UserController {
   constructor(private readonly userService: UserService) { }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    const validatedUser = await this.userService.validateUser(loginDto.email, loginDto.password);
-    const authToken = this.userService.generateJWT(validatedUser);
-
+  async login(@Body('token') token: string) {
+    const result = await this.userService.handleFirebaseLogin(token);
     return {
       message: 'Login success',
-      token: authToken,
-      user: validatedUser
+      ...result
     };
   }
 
   @Post('google-login')
   async googleLogin(@Body('token') token: string) {
-    try {
-      const result = await this.handleFirebaseLogin(token);
-      return { message: 'Login success', ...result };
-    } catch (error) {
-      throw new UnauthorizedException('Google federation identity provider verification failed.');
-    }
+    const result = await this.userService.handleFirebaseLogin(token);
+    return {
+      message: 'Login success',
+      ...result
+    };
   }
 
   @Post('onboarding')
