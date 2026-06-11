@@ -1,26 +1,15 @@
-import { inject, PLATFORM_ID } from '@angular/core';
+import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { map, take } from 'rxjs/operators';
-import { AuthQuery } from './Akita/auth.query';
-import { isPlatformServer } from '@angular/common';
+import { AuthSignalStore } from './auth-signal.store';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-  const authQuery = inject(AuthQuery);
-  const platformId = inject(PLATFORM_ID);
+  const authStore = inject(AuthSignalStore);
 
-  if (isPlatformServer(platformId)) {
-    return true;
+  if (authStore.user()) {
+    return true; 
   }
 
-  return authQuery.user$.pipe(
-    take(1),
-    map((user) => {
-      if (user) {
-        return true;
-      }
-      
-      return router.createUrlTree(['/auth']);
-    })
-  );
+  // Target route redirection to login interface if token resolution evaluates to void
+  return router.createUrlTree(['/auth']); 
 };

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, onboardingGuard, rolesGuard, unauthGuard } from '@school-expense-ecosystem/auth/data-access';
+import { authGuard, onboardingGuard, rolesGuard } from '@school-expense-ecosystem/auth/data-access';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { Role } from '@school-expense-ecosystem/auth/types';
@@ -8,7 +8,6 @@ export const routes: Routes = [
   {
     path: 'auth',
     component: AuthLayoutComponent,
-    canActivate: [unauthGuard],
     children: [
       {
         path: '',
@@ -50,7 +49,7 @@ export const routes: Routes = [
         path: 'budget-manager',
         canActivate: [rolesGuard],
         data: {
-          allowedRoles: [Role.LEVEL_1_FINANCE]
+          roles: [Role.LEVEL_1_FINANCE]
         },
         loadChildren: () =>
           import('@school-expense-ecosystem/finance/features').then(

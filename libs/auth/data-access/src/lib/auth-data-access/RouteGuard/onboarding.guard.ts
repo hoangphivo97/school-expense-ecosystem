@@ -1,50 +1,33 @@
 // libs/auth/data-access/src/lib/auth-data-access/RouteGuard/onboarding.guard.ts
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { map, take } from 'rxjs/operators';
-import { AuthQuery } from './Akita/auth.query';
 import { UserStatus } from '@school-expense-ecosystem/auth/types';
+import { AuthSignalStore } from './auth-signal.store';
 
 export const onboardingGuard: CanActivateFn = (route, state) => {
-    const authQuery = inject(AuthQuery);
+    const authStore = inject(AuthSignalStore);
     const router = inject(Router);
 
-    return authQuery.select().pipe(
-        take(1),
-        map((authState) => {
-            const user = authState.user;
+    const user = authStore.user();
 
-            // 1. Unauthenticated boundary check
-            if (!user) {
-                return router.createUrlTree(['/auth']);
-            }
+    if (!user) {
+        return router.createUrlTree(['/auth']);
+    }
 
-            // 2. Stage: ONBOARDING -> Force redirect to profile collection funnel
-            if (user.status === UserStatus.ONBOARDING) {
-                if (state.url === '/auth/onboarding') return true;
-                return router.createUrlTree(['/auth/onboarding']);
-            }
+    /**
+     * Confirm the user profile context requires onboarding form completion setup
+     */
+    if (user.status === UserStatus.ONBOARDING) {
+        return true;
+    }
 
-            // 3. Stage: PENDING -> Deflect to waiting approval lobby screen
-            if (user.status === UserStatus.PENDING) {
-                if (state.url === '/auth/waiting-approval') return true;
-                return router.createUrlTree(['/auth/waiting-approval']);
-            }
+    if (user.status === UserStatus.PENDING) {
+        return router.createUrlTree(['/auth/waiting-approval']);
+    }
 
-            // 4. Stage: REJECTED -> Will have an page tell the user being rejected and reason
-            if (user.status === UserStatus.REJECTED) {
-                return router.createUrlTree(['/auth']);
-            }
+    if (user.status === UserStatus.ACTIVE) {
+        return router.createUrlTree(['/dashboard']);
+    }
 
-            // 5. Stage: ACTIVE -> Safe zone validation bypass
-            const isAccessingRestrictedAuthPages =
-                state.url === '/auth/onboarding' || state.url === '/auth/waiting-approval';
-
-            if (user.status === UserStatus.ACTIVE && isAccessingRestrictedAuthPages) {
-                return router.createUrlTree(['/dashboard']);
-            }
-
-            return true;
-        })
-    );
+    return router.createUrlTree(['/auth']);
 };

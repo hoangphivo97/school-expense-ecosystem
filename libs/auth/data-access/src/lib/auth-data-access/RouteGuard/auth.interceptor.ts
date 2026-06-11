@@ -5,13 +5,11 @@ import {
   HttpHandlerFn,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { catchError, from, switchMap, throwError } from 'rxjs';
-import { FirebaseError } from 'firebase/app';
-import { DialogError } from '@school-expense-ecosystem/shared/types';
-import { AuthQuery } from './Akita/auth.query';
+import { AuthSignalStore } from './auth-signal.store';
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
@@ -20,9 +18,9 @@ export const authInterceptor: HttpInterceptorFn = (
   const auth = inject(AuthService);
   const router = inject(Router);
   const errorModalService = inject(ErrorModalService);
-  const authQuery = inject(AuthQuery);
+  const authStore = inject(AuthSignalStore);
 
-  const nestJsToken = authQuery.getValue().token;
+  const nestJsToken = authStore.token();
 
   const clonedReq = nestJsToken
     ? req.clone({ setHeaders: { Authorization: `Bearer ${nestJsToken}` } })
