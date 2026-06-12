@@ -4417,22 +4417,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/angular-fontawesome@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@fortawesome/angular-fontawesome@npm:3.0.0"
+"@fortawesome/angular-fontawesome@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@fortawesome/angular-fontawesome@npm:5.0.0"
   dependencies:
-    "@fortawesome/fontawesome-svg-core": "npm:^7.0.0"
+    "@fortawesome/fontawesome-svg-core": "npm:^7.2.0"
     tslib: "npm:^2.8.1"
   peerDependencies:
-    "@angular/core": ^20.0.0
-  checksum: 10c0/1e8c859c4e37ef2b5bd229ec3c296e01a8ef30153f528dcca3566d0cbd36ae40edb6cfee266f66505dadf10796d8e9c1eaefe01bf2a966dded704eaf69becefd
-  languageName: node
-  linkType: hard
-
-"@fortawesome/fontawesome-common-types@npm:6.7.2":
-  version: 6.7.2
-  resolution: "@fortawesome/fontawesome-common-types@npm:6.7.2"
-  checksum: 10c0/0785df560542d9c08a0ba07bb7a39902274a3cd65c018672eb2520a99efccce18bdb7f7f4b1c6089763bc5627bf0f0837c3af963a8427eaeb535bd57c820a723
+    "@angular/core": ^22.0.0
+  checksum: 10c0/f969a479addad5664d72c13051c4f23c82cb1271002c586b22fce6bf665b311cf90167cb1a0daa9332595c771a10908f22a9dd0a48005dab7a6c6df67765a3b0
   languageName: node
   linkType: hard
 
@@ -4443,7 +4436,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/fontawesome-svg-core@npm:^7.0.0":
+"@fortawesome/fontawesome-svg-core@npm:^7.2.0":
   version: 7.2.0
   resolution: "@fortawesome/fontawesome-svg-core@npm:7.2.0"
   dependencies:
@@ -4452,12 +4445,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/free-solid-svg-icons@npm:^6.7.2":
-  version: 6.7.2
-  resolution: "@fortawesome/free-solid-svg-icons@npm:6.7.2"
+"@fortawesome/free-brands-svg-icons@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "@fortawesome/free-brands-svg-icons@npm:7.2.0"
   dependencies:
-    "@fortawesome/fontawesome-common-types": "npm:6.7.2"
-  checksum: 10c0/e900f3bb7b7d821421f11439ff78cd2b3c98ca31e848e1afebf7caa578d29a31fb6cf8ef283d4df342de777126a71fcbb154dd395b9d9ab6914a40a86df81413
+    "@fortawesome/fontawesome-common-types": "npm:7.2.0"
+  checksum: 10c0/cfb883006dd0f918dde3d6ed81197552f094823e2032c284f05cb8788df65ccee7aa71c54b8042b393a843bb134fbcff492fc5b1ba57bb690cf9a9de17b30df3
+  languageName: node
+  linkType: hard
+
+"@fortawesome/free-solid-svg-icons@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "@fortawesome/free-solid-svg-icons@npm:7.2.0"
+  dependencies:
+    "@fortawesome/fontawesome-common-types": "npm:7.2.0"
+  checksum: 10c0/922ffe0f53b3cebcf36a4a6872958e7d6a0fbaa5c5c73cddbdea9301181fe8625331a0bf8aa09ca54c4d284805473e38d0eb9f06da05546f1914cec2c062343f
   languageName: node
   linkType: hard
 
@@ -23769,8 +23771,9 @@ __metadata:
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.1"
     "@eslint/js": "npm:^9.8.0"
-    "@fortawesome/angular-fontawesome": "npm:^3.0.0"
-    "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
+    "@fortawesome/angular-fontawesome": "npm:^5.0.0"
+    "@fortawesome/free-brands-svg-icons": "npm:^7.2.0"
+    "@fortawesome/free-solid-svg-icons": "npm:^7.2.0"
     "@module-federation/enhanced": "npm:^2.1.0"
     "@mui/icons-material": "npm:^7.3.6"
     "@mui/material": "npm:^7.3.6"

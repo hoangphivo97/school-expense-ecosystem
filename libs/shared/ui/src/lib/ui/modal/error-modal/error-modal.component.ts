@@ -30,7 +30,7 @@ export class ErrorModalComponent {
   message: string | null = null;
   dialogRef = inject(MatDialogRef<ErrorModalComponent>);
   data = inject<DialogError>(MAT_DIALOG_DATA);
-  iconBug = faBug;
+  faBug = faBug;
 
   onCancel() {
     this.dialogRef.close();
