@@ -1,55 +1,109 @@
-<div class="main">
-  <form [formGroup]="loginForm">
-    <div class="block">
-      <p class="title"><b>Sign in</b></p>
-      <div class="form">
-        <label for="email">Email address</label>
-        <input
-          formControlName="email"
-          class="username"
-          type="email"
-          id="email"
-          placeholder="your@email.com"
-        />
-        
-        <label for="password">Password</label>
-        <input
-          formControlName="passWord"
-          class="password"
-          type="password"
-          id="password"
-          placeholder="*****"
-        />
-      </div>
-      <div class="remem-group">
-        <mat-checkbox class="check">Remember me</mat-checkbox>
-      </div>
-      <div class="button-group">
-        <button 
-          type="submit" 
-          (click)="loginAction()" 
-          [disabled]="loginForm.invalid || loading"
-          class="login-action"
-        >
-          Sign in
-        </button>
-      </div>
-      <button [disabled]="true" class="forgot-btn">
-        Forgot your password ?
+<div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+  <mat-card class="w-100 p-4 shadow-sm" style="max-width: 420px; border-radius: 16px;">
+
+    @if (!isAdminMode()) {
+
+    <mat-card-header class="justify-content-center mb-4">
+      <mat-card-title class="fs-3 fw-bold text-dark text-center">University Portal</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content class="text-center d-flex flex-column gap-4 py-3">
+      <p class="text-muted fs-6 mb-2">
+        Please sign in with your university-provided Google account to access the financial system.
+      </p>
+
+      <button type="button" mat-raised-button color="primary"
+        class="w-100 py-4 fs-5 fw-bold d-flex align-items-center justify-content-center gap-3 shadow-sm"
+        style="height: 56px; border-radius: 8px;" (click)="onGoogleLoginTriggered()">
+        <fa-icon [icon]="faGoogle" class="fs-4 d-inline-flex align-items-center"></fa-icon>
+        Continue with Google
       </button>
-      <div class="seperate">
-        <span class="or">or</span>
-      </div>
-      <button class="google-login-btn" type="button" (click)="loginWithGoogle()">
-        <img
-          src="https://www.svgrepo.com/show/475656/google-color.svg"
-          alt="Google Logo"
-        />
-        Sign in with Google
+
+      <span class="text-secondary fs-7 fw-medium bg-white border rounded-pill py-1 px-3 align-self-center">
+        <fa-icon [icon]="faShieldHalved" class="text-success"></fa-icon> Supports @ntust.edu.tw domain only
+      </span>
+    </mat-card-content>
+
+    <mat-card-footer class="text-center mt-4 pt-3 border-top">
+      <button type="button" mat-button color="secondary" class="fs-7 text-muted hover-underline"
+        (click)="toggleAdminMode(true)">
+        Are you an admin or professor? Sign-in here
+        <fa-icon [icon]="faArrowRight" class="fs-7"></fa-icon>
       </button>
-      <div class="sign-up-section">
-        <p>Don't have account ? <a class="signup-btn" (click)="openRegisterModal()">Sign up</a></p>
+    </mat-card-footer>
+
+    } @else {
+
+    <mat-card-header class="justify-content-center mb-3">
+      <mat-card-title class="fs-3 fw-bold text-secondary text-center">Authorized Access</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+
+      <div class="mb-3 d-flex flex-column">
+        <mat-form-field appearance="outline" class="w-100 fs-7">
+          <mat-label>Select a Preset Demo Role</mat-label>
+          <mat-select (selectionChange)="onRoleSelectionChanged($event.value)">
+            <mat-option [value]="null">-- Standard Manual Input --</mat-option>
+            @for (acc of demoAccounts; track acc.email) {
+            <mat-option [value]="acc">{{ acc.role }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
       </div>
-    </div>
-  </form>
+
+      @if (selectedAccount(); as activeAccount) {
+      <div class="alert alert-info py-2 px-3 fs-7 mb-4 rounded-3 border-0 bg-light text-secondary animate-fade-in">
+        <div class="fw-bold text-dark mb-1">
+          <fa-icon [icon]="faShieldHalved" class="text-warning me-1"></fa-icon>
+          {{ activeAccount.role }} Scope:
+        </div>
+        <div>{{ activeAccount.description }}</div>
+      </div>
+      }
+
+      <form [formGroup]="adminLoginForm" (ngSubmit)="onAdminLoginSubmitted()" class="d-flex flex-column gap-3">
+
+        <div class="d-flex flex-column gap-1">
+          <label for="auth-email" class="form-label fw-semibold text-secondary mb-1">Email Address</label>
+          <input id="auth-email" type="email" formControlName="email" class="form-control form-control-lg"
+            placeholder="username@ntust.edu.tw" autocomplete="email" />
+          @if (emailControl?.touched && emailControl.invalid) {
+          <mat-error class="text-danger fs-7 mt-1">Please enter a valid email address.</mat-error>
+          }
+        </div>
+
+        <div class="d-flex flex-column gap-1">
+          <label for="auth-password" class="form-label fw-semibold text-secondary mb-1">Password</label>
+          <input id="auth-password" type="password" formControlName="password" class="form-control form-control-lg"
+            placeholder="••••••••" autocomplete="current-password" />
+          @if (passwordControl?.touched && passwordControl.invalid) {
+          <mat-error class="text-danger fs-7 mt-1">Password is required.</mat-error>
+          }
+        </div>
+
+        <div class="mt-2">
+          <button type="submit" mat-raised-button color="warn" class="w-100 py-4 fs-6 fw-bold text-white"
+            [disabled]="adminLoginForm.invalid || isLoading()">
+            @if (isLoading()) {
+            <mat-spinner diameter="20" class="me-2 d-inline-block align-middle"></mat-spinner>
+            Authenticating Core Stream...
+            } @else {
+            Sign In As Selected Role
+            }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+
+    <mat-card-footer class="text-center mt-4 pt-3 border-top">
+      <button type="button" mat-button color="primary" class="fs-7 fw-semibold d-inline-flex align-items-center gap-1"
+        (click)="toggleAdminMode(false)">
+        <fa-icon [icon]="faArrowLeft"></fa-icon>
+        Back to main portal
+      </button>
+    </mat-card-footer>
+    }
+
+  </mat-card>
 </div>

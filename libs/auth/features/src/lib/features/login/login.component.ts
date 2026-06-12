@@ -1,60 +1,144 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse, UserStatus } from '@school-expense-ecosystem/auth/types';
 import { catchError, tap, throwError } from 'rxjs';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialog } from '@angular/material/dialog';
 import { FirebaseError } from 'firebase/app';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
-import { RegisterModalComponent } from './register-modal/register-modal.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle } from '@angular/material/card';
+import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatButton } from '@angular/material/button';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faGoogle } from '@fortawesome/free-brands-svg-icons';
+import { faArrowLeft, faArrowRight, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
+import { MatOption, MatSelect } from '@angular/material/select';
+
+interface DemoAccount {
+  role: string;
+  email: string;
+  password: string;
+  description: string;
+}
 
 @Component({
   selector: 'lib-login',
   standalone: true,
-  imports: [ReactiveFormsModule, MatCheckboxModule],
+  imports: [
+    ReactiveFormsModule, 
+    MatCard, 
+    MatCardContent, 
+    MatCardFooter, 
+    MatCardHeader, 
+    MatError, 
+    MatProgressSpinner, 
+    MatCardTitle, 
+    MatButton,
+    FontAwesomeModule,
+    MatFormField, 
+    MatLabel,     
+    MatSelect,   
+    MatOption
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements OnInit {
-
-  readonly dialog = inject(MatDialog);
+export class LoginComponent {
+  // Utilizing standard inject token patterns instead of bloated constructors
+  private readonly fb = inject(NonNullableFormBuilder); // Upgraded to NonNullable for strict typing
   private readonly destroyRef = inject(DestroyRef);
-  private readonly fb = inject(FormBuilder);
-  readonly router = inject(Router);
-  public readonly authService = inject(AuthService)
-  private readonly authStore = inject(AuthSignalStore)
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly authStore = inject(AuthSignalStore);
   private readonly errorModalService = inject(ErrorModalService);
 
-  loading = false;
+  readonly faGoogle = faGoogle;
+  readonly faArrowLeft = faArrowLeft
+  readonly faArrowRight = faArrowRight
+  readonly faShieldHalved = faShieldHalved
 
-  loginForm: FormGroup = this.fb.group({
+  // Modern UI architecture: Using Signals for lightweight, reactive state tracking
+  readonly isAdminMode = signal<boolean>(false);
+  readonly isLoading = signal<boolean>(false);
+  readonly selectedAccount = signal<DemoAccount | null>(null);
+
+  readonly demoAccounts: DemoAccount[] = [
+    { 
+      role: 'Professor / Department Approver', 
+      email: 'professor.demo@ntust.edu.tw', 
+      password: 'DemoPassword123',
+      description: 'Reviews, approves or rejects student expense and lab research requests.'
+    },
+    { 
+      role: 'Finance Officer / Accountant', 
+      email: 'finance.staff@ntust.edu.tw', 
+      password: 'DemoPassword123',
+      description: 'Manages university budgets, verifies invoices, and executes payouts.'
+    },
+    { 
+      role: 'System Administrator', 
+      email: 'sysadmin.core@ntust.edu.tw', 
+      password: 'DemoPassword123',
+      description: 'Full global access to audit logs, system parameters, and system rules.'
+    }
+  ];
+
+  // Dedicated Form configuration for the hidden Admin Console fallback
+  readonly adminLoginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    passWord: ['', Validators.required],
+    password: ['', Validators.required], // Fixed casing typo from 'passWord'
   });
 
-  ngOnInit(): void {
+  // Clean Code Getters mapping directly to the template validation blocks
+  get emailControl() {
+    return this.adminLoginForm.get('email');
   }
 
-  loginAction() {
-    if (this.loginForm.invalid) return;
+  get passwordControl() {
+    return this.adminLoginForm.get('password');
+  }
 
-    const { email, passWord } = this.loginForm.getRawValue();
+  /**
+   * Toggles the view context between Public Google OAuth and Admin Form
+   */
+  toggleAdminMode(status: boolean): void {
+    this.isAdminMode.set(status);
+    if (!status) {
+      this.adminLoginForm.reset(); // Purges typed admin credentials when swapping views
+    }
+  }
+
+  onRoleSelectionChanged(account: DemoAccount | null): void {
+    this.selectedAccount.set(account);
+    
+    if (account) {
+      this.adminLoginForm.patchValue({
+        email: account.email,
+        password: account.password
+      });
+    } else {
+      this.adminLoginForm.reset(); // Nếu chọn dòng trống -> Trả form về nguyên trạng
+    }
+  }
+
+  /**
+   * Domain Action: Triggers the primary Google Workspace OAuth authentication flow
+   */
+  onGoogleLoginTriggered(): void {
+    if (this.isLoading()) return;
+    this.isLoading.set(true);
 
     this.authService
-      .signInWithUserAccount(email, passWord)
+      .signInWithGoogleAccount()
       .pipe(
-        tap((res: LoginResponse) => {
+        tap((res: any) => {
+          this.isLoading.set(false);
           this.updateTokenAndReRoute(res.token, res.user);
         }),
         catchError((err: FirebaseError) => {
+          this.isLoading.set(false);
           this.errorModalService.openErrorModal(err);
           return throwError(() => err);
         }),
@@ -63,28 +147,39 @@ export class LoginComponent implements OnInit {
       .subscribe();
   }
 
-  loginWithGoogle() {
-    if (this.loading) return;
-    this.loading = true;
+  /**
+   * Domain Action: Validates and processes explicitly created Admin accounts
+   */
+  onAdminLoginSubmitted(): void {
+    if (this.adminLoginForm.invalid) {
+      this.adminLoginForm.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading.set(true);
+    const { email, password } = this.adminLoginForm.getRawValue();
 
     this.authService
-      .signInWithGoogleAccount()
+      .signInWithUserAccount(email, password)
       .pipe(
-        tap((res: any) => {
+        tap((res: LoginResponse) => {
+          this.isLoading.set(false);
           this.updateTokenAndReRoute(res.token, res.user);
-          this.loading = false;
         }),
         catchError((err: FirebaseError) => {
+          this.isLoading.set(false);
           this.errorModalService.openErrorModal(err);
-          this.loading = false;
           return throwError(() => err);
         }),
+        takeUntilDestroyed(this.destroyRef)
       )
-      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
 
-  updateTokenAndReRoute(token: string, user: any) {
+  /**
+   * Reused Core Logic: Dispatches global state updates and coordinates application routing
+   */
+  updateTokenAndReRoute(token: string, user: any): void {
     this.authStore.updateAuthState(token, user);
 
     if (!user) {
@@ -102,12 +197,4 @@ export class LoginComponent implements OnInit {
       this.router.navigate(['/auth']);
     }
   }
-
-  openRegisterModal() {
-    this.dialog.open(RegisterModalComponent, {
-      width: '450px',
-      disableClose: false,
-    });
-  }
-
 }
