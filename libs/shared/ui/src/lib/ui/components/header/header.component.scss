@@ -1,18 +1,23 @@
-.header {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
+.page-header-context {
+  padding: 1rem 0 1.5rem 0; // Gives breathing room at the top of the viewport
+  border-bottom: 1px solid #f1f5f9; // Subtle premium divider line
+  margin-bottom: 1.5rem;
+}
 
-  .logout-button:hover {
-    background-color: #ff2848;
-  }
+.page-main-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a; // Deep premium slate text color
+  margin: 0;
+  letter-spacing: -0.025em;
+}
 
-  .settings-icon {
-    cursor: pointer;
-  }
+// Optional smoothing transition animation
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
 
-  h1 {
-    margin: 0;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

@@ -2,6 +2,7 @@ import { FacultyId } from '../enums/faculty.enum';
 import { Role } from '../enums/role.enum';
 import { UserStatus } from '../enums/user-status.enum';
 import { UserType } from '../enums/user-type.enum';
+import { Timestamp } from 'firebase-admin/firestore';
 
 export interface LoginResponse {
   token: string;
@@ -19,7 +20,7 @@ export interface UserBase {
   userCode?: string;
   dateOfBirth?: string;
   status: UserStatus;
-  createdAt?: string;
+  createdAt?: Timestamp;
 }
 
 export interface OnboardingResponse {
