@@ -1,7 +1,7 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
-  OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,23 +11,10 @@ import { OnboardingDto } from './DTO/onboarding.dto';
 import { Role, UserStatus } from '@school-expense-ecosystem/auth/types';
 
 @Injectable()
-export class UserService implements OnModuleInit {
-  private db!: admin.firestore.Firestore;
-
-  constructor(private jwtService: JwtService) { }
-
-  onModuleInit() {
-    if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env['FIREBASE_PROJECT_ID'],
-          clientEmail: process.env['FIREBASE_CLIENT_EMAIL'],
-          privateKey: process.env['FIREBASE_PRIVATE_KEY']?.replace(/\\n/g, '\n'),
-        }),
-      });
-    }
-    this.db = admin.firestore();
-  }
+export class UserService{
+  constructor(private jwtService: JwtService,
+    @Inject('FIRESTORE_INSTANCE') private readonly db: admin.firestore.Firestore
+  ) { }
 
   async findByUid(uid: string): Promise<UserInDb | null> {
     const doc = await this.db.collection('users').doc(uid).get();

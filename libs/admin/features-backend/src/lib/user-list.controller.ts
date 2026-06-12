@@ -1,20 +1,18 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { UserListService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
-import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/backend/auth/features'
+import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/backend/auth/features';
 
-@Controller('admin/users')
+@Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.LEVEL_0_ADMIN)
+@Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_2_DEAN)
 export class UserListController {
   constructor(private readonly userListService: UserListService) {}
 
-  /**
-   * REST ENDPOINT: GET /api/admin/users
-   * Pulls the latest user roster directly from Firestore
-   */
   @Get()
-  async getAllUsers(): Promise<UserBase[]> {
-    return this.userListService.findAllUsers();
+  async getAllUsers(@Req() req: any): Promise<UserBase[]> {
+    const requester = req.user as UserBase;
+
+    return this.userListService.findAllUsers(requester);
   }
 }

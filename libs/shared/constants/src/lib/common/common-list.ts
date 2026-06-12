@@ -17,15 +17,15 @@ export const months = [
 
 export const navItems = [
   { icon: 'local_atm', label: 'Expenses', key: NavItem.EXPENSE },
-  { icon: 'accessibility_new', label: 'User', key: NavItem.USER },
+  { icon: 'accessibility_new', label: 'User', key: NavItem.USER_LIST },
   {
     icon: 'insert_chart_outlined',
     label: 'Report',
     route: '/report',
     key: NavItem.REPORT,
   },
-  { icon: 'message', label: 'Messages', key: NavItem.MESSAGE },
-  { icon: 'dashboard', label: 'Budget Manager', key: NavItem.BUDGET_MANAGER}
+  { icon: 'account_balance', label: 'Budget Manager', key: NavItem.BUDGET_MANAGER},
+  { icon: 'dashboard', label: 'Dashboard', key: NavItem.DASHBOARD}
 ];
 
 export const mainColorPieChart: string[] = [
