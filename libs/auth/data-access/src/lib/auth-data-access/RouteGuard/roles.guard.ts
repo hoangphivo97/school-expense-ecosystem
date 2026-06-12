@@ -7,28 +7,30 @@ import { Role } from '@school-expense-ecosystem/auth/types';
 export const rolesGuard: CanActivateFn = (route, state) => {
   const authStore = inject(AuthSignalStore);
   const router = inject(Router);
-
   const user = authStore.user();
+
   if (!user) {
     return router.createUrlTree(['/auth']);
   }
 
+  if (user.role === Role.LEVEL_0_ADMIN) {
+    return true;
+  }
+
   const expectedRoles = route.data['roles'] as Role[];
+  
   if (!expectedRoles || expectedRoles.length === 0) {
     return true;
   }
 
-  /**
-   * Synchronous validation checking if user properties contain matching role criteria matches
-   */
   const hasRequiredRole = expectedRoles.includes(user.role);
-
   if (hasRequiredRole) {
     return true;
   }
 
-  /**
-   * Access denied due to privilege mismatch. Forwarding user back to core workspace dashboard
-   */
-  return router.createUrlTree(['/dashboard']);
+  if (state.url !== '/dashboard') {
+    return router.createUrlTree(['/dashboard']);
+  }
+
+  return router.createUrlTree(['/auth']);
 };

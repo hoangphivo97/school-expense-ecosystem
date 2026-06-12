@@ -36,20 +36,20 @@ export class LoginComponent implements OnInit {
   loading = false;
 
   loginForm: FormGroup = this.fb.group({
-    userName: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
     passWord: ['', Validators.required],
   });
 
   ngOnInit(): void {
-    this.disableSignInAndRegister();
   }
 
   loginAction() {
-    const userNameValue: string = this.loginForm.value.userName;
-    const passWordValue: string = this.loginForm.value.passWord;
+    if (this.loginForm.invalid) return;
+
+    const { email, passWord } = this.loginForm.getRawValue();
 
     this.authService
-      .signInWithUserAccount(userNameValue, passWordValue)
+      .signInWithUserAccount(email, passWord)
       .pipe(
         tap((res: LoginResponse) => {
           this.updateTokenAndReRoute(res.token, res.user);
@@ -58,8 +58,8 @@ export class LoginComponent implements OnInit {
           this.errorModalService.openErrorModal(err);
           return throwError(() => err);
         }),
+        takeUntilDestroyed(this.destroyRef)
       )
-      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
 
@@ -110,7 +110,4 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  disableSignInAndRegister() {
-    this.loginForm.disable();
-  }
 }

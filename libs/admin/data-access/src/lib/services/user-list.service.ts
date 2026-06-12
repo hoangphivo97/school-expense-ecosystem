@@ -10,7 +10,8 @@ import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 })
 export class UserListService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${API_BASE_URL}/admin/users`;
+  private readonly baseUrl = inject(API_BASE_URL);
+  private readonly apiUrl = `${this.baseUrl}/admin/users`;
 
   /**
    * Kéo danh sách toàn bộ User từ Backend
