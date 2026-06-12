@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import {
   Auth,
   signInWithPopup,
@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from '@angular/fire/auth';
-import { BehaviorSubject, from, Observable, switchMap } from 'rxjs';
+import { from, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
@@ -27,20 +27,11 @@ export class AuthService {
   private authStore = inject(AuthSignalStore)
 
   private apiUrl = `${this.baseUrl}/api/auth`;
-  private user$ = new BehaviorSubject<User | null>(null);
-  private loading$ = new BehaviorSubject<boolean>(true);
+  readonly isLoading = signal<boolean>(true);
 
   constructor() {
-    onAuthStateChanged(this.auth, (user: User | null) => {
-      if (user) {
-        this.user$.next({
-          displayName: user.displayName,
-          email: user.email,
-        } as User);
-      } else {
-        this.user$.next(null);
-      }
-      this.loading$.next(false);
+    onAuthStateChanged(this.auth, (user) => {
+      this.isLoading.set(false);
     });
   }
 
@@ -49,9 +40,9 @@ export class AuthService {
       switchMap((result: UserCredential) =>
         from(result.user.getIdToken()).pipe(
           switchMap((token: string) =>
-            this.http.post<LoginResponse>(`${this.apiUrl}/login`, { 
-              uid: result.user.uid, 
-              token 
+            this.http.post<LoginResponse>(`${this.apiUrl}/login`, {
+              uid: result.user.uid,
+              token
             })
           )
         )
@@ -98,17 +89,5 @@ export class AuthService {
   getFirebaseToken(forceRefresh = false) {
     const user = this.auth.currentUser;
     return user ? user.getIdToken(forceRefresh) : '';
-  }
-
-  get isLoading$(): Observable<boolean> {
-    return this.loading$.asObservable();
-  }
-
-  get userObs$(): Observable<User | null> {
-    return this.user$.asObservable();
-  }
-
-  get currentUser(): User | null {
-    return this.user$.value;
   }
 }

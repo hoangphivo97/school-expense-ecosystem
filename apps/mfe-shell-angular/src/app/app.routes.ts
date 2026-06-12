@@ -28,6 +28,12 @@ export const routes: Routes = [
           import('@school-expense-ecosystem/dashboard/features').then((m) => m.DashboardComponent),
       },
       {
+        path: 'user-list',
+        canActivate: [rolesGuard],
+        loadComponent: () => 
+            import('@school-expense-ecosystem/admin/features').then((m) => m.UserListComponent)
+      },
+      {
         path: 'expense',
         canActivate: [rolesGuard],
         data: { roles: [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER] },
