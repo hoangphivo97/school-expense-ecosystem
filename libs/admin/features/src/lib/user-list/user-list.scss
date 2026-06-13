@@ -1,43 +1,150 @@
-// Custom alignment tweaks alongside Bootstrap styles
-.mat-field-custom-width {
-  max-width: 340px;
+// user-list.scss
+
+// 🏆 STICKY FOOTER MECHANISM: Structurally demands host templates consume absolute full vertical viewports
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8fafc; // Soft corporate slate background canvas
 }
 
-.font-monospace-utils code {
+.user-directory-layout-root {
+  flex: 1 0 auto; // Keeps footer safely pinned to page bottom limits
+}
+
+.layout-headline {
+  font-size: 1.7rem;
+  letter-spacing: -0.02em;
+  font-family: var(--bs-font-sans-serif);
+}
+
+// Adaptive custom spacing widths for the interactive Filter Bar
+.filter-field {
+  max-width: 100%;
+  
+  &.search-input-field { width: 280px; }
+  &.select-dropdown-field { width: 200px; }
+
+  ::ng-deep {
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none !important; // Disables dynamic spacing expansion shifts on focus actions
+    }
+  }
+}
+
+.muted-icon {
+  color: #64748b;
+  margin-right: 6px;
+}
+
+// Enterprise grid typography and alignment standardization over-rides
+.synchronized-material-table {
+  background-color: transparent !important;
+  font-family: var(--bs-font-sans-serif) !important;
+
+  tr.mat-mdc-header-row {
+    background-color: #f1f5f9 !important; // Light gray slate tint matching enterprise standard
+    border-bottom: 2px solid #cbd5e1;
+  }
+
+  tr.mat-mdc-row:hover {
+    background-color: rgba(15, 23, 42, 0.012) !important;
+  }
+
+  th.table-column-header {
+    font-size: 0.75rem !important; // 12px sleek tracking titles
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    color: #475569 !important;
+  }
+
+  td.mat-mdc-cell {
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.875rem; // 14px smooth readability text cells
+  }
+}
+
+.data-text-primary {
+  color: #0f172a;
+}
+
+.data-text-secondary {
+  color: #475569;
+}
+
+.action-edit-icon {
+  font-size: 1.25rem !important;
+}
+
+.status-feedback-wrapper {
+  min-height: 300px;
+}
+
+.empty-search-icon {
+  font-size: 3.5rem !important;
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+}
+
+.identity-code-wrapper code {
   font-family: var(--bs-font-monospace);
-  color: #6f42c1;
-  background-color: #f8f9fa;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
+  color: #4f46e5;
+  background-color: #f5f3ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
-// Customized typography and color weights for badge chips
-.badge-custom-role {
-  background-color: #e0f2fe;
-  color: #0369a1;
+// 🏷️ HUMANIZED ROLE CHIP STYLING: Premium distinct theme border layers
+.badge-role-variant {
   font-weight: 600;
-  padding: 0.4em 0.7em;
-  border-radius: 4px;
+  padding: 0.45em 0.8em;
+  border-radius: 6px;
+  font-size: 0.75rem;
+
+  &.role-admin {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+  }
+  &.role-finance_officer {
+    background-color: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+  &.role-faculty_dean {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+  }
+  &.role-end_user {
+    background-color: #f0f9ff;
+    color: #075985;
+    border: 1px solid #bae6fd;
+  }
 }
 
-.badge-custom-status {
+// 🏷️ ACCOUNT STATUS CHIP STYLING: Ecosystem matching verification markers
+.badge-status-variant {
   font-weight: 600;
-  padding: 0.4em 0.7em;
-  border-radius: 4px;
+  padding: 0.45em 0.8em;
+  border-radius: 6px;
+  font-size: 0.75rem;
   text-transform: capitalize;
 
   &.status-active {
-    background-color: #dcfce7;
-    color: #15803d;
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
   }
-
   &.status-pending {
-    background-color: #fef9c3;
-    color: #a16207;
+    background-color: #fefce8;
+    color: #854d0e;
+    border: 1px solid #fef08a;
   }
-
   &.status-rejected {
-    background-color: #fee2e2;
-    color: #b91c1c;
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fee2e2;
   }
 }

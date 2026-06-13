@@ -1,89 +1,144 @@
-<div class="container mt-4">
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-4">
-      
-      <div class="row align-items-center mb-3">
-        <div class="col-md-7 col-12">
-          <h2 class="fw-bold text-dark mb-3 mb-md-0">System User Directory</h2>
-        </div>
-        <div class="col-md-5 col-12 d-flex justify-content-md-end">
-          <mat-form-field appearance="outline" class="w-100 mat-field-custom-width">
-            <mat-label>Search by name, email or ID...</mat-label>
-            <input
-              matInput
-              type="text"
-              [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event)"
-            />
-          </mat-form-field>
-        </div>
-      </div>
+<main class="user-directory-layout-root container mt-5 mb-4">
+
+  <div class="row align-items-center mb-4">
+    <div class="col-xl-4 col-12">
+      <h2 class="fw-bold text-dark m-0 layout-headline">System User Directory</h2>
+    </div>
+
+    <div class="col-xl-8 col-12 d-flex flex-wrap justify-content-xl-end gap-3 mt-3 mt-xl-0">
+
+      <mat-form-field appearance="outline" class="filter-field search-input-field">
+        <mat-icon matPrefix class="muted-icon">search</mat-icon>
+        <mat-label>Search name, email, ID...</mat-label>
+        <input matInput type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field select-dropdown-field">
+        <mat-label>Filter by Role</mat-label>
+        <mat-select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
+          <mat-option value="ALL">All Roles</mat-option>
+          <mat-option [value]="RoleEnum.LEVEL_0_ADMIN">System Administrator</mat-option>
+          <mat-option [value]="RoleEnum.LEVEL_1_FINANCE">Finance Specialist</mat-option>
+          <mat-option [value]="RoleEnum.LEVEL_2_DEAN">Faculty Dean</mat-option>
+          <mat-option [value]="RoleEnum.LEVEL_3_USER">Standard User</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field select-dropdown-field">
+        <mat-label>Filter by Status</mat-label>
+        <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+          <mat-option value="ALL">All Statuses</mat-option>
+          <mat-option [value]="UserStatusEnum.ACTIVE">Active Only</mat-option>
+          <mat-option [value]="UserStatusEnum.ONBOARDING">Onboarding</mat-option>
+          <mat-option [value]="UserStatusEnum.PENDING">Pending Approval</mat-option>
+          <mat-option [value]="UserStatusEnum.REJECTED">Rejected Accounts</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+    <div class="card-body p-0">
 
       @if (isLoading()) {
-        <div class="d-flex flex-column align-items-center justify-content-center my-5 py-4">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p class="text-muted mt-3 fw-medium small">Synchronizing directory records...</p>
-        </div>
-      } 
+      <div class="d-flex flex-column align-items-center justify-content-center my-5 py-5 status-feedback-wrapper">
+        <mat-spinner diameter="45"></mat-spinner>
+        <p class="text-muted mt-3 fw-medium small">Synchronizing secure directories...</p>
+      </div>
+      }
+
       @else if (errorMessage()) {
-        <div class="alert alert-danger d-flex align-items-center justify-content-between m-0" role="alert">
-          <div class="d-flex align-items-center">
-            <span class="fs-5 me-2">⚠️</span>
-            <span>{{ errorMessage() }}</span>
-          </div>
-          <button (click)="loadUsers()" class="btn btn-outline-danger btn-sm fw-semibold">
-            Retry Connection
-          </button>
+      <div class="alert alert-danger d-flex align-items-center justify-content-between m-4 rounded-3" role="alert">
+        <div class="d-flex align-items-center">
+          <span class="fs-4 me-2">⚠️</span>
+          <span>{{ errorMessage() }}</span>
         </div>
-      } 
+        <button (click)="triggerRefresh()" class="btn btn-outline-danger btn-sm fw-semibold">
+          Retry Connection
+        </button>
+      </div>
+      }
+
+      @else if (dataSource().data.length > 0) {
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
+
+          <ng-container matColumnDef="fullName">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Full Name</th>
+            <td mat-cell *matCellDef="let user" class="py-3 px-4 fw-semibold data-text-primary">
+              {{ user.fullName }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">Email Address</th>
+            <td mat-cell *matCellDef="let user" class="py-3 data-text-secondary">
+              {{ user.email }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="userCode">
+            <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">Student/Staff ID</th>
+            <td mat-cell *matCellDef="let user" class="py-3 identity-code-wrapper">
+              <code>{{ user.userCode || 'N/A' }}</code>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">System Role</th>
+            <td mat-cell *matCellDef="let user" class="py-3">
+              <span class="badge badge-role-variant" [ngClass]="'role-' + user.role?.toLowerCase()">
+                {{ user.roleLabel }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">Account Status</th>
+            <td mat-cell *matCellDef="let user" class="py-3">
+              <span class="badge badge-status-variant" [ngClass]="'status-' + user.status?.toLowerCase()">
+                {{ user.status }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">Created At</th>
+            <td mat-cell *matCellDef="let user" class="py-3 data-text-secondary">
+              {{ (user.processedCreatedAt) | date: 'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 text-end table-column-header"></th>
+            <td mat-cell *matCellDef="let user" class="py-3 px-4 text-end">
+              <button mat-icon-button color="accent" (click)="openEditUserModal(user)"
+                aria-label="Edit system account settings">
+                <mat-icon class="action-edit-icon">edit</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+
+        <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
+          [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" aria-label="Select page of database users">
+        </mat-paginator>
+      </div>
+      }
+
       @else {
-        <div class="table-responsive">
-          <table class="table table-hover align-middle border-0 mb-0">
-            <thead class="table-light text-uppercase font-monospace small text-muted">
-              <tr>
-                <th class="py-3 px-4 border-0">Full Name</th>
-                <th class="py-3 border-0">Email Address</th>
-                <th class="py-3 border-0">Student/Staff ID</th>
-                <th class="py-3 border-0">System Role</th>
-                <th class="py-3 px-4 border-0 text-end">Account Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (user of filteredUsers(); track user.uid) {
-                <tr>
-                  <td class="py-3 px-4 border-bottom fw-semibold text-dark">
-                    {{ user.fullName }}
-                  </td>
-                  <td class="py-3 border-bottom text-secondary">
-                    {{ user.email }}
-                  </td>
-                  <td class="py-3 border-bottom font-monospace-utils">
-                    <code>{{ user.userCode || 'N/A' }}</code>
-                  </td>
-                  <td class="py-3 border-bottom">
-                    <span class="badge badge-custom-role text-xs">
-                      {{ user.role }}
-                    </span>
-                  </td>
-                  <td class="py-3 px-4 border-bottom text-end">
-                    <span class="badge badge-custom-status" [ngClass]="'status-' + user.status.toLowerCase()">
-                      {{ user.status }}
-                    </span>
-                  </td>
-                </tr>
-              } 
-              @empty {
-                <tr>
-                  <td colspan="5" class="text-center py-5 border-0 text-muted">
-                    <p class="mb-0 fs-6 fst-italic">No user records matched your criteria.</p>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+      <div class="text-center py-5 my-5 text-muted status-feedback-wrapper">
+        <mat-icon class="empty-search-icon mb-2">search_off</mat-icon>
+        <p class="mb-0 fs-6 fst-italic">No accounts matched your active filtering query.</p>
+      </div>
       }
 
     </div>
   </div>
-</div>
+</main>
+
+<lib-footer></lib-footer>
