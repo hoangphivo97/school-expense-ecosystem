@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { UserService } from './user.service';
+import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthUserRepository } from './auth-user.repository';
+import { FirebaseAuthRepository, FirebaseIdentityProvider } from '@school-expense-ecosystem/shared/firestore';
+import { IdentityProvider } from './interface/identify-provider.interface';
 
 @Module({
   imports: [
@@ -14,10 +17,18 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [UserService,
-    JwtStrategy
+  providers: [AuthService,
+    JwtStrategy,
+    {
+      provide: AuthUserRepository,
+      useClass: FirebaseAuthRepository
+    },
+    {
+      provide: IdentityProvider,
+      useClass: FirebaseIdentityProvider
+    }
   ],
-  exports: [UserService,
+  exports: [AuthService,
     PassportModule,
     JwtModule
   ],

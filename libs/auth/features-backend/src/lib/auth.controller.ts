@@ -1,16 +1,16 @@
 import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { LoginDto, UserService, UserInDb, OnboardingDto } from '@school-expense-ecosystem/backend/auth/data-access';
+import { LoginDto, AuthService, UserInDb, OnboardingDto } from '@school-expense-ecosystem/backend/auth/data-access';
 import * as admin from 'firebase-admin';
 import { Role, UserStatus } from '@school-expense-ecosystem/auth/types';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
-export class UserController {
-  constructor(private readonly userService: UserService) { }
+export class AuthController {
+  constructor(private readonly authService: AuthService) { }
 
   @Post('login')
   async login(@Body('token') token: string) {
-    const result = await this.userService.handleFirebaseLogin(token);
+    const result = await this.authService.handleFirebaseLogin(token);
     return {
       message: 'Login success',
       ...result
@@ -19,7 +19,7 @@ export class UserController {
 
   @Post('google-login')
   async googleLogin(@Body('token') token: string) {
-    const result = await this.userService.handleFirebaseLogin(token);
+    const result = await this.authService.handleFirebaseLogin(token);
     return {
       message: 'Login success',
       ...result
@@ -37,11 +37,11 @@ export class UserController {
     }
 
     // 1. Attempt call Service to update DB
-    const updatedUser = await this.userService.completeOnboarding(uid, onboardingDto);
+    const updatedUser = await this.authService.completeOnboarding(uid, onboardingDto);
 
     // Payload of old JWT contain old data(status: ONBOARDING, ...).
     // Create new token
-    const freshToken = this.userService.generateJWT(updatedUser);
+    const freshToken = this.authService.generateJWT(updatedUser);
 
     return {
       message: 'Onboarding data processed successfully.',
@@ -57,10 +57,10 @@ export class UserController {
     const { uid, email, name } = decodedToken;
 
     const userEmail = email ?? `no-email-${uid}@example.com`;
-    let user = await this.userService.findByUid(uid);
+    let user = await this.authService.findByUid(uid);
 
     if (!user) {
-      user = await this.userService.createUser({
+      user = await this.authService.createUser({
         uid,
         email: userEmail,
         username: name ?? 'Unknown User',
@@ -69,7 +69,7 @@ export class UserController {
       });
     }
 
-    const authToken = this.userService.generateJWT(user);
+    const authToken = this.authService.generateJWT(user);
     return { token: authToken, user };
   }
 }
