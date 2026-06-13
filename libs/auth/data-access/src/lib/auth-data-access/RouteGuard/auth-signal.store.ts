@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { UserBase } from '@school-expense-ecosystem/auth/types';
 
 @Injectable({ providedIn: 'root' })

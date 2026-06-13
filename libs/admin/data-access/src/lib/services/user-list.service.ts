@@ -19,7 +19,6 @@ export class UserListService {
   private readonly baseUrl = inject(API_BASE_URL);
   private readonly apiUrl = `${this.baseUrl}/api`;
 
-  // Sửa đổi Service nhận thêm tham số truyền lên Server
   getPaginatedUsers(limit: number, pageToken?: string): Observable<PaginatedUsersResponse> {
     let url = `${this.apiUrl}/users?limit=${limit}`;
     if (pageToken) {

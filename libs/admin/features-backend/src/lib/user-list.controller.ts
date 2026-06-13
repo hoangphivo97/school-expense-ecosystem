@@ -11,12 +11,12 @@ export class UserListController {
 
   @Get()
   async getAllUsersForAdmin(
-    @Req() req: any,
+    @Req() req: { user: UserBase },
     @Query('limit') limit = 10,
     @Query('pageToken') pageToken?: string
-  ){
+  ) {
     const requester = req.user as UserBase;
 
-    return this.userListService.getUsersForAdmin(requester, +limit, pageToken);
+    return this.userListService.getUsersForAdmin(requester, Number(limit), pageToken);
   }
 }

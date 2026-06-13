@@ -24,7 +24,8 @@ export default [
                 'scope:expenses',
                 'scope:shared',
                 'scope:finance',
-                'scope:dashboard'
+                'scope:dashboard',
+                'scope:admin'
               ],
             }, //Backend Rules
             {
@@ -34,6 +35,7 @@ export default [
                 'scope:auth',
                 'scope:finance',
                 'scope:shared',
+                'scope:admin'
               ],
             },
             // Rulse for Domain Auth
@@ -95,6 +97,14 @@ export default [
                 'scope:finance',
                 'scope:auth',
                 'scope:shared',
+              ],
+            },
+            {
+              sourceTag: 'scope:admin',
+              onlyDependOnLibsWithTags: [
+                'scope:admin',
+                'scope:shared', 
+                'scope:auth',
               ],
             },
           ],

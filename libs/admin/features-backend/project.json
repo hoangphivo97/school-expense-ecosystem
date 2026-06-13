@@ -3,7 +3,7 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/admin/features-backend/src",
   "projectType": "library",
-  "tags": [],
+  "tags": ["scope:backend", "type:feature"],
   "// targets": "to see all targets run: nx show project user-list-backend --web",
   "targets": {}
 }

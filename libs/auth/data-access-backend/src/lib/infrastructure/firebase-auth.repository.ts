@@ -1,7 +1,7 @@
 // firebase-user.repository.ts
 import { Injectable, Inject } from '@nestjs/common';
-import { AuthUserRepository } from '@school-expense-ecosystem/backend/auth/data-access';
-import { UserInDb } from '@school-expense-ecosystem/backend/auth/data-access';
+import { AuthUserRepository } from '../auth-user.repository';
+import { UserInDb } from '../interface/user-db.interface';
 import * as admin from 'firebase-admin';
 
 @Injectable()

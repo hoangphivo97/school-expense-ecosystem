@@ -3,7 +3,7 @@ import { Router, CanActivateFn } from '@angular/router';
 import { UserStatus } from '@school-expense-ecosystem/auth/types';
 import { AuthSignalStore } from './auth-signal.store';
 
-export const unauthGuard: CanActivateFn = (route, state) => {
+export const unauthGuard: CanActivateFn = () => {
   const authStore = inject(AuthSignalStore);
   const router = inject(Router);
 

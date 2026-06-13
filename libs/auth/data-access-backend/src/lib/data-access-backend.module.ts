@@ -4,7 +4,8 @@ import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthUserRepository } from './auth-user.repository';
-import { FirebaseAuthRepository, FirebaseIdentityProvider } from '@school-expense-ecosystem/shared/firestore';
+import { FirebaseAuthRepository } from './infrastructure/firebase-auth.repository';
+import { FirebaseIdentityProvider } from './infrastructure/firebase-identity.provider';
 import { IdentityProvider } from './interface/identify-provider.interface';
 
 @Module({
