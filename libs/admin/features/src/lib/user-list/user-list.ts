@@ -75,7 +75,8 @@ export class UserListComponent {
     computed(() => {
       const index = this.currentPageIndex();
       const limit = this.pageSize();
-      const tokens = this.pageTokens();
+
+      const tokens = untracked(this.pageTokens);
       const currentToken = tokens[index] || '';
 
       return { limit, pageToken: currentToken, refresh: this.refreshTrigger() };
@@ -144,9 +145,8 @@ export class UserListComponent {
     return new MatTableDataSource<any>(processedList);
   });
 
-  constructor() {
-    // 🧹 SAFETY EFFECT: Khi Admin thay đổi bộ lọc tìm kiếm/quyền/trạng thái, 
-    // bắt buộc phải reset pageIndex về 0 và xóa lịch sử token cũ để kích hoạt fetch lại từ đầu.
+ constructor() {
+    // SAFETY EFFECT: Resets page index constraints safely upon user-driven query mutations
     effect(() => {
       this.searchQuery();
       this.roleFilter();
