@@ -1,3 +1,4 @@
+// libs/expenses/features/src/lib/features/create-expense-modal/create-expense-modal.component.ts
 import {
   Component,
   DestroyRef,
@@ -26,14 +27,18 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { MatSelect } from '@angular/material/select';
 import { PaidMethodStringValue } from '@school-expense-ecosystem/shared/constants';
-import { Timestamp } from '@angular/fire/firestore';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
-  CreateExpense,
-  EditExpense,
-  PaidMethodDropdownList,
+  ExpenseList,
+  CreateExpenseDto,
+  UpdateExpenseDto,
   PaidMethodEnum
-} from '@school-expense-ecosystem/expenses/data-access';
+} from '@school-expense-ecosystem/expenses/types'; // 👈 Imported pristine domain interfaces
+
+export interface PaidMethodDropdownItem {
+  name: string;
+  value: PaidMethodEnum;
+}
 
 export const MY_DATE_FORMATS: MatDateFormats = {
   parse: {
@@ -73,17 +78,16 @@ export const MY_DATE_FORMATS: MatDateFormats = {
 export class CreateExpenseModalComponent implements OnInit {
   readonly dialogRef = inject(MatDialogRef<CreateExpenseModalComponent>);
   readonly dialogData = inject<DialogData>(MAT_DIALOG_DATA);
-  private formBuilder = inject(FormBuilder);
+  private readonly formBuilder = inject(FormBuilder);
   readonly expenseService = inject(ExpenseService);
-  private decimalPipe = inject(DecimalPipe);
-  private destroyRef = inject(DestroyRef);
+  private readonly decimalPipe = inject(DecimalPipe);
+  private readonly destroyRef = inject(DestroyRef);
 
   formattedValue = '';
   dialogActionEnum = DialogActionEnum;
-
   paidMethodCurrVal: PaidMethodEnum = PaidMethodEnum.CASH;
 
-  paidMethodDropdownList: PaidMethodDropdownList[] = [
+  paidMethodDropdownList: PaidMethodDropdownItem[] = [
     { name: PaidMethodStringValue.CASH, value: PaidMethodEnum.CASH },
     {
       name: PaidMethodStringValue.CREDIT_CARD,
@@ -96,51 +100,72 @@ export class CreateExpenseModalComponent implements OnInit {
   ];
 
   createExpenseForm = this.formBuilder.group({
-    date: [new Date(), Validators.required],
+    date: [new Date() as Date | null, Validators.required],
     description: ['', Validators.required],
     purpose: ['', Validators.required],
-    paid: [0, Validators.required],
+    paid: [PaidMethodEnum.CASH, Validators.required], // Initialized with typed Enum value safely
     for: [''],
-    amount: [0, Validators.required],
+    amount: [0 as number | null, Validators.required],
   });
 
   async ngOnInit(): Promise<void> {
     await this.patchValue();
   }
 
+  /**
+   * Hydrates the reactive form context when modal is opened in Edit state mode
+   */
   patchValue() {
     if (this.dialogData.action !== this.dialogActionEnum.Edit) return;
-    const dataFromApi = this.dialogData.data as EditExpense;
+    const dataFromApi = this.dialogData.data as ExpenseList;
 
     this.createExpenseForm.patchValue({
-      ...dataFromApi,
-      date: (dataFromApi.date as Timestamp).toDate(),
+      description: dataFromApi.description,
+      purpose: dataFromApi.purpose,
+      paid: dataFromApi.paid,
+      for: dataFromApi.for,
+      amount: dataFromApi.amount,
+      // Converts clean ISO string back to native JavaScript Date object for MatDatepicker context mapping
+      date: dataFromApi.date ? new Date(dataFromApi.date) : new Date(),
     });
   }
 
+  /**
+   * Validates form boundaries and dispatches mutations towards data access layers
+   */
   onSave() {
     if (!this.createExpenseForm.valid) return;
     const { action, data } = this.dialogData;
-    const expenseData = this.createExpenseForm.value as CreateExpense;
-    const payload = {
-      ...expenseData,
-      createdAt: new Date(),
+    const formValue = this.createExpenseForm.value;
+
+    // Normalizes native Date instances back into standard ISO 8601 strings for API transmission strings
+    const isoPayload: CreateExpenseDto = {
+      description: formValue.description ?? '',
+      purpose: formValue.purpose ?? '',
+      paid: formValue.paid as PaidMethodEnum,
+      for: formValue.for ?? '',
+      amount: formValue.amount ?? 0,
+      userId: (data as ExpenseList)?.userId ?? '', // Preserves contextual user ownership mapping safely
+      date: formValue.date ? new Date(formValue.date).toISOString() : new Date().toISOString(),
     };
 
     if (action === this.dialogActionEnum.Create) {
-      this.createExpense(payload as CreateExpense);
-    } else if (action === this.dialogActionEnum.Edit) {
-      this.editExpense((data as EditExpense).id, payload as EditExpense);
+      this.createExpense(isoPayload);
+    } else if (action === this.dialogActionEnum.Edit && data) {
+      this.editExpense((data as ExpenseList).id, isoPayload as UpdateExpenseDto);
     }
   }
 
-  createExpense(payload: CreateExpense) {
+  /**
+   * Invokes network gateway requests to provision a fresh record mapping
+   */
+  createExpense(payload: CreateExpenseDto) {
     this.expenseService
       .createExpense(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        error: (e) => {
-          console.log(e);
+        error: (err) => {
+          console.error('Failed to create new expense transaction payload allocation:', err);
         },
         complete: () =>
           this.dialogRef.close({
@@ -151,13 +176,16 @@ export class CreateExpenseModalComponent implements OnInit {
       });
   }
 
-  editExpense(id: string, payload: EditExpense) {
+  /**
+   * Invokes target endpoint update mutations for modification mappings
+   */
+  editExpense(id: string, payload: UpdateExpenseDto) {
     this.expenseService
       .editExpense(id, payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        error: (e) => {
-          console.log(e);
+        error: (err) => {
+          console.error('Failed to update specified expense modification transaction index:', err);
         },
         complete: () =>
           this.dialogRef.close({
@@ -176,6 +204,9 @@ export class CreateExpenseModalComponent implements OnInit {
     } as DialogData);
   }
 
+  /**
+   * Automatically formats user keyboard currency inputs dynamically with comma separations
+   */
   onInput(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     const rawValue = inputElement.value.replace(/,/g, ''); // Remove commas
@@ -192,10 +223,9 @@ export class CreateExpenseModalComponent implements OnInit {
         ?.setValue(null, { emitEvent: false });
     }
 
-    // Format the display value
-    const formattedValue =
-      this.decimalPipe.transform(numericValue, '1.0-2') || '';
-    inputElement.value = formattedValue; // Update input value instantly
+    // Format the display value instantly for smooth UX
+    const formattedValue = this.decimalPipe.transform(numericValue, '1.0-2') || '';
+    inputElement.value = formattedValue; 
   }
 
   get ExpenseFormIsValid(): boolean {

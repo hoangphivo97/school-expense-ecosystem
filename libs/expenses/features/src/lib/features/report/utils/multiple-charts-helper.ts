@@ -1,3 +1,4 @@
+// libs/expenses/features/src/lib/features/report/utils/multiple-charts-helper.ts
 import {
   ApexAxisChartSeries,
   ApexChart,
@@ -6,11 +7,8 @@ import {
   ApexTitleSubtitle,
   ChartType,
 } from 'ng-apexcharts';
-import { AxisChartOptions, NonAxisChartOptions } from '@school-expense-ecosystem/expenses/data-access';
+import { AxisChartOptions, NonAxisChartOptions, ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import { formatDate } from '@angular/common';
-import { tsToDate, tsToMs } from '@school-expense-ecosystem/shared/utils';
-import { Timestamp } from '@angular/fire/firestore';
-import { ExpenseList } from '@school-expense-ecosystem/expenses/data-access';
 
 export type LineOpts = {
   series: ApexAxisChartSeries;
@@ -20,6 +18,9 @@ export type LineOpts = {
   title?: ApexTitleSubtitle;
 };
 
+/**
+ * Groups expense list by their purpose categories
+ */
 function groupByCategory(list: ExpenseList[]) {
   const b: Record<string, number> = {};
   for (const e of list) {
@@ -31,11 +32,15 @@ function groupByCategory(list: ExpenseList[]) {
   return { labels, series };
 }
 
+/**
+ * Generates configuration for a smooth line chart tracking expenses over time
+ */
 export function makeLineChart(
   expenses: ExpenseList[],
 ): Partial<AxisChartOptions> {
+  // e.date is now a clean ISO string, safely handled by Angular's natively flexible formatDate utility
   const categories = expenses.map((e) =>
-    formatDate(tsToDate(e.date as Timestamp) as Date, 'MMM dd', 'en-US'),
+    formatDate(e.date, 'MMM dd', 'en-US'),
   );
   const data = expenses.map((e) => e.amount);
 
@@ -48,6 +53,9 @@ export function makeLineChart(
   };
 }
 
+/**
+ * Generates configuration for a vertical monthly column chart for a specific year
+ */
 export function makeMonthlyColumnChart(
   expenses: ExpenseList[],
   year: number,
@@ -56,15 +64,18 @@ export function makeMonthlyColumnChart(
   const height = opts?.height ?? 300;
   const seriesName = opts?.seriesName ?? 'Monthly Expenses';
 
-  // khởi tạo 12 tháng = 0
+  // Initialize an array with 12 slots for 12 months, starting at 0
   const monthly = Array.from({ length: 12 }, () => 0);
 
   for (const e of expenses) {
-    const ms = tsToMs(e.date as Timestamp);
-    if (!Number.isFinite(ms)) continue;
-    const d = new Date(ms);
-    if (d.getFullYear() !== year) continue; // chỉ tính trong năm cần hiển thị
-    const mIndex = d.getMonth(); // 0..11
+    if (!e.date) continue;
+
+    // Directly construct a native JavaScript Date object from the clean ISO string format
+    const d = new Date(e.date);
+    if (isNaN(d.getTime())) continue; // Skip invalid date strings safely
+    if (d.getFullYear() !== year) continue; // Only process calculations within the specified target year
+
+    const mIndex = d.getMonth(); // Index range maps 0 (Jan) to 11 (Dec)
     monthly[mIndex] += Number(e.amount) || 0;
   }
 
@@ -80,7 +91,7 @@ export function makeMonthlyColumnChart(
     series: [{ name: seriesName, data: monthly, color: '#7D45FF' }],
     plotOptions: {
       bar: {
-        horizontal: false, // column chart (vertical)
+        horizontal: false, // Column chart representation (vertical bars)
         columnWidth: '48%',
         borderRadius: 6,
       },
@@ -90,6 +101,9 @@ export function makeMonthlyColumnChart(
   };
 }
 
+/**
+ * Generates configuration for a pie or donut chart broken down by category breakdown
+ */
 export function makePieChart(
   expenses: ExpenseList[],
   opts?: {
@@ -101,11 +115,11 @@ export function makePieChart(
 ): Partial<NonAxisChartOptions> {
   const { labels, series } = groupByCategory(expenses);
   const height = opts?.height ?? 300;
-  const donut = opts?.donut ?? true; // default donut
+  const donut = opts?.donut ?? true; // Default behavior defaults to the donut aspect ratio
 
   return {
     chart: {
-      type: (donut ? 'donut' : 'pie') as ChartType,
+          type: (donut ? 'donut' : 'pie') as ChartType,
       height,
       width: '100%',
     },
@@ -116,10 +130,10 @@ export function makePieChart(
     legend: { position: 'bottom' },
     dataLabels: {
       enabled: true,
-      // hiển thị % (Apex truyền % vào formatter)
+      // Renders percentage breakdown into graph data label context cleanly
       formatter: (val: any) => `${Number(val).toFixed(1)}%`,
     },
-    // tổng ở giữa khi là donut (tuỳ thích)
+    // Renders centralized aggregated totals for donut charts exclusively
     plotOptions: donut
       ? {
           pie: {
@@ -140,7 +154,7 @@ export function makePieChart(
         }
       : undefined,
     tooltip: {
-      y: { formatter: (v: number) => `${v}` }, // giá trị tuyệt đối trong tooltip
+      y: { formatter: (v: number) => `${v}` }, // Displays absolute raw values in chart tooltips
     },
   };
 }

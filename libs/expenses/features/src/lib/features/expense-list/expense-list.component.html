@@ -6,7 +6,7 @@
     </button>
   </section>
 
-  <lib-filter (filterChange)="onFilterChanged($event)" [inputDataSource]="dataSource()" [yearsList]="availableYears"
+  <lib-filter (filterChange)="onFilterChanged($event)" [inputDataSource]="dataSource()" [yearsList]="availableYears()"
     [value]="filterParams()"></lib-filter>
 
   @if(expensesSignal().length > 0){

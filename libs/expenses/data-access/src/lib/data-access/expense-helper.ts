@@ -1,5 +1,5 @@
 import { FilterParams } from '@school-expense-ecosystem/shared/types';
-import { ExpenseList } from './interfaces/expense.interface';
+import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import { Params } from '@angular/router';
 
 

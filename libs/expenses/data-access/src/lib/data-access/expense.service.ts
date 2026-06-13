@@ -1,118 +1,52 @@
 import { inject, Injectable } from '@angular/core';
-import { Auth, authState } from '@angular/fire/auth';
-import {
-  addDoc,
-  collection,
-  collectionData,
-  deleteDoc,
-  doc,
-  DocumentReference,
-  Firestore,
-  getDoc,
-  query,
-  QueryConstraint,
-  Timestamp,
-  updateDoc,
-  where,
-} from '@angular/fire/firestore';
-import { from, map, Observable, of, switchMap, take } from 'rxjs';
-import {
-  CreateExpense,
-  ExpenseList
-} from './interfaces/expense.interface';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { ExpenseList, CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/types';
 import { FilterParams } from '@school-expense-ecosystem/shared/types';
+import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExpenseService {
-  readonly firestore = inject(Firestore);
-  private expensesCollection = collection(this.firestore, 'expenses');
-  readonly auth = inject(Auth);
-  readonly user$ = authState(this.auth);
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = inject(API_BASE_URL);
+  private readonly apiUrl = `${this.baseUrl}/api/expenses`;
 
+  /**
+   * Fetches the expense list based on active routing filter parameters
+   */
   getExpenseList(params: Partial<FilterParams>): Observable<ExpenseList[]> {
-    const { month, year, searchTerm } = params;
-    return this.user$.pipe(
-      switchMap((user) => {
-        if (!user) return of([]);
-
-        const constraints: QueryConstraint[] = [
-          where('userId', '==', user.uid),
-        ];
-
-        if (month !== undefined && year !== undefined) {
-          const startDate = new Date(year, month - 1, 1); // First Month
-          const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-
-          constraints.push(where('date', '>=', startDate));
-          constraints.push(where('date', '<=', endDate));
-        }
-        if (searchTerm) {
-          constraints.push(
-            where('description', '>=', searchTerm),
-            where('description', '<=', searchTerm + '\uf8ff'),
-          );
-        }
-
-        const userExpensesQuery = query(
-          this.expensesCollection,
-          ...constraints,
-        );
-
-        return collectionData(userExpensesQuery, {
-          idField: 'id',
-        }) as Observable<ExpenseList[]>;
-      }),
-    );
+    return this.http.get<ExpenseList[]>(this.apiUrl, {
+      params: params as Record<string, string | string[]>
+    });
   }
 
-  createExpense(
-    data: Omit<CreateExpense, 'userId'>,
-  ): Observable<DocumentReference> {
-    return this.user$.pipe(
-      take(1),
-      switchMap((user) => {
-        if (!user) {
-          throw new Error('User is not logged in');
-        }
-
-        const expenseWithUser = { ...data, userId: user.uid };
-        return from(addDoc(this.expensesCollection, expenseWithUser));
-      }),
-    );
+  /**
+   * Creates a new expense record in the system
+   */
+  createExpense(data: CreateExpenseDto): Observable<ExpenseList> {
+    return this.http.post<ExpenseList>(this.apiUrl, data);
   }
 
-  editExpense(id: string, data: Omit<CreateExpense, 'userId' | 'createdAt'>) {
-    const expenseRef = doc(this.firestore, `expenses/${id}`);
-    // return from(updateDoc(expenseRef, data));
-    return from(getDoc(expenseRef)).pipe(
-      switchMap((snapshot) => {
-        if (!snapshot.exists()) {
-          throw new Error('Document does not exist');
-        }
-        return updateDoc(expenseRef, data);
-      }),
-    );
+  /**
+   * Updates an existing expense record by its unique identifier
+   */
+  editExpense(id: string, data: UpdateExpenseDto): Observable<ExpenseList> {
+    return this.http.put<ExpenseList>(`${this.apiUrl}/${id}`, data);
   }
 
-  deleteExpense(id: string) {
-    const expenseRef = doc(this.firestore, `expenses/${id}`);
-    return from(deleteDoc(expenseRef));
+  /**
+   * Deletes an expense record from the system
+   */
+  deleteExpense(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  /**
+   * Fetches all unique years containing data to populate the filter dropdown
+   */
   getAllYearsWithDate(): Observable<number[]> {
-    return this.user$.pipe(
-      switchMap(user => {
-        if (!user) return of([]);
-        const q = query(this.expensesCollection, where('userId', '==', user.uid));
-        return collectionData(q).pipe(
-          map(docs => {
-            const years = docs.map(d => (d['date'] as Timestamp).toDate().getFullYear());
-            return Array.from(new Set([...years, new Date().getFullYear()])).sort((a, b) => b - a);
-          })
-        )
-      })
-    )
+    return this.http.get<number[]>(`${this.apiUrl}/years`);
   }
 }

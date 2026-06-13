@@ -7,13 +7,14 @@ import {
   makeLineChart,
   makePieChart,
 } from '../report/utils/multiple-charts-helper';
-import { calcChangePct, calcKPIs, getPrevMonth, parseRouterFilterParams, ExpenseService , ExpenseList } from '@school-expense-ecosystem/expenses/data-access';
+import { calcChangePct, calcKPIs, getPrevMonth, parseRouterFilterParams, ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import {
   filter,
   map,
   startWith,
   switchMap,
 } from 'rxjs';
+import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import {
   FilterParams,
 } from '@school-expense-ecosystem/shared/types';

@@ -1,7 +1,7 @@
 // libs/auth/features-backend/src/lib/auth.controller.ts
 import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 // 🌟 ĐẢM BẢO: Chỉ import các thành phần Core nghiệp vụ cần thiết từ data-access
-import { AuthService, OnboardingDto } from '@school-expense-ecosystem/backend/auth/data-access';
+import { AuthService, OnboardingDto } from '@school-expense-ecosystem/auth/data-access-backend';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')

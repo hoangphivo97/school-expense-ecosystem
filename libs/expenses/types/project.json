@@ -1,0 +1,9 @@
+{
+  "name": "expenses-types",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/expenses/types/src",
+  "projectType": "library",
+  "tags": ["scope:expenses", "type:types"],
+  "// targets": "to see all targets run: nx show project expenses-types --web",
+  "targets": {}
+}
