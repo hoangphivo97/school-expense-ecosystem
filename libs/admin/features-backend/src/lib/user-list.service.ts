@@ -1,29 +1,21 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
 import * as admin from 'firebase-admin';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserListService {
     constructor(
-        @Inject('FIRESTORE_INSTANCE') private readonly firestore: any,
+        private readonly userRepo: UserRepository
     ) { }
 
-    async findAllUsers(requester: UserBase): Promise<UserBase[]> {
-        let userQuery: admin.firestore.Query = this.firestore.collection('users');
+    async getUsersForAdmin(requester: UserBase, limit: number, pageToken?: string) {
+        const facultyIdFilter = requester.role === Role.LEVEL_2_DEAN ? requester.facultyId : undefined;
 
-        if (requester.role === Role.LEVEL_2_DEAN) {
-            userQuery = userQuery.where('facultyId', '==', requester.facultyId);
-        }
-        const snapshot = await userQuery.get();
-        const users: UserBase[] = [];
-
-        snapshot.forEach((doc: any) => {
-            users.push({
-                id: doc.id,
-                ...doc.data()
-            } as UserBase);
+        return this.userRepo.findPaginated({
+            facultyId: facultyIdFilter,
+            limit,
+            pageToken
         });
-
-        return users;
     }
 }

@@ -52,12 +52,20 @@ export class UserService{
       let user = await this.findByUid(uid);
 
       if (!user) {
+        const userRecord = await admin.auth().getUser(uid);
+
+        const creationTime = userRecord.metadata.creationTime;
+
+        const nativeDate = creationTime ? new Date(creationTime): new Date();
+        const firestoreTimestamp = admin.firestore.Timestamp.fromDate(nativeDate)
+
         user = await this.createUser({
           uid,
           email: userEmail,
           username: name ?? 'Unknown User',
           role: Role.LEVEL_3_USER,
-          status: UserStatus.ONBOARDING
+          status: UserStatus.ONBOARDING,
+          createdAt: firestoreTimestamp
         });
       }
 

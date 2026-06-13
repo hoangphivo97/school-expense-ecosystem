@@ -27,7 +27,8 @@ export class BreadcrumbComponent {
     const path = this.cleanUrl().split('/')[1];
     if (!path) return '';
 
-    // Returns a capitalized string title layout contract 
-    return path.charAt(0).toUpperCase() + path.slice(1);
+    // Standardize presentation by substituting hyphens with white spaces dynamically
+    const cleanPath = path.replace(/-/g, ' ');
+    return cleanPath.charAt(0).toUpperCase() + cleanPath.slice(1);
   });
 }
