@@ -1,6 +1,5 @@
 import { Injectable, inject, effect } from '@angular/core';
 import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
-import { AuthService } from './auth.service';
 import { UserStatus } from '@school-expense-ecosystem/auth/types';
 import { io, Socket } from "socket.io-client";
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';

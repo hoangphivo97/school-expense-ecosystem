@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UserService } from '../user.service';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-    constructor(private readonly userService: UserService) {
+    constructor(private readonly authService: AuthService) {
         super({
             // 1. Tự động bóc tách chuỗi Bearer Token từ Authorization Header do Angular Interceptor gửi lên
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -23,7 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         console.log('=== PASSPORT JWT DECODED SUCCESS ===');
         console.log('Payload nhận được từ Token:', payload);
         // Truy vấn xuống DB để kiểm tra xem User này có còn tồn tại/hợp pháp hay không
-        const user = await this.userService.findByUid(payload.uid);
+        const user = await this.authService.findByUid(payload.uid);
 
         if (!user) {
             throw new UnauthorizedException('Phiên đăng nhập không hợp lệ hoặc tài khoản không tồn tại.');

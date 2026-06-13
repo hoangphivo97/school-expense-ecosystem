@@ -4,7 +4,7 @@
   "sourceRoot": "libs/admin/features/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["scope:admin", "type:feature"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

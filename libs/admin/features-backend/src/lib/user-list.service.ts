@@ -1,6 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
-import * as admin from 'firebase-admin';
 import { UserRepository } from './user.repository';
 
 @Injectable()

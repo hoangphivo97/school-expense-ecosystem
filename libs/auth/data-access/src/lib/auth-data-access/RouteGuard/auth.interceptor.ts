@@ -7,18 +7,20 @@ import {
 } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
-import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { catchError, from, switchMap, throwError } from 'rxjs';
 import { AuthSignalStore } from './auth-signal.store';
 
+import { HTTP_ERROR_DELEGATE } from '@school-expense-ecosystem/shared/tokens';
+
 export const authInterceptor: HttpInterceptorFn = (
-  req: HttpRequest<any>,
+  req: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ) => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  const errorModalService = inject(ErrorModalService);
   const authStore = inject(AuthSignalStore);
+  
+  const showErrorModal = inject(HTTP_ERROR_DELEGATE, { optional: true });
 
   const nestJsToken = authStore.token();
 
@@ -34,14 +36,12 @@ export const authInterceptor: HttpInterceptorFn = (
 
       // (500 - Internal Server Error)
       if (err.status === 500) {
-        try {
-          errorModalService.openCustomErrorModal({
+        if (showErrorModal) {
+          showErrorModal({
             title: 'Server Error',
             errorMsg: 'The server encountered an internal error and was unable to complete your request.',
             hint: 'Please try again later or contact the system administrator.'
           });
-        } catch (modalError) {
-          console.error('Failed to open ErrorModal from Interceptor:', modalError);
         }
         return throwError(() => err);
       }
@@ -50,29 +50,25 @@ export const authInterceptor: HttpInterceptorFn = (
       if (err.status === 401 || err.status === 403) {
         const isOnboardingRequest = err.url?.includes('/auth/onboarding');
 
-        // Thử thách làm mới token bằng cơ chế của Firebase
         return from(Promise.resolve(auth.getFirebaseToken(true))).pipe(
           switchMap((newToken) => next(attach(newToken))),
           catchError(async (err2) => {
-            // Nếu cơ chế làm mới thất bại hoàn toàn -> Ép đăng xuất công khai
             await auth.signOut();
 
-            try {
+            if (showErrorModal) {
               if (isOnboardingRequest) {
-                errorModalService.openCustomErrorModal({
+                showErrorModal({
                   title: 'Account Setup Failed',
                   errorMsg: 'We could not verify your temporary onboarding session.',
                   hint: 'Please try signing in with Google again to restart your registration.'
                 });
               } else {
-                errorModalService.openCustomErrorModal({
+                showErrorModal({
                   title: 'Session Expired',
                   errorMsg: 'Your active authorization session has expired or become invalid.',
                   hint: 'Please log back into your account to securely resume your work.'
                 });
               }
-            } catch (e) {
-              console.error('Failed to open ErrorModal for session timeout:', e);
             }
 
             router.navigate(['/auth']);

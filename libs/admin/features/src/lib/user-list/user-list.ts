@@ -135,12 +135,9 @@ export class UserListComponent {
     });
 
     const processedList = filteredList.map((user: UserBase) => {
-      const rawSeconds = user.createdAt?.seconds ?? (user.createdAt as any)?._seconds;
-
       return {
         ...user,
-        roleLabel: this.roleLabels[user.role as Role] || String(user.role),
-        processedCreatedAt: rawSeconds ? new Date(rawSeconds * 1000) : null
+        roleLabel: this.roleLabels[user.role as Role] || String(user.role)
       };
     });
 

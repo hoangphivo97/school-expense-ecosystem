@@ -5,7 +5,6 @@ import {
   GoogleAuthProvider,
   UserCredential,
   AuthProvider,
-  User,
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from '@angular/fire/auth';
@@ -30,7 +29,7 @@ export class AuthService {
   readonly isLoading = signal<boolean>(true);
 
   constructor() {
-    onAuthStateChanged(this.auth, (user) => {
+    onAuthStateChanged(this.auth, () => {
       this.isLoading.set(false);
     });
   }
