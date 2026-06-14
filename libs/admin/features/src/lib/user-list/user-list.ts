@@ -101,7 +101,6 @@ export class UserListComponent {
 
       if (response.nextPageToken) {
         const nextIndex = this.currentPageIndex() + 1;
-        // 🛠️ FIX: Ép kiểu 'as string' để vượt qua giới hạn Closure Narrowing của TypeScript
         this.pageTokens.update(tokens => ({
           ...tokens,
           [nextIndex]: response.nextPageToken as string
@@ -123,7 +122,6 @@ export class UserListComponent {
     const role = this.roleFilter();
     const status = this.statusFilter();
 
-    // Vẫn giữ Single-pass Filter để hỗ trợ tìm kiếm nhanh/lọc nhanh trên phạm vi trang hiện tại (10 bản ghi)
     const filteredList = rawList.filter((user: UserBase) => {
       const matchesQuery = !query ||
         user.fullName?.toLowerCase().includes(query) ||

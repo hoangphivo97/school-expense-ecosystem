@@ -13,7 +13,6 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     const data = doc.data();
     if (!data) throw new Error(`Document data is empty for ID: ${doc.id}`);
 
-    // Dịch chuyển Firebase Timestamp về chuỗi ISO String sạch sẽ
     const dateStr = data['date'] instanceof admin.firestore.Timestamp 
       ? data['date'].toDate().toISOString() 
       : new Date(data['date']).toISOString();
@@ -41,8 +40,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
         .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
     }
 
-    // Sắp xếp theo ngày chi tiêu mới nhất
-    const snapshot = await query.orderBy('date', 'desc').get();
+    const snapshot = await query.orderBy('createdAt', 'desc').get();
     return snapshot.docs.map(doc => this.mapDocToExpense(doc));
   }
 

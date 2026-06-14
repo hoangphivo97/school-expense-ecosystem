@@ -1,9 +1,11 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+// libs/expenses/features/src/lib/features/expense-list/expense-list.component.ts
+import { Component, computed, DestroyRef, inject, OnInit, signal, effect, untracked } from '@angular/core'; 
 import { NavigationEnd, Router } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator'; 
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -14,8 +16,8 @@ import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, 
 import { FilterParams, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
 import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, LocalStorageKey, ModalMessage } from '@school-expense-ecosystem/shared/constants';
-import { ExpenseList, PaidMethodEnum } from '@school-expense-ecosystem/expenses/types';
-import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
+import { ExpenseList, PaidMethodEnum } from '@school-expense-ecosystem/expenses/types'; 
+import { ExpenseService, PaginatedExpenses } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
 
@@ -30,6 +32,7 @@ import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
     CommonModule,
     MatButtonModule,
     MatTableModule,
+    MatPaginatorModule, 
     MatIconModule,
     MatInputModule,
     EnumToStringPipe,
@@ -50,10 +53,16 @@ export class ExpenseListComponent implements OnInit {
   dialogActionEnum = DialogActionEnum;
   paidMethodEnum = PaidMethodEnum;
 
-  // Reactive trigger state to force-refresh underlying data streams
+  // Local states managed via native Angular Signals matching the administration UI
+  readonly isLoading = signal<boolean>(false);
+  readonly errorMessage = signal<string | null>(null);
   private readonly refreshTrigger = signal<number>(0);
 
-  // Listens to router events to safely parse query parameters into an Angular Signal context
+  // Server-side pagination states fully driven by active stream configurations
+  readonly pageSize = signal<number>(10);
+  readonly currentPageIndex = signal<number>(0);
+  private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
+
   private readonly queryParamsSignal = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -62,29 +71,71 @@ export class ExpenseListComponent implements OnInit {
     )
   );
 
-  // Computed signal to derive structured filter parameters whenever URL queries mutate
   readonly filterParams = computed<FilterParams>(() => {
-    // Hàm này giả định ông import helper để parse data thô từ URL ra đúng format số/chuỗi
-    return this.router.parseUrl(this.router.url).queryParams as unknown as FilterParams;
+    const params = this.queryParamsSignal(); 
+    return params as unknown as FilterParams;
   });
 
-  // DECLARATIVE DATA FETCHING STREAM: Reacts to active filters and reactive triggers simultaneously
-  private readonly rawExpenses$ = toObservable(
-    computed(() => ({ filter: this.filterParams(), refresh: this.refreshTrigger() }))
-  ).pipe(
-    switchMap(({ filter }) => this.expenseService.getExpenseList(filter)),
-    catchError((err) => {
-      console.error('Failed to resolve expense listing from API gateway:', err);
-      return of([] as ExpenseList[]);
+  // 🌟 PURE USER-LIST ARCHITECTURE PATTERN: Consolidates operational query metadata parameters
+  private readonly remoteParams$ = toObservable(
+    computed(() => {
+      const index = this.currentPageIndex();
+      const limit = this.pageSize();
+      const filter = this.filterParams();
+      
+      // Snaps potential cyclic notification loops using explicit untracked wrappers
+      const tokens = untracked(this.pageTokens);
+      const currentToken = tokens[index] || '';
+
+      return { 
+        limit, 
+        pageToken: currentToken, 
+        year: filter.year, 
+        month: filter.month, 
+        refresh: this.refreshTrigger() 
+      };
     })
   );
 
-  readonly expensesSignal = toSignal(this.rawExpenses$, { initialValue: [] as ExpenseList[] });
+  // 🌟 ASYNC NETWORK PIPELINE CONTEXT: Directly derived from the remote parameters stream topology
+  private readonly apiResponse$ = this.remoteParams$.pipe(
+    switchMap(({ limit, pageToken, year, month }) => {
+      this.isLoading.set(true);
+      this.errorMessage.set(null);
 
-  // Automatically remaps standard arrays into MatTableDataSource whenever state values resolve
-  readonly dataSource = computed(() => new MatTableDataSource<ExpenseList>(this.expensesSignal()));
+      return this.expenseService.getExpenseList({ limit, pageToken, year, month }).pipe(
+        catchError((err) => {
+          console.error('Fetch paginated expenses from gateway failed:', err);
+          this.errorMessage.set('Failed to load expense directory. Please verify infrastructure logs');
+          return of({ expenses: [] as ExpenseList[], nextPageToken: null as string | null, totalItems: 0 });
+        })
+      );
+    }),
+    map((response) => {
+      this.isLoading.set(false);
 
-  // REACTIVE YEAR LIST STREAM: Re-triggers dropdown population smoothly post mutations
+      // Registers subsequent paging token allocations smoothly inside the local dictionary state
+      if (response.nextPageToken) {
+        const nextIndex = this.currentPageIndex() + 1;
+        this.pageTokens.update(tokens => ({
+          ...tokens,
+          [nextIndex]: response.nextPageToken as string
+        }));
+      }
+      return response;
+    })
+  );
+
+  readonly apiResponseSignal = toSignal(this.apiResponse$, {
+    initialValue: { expenses: [] as ExpenseList[], nextPageToken: null as string | null, totalItems: 0 }
+  });
+
+  // Exposes total records count straight to the UI paginator layout configuration
+  readonly totalItems = computed(() => this.apiResponseSignal().totalItems);
+
+  // Maps fresh payload blocks seamlessly down towards the table data schema boundary context
+  readonly dataSource = computed(() => new MatTableDataSource<ExpenseList>(this.apiResponseSignal().expenses));
+
   readonly availableYears = toSignal(
     toObservable(this.refreshTrigger).pipe(
       switchMap(() => this.expenseService.getAllYearsWithDate()),
@@ -93,8 +144,26 @@ export class ExpenseListComponent implements OnInit {
     { initialValue: [new Date().getFullYear()] }
   );
 
+  constructor() {
+    // SAFETY EFFECT EFFECT: Flushes page pointers safely back to root coordinates upon filter alterations
+    effect(() => {
+      this.filterParams();
+      this.refreshTrigger();
+
+      untracked(() => {
+        this.currentPageIndex.set(0);
+        this.pageTokens.set({ 0: '' });
+      });
+    });
+  }
+
   ngOnInit() {
     this.initDateFormat();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageSize.set(event.pageSize);
+    this.currentPageIndex.set(event.pageIndex);
   }
 
   openCreateExpenseModal() {
@@ -133,10 +202,6 @@ export class ExpenseListComponent implements OnInit {
     this.getListAfterSuccessCallApi(dialogRef);
   }
 
-  /**
-   * FLATTENED MODAL WORKFLOW (ELIMINATING SPAGHETTI SUBSCRIPTIONS):
-   * Leverages switchMap streams to prevent nested subscription blocks and safeguard memory leaks.
-   */
   getListAfterSuccessCallApi(
     dialogRef: MatDialogRef<CreateExpenseModalComponent | BaseModalComponent>,
   ) {
@@ -149,17 +214,15 @@ export class ExpenseListComponent implements OnInit {
             return this.expenseService.deleteExpense(res.data as string).pipe(
               catchError((err) => {
                 console.error('Error encountered while processing delete operation:', err);
-                return of(null);
+                return of(null); 
               })
             );
           }
-          // Creation/Edition mutation payloads are managed inside modal context; react to success here
           return of(res);
         }),
-        takeUntilDestroyed(this.destroyRef) // Automatically cleans up bindings on component destruction
+        takeUntilDestroyed(this.destroyRef) 
       )
       .subscribe(() => {
-        // Kickstart trigger to signal state graphs to fetch pristine data automatically
         this.refreshTrigger.update((n) => n + 1);
       });
   }

@@ -5,6 +5,12 @@ import { ExpenseList, CreateExpenseDto, UpdateExpenseDto } from '@school-expense
 import { FilterParams } from '@school-expense-ecosystem/shared/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
+export interface PaginatedExpenses {
+  expenses: ExpenseList[];
+  nextPageToken: string | null;
+  totalItems: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -16,10 +22,9 @@ export class ExpenseService {
   /**
    * Fetches the expense list based on active routing filter parameters
    */
-  getExpenseList(params: Partial<FilterParams>): Observable<ExpenseList[]> {
-    return this.http.get<ExpenseList[]>(this.apiUrl, {
-      params: params as Record<string, string | string[]>
-    });
+
+  getExpenseList(params: Record<string, any>): Observable<PaginatedExpenses> {
+    return this.http.get<PaginatedExpenses>(this.apiUrl, { params });
   }
 
   /**
