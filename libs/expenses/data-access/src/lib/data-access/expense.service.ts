@@ -1,15 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ExpenseList, CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/types';
-import { FilterParams } from '@school-expense-ecosystem/shared/types';
+import { ExpenseList, CreateExpenseDto, UpdateExpenseDto, PaginatedExpensesResponse, ExpenseAnalyticsDto } from '@school-expense-ecosystem/expenses/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-
-export interface PaginatedExpenses {
-  expenses: ExpenseList[];
-  nextPageToken: string | null;
-  totalItems: number;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -23,8 +16,30 @@ export class ExpenseService {
    * Fetches the expense list based on active routing filter parameters
    */
 
-  getExpenseList(params: Record<string, any>): Observable<PaginatedExpenses> {
-    return this.http.get<PaginatedExpenses>(this.apiUrl, { params });
+  getExpenseList(filters: { limit: number; pageToken?: string; year?: number; month?: number; searchTerm?: string }): Observable<PaginatedExpensesResponse> {
+    let url = `${this.apiUrl}/?limit=${filters.limit}`;
+    if (filters.pageToken) url += `&pageToken=${encodeURIComponent(filters.pageToken)}`;
+    if (filters.year) url += `&year=${filters.year}`;
+    if (filters.month) url += `&month=${filters.month}`;
+    if (filters.searchTerm) url += `&searchTerm=${encodeURIComponent(filters.searchTerm)}`;
+
+    return this.http.get<PaginatedExpensesResponse>(url);
+  }
+
+  getAnalytics(filters: { year?: string | number; month?: string | number }): Observable<ExpenseAnalyticsDto> {
+    let url = `${this.apiUrl}/analytics`;
+    const queryParams: string[] = [];
+
+    if (filters.year !== undefined && filters.year !== null) {
+      queryParams.push(`year=${filters.year}`);
+    }
+    if (filters.month !== undefined && filters.month !== null) {
+      queryParams.push(`month=${filters.month}`);
+    }
+
+    if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
+
+    return this.http.get<ExpenseAnalyticsDto>(url);
   }
 
   /**

@@ -1,11 +1,11 @@
 // libs/expenses/features/src/lib/features/expense-list/expense-list.component.ts
-import { Component, computed, DestroyRef, inject, OnInit, signal, effect, untracked } from '@angular/core'; 
+import { Component, computed, DestroyRef, inject, OnInit, signal, effect, untracked } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator'; 
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -16,10 +16,11 @@ import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, 
 import { FilterParams, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
 import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, LocalStorageKey, ModalMessage } from '@school-expense-ecosystem/shared/constants';
-import { ExpenseList, PaidMethodEnum } from '@school-expense-ecosystem/expenses/types'; 
-import { ExpenseService, PaginatedExpenses } from '@school-expense-ecosystem/expenses/data-access';
+import { ExpenseList, PaidMethodEnum } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
+import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 
 @Component({
   selector: 'lib-expense-list',
@@ -32,7 +33,7 @@ import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
     CommonModule,
     MatButtonModule,
     MatTableModule,
-    MatPaginatorModule, 
+    MatPaginatorModule,
     MatIconModule,
     MatInputModule,
     EnumToStringPipe,
@@ -48,6 +49,7 @@ export class ExpenseListComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   readonly expenseService = inject(ExpenseService);
   private readonly router = inject(Router);
+  private readonly authSignalStore = inject(AuthSignalStore);
 
   displayedColumns: string[] = ['date', 'description', 'purpose', 'paid', 'for', 'amount', 'action'];
   dialogActionEnum = DialogActionEnum;
@@ -72,41 +74,41 @@ export class ExpenseListComponent implements OnInit {
   );
 
   readonly filterParams = computed<FilterParams>(() => {
-    const params = this.queryParamsSignal(); 
+    const params = this.queryParamsSignal();
     return params as unknown as FilterParams;
   });
 
-  // 🌟 PURE USER-LIST ARCHITECTURE PATTERN: Consolidates operational query metadata parameters
+  // PURE USER-LIST ARCHITECTURE PATTERN: Consolidates operational query metadata parameters
   private readonly remoteParams$ = toObservable(
     computed(() => {
       const index = this.currentPageIndex();
       const limit = this.pageSize();
       const filter = this.filterParams();
-      
-      // Snaps potential cyclic notification loops using explicit untracked wrappers
+
       const tokens = untracked(this.pageTokens);
       const currentToken = tokens[index] || '';
 
-      return { 
-        limit, 
-        pageToken: currentToken, 
-        year: filter.year, 
-        month: filter.month, 
-        refresh: this.refreshTrigger() 
+      return {
+        limit,
+        pageToken: currentToken,
+        year: filter.year ? Number(filter.year) : undefined,
+        month: filter.month ? Number(filter.month) : undefined,
+        searchTerm: filter.searchTerm || undefined, // 👈 Đăng ký dependency tìm kiếm cho pipeline
+        refresh: this.refreshTrigger()
       };
     })
   );
 
-  // 🌟 ASYNC NETWORK PIPELINE CONTEXT: Directly derived from the remote parameters stream topology
+  // ASYNC NETWORK PIPELINE CONTEXT: Directly derived from the remote parameters stream topology
   private readonly apiResponse$ = this.remoteParams$.pipe(
-    switchMap(({ limit, pageToken, year, month }) => {
+    switchMap(({ limit, pageToken, year, month, searchTerm }) => {
       this.isLoading.set(true);
       this.errorMessage.set(null);
 
-      return this.expenseService.getExpenseList({ limit, pageToken, year, month }).pipe(
+      return this.expenseService.getExpenseList({ limit, pageToken, year, month, searchTerm }).pipe(
         catchError((err) => {
-          console.error('Fetch paginated expenses from gateway failed:', err);
-          this.errorMessage.set('Failed to load expense directory. Please verify infrastructure logs');
+          console.error('Fetch paginated expenses pipeline crashed:', err);
+          this.errorMessage.set('Failed to resolve database entries.');
           return of({ expenses: [] as ExpenseList[], nextPageToken: null as string | null, totalItems: 0 });
         })
       );
@@ -114,7 +116,6 @@ export class ExpenseListComponent implements OnInit {
     map((response) => {
       this.isLoading.set(false);
 
-      // Registers subsequent paging token allocations smoothly inside the local dictionary state
       if (response.nextPageToken) {
         const nextIndex = this.currentPageIndex() + 1;
         this.pageTokens.update(tokens => ({
@@ -133,7 +134,6 @@ export class ExpenseListComponent implements OnInit {
   // Exposes total records count straight to the UI paginator layout configuration
   readonly totalItems = computed(() => this.apiResponseSignal().totalItems);
 
-  // Maps fresh payload blocks seamlessly down towards the table data schema boundary context
   readonly dataSource = computed(() => new MatTableDataSource<ExpenseList>(this.apiResponseSignal().expenses));
 
   readonly availableYears = toSignal(
@@ -170,7 +170,7 @@ export class ExpenseListComponent implements OnInit {
     const dialogRef = this.dialog.open(CreateExpenseModalComponent, {
       height: '400px',
       width: '600px',
-      data: { title: 'Create new Expense', action: this.dialogActionEnum.Create, isSuccess: false } as DialogData,
+      data: { title: 'Create new Expense', action: this.dialogActionEnum.Create, isSuccess: false },
       disableClose: true,
     });
     this.getListAfterSuccessCallApi(dialogRef);
@@ -214,13 +214,13 @@ export class ExpenseListComponent implements OnInit {
             return this.expenseService.deleteExpense(res.data as string).pipe(
               catchError((err) => {
                 console.error('Error encountered while processing delete operation:', err);
-                return of(null); 
+                return of(null);
               })
             );
           }
           return of(res);
         }),
-        takeUntilDestroyed(this.destroyRef) 
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
         this.refreshTrigger.update((n) => n + 1);
@@ -235,7 +235,11 @@ export class ExpenseListComponent implements OnInit {
 
   onFilterChanged(params: FilterParams) {
     this.router.navigate([], {
-      queryParams: { year: params.year, month: params.month },
+      queryParams: { 
+        year: params.year, 
+        month: params.month,
+        searchTerm: params.searchTerm || null
+      },
       queryParamsHandling: 'merge',
     });
   }

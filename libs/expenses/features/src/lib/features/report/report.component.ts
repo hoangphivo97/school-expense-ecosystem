@@ -1,124 +1,97 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { HeaderComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
-import { MatIcon } from '@angular/material/icon';
-import { NgApexchartsModule } from 'ng-apexcharts';
-import {
-  makeMonthlyColumnChart,
-  makeLineChart,
-  makePieChart,
-} from '../report/utils/multiple-charts-helper';
-import { calcChangePct, calcKPIs, getPrevMonth, parseRouterFilterParams, ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
-import {
-  filter,
-  map,
-  startWith,
-  switchMap,
-} from 'rxjs';
-import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
-import {
-  FilterParams,
-} from '@school-expense-ecosystem/shared/types';
-import { CommonModule, DecimalPipe } from '@angular/common';
-import { mainColorPieChart } from '@school-expense-ecosystem/shared/constants';
+// libs/expenses/features/src/lib/features/report/report.component.ts
+import { Component, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, NavigationEnd } from '@angular/router';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router } from '@angular/router';
+import { NgApexchartsModule } from 'ng-apexcharts';
+import { filter, map, startWith, switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { MatIcon } from '@angular/material/icon';
+
+import { HeaderComponent, FooterComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
+import { FilterParams } from '@school-expense-ecosystem/shared/types';
+import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
+import { ExpenseAnalyticsDto } from '@school-expense-ecosystem/expenses/types';
+import { makeLineChart, makeMonthlyColumnChart, makePieChart } from './utils/multiple-charts-helper';
 
 @Component({
   selector: 'lib-report',
   standalone: true,
   imports: [
-    HeaderComponent,
-    FilterComponent,
-    MatIcon,
-    NgApexchartsModule,
-    DecimalPipe,
     CommonModule,
+    NgApexchartsModule,
+    HeaderComponent,
+    FooterComponent,
+    FilterComponent,
+    MatIcon
   ],
   templateUrl: './report.component.html',
   styleUrl: './report.component.scss',
 })
-export class ReportComponent implements OnInit {
-  readonly expenseService = inject(ExpenseService);
+export class ReportComponent {
+  private readonly expenseService = inject(ExpenseService);
   private readonly router = inject(Router);
 
-  readonly availableYears = signal<number[]>([]);
-
-  readonly refreshTrigger = signal<number>(0);
+  private readonly refreshTrigger = signal<number>(0);
 
   private readonly queryParamsSignal = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       map(() => this.router.parseUrl(this.router.url).queryParams),
-      startWith(this.router.parseUrl(this.router.url).queryParams) // Extracts parameters instantly on load
+      startWith(this.router.parseUrl(this.router.url).queryParams)
     )
   );
 
-  readonly filterParams = computed<FilterParams>(() =>
-    parseRouterFilterParams(this.queryParamsSignal())
-  );
 
-  readonly monthExpenses = toSignal(
-    toObservable(computed(() => ({ f: this.filterParams(), refresh: this.refreshTrigger() }))).pipe(
-      switchMap(({ f }) => this.expenseService.getExpenseList({ year: f.year, month: f.month }))
-    ),
-    { initialValue: [] as ExpenseList[] }
-  );
 
-  readonly prevMonthExpenses = toSignal(
-    toObservable(computed(() => ({ f: this.filterParams(), refresh: this.refreshTrigger() }))).pipe(
-      switchMap(({ f }) => this.expenseService.getExpenseList(getPrevMonth(f)))
-    ),
-    { initialValue: [] as ExpenseList[] }
-  );
-
-  readonly yearExpenses = toSignal(
-    toObservable(computed(() => ({ f: this.filterParams(), refresh: this.refreshTrigger() }))).pipe(
-      switchMap(({ f }) => this.expenseService.getExpenseList({ year: f.year }))
-    ),
-    { initialValue: [] as ExpenseList[] }
-  );
-
-  readonly kpis = computed(() => {
-    const curr = this.monthExpenses();
-    const prev = this.prevMonthExpenses();
-    const kNow = calcKPIs(curr);
-    const kPrev = calcKPIs(prev);
-    return { ...kNow, changePct: calcChangePct(kNow.total, kPrev.total) };
+  // Monitors reactive parameter changes derived cleanly from standard history routing states
+  readonly filterParams = computed<FilterParams>(() => {
+    return this.queryParamsSignal() as unknown as FilterParams;
   });
 
-  readonly lineOpts = computed(() => makeLineChart(this.monthExpenses()));
-
-  readonly pieOpts = computed(() =>
-    makePieChart(this.monthExpenses(), {
-      title: 'Expense By Category',
-      colors: mainColorPieChart,
-    })
+  // 🌟 ENTERPRISE STREAM: Decoupled analytical data network mapping isolates presentation states neatly
+  private readonly analyticsResponse$ = toObservable(
+    computed(() => ({ filter: this.filterParams(), refresh: this.refreshTrigger() }))
+  ).pipe(
+    switchMap(({ filter }) =>
+      this.expenseService.getAnalytics({ year: filter.year?.toString(), month: filter.month?.toString() }).pipe(
+        catchError((err) => {
+          console.error('Unified store analytics endpoint query execution failed:', err);
+          return of({ kpis: { total: 0, count: 0, max: 0, changePct: null }, pieData: [], lineData: [], barData: [] } as ExpenseAnalyticsDto);
+        })
+      )
+    )
   );
 
-  readonly barOpts = computed(() => {
-    const year = this.filterParams().year ?? new Date().getFullYear();
-    return makeMonthlyColumnChart(this.yearExpenses(), year, {
-      title: 'Monthly Expenses',
-      seriesName: 'Expenses',
-    });
+  readonly analyticsSignal = toSignal(this.analyticsResponse$, {
+    initialValue: { kpis: { total: 0, count: 0, max: 0, changePct: null }, pieData: [], lineData: [], barData: [] } as ExpenseAnalyticsDto
   });
 
-  ngOnInit() {
-    this.getCurrYear();
-  }
+  // Maps pristine core server calculations straight to the summary banner row layout template
+  readonly kpis = computed(() => this.analyticsSignal().kpis);
 
+  // 🌟 EXACT NAMING BINDINGS: Maps clean server metrics directly with ApexCharts visual formatting rules
+  readonly lineOpts = computed(() => makeLineChart(this.analyticsSignal().lineData));
+  readonly barOpts = computed(() => makeMonthlyColumnChart(this.analyticsSignal().barData));
+  readonly pieOpts = computed(() => makePieChart(this.analyticsSignal().pieData));
+
+  readonly availableYears = toSignal(
+    toObservable(this.refreshTrigger).pipe(
+      switchMap(() => this.expenseService.getAllYearsWithDate()),
+      catchError(() => of([new Date().getFullYear()]))
+    ),
+    { initialValue: [new Date().getFullYear()] }
+  );
+
+  // Syncs date filters seamlessly via URL while stripping searchTerm safely during navigation transitions
   onFilterChanged(params: FilterParams): void {
     this.router.navigate([], {
-      queryParams: { year: params.year, month: params.month },
+      queryParams: {
+        year: params.year,
+        month: params.month,
+        searchTerm: null // 👈 Explicitly deletes searchTerm when running analytics states
+      },
       queryParamsHandling: 'merge',
     });
-  }
-
-  private getCurrYear() {
-    this.expenseService.getAllYearsWithDate()
-      .subscribe({
-        next: (years) => this.availableYears.set(years),
-        error: (err) => console.error('Error fetching years:', err),
-      });
   }
 }

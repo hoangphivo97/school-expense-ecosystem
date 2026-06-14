@@ -6,13 +6,43 @@ import { CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/ex
 @Controller('expenses')
 @UseGuards(JwtAuthGuard)
 export class ExpenseController {
-  constructor(private readonly expenseService: ExpenseBackendService) {}
+  constructor(private readonly expenseService: ExpenseBackendService) { }
 
   @Get()
-  async getExpenses(@Req() req: any, @Query('year') year?: string) {
+  async getExpenses(
+    @Req() req: any,
+    @Query('limit') limit?: string,
+    @Query('pageToken') pageToken?: string,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+    @Query('searchTerm') searchTerm?: string
+  ) {
     const userId = req.user.uid;
+    const parsedLimit = limit ? parseInt(limit, 10) : 10;
     const filterYear = year ? parseInt(year, 10) : undefined;
-    return this.expenseService.getExpensesForUser(userId, filterYear);
+    const filterMonth = month ? parseInt(month, 10) : undefined;
+
+    return this.expenseService.getPaginatedExpenses(userId, {
+      limit: parsedLimit,
+      pageToken,
+      year: filterYear,
+      month: filterMonth,
+      searchTerm: searchTerm || undefined
+    });
+  }
+
+  @Get('analytics')
+  async getAnalytics(
+    @Req() req: any,
+    @Query('year') year?: string,
+    @Query('month') month?: string
+  ) {
+
+    const { role, facultyId } = req.user;
+    const filterYear = year ? parseInt(year, 10) : undefined;
+    const filterMonth = month ? parseInt(month, 10) : undefined;
+
+    return this.expenseService.getExpenseAnalytics(req.user.uid, role, facultyId, filterYear, filterMonth);
   }
 
   @Get('years')

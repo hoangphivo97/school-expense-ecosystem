@@ -1,13 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
-import { ExpenseList, CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, CreateExpenseDto, UpdateExpenseDto, PaginatedExpensesResponse, ExpenseAnalyticsDto } from '@school-expense-ecosystem/expenses/types';
 
 @Injectable()
 export class ExpenseBackendService {
-  constructor(private readonly expenseRepo: ExpenseRepository) {}
+  constructor(private readonly expenseRepo: ExpenseRepository) { }
 
-  async getExpensesForUser(userId: string, year?: number): Promise<ExpenseList[]> {
-    return this.expenseRepo.findByUserId(userId, year);
+  async getPaginatedExpenses(
+    userId: string,
+    filters: { limit: number; pageToken?: string; year?: number; month?: number; searchTerm?: string }
+  ): Promise<PaginatedExpensesResponse> {
+    return this.expenseRepo.findPaginated({ userId, ...filters });
   }
 
   async createExpense(userId: string, dto: CreateExpenseDto): Promise<ExpenseList> {
@@ -32,5 +35,15 @@ export class ExpenseBackendService {
 
   async getUserAvailableYears(userId: string): Promise<number[]> {
     return this.expenseRepo.findAvailableYears(userId);
+  }
+
+  async getExpenseAnalytics(
+    userId: string, 
+    role: string, 
+    facultyId?: string, 
+    year?: number, 
+    month?: number
+  ): Promise<ExpenseAnalyticsDto> {
+    return this.expenseRepo.getAnalytics({ year, month, role, facultyId });
   }
 }

@@ -145,7 +145,6 @@ export class CreateExpenseModalComponent implements OnInit {
       paid: formValue.paid as PaidMethodEnum,
       for: formValue.for ?? '',
       amount: formValue.amount ?? 0,
-      userId: (data as ExpenseList)?.userId ?? '', // Preserves contextual user ownership mapping safely
       date: formValue.date ? new Date(formValue.date).toISOString() : new Date().toISOString(),
     };
 
