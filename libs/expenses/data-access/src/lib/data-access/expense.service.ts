@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, httpResource, HttpResourceRef } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ExpenseList, CreateExpenseDto, UpdateExpenseDto, PaginatedExpensesResponse, ExpenseAnalyticsDto } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, CreateExpenseDto, UpdateExpenseDto, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseFilters, AnalyticsFilters } from '@school-expense-ecosystem/expenses/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
 @Injectable({
@@ -16,30 +16,36 @@ export class ExpenseService {
    * Fetches the expense list based on active routing filter parameters
    */
 
-  getExpenseList(filters: { limit: number; pageToken?: string; year?: number; month?: number; searchTerm?: string }): Observable<PaginatedExpensesResponse> {
-    let url = `${this.apiUrl}/?limit=${filters.limit}`;
-    if (filters.pageToken) url += `&pageToken=${encodeURIComponent(filters.pageToken)}`;
-    if (filters.year) url += `&year=${filters.year}`;
-    if (filters.month) url += `&month=${filters.month}`;
-    if (filters.searchTerm) url += `&searchTerm=${encodeURIComponent(filters.searchTerm)}`;
+  getExpenseListResource(filterFn: () => Omit<ExpenseFilters, 'userId'>): HttpResourceRef<PaginatedExpensesResponse | undefined> {
+    return httpResource<PaginatedExpensesResponse>(() => {
+      const filters = filterFn();
+      let url = `${this.apiUrl}/?limit=${filters.limit}`;
 
-    return this.http.get<PaginatedExpensesResponse>(url);
+      if (filters.pageToken) url += `&pageToken=${encodeURIComponent(filters.pageToken)}`;
+      if (filters.year) url += `&year=${filters.year}`;
+      if (filters.month) url += `&month=${filters.month}`;
+      if (filters.searchTerm) url += `&searchTerm=${encodeURIComponent(filters.searchTerm)}`;
+
+      return url;
+    });
   }
 
-  getAnalytics(filters: { year?: string | number; month?: string | number }): Observable<ExpenseAnalyticsDto> {
-    let url = `${this.apiUrl}/analytics`;
-    const queryParams: string[] = [];
+  getAnalyticsResource(filterFn: () => AnalyticsFilters) : HttpResourceRef<ExpenseAnalyticsDto | undefined> {
+    return httpResource<ExpenseAnalyticsDto>(() => {
+      const filters = filterFn(); // 🔥 ĐÃ ĐƯA VÀO TRONG: Đảm bảo Angular theo dõi được tín hiệu thay đổi
+      let url = `${this.apiUrl}/analytics`;
+      const queryParams: string[] = [];
 
-    if (filters.year !== undefined && filters.year !== null) {
-      queryParams.push(`year=${filters.year}`);
-    }
-    if (filters.month !== undefined && filters.month !== null) {
-      queryParams.push(`month=${filters.month}`);
-    }
+      if (filters.year !== undefined && filters.year !== null) {
+        queryParams.push(`year=${filters.year}`);
+      }
+      if (filters.month !== undefined && filters.month !== null) {
+        queryParams.push(`month=${filters.month}`);
+      }
 
-    if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
-
-    return this.http.get<ExpenseAnalyticsDto>(url);
+      if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
+      return url;
+    });
   }
 
   /**
@@ -66,7 +72,7 @@ export class ExpenseService {
   /**
    * Fetches all unique years containing data to populate the filter dropdown
    */
-  getAllYearsWithDate(): Observable<number[]> {
-    return this.http.get<number[]>(`${this.apiUrl}/years`);
+  getAllYearsResource(): HttpResourceRef<number[] | undefined> {
+    return httpResource<number[]>(() => `${this.apiUrl}/years`);
   }
 }

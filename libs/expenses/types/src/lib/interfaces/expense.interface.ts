@@ -1,24 +1,32 @@
+import { FacultyId, Role, UserType } from "@school-expense-ecosystem/auth/types";
+import { AuditAction, ExpenseStatus, PaidMethod } from "../enums/expense.enum";
+
 export interface ExpenseList {
   id: string;
-  userId?: string;      
-  date: string;         
-  description: string;
-  purpose: string;
-  paid: PaidMethodEnum;
-  for?: string;
+  userId: string;
+  requesterCode: string;
+  requesterName: string;
+  facultyId: FacultyId;
   amount: number;
-  createdAt: string;   
+  purpose: string;
+  description: string;
+  proofUrls: string[];
+  status: ExpenseStatus;
+  createdAt: string;
+  updatedAt: string;
+  rejectReason?: string;
+  history: AuditLogEntry[]
+  requesterType: UserType;
+  paidMethod: PaidMethod;
+  date: string;
 }
 
-export enum PaidMethodEnum {
-  CASH = 'CASH',
-  CREDIT_CARD = 'CREDIT_CARD',
-  BANK_TRANSFER = 'BANK_TRANSFER',
-}
+export type CreateExpenseInput = Pick<
+  ExpenseList,
+  'amount' | 'purpose' | 'description' | 'proofUrls'
+>;
 
-export type CreateExpenseDto = Omit<ExpenseList, 'id' | 'createdAt'>;
-
-export type UpdateExpenseDto = Partial<CreateExpenseDto>;
+export type UpdateExpenseInput = Partial<CreateExpenseInput>;
 
 export interface PaginatedExpensesResponse {
   expenses: ExpenseList[];
@@ -36,4 +44,33 @@ export interface ExpenseAnalyticsDto {
   pieData: { label: string; amount: number }[];
   lineData: { label: string; amount: number }[];
   barData: { label: string; amount: number }[];
+}
+
+export interface AuditLogEntry {
+  actorId: string;
+  actorName: string;
+  actorRole: Role;
+  actorType: UserType;
+  actorCode: string;
+  action: AuditAction;
+  status: ExpenseStatus;
+  rejectReason?: string;
+  createdAt: string;
+  proofUrls: string[]
+}
+
+export interface AnalyticsFilters {
+  year?: number;
+  month?: number;
+  role: Role;
+  facultyId?: FacultyId;
+}
+
+export interface ExpenseFilters {
+  userId: string;
+  limit: number;
+  pageToken?: string;
+  year?: number;
+  month?: number;
+  searchTerm?: string;
 }

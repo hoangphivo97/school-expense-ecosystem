@@ -12,7 +12,6 @@ import {
 } from 'ng-apexcharts';
 
 export type AxisChartOptions = {
-  // Line / Bar / Area (có trục)
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis?: ApexXAxis;
@@ -26,8 +25,7 @@ export type AxisChartOptions = {
 };
 
 export type NonAxisChartOptions = {
-  // Pie / Donut (không trục)
-  series: ApexNonAxisChartSeries; // <-- number[]
+  series: ApexNonAxisChartSeries;
   chart: ApexChart;
   labels?: string[];
   dataLabels?: ApexDataLabels;

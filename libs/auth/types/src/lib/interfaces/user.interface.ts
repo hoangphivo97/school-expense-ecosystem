@@ -1,7 +1,5 @@
-import { FacultyId } from '../enums/faculty.enum';
-import { Role } from '../enums/role.enum';
-import { UserStatus } from '../enums/user-status.enum';
-import { UserType } from '../enums/user-type.enum';
+import { UserType, UserStatus, Role, FacultyId } from '../enums/user.enum';
+
 export interface LoginResponse {
   token: string;
   user: UserBase;
@@ -9,7 +7,7 @@ export interface LoginResponse {
 
 export interface UserBase {
   uid: string;
-  username: string;
+  username?: string;
   fullName?: string;
   role: Role;
   email: string;
@@ -33,5 +31,8 @@ export interface OnboardingData {
   dateOfBirth: string;
   facultyId: FacultyId;
   userType: UserType;
-
 }
+
+export type AuthenticatedUser = Required<
+  Pick<UserBase, 'uid' | 'role' | 'userType' | 'fullName' | 'userCode' | 'facultyId'>
+>;
