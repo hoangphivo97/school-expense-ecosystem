@@ -116,7 +116,6 @@
               <div class="alert alert-danger py-2 px-3 mt-3 mb-0">
                 @for (error of uploadErrors(); track error) {
                   <div class="d-flex align-items-center text-danger small">
-                    <mat-icon class="fs-6 h-auto w-auto me-1">error_outline</mat-icon>
                     <span>{{ error }}</span>
                   </div>
                 }
@@ -159,7 +158,7 @@
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="modal-footer px-4 pb-4 pt-2">
-    <button mat-button class="cancel-btn" (click)="closeDialog(false)">
+    <button mat-button class="cancel-btn" (click)="onCancel()">
       Cancel
     </button>
 

@@ -1,5 +1,5 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { FormBuilder, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { compressImage, CustomDateAdapter } from '@school-expense-ecosystem/shared/utils';
-import { DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
+import { ConfirmDialogData, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
 import {
   ExpenseList,
   CreateExpenseInput,
@@ -20,6 +20,7 @@ import {
   PaidMethod
 } from '@school-expense-ecosystem/expenses/types';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
 
 export const MY_DATE_FORMATS = {
   parse: { dateInput: 'DD/MM/YYYY' },
@@ -55,6 +56,7 @@ export const MY_DATE_FORMATS = {
 })
 export class CreateExpenseModalComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<CreateExpenseModalComponent>);
+  private readonly dialog = inject(MatDialog);
   readonly dialogData = inject<DialogData>(MAT_DIALOG_DATA);
   private readonly fb = inject(FormBuilder);
   private readonly expenseService = inject(ExpenseService);
@@ -228,5 +230,38 @@ export class CreateExpenseModalComponent implements OnInit {
       currentUrls.filter((_, index) => index !== indexToRemove)
     );
     this.expenseForm.controls.proofUrls.markAsDirty();
+  }
+
+  onCancel(): void {
+    if (this.expenseForm.dirty) {
+      // Configure tailored parameters specifically for discarding expense data
+      const dialogConfig: ConfirmDialogData = {
+        title: 'Unsaved Expense Details',
+        message: 'You have entered transaction data or attached document links in this form. Leaving now will permanently lose this progress.',
+        confirmText: 'Discard Changes',
+        cancelText: 'Keep Editing',
+        confirmColor: 'warn', // Red button emphasizing data loss warning
+        icon: 'warning'
+      };
+
+      // Open the global confirmation modal layer
+      const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '420px',
+        disableClose: true, // Forces an explicit response button choice
+        data: dialogConfig  // Injects the customized configuration package
+      });
+
+      // Capture the user action resolve stream cleanly
+      confirmRef.afterClosed()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((shouldDiscard: boolean) => {
+          if (shouldDiscard) {
+            this.closeDialog(false); // Closes the main Create Expense modal without saving
+          }
+        });
+    } else {
+      // Form is untouched/pristine, bypass warning entirely and close immediately
+      this.closeDialog(false);
+    }
   }
 }
