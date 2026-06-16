@@ -1,4 +1,4 @@
-import { ExpenseList, CreateExpenseDto, UpdateExpenseDto, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseFilters, AnalyticsFilters } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseFilters, AnalyticsFilters } from '@school-expense-ecosystem/expenses/types';
 
 export abstract class ExpenseRepository {
   abstract findPaginated(filters: ExpenseFilters): Promise<PaginatedExpensesResponse>;

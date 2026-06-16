@@ -42,18 +42,18 @@ export class ExpenseListComponent implements OnInit {
   paidMethodToString = EnumToStringPipe
 
   displayedColumns: string[] = [
-  'date',
-  'requesterCode', 
-  'requesterName',
-  'requesterType', 
-  'facultyId',     
-  'description',
-  'purpose',
-  'paidMethod',    
-  'amount',
-  'status',   
-  'action'
-];
+    'date',
+    'requesterCode',
+    'requesterName',
+    'requesterType',
+    'facultyId',
+    'description',
+    'purpose',
+    'paidMethod',
+    'amount',
+    'status',
+    'action'
+  ];
   dialogActionEnum = DialogActionEnum;
 
   readonly pageSize = signal<number>(10);
@@ -86,13 +86,13 @@ export class ExpenseListComponent implements OnInit {
     };
   });
 
-  readonly isLoading = this.expenseResource.isLoading; 
+  readonly isLoading = this.expenseResource.isLoading;
   readonly errorMessage = computed(() => this.expenseResource.error() ? 'Failed to resolve database entries.' : null);
 
   readonly totalItems = computed(() => this.expenseResource.value()?.totalItems ?? 0);
   readonly dataSource = computed(() => {
     const list = this.expenseResource.value()?.expenses ?? [];
-    
+
     const nextToken = this.expenseResource.value()?.nextPageToken;
     if (nextToken) {
       const nextIndex = this.currentPageIndex() + 1;
@@ -130,22 +130,15 @@ export class ExpenseListComponent implements OnInit {
       filter((res: DialogData | undefined): res is DialogData => !!res && res.isSuccess),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((res) => {
-      if (res.action === this.dialogActionEnum.Delete && res.data) {
-        this.expenseService.deleteExpense(res.data as string).subscribe(() => {
-          this.expenseResource.reload();
-          this.availableYearsResource.reload();
-        });
-      } else {
         this.expenseResource.reload();
         this.availableYearsResource.reload();
-      }
-    });
+    })
   }
 
   openCreateExpenseModal() {
     const dialogRef = this.dialog.open(CreateExpenseModalComponent, {
-      height: '400px', width: '600px',
-      data: { title: 'Create new Expense', action: this.dialogActionEnum.Create, isSuccess: false },
+      width: '600px',
+      data: { title: 'Create new Request', action: this.dialogActionEnum.Create, isSuccess: false },
       disableClose: true,
     });
     this.getListAfterSuccessCallApi(dialogRef);
@@ -153,20 +146,8 @@ export class ExpenseListComponent implements OnInit {
 
   openEditExpenseModal(data: ExpenseList) {
     const dialogRef = this.dialog.open(CreateExpenseModalComponent, {
-      height: '400px', width: '600px',
+      width: '600px',
       data: { title: 'Edit Expense', action: this.dialogActionEnum.Edit, isSuccess: false, data } as DialogData,
-      disableClose: true,
-    });
-    this.getListAfterSuccessCallApi(dialogRef);
-  }
-
-  openDeleteConfirmModal(id: string, description: string) {
-    const dialogRef = this.dialog.open(BaseModalComponent, {
-      height: '200px', width: '400px',
-      data: {
-        title: 'Delete', action: this.dialogActionEnum.Delete, isSuccess: false, data: id,
-        content: { message: ModalMessage.delete, description }
-      } as DialogData,
       disableClose: true,
     });
     this.getListAfterSuccessCallApi(dialogRef);

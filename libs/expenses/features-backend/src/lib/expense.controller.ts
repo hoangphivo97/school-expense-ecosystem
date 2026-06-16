@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, Req, UseGuards, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { ExpenseBackendService } from '@school-expense-ecosystem/expenses/data-access-backend';
+/// <reference types="multer" />
+import { Controller, Get, Post, Put, Body, Param, Query, Req, UseGuards, BadRequestException, ForbiddenException, UseInterceptors, ParseFilePipe, UploadedFile, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { ExpenseBackendService, StorageProvider } from '@school-expense-ecosystem/expenses/data-access-backend';
 import { JwtAuthGuard } from '@school-expense-ecosystem/auth/features-backend';
-import { AuditAction, CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/types';
+import { AuditAction } from '@school-expense-ecosystem/expenses/types';
 import { Request } from 'express';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/auth/types';
+import { CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/data-access-backend';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 
 interface AuthenticatedRequest extends Request {
@@ -12,7 +15,9 @@ interface AuthenticatedRequest extends Request {
 @Controller('expenses')
 @UseGuards(JwtAuthGuard)
 export class ExpenseController {
-  constructor(private readonly expenseBackendService: ExpenseBackendService) { }
+  constructor(private readonly expenseBackendService: ExpenseBackendService,
+    private readonly storageProvider: StorageProvider
+  ) { }
 
   @Get()
   async getExpenses(
@@ -92,5 +97,35 @@ export class ExpenseController {
     }
 
     return this.expenseBackendService.reviewExpense(id, req.user, body.action, body.reason);
+  }
+
+  @Post('upload-proof')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 }, // Ngắt kết nối sớm nếu file > 5MB
+    }),
+  )
+  async uploadProof(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 5 * 1024 * 1024,
+            message: 'Security Breach: File size exceeds the maximum allowed limit of 5MB.'
+          }),
+          new FileTypeValidator({
+            fileType: /(image\/jpeg|image\/png|application\/pdf)$/
+          }),
+        ],
+      }),
+    ) file: Express.Multer.File,
+    @Req() req: any
+  ) {
+    const fileUrl = await this.storageProvider.uploadTemp(file);
+    const host = req.get('host');
+    const protocol = req.protocol;
+
+    // Trả về URL tuyệt đối để phía client (Angular) có thể hiển thị/download
+    return { url: `${protocol}://${host}${fileUrl}` };
   }
 }

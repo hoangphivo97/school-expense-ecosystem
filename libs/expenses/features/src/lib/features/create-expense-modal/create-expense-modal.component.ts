@@ -11,14 +11,15 @@ import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
-import { CustomDateAdapter } from '@school-expense-ecosystem/shared/utils';
+import { compressImage, CustomDateAdapter } from '@school-expense-ecosystem/shared/utils';
 import { DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
-import { 
-  ExpenseList, 
-  CreateExpenseInput, 
-  UpdateExpenseInput, 
-  PaidMethod 
+import {
+  ExpenseList,
+  CreateExpenseInput,
+  UpdateExpenseInput,
+  PaidMethod
 } from '@school-expense-ecosystem/expenses/types';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 export const MY_DATE_FORMATS = {
   parse: { dateInput: 'DD/MM/YYYY' },
@@ -42,6 +43,7 @@ export const MY_DATE_FORMATS = {
     MatDatepickerModule,
     MatSelectModule,
     MatIconModule,
+    MatProgressBarModule
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },
@@ -59,20 +61,28 @@ export class CreateExpenseModalComponent implements OnInit {
   private readonly decimalPipe = inject(DecimalPipe);
   private readonly destroyRef = inject(DestroyRef);
 
+  //Upload Feature
+  readonly MAX_FILE_SIZE_BYTE = 5 * 1024 * 1024; // 5MB per file
+  readonly uploadErrors = signal<string[]>([]);
+  readonly isUploading = signal<boolean>(false);
+  readonly ALLOWED_EXTENSIONS = ['application/pdf', 'image/png', 'image/jpeg'];
+
   // Constants & Enums
   readonly Action = DialogActionEnum;
   readonly PaidMethods = [
-    { label: 'Cash (Tiền mặt)', value: PaidMethod.CASH },
-    { label: 'Bank Transfer (Chuyển khoản)', value: PaidMethod.BANK_TRANSFER },
+    { label: 'Cash', value: PaidMethod.CASH }
   ];
+
+  readonly formattedValue = 0;
 
   // Form definition với Strong Typing
   readonly expenseForm = this.fb.nonNullable.group({
     date: [new Date(), [Validators.required]],
     description: ['', [Validators.required, Validators.minLength(5)]],
     purpose: ['', [Validators.required]],
-    paidMethod: [PaidMethod.CASH, [Validators.required]],
-    amount: [0 as number, [Validators.required, Validators.min(1000)]],
+    paidoutMethod: [PaidMethod.CASH, [Validators.required]],
+    amount: [0 as number, [Validators.required, Validators.min(1000), Validators.max(2000)]],
+    proofUrls: [[] as string[], Validators.required]
   });
 
   ngOnInit(): void {
@@ -86,7 +96,7 @@ export class CreateExpenseModalComponent implements OnInit {
     this.expenseForm.patchValue({
       description: data.description,
       purpose: data.purpose,
-      paidMethod: data.paidMethod,
+      paidoutMethod: data.paidMethod,
       amount: data.amount,
       date: new Date(data.date),
     });
@@ -101,14 +111,15 @@ export class CreateExpenseModalComponent implements OnInit {
       amount: formValue.amount,
       purpose: formValue.purpose,
       description: formValue.description,
-      proofUrls: (this.dialogData.data as ExpenseList)?.proofUrls || [],
+      proofUrls: formValue.proofUrls || []
     };
 
-    if (this.dialogData.action === this.Action.Create) {
-      this.executeCreate(payload);
-    } else {
-      this.executeEdit((this.dialogData.data as ExpenseList).id, payload);
-    }
+    // if (this.dialogData.action === this.Action.Create) {
+    //   this.executeCreate(payload);
+    // } else {
+    //   this.executeEdit((this.dialogData.data as ExpenseList).id, payload);
+    // }
+    console.log(payload)
   }
 
   private executeCreate(payload: CreateExpenseInput) {
@@ -124,17 +135,98 @@ export class CreateExpenseModalComponent implements OnInit {
   }
 
   onInputAmount(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/,/g, '');
-    const numericValue = Number(value);
+    const inputElement = event.target as HTMLInputElement;
+    const rawValue = inputElement.value.replace(/,/g, '');
+    const numericValue = parseFloat(rawValue); 
 
+    // Update the form control with raw numeric value
     if (!isNaN(numericValue)) {
-      this.expenseForm.controls.amount.setValue(numericValue, { emitEvent: false });
-      input.value = this.decimalPipe.transform(numericValue, '1.0-0') || '';
+      this.expenseForm
+        .get('amount')
+        ?.setValue(numericValue, { emitEvent: false });
+    } else {
+      this.expenseForm
+        .get('amount')
+        ?.setValue(0, { emitEvent: false });
     }
+
+    // Format the display value
+    const formattedValue =
+      this.decimalPipe.transform(numericValue, '1.0-2') || '';
+    inputElement.value = formattedValue;
   }
 
   closeDialog(isSuccess: boolean) {
     this.dialogRef.close({ ...this.dialogData, isSuccess });
+  }
+
+  async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const files = Array.from(input.files);
+    const errors: string[] = [];
+    this.uploadErrors.set([]);
+
+    for (const file of files) {
+      // 1. Structural type verification boundary
+      if (!this.ALLOWED_EXTENSIONS.includes(file.type)) {
+        errors.push(`File "${file.name}" has an invalid extension. Only PDF, PNG, or JPG are accepted.`);
+        continue;
+      }
+
+      this.isUploading.set(true);
+      let processedFile = file;
+
+      // 2. Intercept and optimize image payloads dynamically
+      if (file.type.startsWith('image/')) {
+        try {
+          // Downscale to Full HD box max bounds, dropping quality down to 80%
+          processedFile = await compressImage(file, 1920, 1080, 0.8);
+          console.log(`[Compression Engine] Saved size from ${file.size / 1024}KB down to ${processedFile.size / 1024}KB`);
+        } catch (compressionError) {
+          console.error('Image pre-processing failed, falling back to raw file upload.', compressionError);
+          // Fallback mechanism: if the canvas breaks, upload raw file instead of crashing the system
+          processedFile = file;
+        }
+      }
+
+      // 3. Post-processing threshold evaluation (Final security line before uploading)
+      if (processedFile.size > this.MAX_FILE_SIZE_BYTE) {
+        errors.push(`File "${processedFile.name}" exceeds the maximum allowed payload constraint (5MB).`);
+        this.isUploading.set(false);
+        continue;
+      }
+
+      // 4. Dispatch the optimized payload to the remote HTTP cloud node
+      this.expenseService.uploadProof(processedFile)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (response) => {
+            const currentUrls = this.expenseForm.controls.proofUrls.value;
+            this.expenseForm.controls.proofUrls.setValue([...currentUrls, response.url]);
+            this.expenseForm.controls.proofUrls.markAsDirty();
+            this.isUploading.set(false);
+          },
+          error: () => {
+            errors.push(`Network infrastructure rejected upload execution for "${processedFile.name}".`);
+            this.isUploading.set(false);
+            this.uploadErrors.set(errors);
+          }
+        });
+    }
+
+    if (errors.length > 0) {
+      this.uploadErrors.set(errors);
+    }
+    input.value = ''; // Reset the input field stream
+  }
+
+  removeFile(indexToRemove: number): void {
+    const currentUrls = this.expenseForm.controls.proofUrls.value;
+    this.expenseForm.controls.proofUrls.setValue(
+      currentUrls.filter((_, index) => index !== indexToRemove)
+    );
+    this.expenseForm.controls.proofUrls.markAsDirty();
   }
 }

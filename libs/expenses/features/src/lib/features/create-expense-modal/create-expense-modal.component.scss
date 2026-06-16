@@ -1,62 +1,142 @@
 :host {
-  mat-dialog-content {
+  display: block;
+  background-color: var(--bg-modal);
+  color: var(--text-primary);
+
+  .modal-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh; // Forces the modal to fit safely inside the browser window
+    overflow: hidden; // KILLS the absolute first/outer scrollbar
+  }
+
+  // Khóa cứng cấu trúc text group để bổ trợ cho Flexbox của Bootstrap
+  .modal-header-box {
+    padding: 24px 24px 16px;
+
+    .title-icon-wrapper {
+      background: rgba(103, 58, 183, 0.1);
+      padding: 12px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0; // Đảm bảo icon không bao giờ bị bóp méo layout
+
+      mat-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 26px;
+      }
+    }
+
+    .title-text-group {
+      .main-title-text {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.2;
+      }
+
+      .sub-title-text {
+        font-size: 13px;
+        color: var(--text-primary);
+        opacity: 0.6;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .custom-content {
+    flex: 1; // Takes up all remaining vertical space dynamically
+    overflow-y: auto; // Activates the single, clean inner scrollbar when content overflows
+    margin: 0 !important; // Cleans up native material margin boxing
+    padding: 16px 24px;
+  }
+
+  mat-dialog-content.custom-content {
     background-color: var(--bg-modal);
-
-    mat-hint{
-      color: var(--text-primary);
-    }
-
-    button{
-      color: var(--text-primary);
-    }
+    padding: 16px 24px !important;
 
     ::ng-deep {
-      .mdc-text-field--filled:not(.mdc-text-field--disabled) {
-        background-color: var(--bg-input);
+      .mdc-text-field--outlined {
+        border-radius: 12px !important;
+        background-color: var(--bg-input, transparent);
       }
 
-      .mdc-text-field__input,
-      .mat-mdc-select-arrow {
-        color: var(--text-primary);
-      }
-
-      .mat-datepicker-toggle{
-        color: var(--text-primary);
-      }
-
-      .mat-mdc-select-value,
-      .mdc-text-field__input,
-      .mat-mdc-select-arrow {
-        color: var(--text-primary);
+      // 1. Trạng thái Tĩnh (Mặc định): Icon màu xám trầm trung tính
+      .field-icon {
+        color: var(--text-primary) !important;
+        opacity: 0.45;
+        transition: opacity 0.2s ease, color 0.2s ease;
       }
 
       mat-label,
       input::placeholder {
+        color: var(--mdc-outlined-text-field-focus-border-color);
+      }
+
+      mat-mdc-select-value,
+      .mdc-text-field__input,
+      .mat-mdc-select-arrow {
         color: var(--text-primary);
       }
 
-      --mat-select-placeholder-text-color: var(--text-primary);
+      .mdc-text-field__input,
+      .mat-mdc-select-arrow {
+        color: var(--text-primary);
+      }
+
+
+      // 2. Trạng thái FOCUS: Icon sáng lên màu Tím (Primary)
+      .mdc-text-field--focused {
+        .field-icon {
+          opacity: 1;
+          color: var(--mdc-outlined-text-field-focus-border-color, #673ab7) !important;
+        }
+      }
+
+      // 3. Trạng thái ERROR (Invalid): Icon phải chuyển sang màu Đỏ đồng bộ với Border
+      // Chúng ta đặt selector này ở dưới cùng hoặc tăng độ ưu tiên để đè lên trạng thái Focused
+      .mat-form-field-invalid {
+        .field-icon {
+          opacity: 1;
+          // Sử dụng biến màu error của Material hoặc màu đỏ custom của hệ thống bạn
+          color: var(--mdc-outlined-text-field-error-border-color, #f44336) !important;
+        }
+      }
+
+      .ng-valid {
+
+        mat-label,
+        .mat-form-field-appearance-outline {
+          color: var(--mdc-outlined-text-field-focus-border-color, #673ab7) !important;
+        }
+
+      }
+
+      // Cấu hình vị trí tinh chỉnh cho textarea và prefix text giữ nguyên
+      .mat-mdc-form-field-prefix {
+        display: inline-flex;
+        align-items: center;
+
+        .refined-textarea-icon {
+          align-self: flex-start;
+          margin-top: 10px;
+        }
+      }
+
+      .currency-suffix {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-primary);
+        opacity: 0.6;
+        margin-right: 4px;
+      }
     }
   }
 
-  .dialog-title {
-    padding-left: 30px;
-    color: var(--text-primary);
-  }
-
-  .dialog-content {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-around;
-
-    .field-fixed-width {
-      width: 212px;
-    }
-  }
-
-  .button-wrap {
-    padding-right: 30px;
-    float: right;
+  mat-dialog-actions {
+    padding: 16px 24px 24px !important;
   }
 }

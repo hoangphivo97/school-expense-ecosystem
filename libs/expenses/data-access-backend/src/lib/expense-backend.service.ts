@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
-import { ExpenseList, CreateExpenseDto, UpdateExpenseDto, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseStatus, AuditAction, AuditLogEntry, PaidMethod, ExpenseFilters, AnalyticsFilters } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseStatus, AuditAction, AuditLogEntry, PaidMethod, ExpenseFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
 import { AuthenticatedUser, FacultyId, Role } from '@school-expense-ecosystem/auth/types';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class ExpenseBackendService {
     return this.expenseRepo.findPaginated({ userId, ...filters });
   }
 
-  async createExpense(user: AuthenticatedUser, dto: CreateExpenseDto): Promise<ExpenseList> {
+  async createExpense(user: AuthenticatedUser, dto: CreateExpenseInput): Promise<ExpenseList> {
     const initialStatus = ExpenseStatus.PENDING_TEACHER_REVIEW;
 
     const submitLog: AuditLogEntry = {
@@ -26,7 +26,8 @@ export class ExpenseBackendService {
       createdAt: new Date().toISOString(),
       actorRole: user.role,
       actorCode: user.userCode,
-      proofUrls: dto.proofUrls
+      proofUrls: dto.proofUrls,
+      facultyId: user.facultyId
     };
 
     const fullExpenseData: Omit<ExpenseList, 'id'> = {
@@ -50,7 +51,7 @@ export class ExpenseBackendService {
     return this.expenseRepo.create(fullExpenseData);
   }
 
-  async updateExpense(id: string, userId: string, user: AuthenticatedUser, dto: UpdateExpenseDto): Promise<ExpenseList> {
+  async updateExpense(id: string, userId: string, user: AuthenticatedUser, dto: UpdateExpenseInput): Promise<ExpenseList> {
     const existing = await this.expenseRepo.findById(id);
     if (!existing || existing.userId !== userId) {
       throw new NotFoundException(`Expense listing with security ID ${id} not found.`);
@@ -121,6 +122,7 @@ export class ExpenseBackendService {
       status: nextStatus,
       createdAt: new Date().toISOString(),
       proofUrls: expense.proofUrls,
+      facultyId: user.facultyId,
       ...(action === AuditAction.REJECT && { rejectReason: reason })
     };
 

@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ExpenseRepository } from '../expense.repository';
-import { ExpenseList, CreateExpenseDto, UpdateExpenseDto, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, ExpenseFilters } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, ExpenseFilters } from '@school-expense-ecosystem/expenses/types';
 import { Role } from '@school-expense-ecosystem/auth/types';
 
 @Injectable()

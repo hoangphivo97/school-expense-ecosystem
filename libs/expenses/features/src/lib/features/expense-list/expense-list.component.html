@@ -2,14 +2,13 @@
 <div class="expense-list">
   <section class="create-section">
     <button data-testid="open-create-modal-btn" class="create-btn" (click)="openCreateExpenseModal()">
-      Create New Expense
+      Create New Request
     </button>
   </section>
 
   <lib-filter (filterChange)="onFilterChanged($event)" [inputDataSource]="dataSource()" [yearsList]="availableYears()"
     [value]="filterParams()"></lib-filter>
 
-  @if(dataSource().data.length > 0){
   <table mat-table [dataSource]="dataSource()">
 
     <ng-container matColumnDef="date">
@@ -81,10 +80,6 @@
     <ng-container matColumnDef="action">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let element">
-        <button mat-icon-button color="warn" (click)="openDeleteConfirmModal(element.id, element.description)"
-          aria-label="Delete expense">
-          <mat-icon>delete</mat-icon>
-        </button>
         <button mat-icon-button color="accent" (click)="openEditExpenseModal(element)" aria-label="Edit expense">
           <mat-icon>edit</mat-icon>
         </button>
@@ -93,18 +88,27 @@
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+    <tr class="mat-mdc-no-data-row" *matNoDataRow>
+      <td [attr.colspan]="displayedColumns.length">
+
+        <div class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
+          <div class="empty-icon-box mb-3">
+            <mat-icon class="material-icons-outlined text-muted">receipt_long</mat-icon>
+          </div>
+          <h3 class="empty-title m-0">No Expenses Found</h3>
+          <p class="empty-subtitle text-muted px-3">
+            There are no transactions recorded for the selected period or criteria.
+          </p>
+        </div>
+
+      </td>
+    </tr>
   </table>
 
   <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
     [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" aria-label="Select page of database users">
   </mat-paginator>
-  } @else {
-  <ng-container *ngTemplateOutlet="noData"></ng-container>
-  }
-
-  <ng-template #noData>
-    <div class="no-data">No data available</div>
-  </ng-template>
 
 </div>
 <lib-footer></lib-footer>

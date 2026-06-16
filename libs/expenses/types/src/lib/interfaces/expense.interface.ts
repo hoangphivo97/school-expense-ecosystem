@@ -52,6 +52,7 @@ export interface AuditLogEntry {
   actorRole: Role;
   actorType: UserType;
   actorCode: string;
+  facultyId: FacultyId;
   action: AuditAction;
   status: ExpenseStatus;
   rejectReason?: string;
