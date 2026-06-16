@@ -1,0 +1,24 @@
+<div class="confirm-dialog-container p-3">
+  <h2 mat-dialog-title class="d-flex align-items-center gap-2 m-0" 
+      [class.text-warn]="config.confirmColor === 'warn'"
+      [class.text-warning]="config.confirmColor === 'primary'">
+    <mat-icon>{{ config.icon || 'warning' }}</mat-icon>
+    <span>{{ config.title || 'Are you sure?' }}</span>
+  </h2>
+  
+  <mat-dialog-content class="mt-2 text-secondary fs-6">
+    {{ config.message || 'Do you really want to proceed with this action?' }}
+  </mat-dialog-content>
+  
+  <mat-dialog-actions align="end" class="mt-4 gap-2">
+    <button mat-button [mat-dialog-close]="false" class="px-3 rounded">
+      {{ config.cancelText || 'Cancel' }}
+    </button>
+    <button mat-flat-button 
+            [color]="config.confirmColor || 'primary'" 
+            [mat-dialog-close]="true" 
+            class="px-3 rounded">
+      {{ config.confirmText || 'Confirm' }}
+    </button>
+  </mat-dialog-actions>
+</div>

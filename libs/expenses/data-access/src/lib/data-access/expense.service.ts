@@ -1,118 +1,78 @@
 import { inject, Injectable } from '@angular/core';
-import { Auth, authState } from '@angular/fire/auth';
-import {
-  addDoc,
-  collection,
-  collectionData,
-  deleteDoc,
-  doc,
-  DocumentReference,
-  Firestore,
-  getDoc,
-  query,
-  QueryConstraint,
-  Timestamp,
-  updateDoc,
-  where,
-} from '@angular/fire/firestore';
-import { from, map, Observable, of, switchMap, take } from 'rxjs';
-import {
-  CreateExpense,
-  ExpenseList
-} from './interfaces/expense.interface';
-import { FilterParams } from '@school-expense-ecosystem/shared/types';
+import { HttpClient, httpResource, HttpResourceRef } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
+import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExpenseService {
-  readonly firestore = inject(Firestore);
-  private expensesCollection = collection(this.firestore, 'expenses');
-  readonly auth = inject(Auth);
-  readonly user$ = authState(this.auth);
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = inject(API_BASE_URL);
+  private readonly apiUrl = `${this.baseUrl}/api/expenses`;
 
-  getExpenseList(params: Partial<FilterParams>): Observable<ExpenseList[]> {
-    const { month, year, searchTerm } = params;
-    return this.user$.pipe(
-      switchMap((user) => {
-        if (!user) return of([]);
+  /**
+   * Fetches the expense list based on active routing filter parameters
+   */
 
-        const constraints: QueryConstraint[] = [
-          where('userId', '==', user.uid),
-        ];
+  getExpenseListResource(filterFn: () => Omit<ExpenseFilters, 'userId'>) {
+    return httpResource<PaginatedExpensesResponse>(() => {
+      const filters = filterFn();
+      let url = `${this.apiUrl}/?limit=${filters.limit}`;
 
-        if (month !== undefined && year !== undefined) {
-          const startDate = new Date(year, month - 1, 1); // First Month
-          const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+      if (filters.pageToken) url += `&pageToken=${encodeURIComponent(filters.pageToken)}`;
+      if (filters.year) url += `&year=${filters.year}`;
+      if (filters.month) url += `&month=${filters.month}`;
+      if (filters.searchTerm) url += `&searchTerm=${encodeURIComponent(filters.searchTerm)}`;
 
-          constraints.push(where('date', '>=', startDate));
-          constraints.push(where('date', '<=', endDate));
-        }
-        if (searchTerm) {
-          constraints.push(
-            where('description', '>=', searchTerm),
-            where('description', '<=', searchTerm + '\uf8ff'),
-          );
-        }
-
-        const userExpensesQuery = query(
-          this.expensesCollection,
-          ...constraints,
-        );
-
-        return collectionData(userExpensesQuery, {
-          idField: 'id',
-        }) as Observable<ExpenseList[]>;
-      }),
-    );
+      return url;
+    });
   }
 
-  createExpense(
-    data: Omit<CreateExpense, 'userId'>,
-  ): Observable<DocumentReference> {
-    return this.user$.pipe(
-      take(1),
-      switchMap((user) => {
-        if (!user) {
-          throw new Error('User is not logged in');
-        }
+  getAnalyticsResource(filterFn: () => AnalyticsFilters) : HttpResourceRef<ExpenseAnalyticsDto | undefined> {
+    return httpResource<ExpenseAnalyticsDto>(() => {
+      const filters = filterFn(); // 🔥 ĐÃ ĐƯA VÀO TRONG: Đảm bảo Angular theo dõi được tín hiệu thay đổi
+      let url = `${this.apiUrl}/analytics`;
+      const queryParams: string[] = [];
 
-        const expenseWithUser = { ...data, userId: user.uid };
-        return from(addDoc(this.expensesCollection, expenseWithUser));
-      }),
-    );
+      if (filters.year !== undefined && filters.year !== null) {
+        queryParams.push(`year=${filters.year}`);
+      }
+      if (filters.month !== undefined && filters.month !== null) {
+        queryParams.push(`month=${filters.month}`);
+      }
+
+      if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
+      return url;
+    });
   }
 
-  editExpense(id: string, data: Omit<CreateExpense, 'userId' | 'createdAt'>) {
-    const expenseRef = doc(this.firestore, `expenses/${id}`);
-    // return from(updateDoc(expenseRef, data));
-    return from(getDoc(expenseRef)).pipe(
-      switchMap((snapshot) => {
-        if (!snapshot.exists()) {
-          throw new Error('Document does not exist');
-        }
-        return updateDoc(expenseRef, data);
-      }),
-    );
+  /**
+   * Creates a new expense record in the system
+   */
+  createExpense(data: CreateExpenseInput): Observable<ExpenseList> {
+    return this.http.post<ExpenseList>(this.apiUrl, data);
   }
 
-  deleteExpense(id: string) {
-    const expenseRef = doc(this.firestore, `expenses/${id}`);
-    return from(deleteDoc(expenseRef));
+  /**
+   * Updates an existing expense record by its unique identifier
+   */
+  editExpense(id: string, data: UpdateExpenseInput): Observable<ExpenseList> {
+    return this.http.put<ExpenseList>(`${this.apiUrl}/${id}`, data);
   }
 
-  getAllYearsWithDate(): Observable<number[]> {
-    return this.user$.pipe(
-      switchMap(user => {
-        if (!user) return of([]);
-        const q = query(this.expensesCollection, where('userId', '==', user.uid));
-        return collectionData(q).pipe(
-          map(docs => {
-            const years = docs.map(d => (d['date'] as Timestamp).toDate().getFullYear());
-            return Array.from(new Set([...years, new Date().getFullYear()])).sort((a, b) => b - a);
-          })
-        )
-      })
-    )
+  /**
+   * Fetches all unique years containing data to populate the filter dropdown
+   */
+  getAllYearsResource(): HttpResourceRef<number[] | undefined> {
+    return httpResource<number[]>(() => `${this.apiUrl}/years`);
+  }
+
+  uploadProof(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<{ url: string }>(`${this.apiUrl}/upload-proof`, formData);
   }
 }

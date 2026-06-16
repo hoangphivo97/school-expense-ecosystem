@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards, Req, Query } from '@nestjs/common';
 import { UserListService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
-import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/backend/auth/features';
+import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/auth/features-backend';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)

@@ -10,7 +10,10 @@
     "importHelpers": true,
     "target": "es2022",
     "module": "commonjs",
-    "lib": ["es2020", "dom"],
+    "lib": [
+      "es2020",
+      "dom"
+    ],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
@@ -28,7 +31,9 @@
       "@school-expense-ecosystem/auth/data-access": [
         "./libs/auth/data-access/src/index.ts"
       ],
-      "@school-expense-ecosystem/shared/ui": ["./libs/shared/ui/src/index.ts"],
+      "@school-expense-ecosystem/shared/ui": [
+        "./libs/shared/ui/src/index.ts"
+      ],
       "@school-expense-ecosystem/auth/features": [
         "./libs/auth/features/src/index.ts"
       ],
@@ -44,10 +49,10 @@
       "@school-expense-ecosystem/expenses/utils": [
         "./libs/expenses/utils/src/index.ts"
       ],
-      "@school-expense-ecosystem/backend/auth/data-access": [
+      "@school-expense-ecosystem/auth/data-access-backend": [
         "./libs/auth/data-access-backend/src/index.ts"
       ],
-      "@school-expense-ecosystem/backend/auth/features": [
+      "@school-expense-ecosystem/auth/features-backend": [
         "./libs/auth/features-backend/src/index.ts"
       ],
       "@school-expense-ecosystem/shared/ui-react": [
@@ -68,7 +73,9 @@
       "@school-expense-ecosystem/dashboard/features": [
         "./libs/dashboard/features/src/index.ts"
       ],
-      "@school-expense-ecosystem/auth/ui": ["./libs/auth/ui/src/index.ts"],
+      "@school-expense-ecosystem/auth/ui": [
+        "./libs/auth/ui/src/index.ts"
+      ],
       "@school-expense-ecosystem/admin/features-backend": [
         "./libs/admin/features-backend/src/index.ts"
       ],
@@ -83,8 +90,20 @@
       ],
       "@school-expense-ecosystem/shared/firestore": [
         "./libs/shared/firestore/src/index.ts"
+      ],
+      "@school-expense-ecosystem/expenses/feature-backend": [
+        "./libs/expenses/features-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/expenses/data-access-backend": [
+        "./libs/expenses/data-access-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/expenses/types": [
+        "./libs/expenses/types/src/index.ts"
       ]
     }
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }

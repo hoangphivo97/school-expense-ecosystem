@@ -75,7 +75,8 @@ export class UserListComponent {
     computed(() => {
       const index = this.currentPageIndex();
       const limit = this.pageSize();
-      const tokens = this.pageTokens();
+
+      const tokens = untracked(this.pageTokens);
       const currentToken = tokens[index] || '';
 
       return { limit, pageToken: currentToken, refresh: this.refreshTrigger() };
@@ -100,7 +101,6 @@ export class UserListComponent {
 
       if (response.nextPageToken) {
         const nextIndex = this.currentPageIndex() + 1;
-        // 🛠️ FIX: Ép kiểu 'as string' để vượt qua giới hạn Closure Narrowing của TypeScript
         this.pageTokens.update(tokens => ({
           ...tokens,
           [nextIndex]: response.nextPageToken as string
@@ -122,7 +122,6 @@ export class UserListComponent {
     const role = this.roleFilter();
     const status = this.statusFilter();
 
-    // Vẫn giữ Single-pass Filter để hỗ trợ tìm kiếm nhanh/lọc nhanh trên phạm vi trang hiện tại (10 bản ghi)
     const filteredList = rawList.filter((user: UserBase) => {
       const matchesQuery = !query ||
         user.fullName?.toLowerCase().includes(query) ||
@@ -144,9 +143,8 @@ export class UserListComponent {
     return new MatTableDataSource<any>(processedList);
   });
 
-  constructor() {
-    // 🧹 SAFETY EFFECT: Khi Admin thay đổi bộ lọc tìm kiếm/quyền/trạng thái, 
-    // bắt buộc phải reset pageIndex về 0 và xóa lịch sử token cũ để kích hoạt fetch lại từ đầu.
+ constructor() {
+    // SAFETY EFFECT: Resets page index constraints safely upon user-driven query mutations
     effect(() => {
       this.searchQuery();
       this.roleFilter();

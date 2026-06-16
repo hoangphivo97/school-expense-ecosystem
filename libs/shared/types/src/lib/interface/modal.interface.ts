@@ -24,3 +24,12 @@ export interface DialogError {
 interface DialogContent {
   message: string;
 }
+
+export interface ConfirmDialogData {
+  title?: string;
+  message?: string;
+  confirmText?: string;
+  cancelText?: string;
+  confirmColor?: 'primary' | 'accent' | 'warn';
+  icon?: string;
+}

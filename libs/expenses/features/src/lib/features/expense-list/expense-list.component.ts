@@ -1,226 +1,172 @@
-import {
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
-import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, SettingsServiceService } from '@school-expense-ecosystem/shared/ui';
-import {
-  FilterParams,
-} from '@school-expense-ecosystem/shared/types';
-import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
-import { PaidMethodEnum, EditExpense, ExpenseList, parseRouterFilterParams } from '@school-expense-ecosystem/expenses/data-access';
-import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
-import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
-import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { Component, computed, DestroyRef, inject, OnInit, signal, effect, untracked } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  DateFormatValue,
-  LocalStorageKey,
-  ModalMessage,
-} from '@school-expense-ecosystem/shared/constants';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import {
-  DialogActionEnum,
-  DialogData
-} from '@school-expense-ecosystem/shared/types';
-import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';;
 import { MatInputModule } from '@angular/material/input';
-import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { MatPaginator } from '@angular/material/paginator';
-import { catchError, filter, map, of, startWith, switchMap } from 'rxjs';
-import { NavigationEnd, Router } from '@angular/router';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, startWith, map } from 'rxjs/operators';
+
+import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
+import { FilterParams, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
+import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
+import { DateFormatValue, LocalStorageKey, ModalMessage } from '@school-expense-ecosystem/shared/constants';
+import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
+import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
+import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'lib-expense-list',
   standalone: true,
   imports: [
-    HeaderComponent,
-    FooterComponent,
-    NgbPaginationModule,
-    FormsModule,
-    DecimalPipe,
-    CommonModule,
-    MatButtonModule,
-    MatTableModule,
-    MatIconModule,
-    MatInputModule,
-    EnumToStringPipe,
-    FilterComponent,
+    HeaderComponent, FooterComponent, FormsModule, DecimalPipe, CommonModule,
+    MatButtonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatInputModule,
+    EnumToStringPipe, FilterComponent
   ],
   templateUrl: './expense-list.component.html',
   styleUrl: './expense-list.component.scss',
 })
 export class ExpenseListComponent implements OnInit {
-  readonly settingsService = inject(SettingsServiceService);
   readonly localStorageService = inject(LocalStorageService);
   readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
   readonly expenseService = inject(ExpenseService);
   private readonly router = inject(Router);
 
+  paidMethodToString = EnumToStringPipe
 
   displayedColumns: string[] = [
     'date',
+    'requesterCode',
+    'requesterName',
+    'requesterType',
+    'facultyId',
     'description',
     'purpose',
-    'paid',
-    'for',
+    'paidMethod',
     'amount',
-    'action',
+    'status',
+    'action'
   ];
+  dialogActionEnum = DialogActionEnum;
+
+  readonly pageSize = signal<number>(10);
+  readonly currentPageIndex = signal<number>(0);
+  private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
 
   private readonly queryParamsSignal = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       map(() => this.router.parseUrl(this.router.url).queryParams),
-      startWith(this.router.parseUrl(this.router.url).queryParams) // Extracts parameters instantly on load
+      startWith(this.router.parseUrl(this.router.url).queryParams)
     )
   );
 
-  private readonly refreshTrigger = signal<number>(0);
+  readonly filterParams = computed<FilterParams>(() => (this.queryParamsSignal() as unknown as FilterParams));
 
-  dialogActionEnum = DialogActionEnum;
-  paidMethodEnum = PaidMethodEnum;
+  readonly expenseResource = this.expenseService.getExpenseListResource(() => {
+    const index = this.currentPageIndex();
+    const limit = this.pageSize();
+    const filter = this.filterParams();
+    const tokens = this.pageTokens();
+    const currentToken = tokens[index] || '';
 
-  params!: FilterParams;
+    return {
+      limit,
+      pageToken: currentToken,
+      year: filter.year ? Number(filter.year) : undefined,
+      month: filter.month ? Number(filter.month) : undefined,
+      searchTerm: filter.searchTerm || undefined
+    };
+  });
 
-  availableYears: number[] = [];
+  readonly isLoading = this.expenseResource.isLoading;
+  readonly errorMessage = computed(() => this.expenseResource.error() ? 'Failed to resolve database entries.' : null);
 
-  readonly filterParams = computed<FilterParams>(() =>
-    parseRouterFilterParams(this.queryParamsSignal())
-  );
-
-  private readonly rawExpenses$ =
-    toObservable(
-      computed(() => ({ filter: this.filterParams(), refresh: this.refreshTrigger() })))
-      .pipe(
-        switchMap(({ filter }) => this.expenseService.getExpenseList(filter)
-        ), catchError((e) => {
-          console.error("Get List Firebase Error", e);
-          return of([] as ExpenseList[]);
-        })
-      );
-
-  readonly expensesSignal = toSignal(this.rawExpenses$, { initialValue: [] as ExpenseList[] });
-
+  readonly totalItems = computed(() => this.expenseResource.value()?.totalItems ?? 0);
   readonly dataSource = computed(() => {
-    const list = this.expensesSignal();
+    const list = this.expenseResource.value()?.expenses ?? [];
+
+    const nextToken = this.expenseResource.value()?.nextPageToken;
+    if (nextToken) {
+      const nextIndex = this.currentPageIndex() + 1;
+      untracked(() => {
+        this.pageTokens.update(tokens => ({ ...tokens, [nextIndex]: nextToken }));
+      });
+    }
     return new MatTableDataSource<ExpenseList>(list);
   });
 
+  readonly availableYearsResource = this.expenseService.getAllYearsResource();
+  readonly availableYears = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
+
+  constructor() {
+    effect(() => {
+      this.filterParams();
+      untracked(() => {
+        this.currentPageIndex.set(0);
+        this.pageTokens.set({ 0: '' });
+      });
+    });
+  }
 
   ngOnInit() {
     this.initDateFormat();
-    this.getCurrYear();
   }
 
-  private getCurrYear() {
-    this.expenseService.getAllYearsWithDate()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(years => this.availableYears = years);
+  onPageChange(event: PageEvent): void {
+    this.pageSize.set(event.pageSize);
+    this.currentPageIndex.set(event.pageIndex);
+  }
+
+  getListAfterSuccessCallApi(dialogRef: MatDialogRef<CreateExpenseModalComponent | BaseModalComponent>) {
+    dialogRef.afterClosed().pipe(
+      filter((res: DialogData | undefined): res is DialogData => !!res && res.isSuccess),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((res) => {
+        this.expenseResource.reload();
+        this.availableYearsResource.reload();
+    })
   }
 
   openCreateExpenseModal() {
     const dialogRef = this.dialog.open(CreateExpenseModalComponent, {
-      height: '400px',
       width: '600px',
-      data: {
-        title: 'Create new Expense',
-        action: this.dialogActionEnum.Create,
-        isSuccess: false,
-      } as DialogData,
+      data: { title: 'Create new Request', action: this.dialogActionEnum.Create, isSuccess: false },
       disableClose: true,
     });
-
     this.getListAfterSuccessCallApi(dialogRef);
   }
 
-  openEditExpenseModal(data: EditExpense) {
+  openEditExpenseModal(data: ExpenseList) {
     const dialogRef = this.dialog.open(CreateExpenseModalComponent, {
-      height: '400px',
       width: '600px',
-      data: {
-        title: 'Edit Expense',
-        action: this.dialogActionEnum.Edit,
-        isSuccess: false,
-        data: data,
-      } as DialogData,
+      data: { title: 'Edit Expense', action: this.dialogActionEnum.Edit, isSuccess: false, data } as DialogData,
       disableClose: true,
     });
-
-    this.getListAfterSuccessCallApi(dialogRef);
-  }
-
-  getListAfterSuccessCallApi(
-    dialogRef: MatDialogRef<CreateExpenseModalComponent | BaseModalComponent>,
-  ) {
-    dialogRef
-      .afterClosed()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((res: DialogData) => {
-        if (!res.isSuccess || !res) return;
-
-        if (res.action === this.dialogActionEnum.Delete && res.data) {
-          this.expenseService.deleteExpense(res.data as string)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: () => {
-                this.refreshTrigger.update(n => n + 1);
-              },
-              error: (e) => console.error('Error while deleting expense', e)
-            });
-        } else {
-          this.refreshTrigger.update(n => n + 1);
-        }
-      });
-  }
-
-  openDeleteConfirmModal(id: string, description: string) {
-    const dialogRef = this.dialog.open(BaseModalComponent, {
-      height: '200px',
-      width: '400px',
-      data: {
-        title: 'Delete',
-        action: this.dialogActionEnum.Delete,
-        isSuccess: false,
-        data: id,
-        content: {
-          message: ModalMessage.delete,
-          description: description
-        },
-      } as DialogData,
-      disableClose: true,
-    });
-
     this.getListAfterSuccessCallApi(dialogRef);
   }
 
   initDateFormat() {
     if (!this.localStorageService.getItem(LocalStorageKey.dateFormat)) {
-      this.localStorageService.setItem(
-        LocalStorageKey.dateFormat,
-        DateFormatValue.DMY,
-      );
+      this.localStorageService.setItem(LocalStorageKey.dateFormat, DateFormatValue.DMY);
     }
   }
 
   onFilterChanged(params: FilterParams) {
     this.router.navigate([], {
-      queryParams: { year: params.year, month: params.month },
+      queryParams: { year: params.year, month: params.month, searchTerm: params.searchTerm || null },
       queryParamsHandling: 'merge',
     });
   }
 
   get GlobalDateFormat(): string {
-    return this.localStorageService.getItem(
-      LocalStorageKey.dateFormat,
-    ) as string;
+    return this.localStorageService.getItem(LocalStorageKey.dateFormat) as string;
   }
 }
