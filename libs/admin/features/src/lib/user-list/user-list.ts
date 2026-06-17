@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { Role, UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
-import { FilterComponent, FooterComponent } from '@school-expense-ecosystem/shared/ui';
+import { FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
@@ -33,8 +33,9 @@ import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types
     MatButtonModule,
     FooterComponent,
     DatePipe,
-    FilterComponent
-  ],
+    FilterComponent,
+    HeaderComponent
+],
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss',
   standalone: true,
@@ -44,7 +45,7 @@ export class UserListComponent {
   private readonly userListService = inject(UserListService);
 
   // Structural grid column configurations including auditing and interactive actions
-  displayedColumns: string[] = ['fullName', 'email', 'userCode', 'role', 'status', 'createdAt', 'action'];
+  displayedColumns: string[] = ['fullName', 'email', 'userCode', 'role', 'userType' ,'status' ,'createdAt', 'action'];
 
   // DOM viewchild query referencing the active material pagination element
   readonly paginator = viewChild(MatPaginator);
