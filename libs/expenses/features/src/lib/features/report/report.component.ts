@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -32,19 +32,12 @@ export class ReportComponent {
   private readonly router = inject(Router);
   private readonly authSignalStore = inject(AuthSignalStore); // 🌟 BỔ SUNG: Khai thác quyền hạn user đăng nhập
 
-  // Đọc dữ liệu QueryParams từ thanh điều hướng Router bọc sang Signal
-  private readonly queryParamsSignal = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.router.parseUrl(this.router.url).queryParams),
-      startWith(this.router.parseUrl(this.router.url).queryParams)
-    )
-  );
 
   readonly filterModeEnum = FilterMode;
 
-  readonly filterParams = computed<FilterParams>(() => {
-    return this.queryParamsSignal() as unknown as FilterParams;
+  readonly filterParams = signal<FilterParams>({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear()
   });
 
   /**
@@ -81,13 +74,6 @@ export class ReportComponent {
   readonly availableYears = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
 
   onFilterChanged(params: FilterParams): void {
-    this.router.navigate([], {
-      queryParams: {
-        year: params.year,
-        month: params.month,
-        searchTerm: null 
-      },
-      queryParamsHandling: 'merge',
-    });
+    this.filterParams.set(params);
   }
 }

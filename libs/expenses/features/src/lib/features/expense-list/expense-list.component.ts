@@ -62,15 +62,12 @@ export class ExpenseListComponent implements OnInit {
   readonly currentPageIndex = signal<number>(0);
   private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
 
-  private readonly queryParamsSignal = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.router.parseUrl(this.router.url).queryParams),
-      startWith(this.router.parseUrl(this.router.url).queryParams)
-    )
-  );
-
-  readonly filterParams = computed<FilterParams>(() => (this.queryParamsSignal() as unknown as FilterParams));
+  readonly filterParams = signal<FilterParams>({
+    searchTerm: '',
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    status: undefined
+  });
 
   readonly expenseResource = this.expenseService.getExpenseListResource(() => {
     const index = this.currentPageIndex();
@@ -162,18 +159,7 @@ export class ExpenseListComponent implements OnInit {
   }
 
   onExpenseFiltersChanged(params: FilterParams): void {
-    const queryParams: Record<string, any> = {};
-
-    // Dynamic Transformation Matrix: Converts FilterParams straight into URL query params safely
-    Object.entries(params).forEach(([key, value]) => {
-      // If value is clean and exists, append to URL; otherwise set to null so Angular Router deletes it
-      queryParams[key] = (value !== undefined && value !== '') ? value : null;
-    });
-
-    this.router.navigate([], {
-      queryParams,
-      queryParamsHandling: 'merge', // Preserves existing parameters like pagination bounds if any
-    });
+    this.filterParams.set(params);
   }
 
   get GlobalDateFormat(): string {
