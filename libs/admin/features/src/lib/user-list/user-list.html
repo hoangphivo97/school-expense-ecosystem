@@ -1,42 +1,13 @@
+<lib-header></lib-header>
 <main class="user-directory-layout-root container mt-5 mb-4">
 
-  <div class="row align-items-center mb-4">
-    <div class="col-xl-4 col-12">
-      <h2 class="fw-bold text-dark m-0 layout-headline">System User Directory</h2>
-    </div>
+  <lib-filter [mode]="filterModeEnum.USER" [value]="activeFilters()" (filterChange)="onUserFiltersChanged($event)">
 
-    <div class="col-xl-8 col-12 d-flex flex-wrap justify-content-xl-end gap-3 mt-3 mt-xl-0">
+    <button primaryAction mat-flat-button color="primary" (click)="openManualProvisioningModal()">
+      <mat-icon>person_add</mat-icon> Create User
+    </button>
 
-      <mat-form-field appearance="outline" class="filter-field search-input-field">
-        <mat-icon matPrefix class="muted-icon">search</mat-icon>
-        <mat-label>Search name, email, ID...</mat-label>
-        <input matInput type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field select-dropdown-field">
-        <mat-label>Filter by Role</mat-label>
-        <mat-select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
-          <mat-option value="ALL">All Roles</mat-option>
-          <mat-option [value]="RoleEnum.LEVEL_0_ADMIN">System Administrator</mat-option>
-          <mat-option [value]="RoleEnum.LEVEL_1_FINANCE">Finance Specialist</mat-option>
-          <mat-option [value]="RoleEnum.LEVEL_2_DEAN">Faculty Dean</mat-option>
-          <mat-option [value]="RoleEnum.LEVEL_3_USER">Standard User</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field select-dropdown-field">
-        <mat-label>Filter by Status</mat-label>
-        <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
-          <mat-option value="ALL">All Statuses</mat-option>
-          <mat-option [value]="UserStatusEnum.ACTIVE">Active Only</mat-option>
-          <mat-option [value]="UserStatusEnum.ONBOARDING">Onboarding</mat-option>
-          <mat-option [value]="UserStatusEnum.PENDING">Pending Approval</mat-option>
-          <mat-option [value]="UserStatusEnum.REJECTED">Rejected Accounts</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-    </div>
-  </div>
+  </lib-filter>
 
   <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
     <div class="card-body p-0">
@@ -60,7 +31,6 @@
       </div>
       }
 
-      @else if (dataSource().data.length > 0) {
       <div class="table-responsive">
         <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
 
@@ -94,6 +64,15 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="userType">
+            <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">User Type</th>
+            <td mat-cell *matCellDef="let user" class="py-3">
+              <span class="badge badge-role-variant" [ngClass]="'role-' + user.userType?.toLowerCase()">
+                {{ user.userType }}
+              </span>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">Account Status</th>
             <td mat-cell *matCellDef="let user" class="py-3">
@@ -122,20 +101,28 @@
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+          <tr class="mat-mdc-no-data-row" *matNoDataRow>
+            <td [attr.colspan]="displayedColumns.length">
+
+              <div
+                class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
+                <div class="empty-icon-box mb-3">
+                  <mat-icon class="material-icons-outlined text-muted">receipt_long</mat-icon>
+                </div>
+                <h3 class="empty-title m-0">No Expenses Found</h3>
+                <p class="empty-subtitle text-muted px-3">
+                  There are no transactions recorded for the selected period or criteria.
+                </p>
+              </div>
+
+            </td>
         </table>
 
         <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
           [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" aria-label="Select page of database users">
         </mat-paginator>
       </div>
-      }
-
-      @else {
-      <div class="text-center py-5 my-5 text-muted status-feedback-wrapper">
-        <mat-icon class="empty-search-icon mb-2">search_off</mat-icon>
-        <p class="mb-0 fs-6 fst-italic">No accounts matched your active filtering query.</p>
-      </div>
-      }
 
     </div>
   </div>

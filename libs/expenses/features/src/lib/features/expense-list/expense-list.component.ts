@@ -20,6 +20,7 @@ import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { FilterMode } from '@school-expense-ecosystem/shared/types'
 
 @Component({
   selector: 'lib-expense-list',
@@ -40,6 +41,7 @@ export class ExpenseListComponent implements OnInit {
   private readonly router = inject(Router);
 
   paidMethodToString = EnumToStringPipe
+  filterModeEnum = FilterMode
 
   displayedColumns: string[] = [
     'date',
@@ -60,15 +62,12 @@ export class ExpenseListComponent implements OnInit {
   readonly currentPageIndex = signal<number>(0);
   private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
 
-  private readonly queryParamsSignal = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.router.parseUrl(this.router.url).queryParams),
-      startWith(this.router.parseUrl(this.router.url).queryParams)
-    )
-  );
-
-  readonly filterParams = computed<FilterParams>(() => (this.queryParamsSignal() as unknown as FilterParams));
+  readonly filterParams = signal<FilterParams>({
+    searchTerm: '',
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    status: undefined
+  });
 
   readonly expenseResource = this.expenseService.getExpenseListResource(() => {
     const index = this.currentPageIndex();
@@ -104,7 +103,7 @@ export class ExpenseListComponent implements OnInit {
   });
 
   readonly availableYearsResource = this.expenseService.getAllYearsResource();
-  readonly availableYears = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
+  readonly availableYearsSignal = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
 
   constructor() {
     effect(() => {
@@ -130,8 +129,8 @@ export class ExpenseListComponent implements OnInit {
       filter((res: DialogData | undefined): res is DialogData => !!res && res.isSuccess),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((res) => {
-        this.expenseResource.reload();
-        this.availableYearsResource.reload();
+      this.expenseResource.reload();
+      this.availableYearsResource.reload();
     })
   }
 
@@ -159,11 +158,8 @@ export class ExpenseListComponent implements OnInit {
     }
   }
 
-  onFilterChanged(params: FilterParams) {
-    this.router.navigate([], {
-      queryParams: { year: params.year, month: params.month, searchTerm: params.searchTerm || null },
-      queryParamsHandling: 'merge',
-    });
+  onExpenseFiltersChanged(params: FilterParams): void {
+    this.filterParams.set(params);
   }
 
   get GlobalDateFormat(): string {

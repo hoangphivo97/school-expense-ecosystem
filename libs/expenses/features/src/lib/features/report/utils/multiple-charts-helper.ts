@@ -22,7 +22,7 @@ export function makePieChart(rawData: { label: string; amount: number }[]) {
     plotOptions: { pie: { expandOnClick: true } },
     colors: ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0'],
     tooltip: {
-      y: { formatter: (val: number) => `${val.toLocaleString()} VND` },
+      y: { formatter: (val: number) => `${val.toLocaleString()} TWD` },
     },
   };
 }
@@ -42,7 +42,7 @@ export function makeMonthlyColumnChart(rawData: { label: string; amount: number 
     dataLabels: { enabled: false },
     title: { text: 'Monthly Budget Distribution Matrix', align: 'left' as const, style: { color: '#aaa' } },
     tooltip: {
-      y: { formatter: (val: number) => `${val.toLocaleString()} VND` },
+      y: { formatter: (val: number) => `${val.toLocaleString()} TWD` },
     },
   };
 }

@@ -1,5 +1,6 @@
 import { FacultyId, Role, UserType } from "@school-expense-ecosystem/auth/types";
 import { AuditAction, ExpenseStatus, PaidMethod } from "../enums/expense.enum";
+import { FilterParams, PaginationParams } from "@school-expense-ecosystem/shared/types";
 
 export interface ExpenseList {
   id: string;
@@ -59,19 +60,10 @@ export interface AuditLogEntry {
   createdAt: string;
   proofUrls: string[]
 }
-
-export interface AnalyticsFilters {
-  year?: number;
-  month?: number;
+export interface AnalyticsFilters extends Pick<FilterParams, "year" | "month" | "facultyId"> {
   role: Role;
-  facultyId?: FacultyId;
 }
 
-export interface ExpenseFilters {
+export interface ExpenseFilters extends FilterParams, PaginationParams {
   userId: string;
-  limit: number;
-  pageToken?: string;
-  year?: number;
-  month?: number;
-  searchTerm?: string;
 }

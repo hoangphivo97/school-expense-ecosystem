@@ -99,6 +99,9 @@
       ],
       "@school-expense-ecosystem/expenses/types": [
         "./libs/expenses/types/src/index.ts"
+      ],
+      "@school-expense-ecosystem/admin/types": [
+        "./libs/admin/types/src/index.ts"
       ]
     }
   },

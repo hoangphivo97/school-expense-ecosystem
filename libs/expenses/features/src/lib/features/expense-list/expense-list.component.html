@@ -1,13 +1,12 @@
 <lib-header></lib-header>
 <div class="expense-list">
-  <section class="create-section">
-    <button data-testid="open-create-modal-btn" class="create-btn" (click)="openCreateExpenseModal()">
-      Create New Request
-    </button>
-  </section>
+  <lib-filter [mode]="filterModeEnum.EXPENSE" [yearsList]="availableYearsSignal()" [value]="filterParams()"
+    (filterChange)="onExpenseFiltersChanged($event)">
 
-  <lib-filter (filterChange)="onFilterChanged($event)" [inputDataSource]="dataSource()" [yearsList]="availableYears()"
-    [value]="filterParams()"></lib-filter>
+    <button primaryAction mat-flat-button color="primary" (click)="openCreateExpenseModal()">
+      <mat-icon>add</mat-icon> Create Request
+    </button>
+  </lib-filter>
 
   <table mat-table [dataSource]="dataSource()">
 
