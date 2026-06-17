@@ -148,3 +148,33 @@
     border: 1px solid #fee2e2;
   }
 }
+
+.badge-usertype-variant {
+  font-weight: 600;
+  padding: 0.45em 0.8em;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  display: inline-block;
+
+  // Trạng thái dành cho Sinh viên (Tông màu Indigo lịch lãm)
+  &.usertype-student {
+    background-color: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+  }
+
+  // Trạng thái dành cho Giảng viên/Giáo sư (Tông màu Teal học thuật sạch sẽ)
+  &.usertype-teacher {
+    background-color: #f0fdfa;
+    color: #115e59;
+    border: 1px solid #99f6e4;
+  }
+
+  // Trạng thái dành cho Nhân viên phòng ban (Tông màu Amber/Orange ấm áp)
+  &.usertype-staff {
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fef3c7;
+  }
+}

@@ -11,7 +11,7 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
-import { Role, UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { Role, UserBase, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
 import { FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -36,8 +36,8 @@ import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types
     FilterComponent,
     HeaderComponent
 ],
-  templateUrl: './user-list.html',
-  styleUrl: './user-list.scss',
+  templateUrl: './user-list.component.html',
+  styleUrl: './user-list.component.scss',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -77,6 +77,12 @@ export class UserListComponent {
     [Role.LEVEL_1_FINANCE]: 'Finance Specialist',
     [Role.LEVEL_2_DEAN]: 'Faculty Dean',
     [Role.LEVEL_3_USER]: 'Standard User'
+  };
+
+  readonly userTypeLabels: Record<UserType, string> = {
+    [UserType.STAFF]: 'Staff',
+    [UserType.STUDENT]: 'Student',
+    [UserType.TEACHER]: 'Teacher'
   };
 
   private readonly remoteParams$ = toObservable(
@@ -138,8 +144,9 @@ export class UserListComponent {
 
       const matchesRole = !filters.role || user.role === filters.role;
       const matchesStatus = !filters.status || user.status?.toUpperCase() === (filters.status as string).toUpperCase();
+      const matchesUserType = !filters.userType || user.userType?.toLowerCase() === (filters.userType as string).toLowerCase();
 
-      return matchesQuery && matchesRole && matchesStatus;
+      return matchesQuery && matchesRole && matchesStatus && matchesUserType;
     });
 
     const processedList = filteredList.map((user: UserBase) => {
