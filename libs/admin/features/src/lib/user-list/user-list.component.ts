@@ -36,8 +36,8 @@ import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types
     FilterComponent,
     HeaderComponent
 ],
-  templateUrl: './user-list.html',
-  styleUrl: './user-list.scss',
+  templateUrl: './user-list.component.html',
+  styleUrl: './user-list.component.scss',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
