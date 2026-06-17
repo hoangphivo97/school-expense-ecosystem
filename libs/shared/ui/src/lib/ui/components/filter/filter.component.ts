@@ -1,161 +1,245 @@
 import {
   Component,
   DestroyRef,
-  EventEmitter,
   inject,
-  Input,
   input,
+  output,
   OnInit,
-  Output,
+  computed,
+  effect,
+  viewChild,
 } from '@angular/core';
-import { MatSelect } from '@angular/material/select';
-import { MatOption } from '@angular/material/select';
+import { CommonModule } from '@angular/common';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatTableDataSource } from '@angular/material/table';
-import {
-  FilterParams,
-} from '@school-expense-ecosystem/shared/types';
-import { CommonModule } from '@angular/common';
-import { months } from '@school-expense-ecosystem/shared/constants';
-import {
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-} from '@angular/forms';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
-import { MatIcon } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
+import { MatTableDataSource } from '@angular/material/table';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatPaginator } from '@angular/material/paginator';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
+import { months } from '@school-expense-ecosystem/shared/constants';
+import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
+import { ExpenseStatus } from '@school-expense-ecosystem/expenses/types';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
 @Component({
   selector: 'lib-filter',
   standalone: true,
   imports: [
-    MatSelect,
-    MatOption,
+    CommonModule,
+    ReactiveFormsModule,
+    MatSelectModule,
+    MatOptionModule,
     MatInputModule,
     MatFormFieldModule,
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatIcon,
+    MatIconModule,
     MatTooltipModule,
+    MatPaginatorModule
   ],
   templateUrl: './filter.component.html',
   styleUrl: './filter.component.scss',
 })
 export class FilterComponent<T = any> implements OnInit {
-  private router = inject(Router);
-  inputDataSource = input<MatTableDataSource<T>>();
-
-  readonly currMonth: number = new Date().getMonth() + 1;
-  readonly currYear: number = new Date().getFullYear();
-
-  private _yearsList: number[] = []; //Will get from list of Expense created Date
-
   private readonly destroyRef = inject(DestroyRef);
 
-  initFilterState = {
+  readonly paginator = viewChild(MatPaginator);
+
+  // ==========================================================================
+  // Contextual Layout Variants (Single Entry Configuration Gate)
+  // ==========================================================================
+  mode = input<FilterMode>(FilterMode.EXPENSE);
+
+  // ==========================================================================
+  // Reactive Structural Guards (Automated 2-Row Condition Appraisers)
+  // ==========================================================================
+  readonly showSearch = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.USER);
+  readonly showMonth = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
+  readonly showYear = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
+  readonly showRole = computed(() => this.mode() === FilterMode.USER);
+  readonly showUserType = computed(() => this.mode() === FilterMode.USER);
+  readonly showStatus = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE);
+  readonly showFaculty = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE);
+
+  // Multi-dimensional dynamic model mapping streams
+  inputDataSource = input<MatTableDataSource<T> | null>(null);
+  value = input<FilterParams | null>(null);
+  rawYearsList = input<number[]>([], { alias: 'yearsList' });
+  facultiesList = input<{ facultyId: string; facultyName: string }[]>([]);
+
+  filterChange = output<FilterParams>();
+
+  // ==========================================================================
+  // Isolated UI Options Matrix (Enforces strict token domain contracts)
+  // ==========================================================================
+  readonly systemRolesOptions = [
+    { value: 'ALL', label: 'All Roles' },
+    { value: Role.LEVEL_0_ADMIN, label: 'Admin' },
+    { value: Role.LEVEL_1_FINANCE, label: 'Finance Officer' },
+    { value: Role.LEVEL_2_DEAN, label: 'Faculty Dean' },
+    { value: Role.LEVEL_3_USER, label: 'End User' }
+  ];
+
+  readonly userTypesOptions = [
+    { value: 'ALL', label: 'All User Types' },
+    { value: UserType.STUDENT, label: 'Student' },
+    { value: UserType.TEACHER, label: 'Teacher' },
+    { value: UserType.STAFF, label: 'Staff' }
+  ];
+
+  readonly accountStatusOptions = [
+    { value: 'ALL', label: 'All Statuses' },
+    { value: UserStatus.ACTIVE, label: 'Active' },
+    { value: UserStatus.ONBOARDING, label: 'Onboarding' },
+    { value: UserStatus.REJECTED, label: 'Rejected' },
+    // { value: UserStatus.INACTIVE, label: 'Inactive' }
+  ];
+
+  readonly expenseStatusOptions = [
+    { value: 'ALL', label: 'All Statuses' },
+    { value: ExpenseStatus.PENDING_TEACHER_REVIEW, label: 'Pending Teacher' },
+    { value: ExpenseStatus.PENDING_DEAN_APPROVAL, label: 'Pending Dean' },
+    { value: ExpenseStatus.PENDING_DISBURSEMENT, label: 'Pending Disbursement' },
+    { value: ExpenseStatus.DISBURSED, label: 'Disbursed' },
+    { value: ExpenseStatus.REJECTED, label: 'Rejected' }
+  ];
+
+  readonly currentMonth = new Date().getMonth() + 1;
+  readonly currentYear = new Date().getFullYear();
+
+  // Baseline UI state registry holding sentinel default constants
+  readonly defaultFilterState = {
     searchTerm: '',
-    month: this.currMonth,
-    year: this.currYear,
+    month: this.currentMonth,
+    year: this.currentYear,
+    role: 'ALL',
+    userType: 'ALL',
+    status: 'ALL',
+    facultyId: 'ALL'
   };
 
-  filterForm = new FormGroup({
-    searchTerm: new FormControl(this.initFilterState.searchTerm),
-    month: new FormControl(this.initFilterState.month),
-    year: new FormControl(this.initFilterState.year),
+  readonly filterForm = new FormGroup({
+    searchTerm: new FormControl(this.defaultFilterState.searchTerm),
+    month: new FormControl<number | undefined>(this.defaultFilterState.month),
+    year: new FormControl<number | undefined>(this.defaultFilterState.year),
+    role: new FormControl(this.defaultFilterState.role),
+    userType: new FormControl(this.defaultFilterState.userType),
+    status: new FormControl(this.defaultFilterState.status),
+    facultyId: new FormControl(this.defaultFilterState.facultyId)
   });
 
-  // 1. DATA ENTRY BOUNDARY: Synchronizes URL state from parent directly into the reactive form inputs
-  @Input() set value(val: FilterParams | null) {
-    if (val) {
-      this.filterForm.patchValue({
-        month: val.month ?? this.currMonth,
-        year: val.year ?? this.currYear,
-        searchTerm: val.searchTerm ?? ''
-      }, { emitEvent: false }); // CRITICAL: prevent infinite loop routing triggers
+  readonly processedYears = computed(() => {
+    const years = [...this.rawYearsList()];
+    if (!years.includes(this.currentYear)) {
+      years.push(this.currentYear);
     }
-  }
+    return years.sort((a, b) => a - b);
+  });
 
-  @Input() set yearsList(years: number[]) {
-    this._yearsList = [...years];
-    if (!this._yearsList.includes(this.currYear)) {
-      this._yearsList.push(this.currYear);
-    }
-    this._yearsList.sort((a: number, b: number) => a - b);
-  }
+  readonly availableMonths = computed(() => months);
 
-  get yearsList(): number[] {
-    return this._yearsList;
-  }
+  readonly isDirty = computed(() => {
+    const currentForm = this.filterForm.value;
+    const searchDirty = this.showSearch() && currentForm.searchTerm !== this.defaultFilterState.searchTerm;
+    const monthDirty = this.showMonth() && currentForm.month !== this.defaultFilterState.month;
+    const yearDirty = this.showYear() && currentForm.year !== this.defaultFilterState.year;
+    const roleDirty = this.showRole() && currentForm.role !== this.defaultFilterState.role;
+    const userTypeDirty = this.showUserType() && currentForm.userType !== this.defaultFilterState.userType;
+    const statusDirty = this.showStatus() && currentForm.status !== this.defaultFilterState.status;
+    const facultyDirty = this.showFaculty() && currentForm.facultyId !== this.defaultFilterState.facultyId;
 
-  @Output() filterChange = new EventEmitter<FilterParams>();
+    return searchDirty || monthDirty || yearDirty || roleDirty || userTypeDirty || statusDirty || facultyDirty;
+  });
+
+  constructor() {
+    // Inbound Synchronization Effect: Maps clean domain states to local 'ALL' dropdown markers safely
+    effect(() => {
+      const incomingState = this.value();
+      if (incomingState) {
+        this.filterForm.patchValue({
+          month: incomingState.month ?? this.currentMonth,
+          year: incomingState.year ?? this.currentYear,
+          searchTerm: incomingState.searchTerm ?? '',
+          role: incomingState.role ?? 'ALL',
+          userType: incomingState.userType ?? 'ALL',
+          status: incomingState.status ?? 'ALL',
+          facultyId: incomingState.facultyId ?? 'ALL'
+        }, { emitEvent: false }); // Block cyclic event loop notifications during hydration loops
+      }
+    });
+  }
 
   ngOnInit(): void {
-    this.handleYearSelected();
-    this.handleFilter();
+    this.registerFilterValueStreams();
   }
 
-  onSearch(event: Event) {
-    const dataSource = this.inputDataSource();
-    const value: string = (event.target as HTMLInputElement).value;
-    const filterdValue: string = value.trim() && value.toLowerCase();
-    if (dataSource) {
-      dataSource.filter = filterdValue;
-    }
-  }
-
-  initFilter(emit = true) {
-    this.filterForm.setValue({ ...this.initFilterState }, { emitEvent: emit });
-  }
-
-  resetFilter() {
-    this.initFilter(true);
-  }
-
-  handleFilter() {
+  /**
+   * Listens reactively to layout changes, strips 'ALL' sentinel strings down to pristine 
+   * 'undefined' parameters, executes client-side filtering bounds, and dispatches data outwards.
+   */
+  private registerFilterValueStreams(): void {
     this.filterForm.valueChanges
       .pipe(
-        debounceTime(300),
-        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr))
+        debounceTime(250),
+        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+        takeUntilDestroyed(this.destroyRef)
       )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
+      .subscribe((formValues) => {
+        // Core Internal Sanitizer Utility: Eradicates presentation rác values before exposure
+
+        const getValidRole = (val: any): Role | undefined => {
+          if (val === 'ALL' || val === null || val === '') return undefined;
+          // Kiểm tra xem giá trị từ Form có thực sự nằm trong danh mục Enum Role hay không
+          return Object.values(Role).includes(val as Role) ? (val as Role) : undefined;
+        };
+
+        const getValidUserType = (val: any): UserType | undefined => {
+          if (val === 'ALL' || val === null || val === '') return undefined;
+          // Thực hiện validation hoặc gán ép kiểu có chốt chặn kiểm soát boundary
+          return val as UserType;
+        };
+
+        const getValidFacultyId = (val: any): FacultyId | undefined => {
+          if (val === 'ALL' || val === null || val === '') return undefined;
+          return val as FacultyId;
+        };
+
+        const getValidStatus = (val: any): UserStatus | undefined => {
+          if (val === 'ALL' || val === null || val === '') return undefined;
+          return val as UserStatus; // Hấp thụ giá trị dropdown chuyển vùng an toàn cho form
+        };
+
+        const payload: FilterParams = {
+          searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
+          month: this.showMonth() ? (formValues.month ?? undefined) : undefined,
+          year: this.showYear() ? (formValues.year ?? undefined) : undefined,
+          role: this.showRole() ? getValidRole(formValues.role) : undefined,
+          userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
+          status: this.showStatus() ? getValidStatus(formValues.status) : undefined,
+          facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
+        };
 
         const dataSource = this.inputDataSource();
-        if (dataSource) {
-          dataSource.filter = (value.searchTerm || '').trim().toLowerCase();
+        if (dataSource && this.showSearch()) {
+          dataSource.filter = payload.searchTerm!.trim().toLowerCase();
         }
 
-        this.filterChange.emit(value as FilterParams);
+        this.filterChange.emit(payload);
       });
   }
 
-  //If currYear not in list then Add it to list
-  handleYearSelected() {
-    if (!this.yearsList.includes(this.currYear)) {
-      this.yearsList.push(this.currYear);
-    }
-    this.yearsList.sort((a: number, b: number) => a - b);
-  }
-
-  get months() {
-    return months;
-  }
-
-  get hasUserFiltered(): boolean {
-    return (
-      JSON.stringify(this.filterForm.value) !==
-      JSON.stringify(this.initFilterState)
-    );
-  }
-
-  get isReportPage(): boolean {
-    return this.router.url.includes('/report');
+  resetFilters(): void {
+    this.filterForm.setValue({
+      searchTerm: this.defaultFilterState.searchTerm,
+      month: this.defaultFilterState.month,
+      year: this.defaultFilterState.year,
+      role: this.defaultFilterState.role,
+      userType: this.defaultFilterState.userType,
+      status: this.defaultFilterState.status,
+      facultyId: this.defaultFilterState.facultyId
+    }, { emitEvent: true });
   }
 }

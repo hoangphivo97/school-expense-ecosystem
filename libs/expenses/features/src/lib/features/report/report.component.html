@@ -2,9 +2,10 @@
   <lib-header></lib-header>
   <lib-filter
     class="filter"
-    (filterChange)="onFilterChanged($event)"
+    [mode]="filterModeEnum.REPORT"
     [yearsList]="availableYears()"
     [value]="filterParams()"
+    (filterChange)="onFilterChanged($event)"
   ></lib-filter>
 </section>
 <div class="report-page">

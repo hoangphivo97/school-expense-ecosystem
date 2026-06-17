@@ -7,33 +7,13 @@
 
     <div class="col-xl-8 col-12 d-flex flex-wrap justify-content-xl-end gap-3 mt-3 mt-xl-0">
 
-      <mat-form-field appearance="outline" class="filter-field search-input-field">
-        <mat-icon matPrefix class="muted-icon">search</mat-icon>
-        <mat-label>Search name, email, ID...</mat-label>
-        <input matInput type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
-      </mat-form-field>
+      <lib-filter [mode]="filterModeEnum.USER" [value]="activeFilters()" (filterChange)="onUserFiltersChanged($event)">
 
-      <mat-form-field appearance="outline" class="filter-field select-dropdown-field">
-        <mat-label>Filter by Role</mat-label>
-        <mat-select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
-          <mat-option value="ALL">All Roles</mat-option>
-          <mat-option [value]="RoleEnum.LEVEL_0_ADMIN">System Administrator</mat-option>
-          <mat-option [value]="RoleEnum.LEVEL_1_FINANCE">Finance Specialist</mat-option>
-          <mat-option [value]="RoleEnum.LEVEL_2_DEAN">Faculty Dean</mat-option>
-          <mat-option [value]="RoleEnum.LEVEL_3_USER">Standard User</mat-option>
-        </mat-select>
-      </mat-form-field>
+        <button primaryAction mat-flat-button color="primary" (click)="openManualProvisioningModal()">
+          <mat-icon>person_add</mat-icon> Create User
+        </button>
 
-      <mat-form-field appearance="outline" class="filter-field select-dropdown-field">
-        <mat-label>Filter by Status</mat-label>
-        <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
-          <mat-option value="ALL">All Statuses</mat-option>
-          <mat-option [value]="UserStatusEnum.ACTIVE">Active Only</mat-option>
-          <mat-option [value]="UserStatusEnum.ONBOARDING">Onboarding</mat-option>
-          <mat-option [value]="UserStatusEnum.PENDING">Pending Approval</mat-option>
-          <mat-option [value]="UserStatusEnum.REJECTED">Rejected Accounts</mat-option>
-        </mat-select>
-      </mat-form-field>
+      </lib-filter>
 
     </div>
   </div>

@@ -7,7 +7,7 @@ import { MatIcon } from '@angular/material/icon';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import { HeaderComponent, FooterComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
-import { FilterParams } from '@school-expense-ecosystem/shared/types';
+import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { makeLineChart, makeMonthlyColumnChart, makePieChart } from './utils/multiple-charts-helper';
 import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
@@ -40,6 +40,8 @@ export class ReportComponent {
       startWith(this.router.parseUrl(this.router.url).queryParams)
     )
   );
+
+  readonly filterModeEnum = FilterMode;
 
   readonly filterParams = computed<FilterParams>(() => {
     return this.queryParamsSignal() as unknown as FilterParams;

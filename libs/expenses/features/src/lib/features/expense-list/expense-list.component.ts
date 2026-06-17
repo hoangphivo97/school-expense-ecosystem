@@ -20,6 +20,7 @@ import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { FilterMode } from '@school-expense-ecosystem/shared/types'
 
 @Component({
   selector: 'lib-expense-list',
@@ -40,6 +41,7 @@ export class ExpenseListComponent implements OnInit {
   private readonly router = inject(Router);
 
   paidMethodToString = EnumToStringPipe
+  filterModeEnum = FilterMode
 
   displayedColumns: string[] = [
     'date',
@@ -104,7 +106,7 @@ export class ExpenseListComponent implements OnInit {
   });
 
   readonly availableYearsResource = this.expenseService.getAllYearsResource();
-  readonly availableYears = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
+  readonly availableYearsSignal = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
 
   constructor() {
     effect(() => {
@@ -130,8 +132,8 @@ export class ExpenseListComponent implements OnInit {
       filter((res: DialogData | undefined): res is DialogData => !!res && res.isSuccess),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((res) => {
-        this.expenseResource.reload();
-        this.availableYearsResource.reload();
+      this.expenseResource.reload();
+      this.availableYearsResource.reload();
     })
   }
 
@@ -159,10 +161,18 @@ export class ExpenseListComponent implements OnInit {
     }
   }
 
-  onFilterChanged(params: FilterParams) {
+  onExpenseFiltersChanged(params: FilterParams): void {
+    const queryParams: Record<string, any> = {};
+
+    // Dynamic Transformation Matrix: Converts FilterParams straight into URL query params safely
+    Object.entries(params).forEach(([key, value]) => {
+      // If value is clean and exists, append to URL; otherwise set to null so Angular Router deletes it
+      queryParams[key] = (value !== undefined && value !== '') ? value : null;
+    });
+
     this.router.navigate([], {
-      queryParams: { year: params.year, month: params.month, searchTerm: params.searchTerm || null },
-      queryParamsHandling: 'merge',
+      queryParams,
+      queryParamsHandling: 'merge', // Preserves existing parameters like pagination bounds if any
     });
   }
 

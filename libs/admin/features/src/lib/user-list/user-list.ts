@@ -11,10 +11,11 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
-import { Role, UserBase , UserStatus} from '@school-expense-ecosystem/auth/types';
-import { FooterComponent } from '@school-expense-ecosystem/shared/ui';
+import { Role, UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { FilterComponent, FooterComponent } from '@school-expense-ecosystem/shared/ui';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
+import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 
 @Component({
   selector: 'lib-user-list',
@@ -31,7 +32,8 @@ import { catchError, map, of, switchMap } from 'rxjs';
     MatIconModule,
     MatButtonModule,
     FooterComponent,
-    DatePipe
+    DatePipe,
+    FilterComponent
   ],
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss',
@@ -47,10 +49,15 @@ export class UserListComponent {
   // DOM viewchild query referencing the active material pagination element
   readonly paginator = viewChild(MatPaginator);
 
-  // Core local reactive states driven by Angular Signals for client-side filtering
-  readonly searchQuery = signal<string>('');
-  readonly roleFilter = signal<string>('ALL');
-  readonly statusFilter = signal<string>('ALL');
+  readonly filterModeEnum = FilterMode;
+
+  readonly activeFilters = signal<FilterParams>({
+    searchTerm: '',
+    role: undefined,
+    status: undefined,
+    userType: undefined,
+    facultyId: undefined
+  });
 
   private readonly refreshTrigger = signal<number>(0);
   readonly isLoading = signal<boolean>(false);
@@ -118,17 +125,18 @@ export class UserListComponent {
 
   readonly dataSource = computed(() => {
     const rawList = this.apiResponseSignal().users;
-    const query = this.searchQuery().toLowerCase().trim();
-    const role = this.roleFilter();
-    const status = this.statusFilter();
+    const filters = this.activeFilters();
+
+    const query = (filters.searchTerm || '').toLowerCase().trim();
 
     const filteredList = rawList.filter((user: UserBase) => {
       const matchesQuery = !query ||
         user.fullName?.toLowerCase().includes(query) ||
         user.email?.toLowerCase().includes(query) ||
         user.userCode?.toLowerCase().includes(query);
-      const matchesRole = role === 'ALL' || user.role === role;
-      const matchesStatus = status === 'ALL' || user.status?.toUpperCase() === status.toUpperCase();
+
+      const matchesRole = !filters.role || user.role === filters.role;
+      const matchesStatus = !filters.status || user.status?.toUpperCase() === (filters.status as string).toUpperCase();
 
       return matchesQuery && matchesRole && matchesStatus;
     });
@@ -143,12 +151,9 @@ export class UserListComponent {
     return new MatTableDataSource<any>(processedList);
   });
 
- constructor() {
-    // SAFETY EFFECT: Resets page index constraints safely upon user-driven query mutations
+  constructor() {
     effect(() => {
-      this.searchQuery();
-      this.roleFilter();
-      this.statusFilter();
+      this.activeFilters()
 
       untracked(() => {
         this.currentPageIndex.set(0);
@@ -168,5 +173,13 @@ export class UserListComponent {
 
   openEditUserModal(user: UserBase): void {
     console.log('Triggered edit modal workflow for target account:', user);
+  }
+
+  onUserFiltersChanged(cleanParams: FilterParams): void {
+    this.activeFilters.set(cleanParams);
+  }
+
+  openManualProvisioningModal(): void {
+    // Administration provisioning workflow execution line
   }
 }
