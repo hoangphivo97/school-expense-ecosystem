@@ -1,3 +1,4 @@
+@use '@angular/material' as mat;
 /* =========================================
    1. IMPORTS
    ========================================= */
@@ -5,6 +6,7 @@
 @import 'bootstrap/scss/bootstrap';
 @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
 @import '@angular/material/prebuilt-themes/azure-blue.css';
+
 
 /* =========================================
    2. BASE STYLES & UTILITIES
@@ -216,4 +218,23 @@ body {
   .mat-datepicker-content .mat-calendar-header {
     color: var(--text-primary) !important;
   }
+}
+
+.toast-success {
+  @include mat.snack-bar-overrides((
+    container-color: #198754,                 // Bootstrap success green
+    button-color: #ffffff,                    // Action text color (Close button)
+    supporting-text-color: #ffffff,           // Primary toast message text color
+    container-shape: var(--mat-sys-corner-extra-small) // Standard system boundary radius
+  ));
+}
+
+/* Scoped design tokens for failure and infrastructure error streams */
+.toast-error {
+  @include mat.snack-bar-overrides((
+    container-color: #dc3545,                 // Bootstrap danger red
+    button-color: #ffffff,                    // Action text color (Close button)
+    supporting-text-color: #ffffff,           // Primary error message text color
+    container-shape: var(--mat-sys-corner-extra-small)
+  ));
 }

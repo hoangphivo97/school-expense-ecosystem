@@ -46,8 +46,11 @@ export const authInterceptor: HttpInterceptorFn = (
         return throwError(() => err);
       }
 
-      // (401 / 403)
-      if (err.status === 401 || err.status === 403) {
+      if (err.status === 403) {
+        return throwError(() => err);
+      }
+
+      if (err.status === 401) {
         const isOnboardingRequest = err.url?.includes('/auth/onboarding');
 
         return from(Promise.resolve(auth.getFirebaseToken(true))).pipe(

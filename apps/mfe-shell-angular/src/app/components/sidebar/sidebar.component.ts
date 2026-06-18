@@ -12,7 +12,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
-import { DialogActionEnum, NavItem } from '@school-expense-ecosystem/shared/types';
+import { NavItem } from '@school-expense-ecosystem/shared/types';
 import { MatDialog } from '@angular/material/dialog';
 import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -50,7 +50,6 @@ export class SidebarComponent implements OnInit {
   @Input() collapsed = false;
 
   readonly user = this.authStore.user;
-  dialogActionEnum = DialogActionEnum;
   faArrowRightFromBracket = faArrowRightFromBracket;
 
   activeItem = signal<NavItem>(NavItem.DASHBOARD)
