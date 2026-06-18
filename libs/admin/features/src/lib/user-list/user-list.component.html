@@ -3,7 +3,7 @@
 
   <lib-filter [mode]="filterModeEnum.USER" [value]="activeFilters()" (filterChange)="onUserFiltersChanged($event)">
 
-    <button primaryAction mat-flat-button color="primary" (click)="openManualProvisioningModal()">
+    <button primaryAction mat-flat-button color="primary" (click)="openProvisionModal()">
       <mat-icon>person_add</mat-icon> Create User
     </button>
 
@@ -92,10 +92,18 @@
           <ng-container matColumnDef="action">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 text-end table-column-header"></th>
             <td mat-cell *matCellDef="let user" class="py-3 px-4 text-end">
-              <button mat-icon-button color="accent" (click)="openEditUserModal(user)"
+              @if (user.uid !== currentAdminId()) {
+              <button mat-icon-button color="accent" (click)="openUpdateModal(user)"
                 aria-label="Edit system account settings">
                 <mat-icon class="action-edit-icon">edit</mat-icon>
               </button>
+              } @else {
+              <div class="d-flex align-items-center gap-1 text-muted ms-2 bg-light px-2 py-1 rounded border"
+                style="width: fit-content;" matTooltip="Self-modification protected for security reasons">
+                <mat-icon class="fs-6 w-auto h-auto m-0">lock</mat-icon>
+                <span class="small-text fw-semibold">Protected (You)</span>
+              </div>
+              }
             </td>
           </ng-container>
 
@@ -105,7 +113,8 @@
           <tr class="mat-mdc-no-data-row" *matNoDataRow>
             <td [attr.colspan]="displayedColumns.length">
 
-              <div class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
+              <div
+                class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
                 <div class="empty-icon-box mb-3">
                   <mat-icon class="material-icons-outlined text-muted">people_alt</mat-icon>
                 </div>

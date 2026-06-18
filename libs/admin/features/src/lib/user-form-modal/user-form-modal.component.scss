@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Micro-spacing typography styling */
+.small-text {
+  font-size: 0.72rem;
+}
+
+.tracking-wider {
+  letter-spacing: 0.05em;
+}
+
+/* Auth Stream Custom Dashboard Element */
+.auth-stream-badge {
+  background-color: #f8f9fa;
+  border-color: #dee2e6 !important;
+  transition: all 0.3s ease-in-out;
+  
+  .indicator-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+}
+
+/* Smooth structural animation when inputs render dynamically */
+.animate-fade-in {
+  animation: fadeInFormGroup 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInFormGroup {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Angular Material Global Style Refinement overrides inside the modal */
+::v-deep {
+  .mat-mdc-dialog-container {
+    border-radius: 12px !important;
+    overflow: hidden;
+  }
+  .mat-mdc-form-field-error {
+    font-size: 11px !important;
+    font-weight: 500;
+  }
+}

@@ -19,8 +19,9 @@ export interface CreateUserInput {
   email: string;
   userCode: string;
   role: Role;
-  userType: UserType;
+  userType?: UserType;
   facultyId?: FacultyId;
+  createdBy?: string;
 }
 
 export interface UpdateUserInput {
@@ -30,8 +31,6 @@ export interface UpdateUserInput {
   status?: UserStatus;
   facultyId?: FacultyId;
 }
-
-export interface UpdateUserResult extends CreateUserResult { }
 
 export interface CreateUserResult {
   id: string;

@@ -1,8 +1,8 @@
-import { Controller, Get, UseGuards, Req, Query, Post, Body } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param } from '@nestjs/common';
 import { UserListService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
 import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/auth/features-backend';
-import { CreateUserDto } from 'admin-data-access-backend';
+import { CreateUserDto, UpdateUserDto } from 'admin-data-access-backend';
 import { CreateUserResult } from '@school-expense-ecosystem/admin/types';
 
 @Controller('users')
@@ -23,8 +23,14 @@ export class UserListController {
   }
 
   @Post('provision')
-  @Roles(Role.LEVEL_0_ADMIN) 
-  async manualAccountProvisioning(@Body() createUserDto: CreateUserDto): Promise<CreateUserResult> {
-    return this.userListService.provisionNewUserByAdmin(createUserDto);
+  @Roles(Role.LEVEL_0_ADMIN)
+  async manualAccountProvisioning(@Req() req: { user: UserBase }, @Body() createUserDto: CreateUserDto) {
+    return this.userListService.provisionNewUserByAdmin(req.user.uid, createUserDto);
+  }
+
+  @Patch(':id')
+  @Roles(Role.LEVEL_0_ADMIN)
+  async updateInstitutionalUser(@Param('id') targetUid: string, @Req() req: { user: UserBase }, @Body() updateUserDto: UpdateUserDto) {
+    return this.userListService.updateUserByAdmin(targetUid, req.user.uid, updateUserDto);
   }
 }

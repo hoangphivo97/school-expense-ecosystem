@@ -1,53 +1,66 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, ValidateIf } from "class-validator";
 import { FacultyId, Role, UserStatus, UserType } from "@school-expense-ecosystem/auth/types";
 import { CreateUserInput, UpdateUserInput } from "@school-expense-ecosystem/admin/types";
 
 export class CreateUserDto implements CreateUserInput {
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(2)
-  fullName!: string;
-
-  @IsNotEmpty()
-  @IsEmail()
+  @IsNotEmpty({ message: 'Institutional email address is mandatory.' })
+  @IsEmail({}, { message: 'Invalid email address format.' })
   email!: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Functional role must be assigned.' })
+  @IsEnum(Role, { message: 'Assigned role does not exist within the system matrix.' })
+  role!: Role;
+
+  @ValidateIf(o => o.role !== Role.LEVEL_0_ADMIN && o.role !== Role.LEVEL_1_FINANCE)
+  @IsNotEmpty({ message: 'Personnel classification is required for academic roles.' })
+  @IsEnum(UserType, { message: 'Invalid user type classification.' })
+  userType?: UserType;
+
+  @IsNotEmpty({ message: 'Institutional identifier code (userCode) cannot be empty.' })
   @IsString()
   userCode!: string;
 
-  @IsNotEmpty()
-  @IsEnum(Role)
-  role!: Role;
+  @IsNotEmpty({ message: 'Full legal name is strictly required for all directory entries.' })
+  @IsString()
+  @MinLength(2, { message: 'Full name must be at least 2 characters long.' })
+  fullName!: string;
 
-  @IsNotEmpty()
-  @IsEnum(UserType)
-  userType!: UserType;
+  @ValidateIf((o: CreateUserDto) => o.role === Role.LEVEL_0_ADMIN)
+  @IsNotEmpty({ message: 'Initial password configuration is mandatory for internal Admin accounts.' })
+  @IsString()
+  @MinLength(6, { message: 'System Admin password must be at least 6 characters long.' })
+  password?: string;
+
+  @ValidateIf(o => o.role === Role.LEVEL_2_DEAN || (o.role === Role.LEVEL_3_USER && o.userType !== UserType.STAFF))
+  @IsNotEmpty({ message: 'Faculty isolation scope assignment is required for this profile context.' })
+  @IsString()
+  facultyId?: FacultyId;
 
   @IsOptional()
   @IsString()
-  facultyId?: FacultyId;
+  createdBy?: string;
 }
 
 export class UpdateUserDto implements UpdateUserInput {
   @IsOptional()
   @IsString()
-  @MinLength(2)
-  fullName!: string;
+  @MinLength(2, { message: 'Updated name must be at least 2 characters.' })
+  fullName?: string;
 
   @IsOptional()
-  @IsEnum(Role)
-  role!: Role;
+  @IsEnum(Role, { message: 'Target role mutation out of system boundaries.' })
+  role?: Role;
 
   @IsOptional()
-  @IsEnum(UserType)
-  userType!: UserType;
+  @IsEnum(UserType, { message: 'Target classification mutation out of system boundaries.' })
+  userType?: UserType;
 
   @IsOptional()
-  @IsEnum(UserStatus)
+  @IsEnum(UserStatus, { message: 'Invalid operational status target.' })
   status?: UserStatus;
 
   @IsOptional()
+  @IsNotEmpty({ message: 'Faculty isolation node cannot be updated to an empty string.' })
   @IsString()
   facultyId?: FacultyId;
 }

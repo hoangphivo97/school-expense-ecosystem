@@ -1,4 +1,4 @@
-import { CreateUserResult, PaginatedUserResult, UpdateUserInput, UpdateUserResult } from '@school-expense-ecosystem/admin/types';
+import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
 
 export abstract class UserRepository {
   abstract findPaginated(filters: {
@@ -7,7 +7,8 @@ export abstract class UserRepository {
     pageToken?: string;
   }): Promise<PaginatedUserResult>;
   abstract checkIdentityConflict(email: string, userCode: string): Promise<boolean>;
-  abstract createUserRecord(uid: string, userData: any): Promise<CreateUserResult>;
-  abstract updateUserRecord(uid: string, data: UpdateUserInput): Promise<UpdateUserResult>;
-  abstract createAuthAccount(email: string, fullName: string): Promise<string>;
+  abstract createUserRecord(uid: string, userData: CreateUserInput): Promise<CreateUserResult>;
+  abstract updateUserFields(uid: string, updateData: UpdateUserInput): Promise<void>;
+  abstract createAuthAccount(email: string, fullName: string, password?: string): Promise<string>;
+  abstract findById(uid: string): Promise<any | null>;
 }

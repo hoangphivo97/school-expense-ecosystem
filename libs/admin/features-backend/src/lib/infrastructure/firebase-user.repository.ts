@@ -2,7 +2,7 @@ import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { UserRepository } from '../user.repository';
 import { UserBase } from '@school-expense-ecosystem/auth/types';
 import * as admin from 'firebase-admin';
-import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput, UpdateUserResult } from '@school-expense-ecosystem/admin/types';
+import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
 
 @Injectable()
 export class FirebaseUserRepository implements UserRepository {
@@ -52,16 +52,14 @@ export class FirebaseUserRepository implements UserRepository {
     };
   }
 
-  async updateUserRecord(uid: string, data: UpdateUserInput): Promise<UpdateUserResult> {
-    const docRef = this.db.collection("users").doc(uid);
+  async findById(uid: string): Promise<any | null> {
+    const doc = await this.db.collection('users').doc(uid).get();
+    return doc.exists ? doc.data() : null;
+  }
 
-    const updateData = Object.fromEntries(
-      Object.entries(data).filter(([_, value]) => value !== undefined)
-    );
-
-    await docRef.update(updateData);
-
-    return { id: uid, success: true };
+  async updateUserFields(uid: string, updateData: UpdateUserInput): Promise<void> {
+    const cleanedData = { ...updateData, updatedAt: new Date() };
+    await this.db.collection('users').doc(uid).update(cleanedData);
   }
 
   async checkIdentityConflict(email: string, userCode: string): Promise<boolean> {
@@ -72,33 +70,30 @@ export class FirebaseUserRepository implements UserRepository {
   }
 
   async createUserRecord(uid: string, userData: CreateUserInput): Promise<CreateUserResult> {
-    const docRef = this.db.collection('users').doc(uid);
-
-    await docRef.set({
+    await this.db.collection('users').doc(uid).set({
       ...userData,
-      uid: uid,
+      uid,
       status: 'active',
       createdAt: new Date()
     });
-
-    return {
-      id: uid,
-      success: true
-    };
+    return { id: uid, success: true };
   }
 
-  async createAuthAccount(email: string, fullName: string): Promise<string> {
+  async createAuthAccount(email: string, fullName: string, password?: string): Promise<string> {
     try {
-      const authRecord = await admin.auth().createUser({
-        email: email,
+      const config: admin.auth.CreateRequest = {
+        email,
         displayName: fullName,
-        disabled: false
-      });
-      
-      return authRecord.uid; // Trả về chuỗi uid sạch sẽ cho tầng logic xài
+        disabled: false,
+        emailVerified: true
+      };
+      if (password) config.password = password;
+
+      const authRecord = await admin.auth().createUser(config);
+      return authRecord.uid;
     } catch (error: any) {
-      if (error.code === "auth/email-already-exists") {
-        throw new ConflictException("The email address is already in use by another authentication account.");
+      if (error.code === 'auth/email-already-exists') {
+        throw new ConflictException('The email address is already in use by another account.');
       }
       throw error;
     }

@@ -18,6 +18,7 @@ import { catchError, map, of, switchMap } from 'rxjs';
 import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
+import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 
 @Component({
   selector: 'lib-user-list',
@@ -38,7 +39,7 @@ import { UserFormModalComponent } from '../user-form-modal/user-form-modal.compo
     FilterComponent,
     HeaderComponent,
     MatDialogModule
-],
+  ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
   standalone: true,
@@ -47,15 +48,19 @@ import { UserFormModalComponent } from '../user-form-modal/user-form-modal.compo
 export class UserListComponent {
   private readonly userListService = inject(UserListService);
   private readonly dialog = inject(MatDialog);
+  private readonly authStore = inject(AuthSignalStore);
+
   private readonly dialogActionEnum = DialogActionEnum;
 
   // Structural grid column configurations including auditing and interactive actions
-  displayedColumns: string[] = ['fullName', 'email', 'userCode', 'role', 'userType' ,'status' ,'createdAt', 'action'];
+  displayedColumns: string[] = ['fullName', 'email', 'userCode', 'role', 'userType', 'status', 'createdAt', 'action'];
 
   // DOM viewchild query referencing the active material pagination element
   readonly paginator = viewChild(MatPaginator);
 
   readonly filterModeEnum = FilterMode;
+
+  protected readonly currentAdminId = computed(() => this.authStore.user()?.uid ?? '');
 
   readonly activeFilters = signal<FilterParams>({
     searchTerm: '',
@@ -184,40 +189,39 @@ export class UserListComponent {
     this.refreshTrigger.update((n) => n + 1);
   }
 
-  openEditUserModal(user: UserBase): void {
-    console.log('Triggered edit modal workflow for target account:', user);
-  }
-
   onUserFiltersChanged(cleanParams: FilterParams): void {
     this.activeFilters.set(cleanParams);
   }
 
-  openManualProvisioningModal(): void {
-    const dialogRef: MatDialogRef<UserFormModalComponent> = this.dialog.open(UserFormModalComponent, {
-      width: '540px',
+  openProvisionModal(): void {
+    const dialogRef = this.dialog.open(UserFormModalComponent, {
+      width: '650px',
       disableClose: true,
-      data: { title: 'Create User', action: this.dialogActionEnum.Create, isSuccess: false },
+      data: { title: 'Create User', action: this.dialogActionEnum.Create },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result?.isSuccess && result?.payload) {
-        this.isLoading.set(true);
-        this.errorMessage.set(null);
+      // 🌟 CLEAN: Just listen to the success signal to trigger data grid hydration
+      if (result?.isSuccess) {
+        this.triggerRefresh();
+      }
+    });
+  }
 
-        this.userListService.provisionNewUser(result.payload).subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.triggerRefresh();
-            }
-          },
-          error: (err) => {
-            console.error('Account provisioning API request failed:', err);
-            this.isLoading.set(false);
-            this.errorMessage.set(
-              err.error?.message || 'Infrastructure error. Failed to provision system directory account.'
-            );
-          }
-        });
+  /**
+   * Opens the modification modal flow for an existing institutional user.
+   * @param user The targeting user profile entity data snapshot.
+   */
+  openUpdateModal(user: UserBase): void {
+    const dialogRef = this.dialog.open(UserFormModalComponent, {
+      width: '540px',
+      disableClose: true,
+      data: { user: user, title: 'Update User Profile', action: this.dialogActionEnum.Edit },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.isSuccess) {
+        this.triggerRefresh();
       }
     });
   }

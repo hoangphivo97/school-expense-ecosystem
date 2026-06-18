@@ -20,7 +20,7 @@ export enum Role {
 
 export enum FacultyId {
   FIT = 'fit', // Faculty of Information Technology
-  FBE = 'fbe', // Faculty of Business Administration
+  FBE = 'fbe', // Faculty of Business and Economics
   FLL = 'fll', // Faculty of Foreign Languages
 }
 
