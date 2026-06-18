@@ -1,7 +1,9 @@
-import { Controller, Get, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Query, Post, Body } from '@nestjs/common';
 import { UserListService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
 import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/auth/features-backend';
+import { CreateUserDto } from 'admin-data-access-backend';
+import { CreateUserResult } from '@school-expense-ecosystem/admin/types';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -18,5 +20,11 @@ export class UserListController {
     const requester = req.user as UserBase;
 
     return this.userListService.getUsersForAdmin(requester, Number(limit), pageToken);
+  }
+
+  @Post('provision')
+  @Roles(Role.LEVEL_0_ADMIN) 
+  async manualAccountProvisioning(@Body() createUserDto: CreateUserDto): Promise<CreateUserResult> {
+    return this.userListService.provisionNewUserByAdmin(createUserDto);
   }
 }

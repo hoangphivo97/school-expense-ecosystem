@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UserBase } from '@school-expense-ecosystem/auth/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
+import { CreateUserInput, CreateUserResult } from '@school-expense-ecosystem/admin/types';
 
 export interface PaginatedUsersResponse {
   users: UserBase[];
@@ -25,5 +26,9 @@ export class UserListService {
       url += `&pageToken=${encodeURIComponent(pageToken)}`;
     }
     return this.http.get<PaginatedUsersResponse>(url);
+  }
+
+  provisionNewUser(dto: CreateUserInput): Observable<CreateUserResult> {
+    return this.http.post<CreateUserResult>(`${this.apiUrl}/users/provision`, dto);
   }
 }

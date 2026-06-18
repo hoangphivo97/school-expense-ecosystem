@@ -15,7 +15,9 @@ import { Role, UserBase, UserStatus, UserType } from '@school-expense-ecosystem/
 import { FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
-import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
+import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
 
 @Component({
   selector: 'lib-user-list',
@@ -34,7 +36,8 @@ import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types
     FooterComponent,
     DatePipe,
     FilterComponent,
-    HeaderComponent
+    HeaderComponent,
+    MatDialogModule
 ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
@@ -43,6 +46,8 @@ import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types
 })
 export class UserListComponent {
   private readonly userListService = inject(UserListService);
+  private readonly dialog = inject(MatDialog);
+  private readonly dialogActionEnum = DialogActionEnum;
 
   // Structural grid column configurations including auditing and interactive actions
   displayedColumns: string[] = ['fullName', 'email', 'userCode', 'role', 'userType' ,'status' ,'createdAt', 'action'];
@@ -188,6 +193,32 @@ export class UserListComponent {
   }
 
   openManualProvisioningModal(): void {
-    // Administration provisioning workflow execution line
+    const dialogRef: MatDialogRef<UserFormModalComponent> = this.dialog.open(UserFormModalComponent, {
+      width: '540px',
+      disableClose: true,
+      data: { title: 'Create User', action: this.dialogActionEnum.Create, isSuccess: false },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.isSuccess && result?.payload) {
+        this.isLoading.set(true);
+        this.errorMessage.set(null);
+
+        this.userListService.provisionNewUser(result.payload).subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.triggerRefresh();
+            }
+          },
+          error: (err) => {
+            console.error('Account provisioning API request failed:', err);
+            this.isLoading.set(false);
+            this.errorMessage.set(
+              err.error?.message || 'Infrastructure error. Failed to provision system directory account.'
+            );
+          }
+        });
+      }
+    });
   }
 }

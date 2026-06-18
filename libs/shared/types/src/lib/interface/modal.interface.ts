@@ -1,3 +1,5 @@
+import { UserBase } from "@school-expense-ecosystem/auth/types";
+
 export interface DialogData <T = unknown>{
   title: string;
   action: DialogActionEnum;
