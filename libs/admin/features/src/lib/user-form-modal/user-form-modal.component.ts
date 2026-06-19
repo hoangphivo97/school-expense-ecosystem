@@ -3,18 +3,33 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractContro
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { Role, UserType, UserStatus, FacultyId } from '@school-expense-ecosystem/auth/types';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
-import { MatError, MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
-import { MatOption, MatSelect } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
-import { MatButton } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
+import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 @Component({
   selector: 'admin-user-form-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, MatDialogModule, MatFormField, MatLabel, MatOption, MatError, MatSelect, MatFormFieldModule, MatInputModule, MatButton, MatSnackBarModule],
-  templateUrl: './user-form-modal.component.html'
+  imports: [ReactiveFormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatSnackBarModule],
+  templateUrl: './user-form-modal.component.html',
+  providers: [
+    provideNativeDateAdapter(),
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }
+  ],
 })
 export class UserFormModalComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -52,21 +67,31 @@ export class UserFormModalComponent implements OnInit {
 
   protected readonly statusOptions = [
     { value: UserStatus.ACTIVE, label: 'Active' },
+    { value: UserStatus.PENDING, label: 'Pending' },
+    { value: UserStatus.ONBOARDING, label: 'Onboarding' },
     // { value: UserStatus.SUSPENDED, label: 'Suspended' }
   ];
 
   // Component state management
   protected isEditMode = false;
+  protected isDetailMode = false;
   protected authMethodDisplay = signal<string>('Google OAuth');
   protected userForm!: FormGroup;
 
   ngOnInit(): void {
-    this.isEditMode = !!this.dialogData?.user;
+    const currentAction = this.dialogData?.action;
+    this.isEditMode = currentAction === DialogActionEnum.Edit;
+    this.isDetailMode = currentAction === DialogActionEnum.Detail;
+
     this.initFormStructure();
     this.registerReactiveEngines();
 
-    if (this.isEditMode) {
+    if (this.isEditMode || this.isDetailMode) {
       this.patchExistingData();
+    }
+
+    if (this.isDetailMode) {
+      this.userForm.disable();
     }
   }
 
@@ -79,6 +104,7 @@ export class UserFormModalComponent implements OnInit {
       role: ['', [Validators.required]],
       userType: ['', [Validators.required]],
       fullName: ['', [Validators.required, Validators.minLength(2)]],
+      dateOfBirth: ['', [Validators.required]],
       userCode: ['', [Validators.required]],
       facultyId: [{ value: null, disabled: true }], // Locked by default, dynamically enabled via role
       password: [{ value: '', disabled: true }],
@@ -222,6 +248,7 @@ export class UserFormModalComponent implements OnInit {
       fullName: user.fullName,
       userCode: user.userCode,
       facultyId: user.facultyId,
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth : '',
       status: user.status
     });
   }
@@ -242,6 +269,7 @@ export class UserFormModalComponent implements OnInit {
         role: rawForm.role,
         userType: rawForm.userType,
         status: rawForm.status,
+        dateOfBirth: rawForm.dateOfBirth,
         facultyId: (selectedRole === Role.LEVEL_2_DEAN || selectedRole === Role.LEVEL_3_USER) ? rawForm.facultyId : null
       };
 
@@ -261,6 +289,7 @@ export class UserFormModalComponent implements OnInit {
         userType: rawForm.userType,
         userCode: rawForm.userCode,
         fullName: rawForm.fullName,
+        dateOfBirth: rawForm.dateOfBirth,
         facultyId: (selectedRole === Role.LEVEL_2_DEAN || selectedRole === Role.LEVEL_3_USER) ? rawForm.facultyId : null
       };
 

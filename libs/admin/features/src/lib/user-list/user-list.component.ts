@@ -225,4 +225,12 @@ export class UserListComponent {
       }
     });
   }
+
+  openDetailModal(user: UserBase) {
+    const dialogRef = this.dialog.open(UserFormModalComponent, {
+      width: '540px',
+      disableClose: true,
+      data: { user: user, title: 'User Detail', action: this.dialogActionEnum.Detail },
+    });
+  }
 }
