@@ -8,6 +8,7 @@ import { MatOption, MatSelect } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 
 @Component({
   selector: 'admin-user-form-modal',
@@ -21,6 +22,7 @@ export class UserFormModalComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<UserFormModalComponent>);
   protected readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true });
   private readonly snackBar = inject(MatSnackBar);
+  private readonly errorModalService = inject(ErrorModalService);
 
   // Expose Enums directly to the HTML template for structural directive evaluations
   protected readonly Role = Role;
@@ -287,9 +289,6 @@ export class UserFormModalComponent implements OnInit {
 
   private handleLocalApiError(err: any): void {
     console.error('Infrastructure API mutation failure:', err);
-    const apiMessage = Array.isArray(err.error?.message)
-      ? err.error.message[0]
-      : (err.error?.message || 'Operational failure inside system directory.');
-    this.showNotification(`Error: ${apiMessage}`, 'error');
+    this.errorModalService.openErrorModal(err);
   }
 }
