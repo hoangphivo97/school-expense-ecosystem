@@ -1,4 +1,4 @@
-import { UserType, UserStatus, Role, FacultyId } from '../enums/user.enum';
+import { UserType, UserStatus, Role, FacultyId, ConflictReason } from '../enums/user.enum';
 
 export interface LoginResponse {
   token: string;
@@ -36,3 +36,15 @@ export interface OnboardingData {
 export type AuthenticatedUser = Required<
   Pick<UserBase, 'uid' | 'role' | 'userType' | 'fullName' | 'userCode' | 'facultyId'>
 >;
+
+export interface IAuthIdentityCheck {
+  uid: string;
+  email: string;
+  userCode: string;
+}
+
+export interface IConflictResolution {
+  isConflict: boolean;
+  reason?: ConflictReason;
+  shouldLinkPreCreatedAccount: boolean;
+}

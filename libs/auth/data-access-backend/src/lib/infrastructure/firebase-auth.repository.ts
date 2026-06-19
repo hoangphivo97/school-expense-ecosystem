@@ -3,6 +3,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { AuthUserRepository } from '../auth-user.repository';
 import { UserInDb } from '../interface/user-db.interface';
 import * as admin from 'firebase-admin';
+import { ConflictReason, IAuthIdentityCheck, IConflictResolution, UserStatus } from '@school-expense-ecosystem/auth/types';
 
 @Injectable()
 export class FirebaseAuthRepository implements AuthUserRepository {
@@ -57,5 +58,79 @@ export class FirebaseAuthRepository implements AuthUserRepository {
         }
 
         return updatedUser;
+    }
+
+    async validateIdentityConflict(check: IAuthIdentityCheck): Promise<IConflictResolution> {
+        // Perform a highly optimized targeted query to locate an existing profile using the provided userCode
+        const codeSnap = await this.db
+            .collection('users')
+            .where('userCode', '==', check.userCode)
+            .limit(1)
+            .get();
+
+        // Scenario 1: The designated userCode is completely clean and unclaimed
+        if (codeSnap.empty) {
+            return { isConflict: false, reason: ConflictReason.NONE, shouldLinkPreCreatedAccount: false };
+        }
+
+        const existingUser = codeSnap.docs[0].data();
+
+        // Scenario 2: Idempotent operation - The duplicate code belongs to the current user (Re-submission)
+        if (existingUser['firebaseUid'] === check.uid) {
+            return { isConflict: false, reason: ConflictReason.NONE, shouldLinkPreCreatedAccount: false };
+        }
+
+        // Scenario 3: Pre-allocated match - The record was pre-created by Admin via Excel and email matches exactly
+        if (!existingUser['firebaseUid'] && existingUser['email'] === check.email) {
+            return { isConflict: false, reason: ConflictReason.NONE, shouldLinkPreCreatedAccount: true };
+        }
+
+        // Scenario 4: Identity Collision - The code is already explicitly claimed and linked to a different Firebase UID
+        if (existingUser['firebaseUid'] && existingUser['firebaseUid'] !== check.uid) {
+            return { isConflict: true, reason: ConflictReason.CAD, shouldLinkPreCreatedAccount: false };
+        }
+
+        // Scenario 5: Security Anomaly - The code is pre-created but the registering email does not match the Admin record
+        if (!existingUser['firebaseUid'] && existingUser['email'] !== check.email) {
+            return { isConflict: true, reason: ConflictReason.EMWP, shouldLinkPreCreatedAccount: false };
+        }
+
+        return { isConflict: true, reason: ConflictReason.CAD, shouldLinkPreCreatedAccount: false };
+    }
+
+    async executeOnboarding(uid: string, data: any, shouldLink: boolean): Promise<void> {
+        // Utilize Firestore Transactions to isolate the mutation and guard against parallel write race conditions
+        await this.db.runTransaction(async (transaction) => {
+            if (shouldLink) {
+                // Locate the target pre-created administrative skeleton entry
+                const userCodeQuery = await this.db
+                    .collection('users')
+                    .where('userCode', '==', data.userCode)
+                    .limit(1)
+                    .get();
+
+                const targetDocRef = userCodeQuery.docs[0].ref;
+
+                // Link the active Firebase identity into the pre-created slot
+                transaction.update(targetDocRef, {
+                    firebaseUid: uid,
+                    status: UserStatus.PENDING, // Transition state to await ultimate approval clearance
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Purge the temporary shell record generated during the initial handshake step
+                const tempDocRef = this.db.collection('users').doc(uid);
+                transaction.delete(tempDocRef);
+            } else {
+                // Standard flow: Mutate the current active document context via structured merge operation
+                const userRef = this.db.collection('users').doc(uid);
+                transaction.set(userRef, {
+                    ...data,
+                    firebaseUid: uid,
+                    status: UserStatus.PENDING, // Commit state into the standard verification queue
+                    createdAt: admin.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }
+        });
     }
 }

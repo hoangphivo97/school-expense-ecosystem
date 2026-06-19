@@ -1,6 +1,4 @@
-// libs/auth/features-backend/src/lib/auth.controller.ts
-import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
-// 🌟 ĐẢM BẢO: Chỉ import các thành phần Core nghiệp vụ cần thiết từ data-access
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService, OnboardingDto } from '@school-expense-ecosystem/auth/data-access-backend';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -28,24 +26,10 @@ export class AuthController {
 
   @Post('onboarding')
   @UseGuards(JwtAuthGuard)
-  async completeOnboarding(
-    @Req() req: { user: { uid: string } }, 
-    @Body() onboardingDto: OnboardingDto
-  ) {
-    const uid = req.user?.uid;
+  async completeOnboarding(@Req() req: any, @Body() dto: OnboardingDto) {
+    const firebaseUid = req.user.uid; 
+    const email = req.user.email;
 
-    if (!uid) {
-      throw new UnauthorizedException('Invalid or expired active session.');
-    }
-
-    const updatedUser = await this.authService.completeOnboarding(uid, onboardingDto);
-
-    const freshToken = this.authService.generateJWT(updatedUser);
-
-    return {
-      message: 'Onboarding data processed successfully.',
-      token: freshToken,
-      user: updatedUser
-    };
+    return await this.authService.completeOnboarding(firebaseUid, email, dto);
   }
 }

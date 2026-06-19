@@ -1,12 +1,12 @@
 import {
+  ConflictException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserInDb } from './interface/user-db.interface';
 import { OnboardingDto } from './DTO/onboarding.dto';
-import { Role, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { ConflictReason, Role, UserStatus } from '@school-expense-ecosystem/auth/types';
 import { AuthUserRepository } from './auth-user.repository';
 import { IdentityProvider } from './interface/identify-provider.interface';
 
@@ -14,22 +14,22 @@ import { IdentityProvider } from './interface/identify-provider.interface';
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly authUser: AuthUserRepository,
+    private readonly authUserRepo: AuthUserRepository,
     private readonly identityProvider: IdentityProvider
   ) { }
 
   async findByUid(uid: string): Promise<UserInDb | null> {
-    return this.authUser.findByUid(uid);
+    return this.authUserRepo.findByUid(uid);
   }
 
   async createUser(userData: UserInDb): Promise<UserInDb> {
-    return this.authUser.createUser(userData);
+    return this.authUserRepo.createUser(userData);
   }
 
   generateJWT(user: UserInDb): string {
     const payload: UserInDb = {
       uid: user.uid,
-      email: user.email, 
+      email: user.email,
       username: user.username,
       role: user.role,
       facultyId: user.facultyId,
@@ -48,16 +48,16 @@ export class AuthService {
 
       const userEmail = email ?? `no-email-${uid}@example.com`;
 
-      let user = await this.authUser.findByUid(uid);
+      let user = await this.authUserRepo.findByUid(uid);
 
       if (!user) {
-        user = await this.authUser.createUser({
+        user = await this.authUserRepo.createUser({
           uid,
           email: userEmail,
           username: name ?? 'Unknown User',
           role: Role.LEVEL_3_USER,
           status: UserStatus.ONBOARDING,
-          createdAt: new Date() 
+          createdAt: new Date()
         });
       }
 
@@ -68,22 +68,44 @@ export class AuthService {
     }
   }
 
-  async completeOnboarding(uid: string, dto: OnboardingDto): Promise<UserInDb> {
-    const user = await this.findByUid(uid);
-    if (!user) {
-      throw new NotFoundException('User profile not found in database.');
+  async completeOnboarding(uid: string, email:string ,dto: OnboardingDto) {
+    // 1. Dispatch identity conflict assessment via context-aware abstraction layer
+    const resolution = await this.authUserRepo.validateIdentityConflict({
+      uid,
+      email,
+      userCode: dto.userCode // Mapped directly from frontend input boundaries
+    });
+
+    // 2. Terminate pipeline and throw explicit standard REST HTTP 409 exceptions upon conflict triggers
+    if (resolution.isConflict) {
+      if (resolution.reason === ConflictReason.EMWP) {
+        throw new ConflictException(
+          `Security Violation: The User Code '${dto.userCode}' is exclusively allocated to a different email address structure.`
+        );
+      }
+      throw new ConflictException(
+        `Identity Conflict: The User Code '${dto.userCode}' has already been claimed by another active verified system user.`
+      );
     }
 
-    const updatedData: Partial<UserInDb> = {
-      fullName: dto.fullName,
-      facultyId: dto.facultyId,
-      userType: dto.userType,
-      userCode: dto.userCode,
-      dateOfBirth: dto.dateOfBirth,
-      status: UserStatus.PENDING || user.status
+    // 3. Assemble clean domain mutation payload strictly isolating structural parameters
+    const onboardingPayload = {
+      fullName: dto.fullName,     // Derived from strict registration form configurations
+      facultyId: dto.facultyId,   // Validated system enumeration references
+      userType: dto.userType,     // Access tier categorizations
+      userCode: dto.userCode,     // Unique organizational identifiers
+      dateOfBirth: dto.dateOfBirth, // Core user identity metadata
     };
 
-    return this.authUser.updateUser(uid, updatedData);
+    // 4. Delegate transactional database commit execution
+    await this.authUserRepo.executeOnboarding(
+      uid,
+      onboardingPayload,
+      resolution.shouldLinkPreCreatedAccount
+    );
+
+    return { status: UserStatus.PENDING };
   }
 }
+
 
