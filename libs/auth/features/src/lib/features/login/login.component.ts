@@ -1,13 +1,10 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, NgZone, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
-import { LoginResponse, UserStatus } from '@school-expense-ecosystem/auth/types';
-import { catchError, tap, throwError } from 'rxjs';
-import { FirebaseError } from 'firebase/app';
+import { UserStatus } from '@school-expense-ecosystem/auth/types';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle } from '@angular/material/card';
+import { MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardModule, MatCardTitle } from '@angular/material/card';
 import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatButton } from '@angular/material/button';
@@ -27,20 +24,17 @@ interface DemoAccount {
   selector: 'lib-login',
   standalone: true,
   imports: [
-    ReactiveFormsModule, 
-    MatCard, 
-    MatCardContent, 
-    MatCardFooter, 
-    MatCardHeader, 
-    MatError, 
-    MatProgressSpinner, 
-    MatCardTitle, 
+    ReactiveFormsModule,
+    MatError,
+    MatProgressSpinner,
+    MatCardTitle,
     MatButton,
     FontAwesomeModule,
-    MatFormField, 
-    MatLabel,     
-    MatSelect,   
-    MatOption
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
+    MatCardModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
@@ -48,11 +42,11 @@ interface DemoAccount {
 export class LoginComponent {
   // Utilizing standard inject token patterns instead of bloated constructors
   private readonly fb = inject(NonNullableFormBuilder); // Upgraded to NonNullable for strict typing
-  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
+  protected readonly authService = inject(AuthService);
   private readonly authStore = inject(AuthSignalStore);
   private readonly errorModalService = inject(ErrorModalService);
+  private readonly zone = inject(NgZone);
 
   readonly faGoogle = faGoogle;
   readonly faArrowLeft = faArrowLeft
@@ -61,25 +55,24 @@ export class LoginComponent {
 
   // Modern UI architecture: Using Signals for lightweight, reactive state tracking
   readonly isAdminMode = signal<boolean>(false);
-  readonly isLoading = signal<boolean>(false);
   readonly selectedAccount = signal<DemoAccount | null>(null);
 
   readonly demoAccounts: DemoAccount[] = [
-    { 
-      role: 'Professor / Department Approver', 
-      email: 'professor.demo@ntust.edu.tw', 
+    {
+      role: 'Professor / Department Approver',
+      email: 'professor.demo@ntust.edu.tw',
       password: 'DemoPassword123',
       description: 'Reviews, approves or rejects student expense and lab research requests.'
     },
-    { 
-      role: 'Finance Officer / Accountant', 
-      email: 'finance.staff@ntust.edu.tw', 
+    {
+      role: 'Finance Officer / Accountant',
+      email: 'finance.staff@ntust.edu.tw',
       password: 'DemoPassword123',
       description: 'Manages university budgets, verifies invoices, and executes payouts.'
     },
-    { 
-      role: 'System Administrator', 
-      email: 'sysadmin.core@ntust.edu.tw', 
+    {
+      role: 'System Administrator',
+      email: 'sysadmin.core@ntust.edu.tw',
       password: 'DemoPassword123',
       description: 'Full global access to audit logs, system parameters, and system rules.'
     }
@@ -112,68 +105,56 @@ export class LoginComponent {
 
   onRoleSelectionChanged(account: DemoAccount | null): void {
     this.selectedAccount.set(account);
-    
+
     if (account) {
       this.adminLoginForm.patchValue({
         email: account.email,
         password: account.password
       });
     } else {
-      this.adminLoginForm.reset(); // Nếu chọn dòng trống -> Trả form về nguyên trạng
+      this.adminLoginForm.reset();
     }
   }
 
   /**
    * Domain Action: Triggers the primary Google Workspace OAuth authentication flow
    */
-  onGoogleLoginTriggered(): void {
-    if (this.isLoading()) return;
-    this.isLoading.set(true);
+  async onGoogleLoginTriggered(): Promise<void> {
+    if (this.authService.isSystemLoading()) return;
 
-    this.authService
-      .signInWithGoogleAccount()
-      .pipe(
-        tap((res: any) => {
-          this.isLoading.set(false);
-          this.updateTokenAndReRoute(res.token, res.user);
-        }),
-        catchError((err: FirebaseError) => {
-          this.isLoading.set(false);
-          this.errorModalService.openErrorModal(err);
-          return throwError(() => err);
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe();
+    try {
+      const res = await this.authService.signInWithGoogleAccount();
+      this.updateTokenAndReRoute(res.token, res.user);
+    } catch (err: any) {
+      console.warn('Google OAuth authentication flow intercepted:', err);
+
+      if (err.code === 'auth/popup-closed-by-user') {
+        this.zone.run(() => {
+        });
+        return;
+      }
+
+      this.errorModalService.openErrorModal(err);
+    }
   }
-
   /**
    * Domain Action: Validates and processes explicitly created Admin accounts
    */
-  onAdminLoginSubmitted(): void {
+  async onAdminLoginSubmitted(): Promise<void> {
     if (this.adminLoginForm.invalid) {
       this.adminLoginForm.markAllAsTouched();
       return;
     }
+    if (this.authService.isSystemLoading()) return;
 
-    this.isLoading.set(true);
     const { email, password } = this.adminLoginForm.getRawValue();
 
-    this.authService
-      .signInWithUserAccount(email, password)
-      .pipe(
-        tap((res: LoginResponse) => {
-          this.isLoading.set(false);
-          this.updateTokenAndReRoute(res.token, res.user);
-        }),
-        catchError((err: FirebaseError) => {
-          this.isLoading.set(false);
-          this.errorModalService.openErrorModal(err);
-          return throwError(() => err);
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe();
+    try {
+      const res = await this.authService.signInWithUserAccount(email, password);
+      this.updateTokenAndReRoute(res.token, res.user);
+    } catch (err: any) {
+      this.errorModalService.openErrorModal(err);
+    }
   }
 
   /**

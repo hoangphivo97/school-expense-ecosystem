@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, resource, signal } from '@angular/core';
 import {
   Auth,
   signInWithPopup,
@@ -8,7 +8,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from '@angular/fire/auth';
-import { from, Observable, switchMap } from 'rxjs';
+import { firstValueFrom, from, Observable, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
@@ -26,54 +26,66 @@ export class AuthService {
   private authStore = inject(AuthSignalStore)
 
   private apiUrl = `${this.baseUrl}/api/auth`;
-  readonly isLoading = signal<boolean>(true);
+
+  readonly isAuthInitializing = signal<boolean>(true);
+
+  readonly isLoggingInWithEmail = signal<boolean>(false);
+  readonly isLoggingInWithGoogle = signal<boolean>(false);
+  readonly isOnboardingSubmitting = signal<boolean>(false);
+
+  readonly isSystemLoading = computed(() =>
+    this.isAuthInitializing() ||
+    this.isLoggingInWithEmail() ||
+    this.isLoggingInWithGoogle() ||
+    this.isOnboardingSubmitting()
+  );
 
   constructor() {
     onAuthStateChanged(this.auth, () => {
-      this.isLoading.set(false);
+      this.isAuthInitializing.set(false);
     });
   }
 
-  signInWithUserAccount(email: string, password: string): Observable<LoginResponse> {
-    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
-      switchMap((result: UserCredential) =>
-        from(result.user.getIdToken()).pipe(
-          switchMap((token: string) =>
-            this.http.post<LoginResponse>(`${this.apiUrl}/login`, {
-              uid: result.user.uid,
-              token
-            })
-          )
-        )
-      )
-    );
+  async signInWithUserAccount(email: string, password: string): Promise<LoginResponse> {
+    this.isLoggingInWithEmail.set(true);
+    try {
+      const result = await signInWithEmailAndPassword(this.auth, email, password);
+      const token = await result.user.getIdToken();
+
+      return await firstValueFrom(
+        this.http.post<LoginResponse>(`${this.apiUrl}/login`, { uid: result.user.uid, token })
+      );
+    } finally {
+      // Bọc trong finally để đảm bảo dù thành công hay nổ lỗi, cờ loading LUÔN LUÔN được hạ xuống
+      this.isLoggingInWithEmail.set(false);
+    }
   }
 
-  signInWithGoogleAccount(): Observable<object> {
-    const provider = new GoogleAuthProvider();
+  async signInWithGoogleAccount(): Promise<any> {
+    this.isLoggingInWithGoogle.set(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(this.auth, provider);
+      const token = await result.user.getIdToken();
 
-    return this.signInWithProvider(provider, `${this.apiUrl}/google-login`);
+      return await firstValueFrom(
+        this.http.post<any>(`${this.apiUrl}/google-login`, { uid: result.user.uid, token })
+      );
+    } finally {
+      this.isLoggingInWithGoogle.set(false);
+    }
   }
 
-  completeOnboarding(onboardingData: OnboardingData): Observable<OnboardingResponse> {
-    return this.http.post<OnboardingResponse>(`${this.apiUrl}/onboarding`, onboardingData);
+  async completeOnboarding(onboardingData: OnboardingData): Promise<OnboardingResponse> {
+    this.isOnboardingSubmitting.set(true);
+    try {
+      return await firstValueFrom(
+        this.http.post<OnboardingResponse>(`${this.apiUrl}/onboarding`, onboardingData)
+      );
+    } finally {
+      this.isOnboardingSubmitting.set(false);
+    }
   }
-
-  private signInWithProvider(
-    provider: AuthProvider,
-    apiUrl: string,
-  ): Observable<object> {
-    return from(signInWithPopup(this.auth, provider)).pipe(
-      switchMap((result: UserCredential) =>
-        from(result.user.getIdToken()).pipe(
-          switchMap((token: string) =>
-            this.http.post(apiUrl, { uid: result.user.uid, token }),
-          ),
-        ),
-      ),
-    );
-  }
-
   async signOut() {
     try {
       await this.auth.signOut();

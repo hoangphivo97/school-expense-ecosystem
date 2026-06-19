@@ -14,9 +14,14 @@
 
       <button type="button" mat-raised-button color="primary"
         class="w-100 py-4 fs-5 fw-bold d-flex align-items-center justify-content-center gap-3 shadow-sm"
-        style="height: 56px; border-radius: 8px;" (click)="onGoogleLoginTriggered()">
-        <fa-icon [icon]="faGoogle" class="fs-4 d-inline-flex align-items-center"></fa-icon>
-        Continue with Google
+        style="height: 56px; border-radius: 8px;" (click)="onGoogleLoginTriggered()"
+        [disabled]="authService.isLoggingInWithGoogle()">
+        @if(authService.isLoggingInWithGoogle()){
+        <mat-spinner diameter="20" class="me-2 d-inline-block align-middle"></mat-spinner>
+        Authenticating Core Stream...
+        } @else{
+        <label class="align-items-center d-flex gap-2"><fa-icon [icon]="faGoogle" class="fs-5 d-inline-flex align-items-center"></fa-icon> Continue with Google</label>
+        }
       </button>
 
       <span class="text-secondary fs-7 fw-medium bg-white border rounded-pill py-1 px-3 align-self-center">
@@ -83,9 +88,9 @@
         </div>
 
         <div class="mt-2">
-          <button type="submit" mat-raised-button color="warn" class="w-100 py-4 fs-6 fw-bold text-white"
-            [disabled]="adminLoginForm.invalid || isLoading()">
-            @if (isLoading()) {
+          <button type="submit" mat-raised-button color="primary" class="w-100 py-4 fs-6 fw-bold text-white"
+            [disabled]="adminLoginForm.invalid || authService.isLoggingInWithEmail()">
+            @if (authService.isLoggingInWithEmail()) {
             <mat-spinner diameter="20" class="me-2 d-inline-block align-middle"></mat-spinner>
             Authenticating Core Stream...
             } @else {

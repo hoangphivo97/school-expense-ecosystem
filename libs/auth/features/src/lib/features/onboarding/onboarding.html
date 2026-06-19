@@ -82,9 +82,15 @@
             </div>
 
             <div class="mt-2">
-                <button mat-raised-button color="primary" [disabled]="!onboardingForm.valid" type="submit"
-                    class="w-100 py-2 font-weight-bold text-uppercase">
-                    Submit Information
+                <button type="submit" mat-raised-button color="primary"
+                    [disabled]="onboardingForm.invalid || authService.isOnboardingSubmitting()">
+
+                    @if (authService.isOnboardingSubmitting()) {
+                    <mat-spinner diameter="20" class="me-2 d-inline-block align-middle"></mat-spinner>
+                    Submitting Profile...
+                    } @else {
+                    Complete Registration
+                    }
                 </button>
             </div>
 
