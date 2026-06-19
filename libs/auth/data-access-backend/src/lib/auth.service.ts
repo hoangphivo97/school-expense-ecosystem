@@ -43,13 +43,11 @@ export class AuthService {
 
   async handleFirebaseLogin(token: string): Promise<{ token: string; user: UserInDb }> {
     try {
-      // 1. Giao trách nhiệm check Token Google cho IdentityProvider Adapter gánh
       const decodedProfile = await this.identityProvider.verifyToken(token);
       const { uid, email, name } = decodedProfile;
 
       const userEmail = email ?? `no-email-${uid}@example.com`;
 
-      // 2. Truy vấn thông tin qua UserRepository Port
       let user = await this.authUser.findByUid(uid);
 
       if (!user) {

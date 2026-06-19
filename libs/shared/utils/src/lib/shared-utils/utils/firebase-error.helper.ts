@@ -17,6 +17,13 @@ export function getFriendlyFirebaseError(error: FirebaseError): DialogError {
         errorMsg: 'Your account has been disabled.',
         hint: 'Please contact support for more information.',
       };
+
+    case 'auth/invalid-credential':
+      return {
+        title: "Authentication Failed",
+        errorMsg: "The credentials provided are invalid or the account lacks access permissions.",
+        hint: "Please verify your details or contact the IT department for support."
+      }
     default:
       return {
         title: 'Authentication Error',

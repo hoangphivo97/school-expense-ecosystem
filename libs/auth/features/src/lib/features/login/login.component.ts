@@ -27,19 +27,19 @@ interface DemoAccount {
   selector: 'lib-login',
   standalone: true,
   imports: [
-    ReactiveFormsModule, 
-    MatCard, 
-    MatCardContent, 
-    MatCardFooter, 
-    MatCardHeader, 
-    MatError, 
-    MatProgressSpinner, 
-    MatCardTitle, 
+    ReactiveFormsModule,
+    MatCard,
+    MatCardContent,
+    MatCardFooter,
+    MatCardHeader,
+    MatError,
+    MatProgressSpinner,
+    MatCardTitle,
     MatButton,
     FontAwesomeModule,
-    MatFormField, 
-    MatLabel,     
-    MatSelect,   
+    MatFormField,
+    MatLabel,
+    MatSelect,
     MatOption
   ],
   templateUrl: './login.component.html',
@@ -65,21 +65,21 @@ export class LoginComponent {
   readonly selectedAccount = signal<DemoAccount | null>(null);
 
   readonly demoAccounts: DemoAccount[] = [
-    { 
-      role: 'Professor / Department Approver', 
-      email: 'professor.demo@ntust.edu.tw', 
+    {
+      role: 'Professor / Department Approver',
+      email: 'professor.demo@ntust.edu.tw',
       password: 'DemoPassword123',
       description: 'Reviews, approves or rejects student expense and lab research requests.'
     },
-    { 
-      role: 'Finance Officer / Accountant', 
-      email: 'finance.staff@ntust.edu.tw', 
+    {
+      role: 'Finance Officer / Accountant',
+      email: 'finance.staff@ntust.edu.tw',
       password: 'DemoPassword123',
       description: 'Manages university budgets, verifies invoices, and executes payouts.'
     },
-    { 
-      role: 'System Administrator', 
-      email: 'sysadmin.core@ntust.edu.tw', 
+    {
+      role: 'System Administrator',
+      email: 'sysadmin.core@ntust.edu.tw',
       password: 'DemoPassword123',
       description: 'Full global access to audit logs, system parameters, and system rules.'
     }
@@ -112,7 +112,7 @@ export class LoginComponent {
 
   onRoleSelectionChanged(account: DemoAccount | null): void {
     this.selectedAccount.set(account);
-    
+
     if (account) {
       this.adminLoginForm.patchValue({
         email: account.email,
@@ -132,19 +132,18 @@ export class LoginComponent {
 
     this.authService
       .signInWithGoogleAccount()
-      .pipe(
-        tap((res: any) => {
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: any) => {
           this.isLoading.set(false);
           this.updateTokenAndReRoute(res.token, res.user);
-        }),
-        catchError((err: FirebaseError) => {
+        },
+        error: (err: FirebaseError) => {
           this.isLoading.set(false);
+          // Consumer boundary cleanly handles the exception, suppressing runtime overlays
           this.errorModalService.openErrorModal(err);
-          return throwError(() => err);
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe();
+        }
+      });
   }
 
   /**
@@ -161,19 +160,17 @@ export class LoginComponent {
 
     this.authService
       .signInWithUserAccount(email, password)
-      .pipe(
-        tap((res: LoginResponse) => {
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: LoginResponse) => {
           this.isLoading.set(false);
           this.updateTokenAndReRoute(res.token, res.user);
-        }),
-        catchError((err: FirebaseError) => {
+        },
+        error: (err: FirebaseError) => {
           this.isLoading.set(false);
           this.errorModalService.openErrorModal(err);
-          return throwError(() => err);
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe();
+        }
+      });
   }
 
   /**
