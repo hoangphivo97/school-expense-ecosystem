@@ -1,5 +1,4 @@
-import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FacultyId, OnboardingData, UserType } from '@school-expense-ecosystem/auth/types';
@@ -10,9 +9,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
-import { catchError, tap, throwError } from 'rxjs';
+import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 
 @Component({
   selector: 'lib-onboarding',
@@ -24,7 +23,9 @@ import { catchError, tap, throwError } from 'rxjs';
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatProgressSpinnerModule],
+    MatProgressSpinnerModule,
+    MatProgressSpinner
+  ],
   templateUrl: './onboarding.html',
   styleUrl: './onboarding.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,11 +33,11 @@ import { catchError, tap, throwError } from 'rxjs';
 
 export class OnboardingComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly authService = inject(AuthService);
+  protected readonly authService = inject(AuthService);
   private readonly router = inject(Router)
   private readonly authStore = inject(AuthSignalStore)
-
-  loading = false;
+  private readonly errorModalService = inject(ErrorModalService)
+  
   onboardingForm!: FormGroup;
 
   faculties = Object.values(FacultyId);
@@ -76,29 +77,20 @@ export class OnboardingComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.onboardingForm.invalid) {
       this.onboardingForm.markAllAsTouched();
       return;
     }
-    this.loading = true;
-    const formData : OnboardingData = { ...this.onboardingForm.value };
+    const formData: OnboardingData = { ...this.onboardingForm.getRawValue() };
 
-    this.authService.completeOnboarding(formData)
-      .pipe(
-        tap((response) => {
-          this.loading = false;
-
-          this.authStore.updateAuthState(response.token)
-          
-          this.router.navigate(['/auth/waiting-approval']);
-        }),
-        catchError((err) => {
-          this.loading = false;
-          console.error('Onboarding submission handling failed:', err);
-          return throwError(() => err);
-        })
-      )
-      .subscribe();
+    try {
+      const response = await this.authService.completeOnboarding(formData);
+      this.authStore.updateAuthState(response.token, (response as any).user);
+      this.router.navigate(['/auth/waiting-approval']);
+    } catch (err: any) {
+      console.error('Onboarding operational database mutation failure:', err);
+      this.errorModalService.openErrorModal(err);
+    }
   }
 }

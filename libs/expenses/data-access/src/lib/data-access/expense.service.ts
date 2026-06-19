@@ -32,7 +32,7 @@ export class ExpenseService {
 
   getAnalyticsResource(filterFn: () => AnalyticsFilters) : HttpResourceRef<ExpenseAnalyticsDto | undefined> {
     return httpResource<ExpenseAnalyticsDto>(() => {
-      const filters = filterFn(); // 🔥 ĐÃ ĐƯA VÀO TRONG: Đảm bảo Angular theo dõi được tín hiệu thay đổi
+      const filters = filterFn(); 
       let url = `${this.apiUrl}/analytics`;
       const queryParams: string[] = [];
 
