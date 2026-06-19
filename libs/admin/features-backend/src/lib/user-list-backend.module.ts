@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { UserListService } from './user-list.service';
 import { UserListController } from './user-list.controller';
-import { UserRepository } from './user.repository';
+import { UserRepository } from './repository/user.repository';
 import { FirebaseUserRepository } from './infrastructure/firebase-user.repository';
+import { FirestoreAuditLogRepository } from './infrastructure/firebase-audit-log.repository';
+import { IAdminAuditLogRepository } from './repository/audit-log.repository';
 
 @Module({
   controllers: [UserListController],
@@ -10,7 +12,11 @@ import { FirebaseUserRepository } from './infrastructure/firebase-user.repositor
     {
       provide: UserRepository,
       useClass: FirebaseUserRepository
-    }
+    },
+    {
+      provide: IAdminAuditLogRepository,
+      useClass: FirestoreAuditLogRepository,
+    },
   ],
   exports: [UserListService],
 })

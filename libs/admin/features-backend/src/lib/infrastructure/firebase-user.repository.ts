@@ -1,5 +1,5 @@
 import { Injectable, Inject, ConflictException } from '@nestjs/common';
-import { UserRepository } from '../user.repository';
+import { UserRepository } from '../repository/user.repository';
 import { UserBase } from '@school-expense-ecosystem/auth/types';
 import * as admin from 'firebase-admin';
 import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
