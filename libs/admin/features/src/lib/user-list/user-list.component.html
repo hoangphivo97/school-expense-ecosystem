@@ -12,25 +12,6 @@
   <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
     <div class="card-body p-0">
 
-      @if (isLoading()) {
-      <div class="d-flex flex-column align-items-center justify-content-center my-5 py-5 status-feedback-wrapper">
-        <mat-spinner diameter="45"></mat-spinner>
-        <p class="text-muted mt-3 fw-medium small">Synchronizing secure directories...</p>
-      </div>
-      }
-
-      @else if (errorMessage()) {
-      <div class="alert alert-danger d-flex align-items-center justify-content-between m-4 rounded-3" role="alert">
-        <div class="d-flex align-items-center">
-          <span class="fs-4 me-2">⚠️</span>
-          <span>{{ errorMessage() }}</span>
-        </div>
-        <button (click)="triggerRefresh()" class="btn btn-outline-danger btn-sm fw-semibold">
-          Retry Connection
-        </button>
-      </div>
-      }
-
       <div class="table-responsive">
         <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
 
@@ -114,6 +95,28 @@
           <tr class="mat-mdc-no-data-row" *matNoDataRow>
             <td [attr.colspan]="displayedColumns.length">
 
+              @if (isLoading()) {
+              <div
+                class="d-flex flex-column align-items-center justify-content-center my-5 py-5 status-feedback-wrapper">
+                <mat-spinner diameter="45"></mat-spinner>
+                <p class="text-muted mt-3 fw-medium small">Synchronizing secure directories...</p>
+              </div>
+              }
+
+              @else if (errorMessage()) {
+              <div class="alert alert-danger d-flex align-items-center justify-content-between m-4 rounded-3"
+                role="alert">
+                <div class="d-flex align-items-center">
+                  <span class="fs-4 me-2">⚠️</span>
+                  <span>{{ errorMessage() }}</span>
+                </div>
+                <button (click)="triggerRefresh()" class="btn btn-outline-danger btn-sm fw-semibold">
+                  Retry Connection
+                </button>
+              </div>
+              }
+              
+              @else {
               <div
                 class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
                 <div class="empty-icon-box mb-3">
@@ -124,7 +127,7 @@
                   There are no system directory accounts recorded for the selected filtering criteria.
                 </p>
               </div>
-
+              }
             </td>
           </tr>
         </table>

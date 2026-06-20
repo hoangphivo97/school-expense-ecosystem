@@ -1,5 +1,5 @@
 <h2 mat-dialog-title class="fw-bold text-dark m-0 pb-2 border-bottom border-light">
-  {{ isEditMode ? 'Update User Profile' : 'Provision New Account' }}
+  {{ isDetailMode ? 'User Profile Details' : (isEditMode ? 'Update User Profile' : 'Provision New Account') }}
 </h2>
 
 <mat-dialog-content class="pt-3">
@@ -144,10 +144,16 @@
 
 <mat-dialog-actions align="end" class="px-3 pb-3 pt-0 border-top border-light gap-2">
   <button mat-button mat-dialog-close class="px-4 py-2 text-secondary fw-semibold">Cancel</button>
-  @if(!isDetailMode){
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm.invalid"
-    class="px-4 py-2 fw-semibold shadow-sm">
-    {{ isEditMode ? 'Update' : 'Provision' }}
-  </button>
+
+  @if (isDetailMode) {
+    @if (!isSelf) {
+      <button mat-flat-button color="accent" (click)="switchToEditMode()" class="px-4 py-2 fw-semibold shadow-sm">
+        <mat-icon>edit</mat-icon> Edit Profile
+      </button>
+    }
+  } @else {
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm.invalid" class="px-4 py-2 fw-semibold shadow-sm">
+      {{ isEditMode ? 'Update' : 'Provision' }}
+    </button>
   }
 </mat-dialog-actions>

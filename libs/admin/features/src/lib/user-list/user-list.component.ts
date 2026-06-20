@@ -230,7 +230,18 @@ export class UserListComponent {
     const dialogRef = this.dialog.open(UserFormModalComponent, {
       width: '540px',
       disableClose: true,
-      data: { user: user, title: 'User Detail', action: this.dialogActionEnum.Detail },
+      data: {
+        user: user,
+        title: 'User Detail',
+        action: this.dialogActionEnum.Detail,
+        isSelf: user.uid === this.currentAdminId()
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.isSuccess) {
+        this.triggerRefresh();
+      }
     });
   }
 }

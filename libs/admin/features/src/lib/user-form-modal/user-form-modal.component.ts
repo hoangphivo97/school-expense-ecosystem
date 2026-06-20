@@ -13,6 +13,7 @@ import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'admin-user-form-modal',
@@ -24,7 +25,9 @@ import { provideNativeDateAdapter } from '@angular/material/core';
     MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatSnackBarModule],
+    MatSnackBarModule,
+    MatIconModule
+  ],
   templateUrl: './user-form-modal.component.html',
   providers: [
     provideNativeDateAdapter(),
@@ -43,6 +46,7 @@ export class UserFormModalComponent implements OnInit {
   protected readonly Role = Role;
   protected readonly UserType = UserType;
   protected readonly UserStatus = UserStatus;
+  protected isSelf = false;
 
   protected filteredUserTypeOptions = signal<any[]>([]);
 
@@ -80,8 +84,10 @@ export class UserFormModalComponent implements OnInit {
 
   ngOnInit(): void {
     const currentAction = this.dialogData?.action;
+
     this.isEditMode = currentAction === DialogActionEnum.Edit;
     this.isDetailMode = currentAction === DialogActionEnum.Detail;
+    this.isSelf = this.dialogData?.isSelf
 
     this.initFormStructure();
     this.registerReactiveEngines();
@@ -319,5 +325,19 @@ export class UserFormModalComponent implements OnInit {
   private handleLocalApiError(err: any): void {
     console.error('Infrastructure API mutation failure:', err);
     this.errorModalService.openErrorModal(err);
+  }
+
+  protected switchToEditMode(): void {
+    this.isDetailMode = false;
+    this.isEditMode = true;
+
+    this.userForm.enable();
+
+    this.userForm.get('email')?.disable();
+    this.userForm.get('userCode')?.disable();
+    this.userForm.get('status')?.disable();
+
+    const currentRole = this.userForm.get('role')?.value;
+    this.evaluateRoleConditionalState(currentRole);
   }
 }
