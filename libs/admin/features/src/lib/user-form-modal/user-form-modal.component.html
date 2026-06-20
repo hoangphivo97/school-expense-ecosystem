@@ -1,17 +1,17 @@
 <h2 mat-dialog-title class="fw-bold text-dark m-0 pb-2 border-bottom border-light">
-  {{ isEditMode ? 'Update User Profile' : 'Provision New Account' }}
+  {{ isDetailMode ? 'User Profile Details' : (isEditMode ? 'Update User Profile' : 'Provision New Account') }}
 </h2>
 
 <mat-dialog-content class="pt-3">
   <form [formGroup]="userForm" class="container-fluid p-0">
     <div class="row g-3">
-      
+
       <div class="col-12">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>System Role</mat-label>
           <mat-select formControlName="role">
             @for (opt of roleOptions; track opt.value) {
-              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
             }
           </mat-select>
           <mat-error>Role configuration is required</mat-error>
@@ -19,111 +19,123 @@
       </div>
 
       @if (userForm.get('role')?.value) {
-        
-        <div class="col-12 animate-fade-in">
-          <div class="auth-stream-badge p-3 rounded border border-dashed d-flex flex-column justify-content-center bg-light">
-            <span class="text-muted small-text text-uppercase fw-semibold tracking-wider">Corresponding Auth Stream</span>
-            <span class="fw-bold text-primary fs-6 mt-1 d-flex align-items-center">
-              <span class="indicator-dot" [class.bg-success]="authMethodDisplay() === 'Google OAuth'" [class.bg-warning]="authMethodDisplay() !== 'Google OAuth'"></span>
-              {{ authMethodDisplay() }}
-            </span>
-          </div>
-        </div>
 
-        <div class="col-md-6 animate-fade-in">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Institutional Email</mat-label>
-            <input matInput type="email" formControlName="email" placeholder="username@university.edu.tw" />
-            @if (userForm.get('email')?.hasError('required')) {
-              <mat-error>Email is required</mat-error>
-            } @else if (userForm.get('email')?.hasError('email')) {
-              <mat-error>Invalid email framework layout</mat-error>
+      <div class="col-12 animate-fade-in">
+        <div
+          class="auth-stream-badge p-3 rounded border border-dashed d-flex flex-column justify-content-center bg-light">
+          <span class="text-muted small-text text-uppercase fw-semibold tracking-wider">Corresponding Auth Stream</span>
+          <span class="fw-bold text-primary fs-6 mt-1 d-flex align-items-center">
+            <span class="indicator-dot" [class.bg-success]="authMethodDisplay() === 'Google OAuth'"
+              [class.bg-warning]="authMethodDisplay() !== 'Google OAuth'"></span>
+            {{ authMethodDisplay() }}
+          </span>
+        </div>
+      </div>
+
+      <div class="col-md-6 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Institutional Email</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="username@university.edu.tw" />
+          @if (userForm.get('email')?.hasError('required')) {
+          <mat-error>Email is required</mat-error>
+          } @else if (userForm.get('email')?.hasError('email')) {
+          <mat-error>Invalid email framework layout</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="col-md-6 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Full Legal Name</mat-label>
+          <input matInput type="text" formControlName="fullName" placeholder="John Doe" />
+          <mat-error>Full legal name is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="col-md-6 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Date of Birth</mat-label>
+          <input matInput [matDatepicker]="dobPicker" formControlName="dateOfBirth" placeholder="Choose a date" />
+          <mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dobPicker></mat-datepicker>
+          <mat-error>Date of birth validation is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="col-md-6 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Institutional ID (User Code)</mat-label>
+          <input matInput type="text" formControlName="userCode" placeholder="T151586" />
+          <mat-error>User verification code is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      @if (userForm.get('userType')?.enabled) {
+      <div class="col-md-6 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>User Type</mat-label>
+          <mat-select formControlName="userType">
+            @for (opt of filteredUserTypeOptions(); track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
             }
-          </mat-form-field>
-        </div>
+          </mat-select>
+          <mat-error>Personnel classification type is required</mat-error>
+        </mat-form-field>
+      </div>
+      }
 
-        <div class="col-md-6 animate-fade-in">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Full Legal Name</mat-label>
-            <input matInput type="text" formControlName="fullName" placeholder="John Doe" />
-            <mat-error>Full legal name is required</mat-error>
-          </mat-form-field>
-        </div>
+      @if (userForm.get('password')?.enabled && !isEditMode) {
+      <div class="col-md-6 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Initial Password</mat-label>
+          <input matInput type="password" formControlName="password" placeholder="Min 6 characters" />
+          @if (userForm.get('password')?.hasError('required')) {
+          <mat-error>Initial password is required</mat-error>
+          } @else if (userForm.get('password')?.hasError('minlength')) {
+          <mat-error>Password fails security length constraints (Min 6)</mat-error>
+          }
+        </mat-form-field>
+      </div>
 
-        <div class="col-md-6 animate-fade-in">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Institutional ID (User Code)</mat-label>
-            <input matInput type="text" formControlName="userCode" placeholder="T151586" />
-            <mat-error>User verification code is required</mat-error>
-          </mat-form-field>
-        </div>
+      <div class="col-md-6 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Confirm Initial Password</mat-label>
+          <input matInput type="password" formControlName="confirmPassword" placeholder="Retype password" />
+          @if (userForm.get('confirmPassword')?.hasError('required')) {
+          <mat-error>Please confirm the security credential</mat-error>
+          } @else if (userForm.get('confirmPassword')?.hasError('passwordMismatch')) {
+          <mat-error>Credential mismatch. Verification failed</mat-error>
+          }
+        </mat-form-field>
+      </div>
+      }
 
-        @if (userForm.get('userType')?.enabled) {
-          <div class="col-md-6 animate-fade-in">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>User Type</mat-label>
-              <mat-select formControlName="userType">
-                @for (opt of filteredUserTypeOptions(); track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              </mat-select>
-              <mat-error>Personnel classification type is required</mat-error>
-            </mat-form-field>
-          </div>
-        }
+      @if (userForm.get('facultyId')?.enabled) {
+      <div class="col-md-12 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Assigned Faculty Scope</mat-label>
+          <mat-select formControlName="facultyId">
+            @for (opt of facultyOptions; track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+          <mat-error>Faculty isolation scope assignment is required</mat-error>
+        </mat-form-field>
+      </div>
+      }
 
-        @if (userForm.get('password')?.enabled && !isEditMode) {
-          <div class="col-md-6 animate-fade-in">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Initial Password</mat-label>
-              <input matInput type="password" formControlName="password" placeholder="Min 6 characters" />
-              @if (userForm.get('password')?.hasError('required')) {
-                <mat-error>Initial password is required</mat-error>
-              } @else if (userForm.get('password')?.hasError('minlength')) {
-                <mat-error>Password fails security length constraints (Min 6)</mat-error>
-              }
-            </mat-form-field>
-          </div>
-
-          <div class="col-md-6 animate-fade-in">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Confirm Initial Password</mat-label>
-              <input matInput type="password" formControlName="confirmPassword" placeholder="Retype password" />
-              @if (userForm.get('confirmPassword')?.hasError('required')) {
-                <mat-error>Please confirm the security credential</mat-error>
-              } @else if (userForm.get('confirmPassword')?.hasError('passwordMismatch')) {
-                <mat-error>Credential mismatch. Verification failed</mat-error>
-              }
-            </mat-form-field>
-          </div>
-        }
-
-        @if (userForm.get('facultyId')?.enabled) {
-          <div class="col-md-12 animate-fade-in">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Assigned Faculty Scope</mat-label>
-              <mat-select formControlName="facultyId">
-                @for (opt of facultyOptions; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              </mat-select>
-              <mat-error>Faculty isolation scope assignment is required</mat-error>
-            </mat-form-field>
-          </div>
-        }
-
-        @if (isEditMode) {
-          <div class="col-12 animate-fade-in">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Account Operational Status</mat-label>
-              <mat-select formControlName="status">
-                @for (opt of statusOptions; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        }
+      @if (isEditMode) {
+      <div class="col-12 animate-fade-in">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Account Operational Status</mat-label>
+          <mat-select formControlName="status">
+            @for (opt of statusOptions; track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+      }
       }
 
     </div>
@@ -132,7 +144,16 @@
 
 <mat-dialog-actions align="end" class="px-3 pb-3 pt-0 border-top border-light gap-2">
   <button mat-button mat-dialog-close class="px-4 py-2 text-secondary fw-semibold">Cancel</button>
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm.invalid" class="px-4 py-2 fw-semibold shadow-sm">
-    {{ isEditMode ? 'Update' : 'Provision' }}
-  </button>
+
+  @if (isDetailMode) {
+    @if (!isSelf) {
+      <button mat-flat-button color="accent" (click)="switchToEditMode()" class="px-4 py-2 fw-semibold shadow-sm">
+        <mat-icon>edit</mat-icon> Edit Profile
+      </button>
+    }
+  } @else {
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm.invalid" class="px-4 py-2 fw-semibold shadow-sm">
+      {{ isEditMode ? 'Update' : 'Provision' }}
+    </button>
+  }
 </mat-dialog-actions>

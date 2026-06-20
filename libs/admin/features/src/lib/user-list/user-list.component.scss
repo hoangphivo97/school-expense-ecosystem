@@ -19,9 +19,14 @@
 // Adaptive custom spacing widths for the interactive Filter Bar
 .filter-field {
   max-width: 100%;
-  
-  &.search-input-field { width: 280px; }
-  &.select-dropdown-field { width: 200px; }
+
+  &.search-input-field {
+    width: 280px;
+  }
+
+  &.select-dropdown-field {
+    width: 200px;
+  }
 
   ::ng-deep {
     .mat-mdc-form-field-subscript-wrapper {
@@ -46,7 +51,8 @@
   }
 
   tr.mat-mdc-row:hover {
-    background-color: rgba(15, 23, 42, 0.012) !important;
+    cursor: pointer;
+    background-color: #F0F2FF;
   }
 
   th.table-column-header {
@@ -105,16 +111,19 @@
     color: #0f172a;
     border: 1px solid #cbd5e1;
   }
+
   &.role-finance_officer {
     background-color: #f0fdf4;
     color: #166534;
     border: 1px solid #bbf7d0;
   }
+
   &.role-faculty_dean {
     background-color: #f3e8ff;
     color: #6b21a8;
     border: 1px solid #e9d5ff;
   }
+
   &.role-end_user {
     background-color: #f0f9ff;
     color: #075985;
@@ -135,11 +144,13 @@
     color: #065f46;
     border: 1px solid #a7f3d0;
   }
+
   &.status-pending {
     background-color: #fefce8;
     color: #854d0e;
     border: 1px solid #fef08a;
   }
+
   &.status-rejected {
     background-color: #fef2f2;
     color: #991b1b;
