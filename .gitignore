@@ -86,3 +86,5 @@ storybook-static
 
 #Yarn
 .yarn/install-state.gz
+
+.firebase/
