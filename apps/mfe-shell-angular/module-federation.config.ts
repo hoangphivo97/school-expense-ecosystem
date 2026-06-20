@@ -22,7 +22,8 @@ const config: ModuleFederationConfig = {
         ...defaultConfig,
         singleton: true,
         strictVersion: true,
-        requiredVersion: '^10.14.1'
+        requiredVersion: '^10.14.1',
+        version: '10.14.1'
       };
     }
 
