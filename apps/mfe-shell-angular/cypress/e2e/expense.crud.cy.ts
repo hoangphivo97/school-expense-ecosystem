@@ -16,7 +16,7 @@ describe('Expense', () => {
             'firebase/app'
           );
           const { firebaseConfig } = await import(
-            '../../src/app/environment/environment'
+            '../../src/app/environments/environment'
           );
 
           const app = getApps().length
