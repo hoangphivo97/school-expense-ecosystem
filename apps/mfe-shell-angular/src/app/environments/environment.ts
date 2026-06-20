@@ -17,6 +17,9 @@ export const firebaseConfig = {
 
 export const environment = {
   production: false,
+  firebase: firebaseConfig,
+  useAuthEmulator: true, // <— flag cho test
+  authEmulatorHost: 'http://localhost:9099',
+  apiUrl: 'http://localhost:3000',
   reactRemoteURL: 'http://localhost:5000/remoteEntry.js',
-
-}
+};
