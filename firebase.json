@@ -54,5 +54,10 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "source": "dist/backend",
+    "codebase": "default",
+    "runtime": "nodejs22"
+  }
 }

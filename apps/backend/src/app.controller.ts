@@ -1,7 +1,13 @@
-import { Controller } from '@nestjs/common';
-import { AppService } from './app.service';
-
-@Controller('demo')
+import { Controller, Get } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
+import { SkipAppCheck } from '@school-expense-ecosystem/auth/features-backend';
+@Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+
+  @Get('health')
+  @SkipThrottle() 
+  @SkipAppCheck() 
+  getHealth() {
+    return { status: 'UP', timestamp: new Date().toISOString() };
+  }
 }

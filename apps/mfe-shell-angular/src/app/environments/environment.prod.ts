@@ -20,6 +20,7 @@ export const environment = {
   firebase: firebaseConfig,
   useAuthEmulator: false, // <— flag cho test
   authEmulatorHost: 'http://localhost:9099',
-  apiUrl: 'http://localhost:3000',
+  apiUrl: 'https://api-4hzf737xua-de.a.run.app',
   reactRemoteURL: 'https://expense-tracker-remote-react.firebaseapp.com/remoteEntry.js',
+  recaptchaSiteKey: "6LfVCSotAAAAADbtB1Eq7U63KNXsModgHFuu74bl"
 };
