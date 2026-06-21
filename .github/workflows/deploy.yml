@@ -1,0 +1,36 @@
+﻿name: Continuous Deployment to Firebase
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn' 
+
+      - name: Install Dependencies
+        run: yarn install --immutable
+
+      - name: Build Ecosystem Production
+        run: yarn nx run-many -t build --configuration=production --skip-nx-cache
+
+      - name: Prune Backend Dependencies
+        run: yarn nx run backend:prune --skip-nx-cache
+
+      - name: Deploy to Firebase Cloud
+        run: |
+          yarn global add firebase-tools
+          yarn firebase deploy --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
