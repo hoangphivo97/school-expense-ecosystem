@@ -1,49 +1,174 @@
-<mat-dialog-content>
-  <h2 class="dialog-title" mat-dialog-title>{{ dialogData.title }}</h2>
+<div class="modal-wrapper">
 
-  <form class="dialog-content" [formGroup]="createExpenseForm">
-    <mat-form-field class="field-fixed-width">
-      <mat-label>Date</mat-label>
-      <input data-testid="expense-date-input" matInput [matDatepicker]="picker" formControlName="date" />
-      <mat-hint>DD/MM/YYYY</mat-hint>
-      <mat-datepicker-toggle data-testid="expense-date-toggle" matIconSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-datepicker panelClass="ct-datepicker-dm" #picker></mat-datepicker>
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Description</mat-label>
-      <input data-testid="" matInput formControlName="description" />
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Purpose</mat-label>
-      <input matInput formControlName="purpose" />
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Paid Method</mat-label>
-      <mat-select panelClass="ct-select-dm" [(value)]="paidMethodCurrVal">
-        @for (item of paidMethodDropdownList; track item) {
-        <mat-option [value]="item.value">{{ item.name }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>For</mat-label>
-      <input matInput formControlName="for" />
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Amount</mat-label>
-      <input matInput formControlName="amount" [value]="formattedValue" (input)="onInput($event)" />
-    </mat-form-field>
-  </form>
-
-  <div class="button-wrap">
-    <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-button [disabled]="!ExpenseFormIsValid" (click)="onSave()">
-      Save
-    </button>
+  <div class="modal-header-box d-flex align-items-center">
+    <div class="title-icon-wrapper me-3">
+      <mat-icon color="primary">
+        {{ dialogData.action === Action.Create ? 'add_chart' : 'history_edu' }}
+      </mat-icon>
+    </div>
+    <div class="title-text-group d-flex flex-column">
+      <h2 class="main-title-text m-0">{{ dialogData.title }}</h2>
+      <p class="sub-title-text m-0">Please provide accurate transaction details</p>
+    </div>
   </div>
-</mat-dialog-content>
+
+  <mat-dialog-content class="custom-content">
+    <form [formGroup]="expenseForm" class="container-fluid py-2">
+      <div class="row g-4">
+
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100 custom-field">
+            <mat-label>Transaction Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="date" readonly>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error>Transaction date is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100 custom-field">
+            <mat-label>Payout Method</mat-label>
+            <mat-select formControlName="paidoutMethod">
+              <mat-select-trigger>
+                <div class="d-flex align-items-center gap-2">
+                  <mat-icon class="fs-6 h-auto w-auto field-icon">account_balance_wallet</mat-icon>
+                  <span class="selected-value">{{ expenseForm.controls.paidoutMethod.value }}</span>
+                </div>
+              </mat-select-trigger>
+              @for (method of PaidMethods; track method.value) {
+              <mat-option [value]="method.value">
+                <span class="option-label">{{ method.label }}</span>
+              </mat-option>
+              }
+            </mat-select>
+            <mat-error>Payout method is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100 custom-field">
+            <mat-label>Purpose</mat-label>
+            <mat-icon matIconPrefix class="field-icon">category</mat-icon>
+            <input matInput formControlName="purpose" placeholder="e.g., Lab Equipment">
+            <mat-error>Purpose is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100 custom-field amount-field">
+            <mat-label>Amount</mat-label>
+            <span matTextSuffix class="currency-suffix">TWD</span>
+            <input matInput formControlName="amount" [value]="formattedValue" (input)="onInputAmount($event)" placeholder="0">
+            @if(expenseForm.controls.amount.hasError('required')){
+            <mat-error>Amount is required</mat-error>
+            }
+
+            @if(expenseForm.controls.amount.hasError('min')){
+            <mat-error>Min amount is 1,000 TWD </mat-error>
+            }
+
+            @if(expenseForm.controls.amount.hasError('max')){
+            <mat-error>Max amount is 2,000 TWD</mat-error>
+            }
+
+            <mat-hint align="end" class="fw-medium">Min: 1,000 TWD, Max: 2,000 TWD</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="col-12">
+          <mat-form-field appearance="outline" class="w-100 custom-field">
+            <mat-label>Detailed Description</mat-label>
+            <mat-icon matIconPrefix class="field-icon refined-textarea-icon">notes</mat-icon>
+            <textarea matInput rows="4" formControlName="description"
+              placeholder="Explain why this expense is necessary..."></textarea>
+            <mat-error>Description is required (min 5 chars)</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-12">
+          <div class="proof-upload-zone border rounded p-3 bg-light shadow-sm">
+            <label class="form-label fw-semibold text-secondary d-flex align-items-center mb-2">
+              <mat-icon class="fs-5 w-auto h-auto me-1">snippet_folder</mat-icon>
+              Proof Documents / Transaction Receipts <span class="text-danger ms-1">*</span>
+            </label>
+
+            <div class="upload-trigger-box d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded bg-white text-center">
+              <button mat-stroked-button type="button" color="primary" class="px-4" 
+                      [disabled]="isUploading()" (click)="hiddenFileInput.click()">
+                <mat-icon class="me-1">cloud_upload</mat-icon>
+                Attach Files
+              </button>
+              <span class="text-muted small mt-2">Accepted formats: Images (PNG, JPG) or PDF documents. Maximum size: 5MB per file.</span>
+              
+              <input #hiddenFileInput type="file" multiple class="d-none" 
+                     accept="image/png, image/jpeg, application/pdf" (change)="onFileSelected($event)">
+            </div>
+
+            @if (isUploading()) {
+              <div class="upload-progress-indicator mt-3">
+                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                <span class="text-muted small d-block mt-1">Encrypting and uploading files securely to system storage...</span>
+              </div>
+            }
+
+            @if (uploadErrors().length > 0) {
+              <div class="alert alert-danger py-2 px-3 mt-3 mb-0">
+                @for (error of uploadErrors(); track error) {
+                  <div class="d-flex align-items-center text-danger small">
+                    <span>{{ error }}</span>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (expenseForm.controls.proofUrls.value.length > 0) {
+              <div class="attached-files-gallery mt-3">
+                <p class="small fw-semibold text-success mb-2 d-flex align-items-center">
+                  <mat-icon class="fs-6 h-auto w-auto me-1">verified</mat-icon>
+                  Attached Assets ({{ expenseForm.controls.proofUrls.value.length }})
+                </p>
+                
+                @for (url of expenseForm.controls.proofUrls.value; track url; let idx = $index) {
+                  <div class="file-item-card d-flex align-items-center justify-content-between p-2 border rounded bg-white mb-2 shadow-sm">
+                    <div class="d-flex align-items-center gap-2 text-truncate pe-2">
+                      <mat-icon color="primary">description</mat-icon>
+                      <a [href]="url" target="_blank" class="text-decoration-none text-dark small fw-medium text-truncate">
+                        Receipt_Verification_Document_{{ idx + 1 }}.pdf
+                      </a>
+                    </div>
+                    <button mat-icon-button color="warn" type="button" (click)="removeFile(idx)">
+                      <mat-icon>delete_forever</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (expenseForm.controls.proofUrls.touched && expenseForm.controls.proofUrls.hasError('required')) {
+              <mat-error class="d-block mt-2 small fw-medium">
+                <mat-icon class="fs-6 h-auto w-auto me-1 align-middle">warning</mat-icon>
+                Compliance Constraint: At least one transaction audit proof is strictly required to save.
+              </mat-error>
+            }
+          </div>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="modal-footer px-4 pb-4 pt-2">
+    <button mat-button class="cancel-btn" (click)="onCancel()">
+      Cancel
+    </button>
+
+    <button mat-flat-button color="primary" class="submit-btn px-4 ms-2" [disabled]="expenseForm.invalid"
+      (click)="onSave()">
+      <mat-icon class="me-2">
+        {{ dialogData.action === Action.Create ? 'save' : 'published_with_changes' }}
+      </mat-icon>
+      {{ dialogData.action === Action.Create ? 'Submit Request' : 'Update Changes' }}
+    </button>
+  </mat-dialog-actions>
+
+</div>

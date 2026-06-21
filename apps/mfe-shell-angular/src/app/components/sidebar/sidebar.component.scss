@@ -76,18 +76,44 @@
 .account {
   &-section {
     display: flex;
-    gap: 10px;
     align-items: center;
+    gap: 12px;
+    padding: 6px;
+    border-bottom: 1px solid #e9ecef;
 
     h2 {
       margin: 0;
     }
+ 
+    .label {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+      color: #495057;
+      line-height: 1.4;
+      display: flex;
+      flex-direction: column;
+
+      span {
+        font-weight: 700;
+        color: #673ab7;
+      }
+    }
+  }
+
+  &-name {
+    display: block;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
   }
 
   &-icon {
-    font-size: 48px;
-    width: auto;
-    height: auto;
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
     color: var(--text-primary);
   }
 }

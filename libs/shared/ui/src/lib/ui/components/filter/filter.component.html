@@ -1,34 +1,105 @@
-<section class="mb-6 row filter" [ngClass]="!isReportPage ? 'justify-content-between' : 'justify-content-end'"
-  [formGroup]="filterForm">
-  <mat-form-field appearance="outline" class="custom-select" [ngClass]="!isReportPage ? 'cs-width-30' : 'cs-width-40'">
-    <mat-select panelClass="ct-select-dm" placeholder="Month" formControlName="month">
-      @for(month of months; track month){
-      <mat-option [value]="month.value">
-        {{ month.label }}
-      </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  <mat-form-field appearance="outline" class="custom-select" [ngClass]="!isReportPage ? 'cs-width-30' : 'cs-width-40'">
-    <mat-select panelClass="ct-select-dm" placeholder="Year" formControlName="year">
-      @for(year of yearsList; track year) {
-      <mat-option [value]="year">
-        {{ year }}
-      </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  @if (!isReportPage) {
-  <mat-form-field appearance="outline" class="custom-select search-input"
-    [ngClass]="!isReportPage ? 'cs-width-30' : 'cs-width-40'">
-    <mat-label class="label">Search</mat-label>
-    <input matInput type="text" placeholder="Search" formControlName="searchTerm" />
-  </mat-form-field>
+<section class="app-toolbar-wrapper" [formGroup]="filterForm">
+  
+  @if (showSearch()) {
+    <div class="toolbar-primary-row d-flex align-items-center justify-content-between gap-3">
+      <mat-form-field appearance="outline" class="search-input-field flex-grow-1 enterprise-dense-field">
+        <mat-label>Search query</mat-label>
+        <input matInput type="text" placeholder="Type to search..." formControlName="searchTerm" />
+        <mat-icon matSuffix class="text-muted">search</mat-icon>
+      </mat-form-field>
+      
+      <div class="primary-action-slot animate-fade-in">
+        <ng-content select="[primaryAction]"></ng-content>
+      </div>
+    </div>
   }
 
-  @if (hasUserFiltered) {
-  <button class="reset-btn" matTooltip="Reset filters" (click)="resetFilter()">
-    <mat-icon class="rotate-icon">rotate_left</mat-icon>
-  </button>
-  }
+  <div class="toolbar-secondary-row d-flex flex-wrap align-items-center gap-2" 
+       [ngClass]="{ 'mt-3': showSearch() }">
+    
+    @if (mode() === 'user') {
+      <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
+        <mat-label>System Role</mat-label>
+        <mat-select formControlName="role" panelClass="enterprise-dropdown-panel">
+          @for (option of systemRolesOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
+        <mat-label>User Type</mat-label>
+        <mat-select formControlName="userType" panelClass="enterprise-dropdown-panel">
+          @for (option of userTypesOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (showStatus()) {
+      <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
+        <mat-label>{{ mode() === 'user' ? 'Account Status' : 'Request Status' }}</mat-label>
+        <mat-select formControlName="status" panelClass="enterprise-dropdown-panel">
+          @if (mode() === 'user') {
+            @for (option of accountStatusOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          } @else {
+            @for (option of expenseStatusOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (showMonth()) {
+      <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
+        <mat-label>Month</mat-label>
+        <mat-select formControlName="month" panelClass="enterprise-dropdown-panel">
+          @for (month of availableMonths(); track month.value) {
+            <mat-option [value]="month.value">{{ month.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (showYear()) {
+      <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
+        <mat-label>Year</mat-label>
+        <mat-select formControlName="year" panelClass="enterprise-dropdown-panel">
+          @for (year of processedYears(); track year) {
+            <mat-option [value]="year">{{ year }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (showFaculty() && facultiesList().length > 0) {
+      <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
+        <mat-label>Faculty</mat-label>
+        <mat-select formControlName="facultyId" panelClass="enterprise-dropdown-panel">
+          <mat-option value="ALL">All Faculties</mat-option>
+          @for (faculty of facultiesList(); track faculty.facultyId) {
+            <mat-option [value]="faculty.facultyId">{{ faculty.facultyName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (isDirty()) {
+      <div class="reset-action-container ms-auto animate-fade-in">
+        <button 
+          type="button"
+          class="filter-reset-btn" 
+          matTooltip="Clear active layout filters" 
+          matTooltipPosition="above"
+          (click)="resetFilters()">
+          <mat-icon class="sync-rotation-icon">rotate_left</mat-icon>
+        </button>
+      </div>
+    }
+
+  </div>
 </section>

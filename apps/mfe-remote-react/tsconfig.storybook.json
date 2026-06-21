@@ -3,7 +3,7 @@
   "compilerOptions": {
     "emitDecoratorMetadata": true,
     "outDir": "",
-    "module": "esnext",
+    "module": "preserve",
     "moduleResolution": "bundler"
   },
   "exclude": [

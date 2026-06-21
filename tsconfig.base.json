@@ -41,14 +41,64 @@
       "@school-expense-ecosystem/expenses/features": [
         "./libs/expenses/features/src/index.ts"
       ],
-      "utils": ["./libs/expenses/utils/src/index.ts"],
-      "@school-expense-ecosystem/backend/auth/data-access": [
+      "@school-expense-ecosystem/expenses/utils": [
+        "./libs/expenses/utils/src/index.ts"
+      ],
+      "@school-expense-ecosystem/auth/data-access-backend": [
         "./libs/auth/data-access-backend/src/index.ts"
       ],
-      "@school-expense-ecosystem/backend/auth/features": [
+      "@school-expense-ecosystem/auth/features-backend": [
         "./libs/auth/features-backend/src/index.ts"
       ],
-      "@school-expense-ecosystem/shared/ui-react": ["./libs/shared/ui-react/src/index.ts"]
+      "@school-expense-ecosystem/shared/ui-react": [
+        "./libs/shared/ui-react/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/data-access": [
+        "./libs/finance/data-access/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/features": [
+        "./libs/finance/features/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/backend": [
+        "./libs/finance/backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/auth/types": [
+        "./libs/auth/types/src/index.ts"
+      ],
+      "@school-expense-ecosystem/dashboard/features": [
+        "./libs/dashboard/features/src/index.ts"
+      ],
+      "@school-expense-ecosystem/auth/ui": ["./libs/auth/ui/src/index.ts"],
+      "@school-expense-ecosystem/admin/features-backend": [
+        "./libs/admin/features-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/admin/features": [
+        "./libs/admin/features/src/index.ts"
+      ],
+      "@school-expense-ecosystem/admin/data-access": [
+        "./libs/admin/data-access/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/tokens": [
+        "./libs/shared/tokens/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/firestore": [
+        "./libs/shared/firestore/src/index.ts"
+      ],
+      "@school-expense-ecosystem/expenses/feature-backend": [
+        "./libs/expenses/features-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/expenses/data-access-backend": [
+        "./libs/expenses/data-access-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/expenses/types": [
+        "./libs/expenses/types/src/index.ts"
+      ],
+      "@school-expense-ecosystem/admin/types": [
+        "./libs/admin/types/src/index.ts"
+      ],
+      "admin-data-access-backend": [
+        "./libs/admin/data-access-backend/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

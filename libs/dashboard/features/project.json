@@ -1,0 +1,13 @@
+{
+  "name": "dashboard-features",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/dashboard/features/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:dashboard", "type:feature"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

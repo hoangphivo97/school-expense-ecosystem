@@ -5,37 +5,82 @@ import {
   HttpHandlerFn,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
-import { catchError, from, switchMap } from 'rxjs';
+import { catchError, from, switchMap, throwError } from 'rxjs';
+import { AuthSignalStore } from './auth-signal.store';
+
+import { HTTP_ERROR_DELEGATE } from '@school-expense-ecosystem/shared/tokens';
 
 export const authInterceptor: HttpInterceptorFn = (
-  req: HttpRequest<any>,
+  req: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ) => {
   const auth = inject(AuthService);
   const router = inject(Router);
+  const authStore = inject(AuthSignalStore);
+  
+  const showErrorModal = inject(HTTP_ERROR_DELEGATE, { optional: true });
+
+  const nestJsToken = authStore.token();
+
+  const clonedReq = nestJsToken
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${nestJsToken}` } })
+    : req;
 
   const attach = (token: string | null) =>
-    token
-      ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-      : req;
+    token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 
-  return from(Promise.resolve(auth.getIdToken())).pipe(
-    switchMap((token) => next(attach(token))),
+  return next(clonedReq).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 || err.status === 403) {
-        //refresh 1 time and retry
-        return from(Promise.resolve(auth.getIdToken(true))).pipe(
+
+      // (500 - Internal Server Error)
+      if (err.status === 500) {
+        if (showErrorModal) {
+          showErrorModal({
+            title: 'Server Error',
+            errorMsg: 'The server encountered an internal error and was unable to complete your request.',
+            hint: 'Please try again later or contact the system administrator.'
+          });
+        }
+        return throwError(() => err);
+      }
+
+      if (err.status === 403) {
+        return throwError(() => err);
+      }
+
+      if (err.status === 401) {
+        const isOnboardingRequest = err.url?.includes('/auth/onboarding');
+
+        return from(Promise.resolve(auth.getFirebaseToken(true))).pipe(
           switchMap((newToken) => next(attach(newToken))),
           catchError(async (err2) => {
             await auth.signOut();
-            router.navigate(['/auth//login']);
+
+            if (showErrorModal) {
+              if (isOnboardingRequest) {
+                showErrorModal({
+                  title: 'Account Setup Failed',
+                  errorMsg: 'We could not verify your temporary onboarding session.',
+                  hint: 'Please try signing in with Google again to restart your registration.'
+                });
+              } else {
+                showErrorModal({
+                  title: 'Session Expired',
+                  errorMsg: 'Your active authorization session has expired or become invalid.',
+                  hint: 'Please log back into your account to securely resume your work.'
+                });
+              }
+            }
+
+            router.navigate(['/auth']);
             throw err2;
           }),
         );
       }
-      throw err;
+
+      return throwError(() => err);
     }),
   );
 };

@@ -1,3 +1,5 @@
+import { UserBase } from "@school-expense-ecosystem/auth/types";
+
 export interface DialogData <T = unknown>{
   title: string;
   action: DialogActionEnum;
@@ -13,6 +15,7 @@ export enum DialogActionEnum {
   Settings,
   Cancel,
   Register,
+  Detail
 }
 
 export interface DialogError {
@@ -23,4 +26,13 @@ export interface DialogError {
 
 interface DialogContent {
   message: string;
+}
+
+export interface ConfirmDialogData {
+  title?: string;
+  message?: string;
+  confirmText?: string;
+  cancelText?: string;
+  confirmColor?: 'primary' | 'accent' | 'warn';
+  icon?: string;
 }

@@ -1,3 +1,4 @@
+import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
 import * as React from 'react';
 
 export interface ReactComponentType {
@@ -13,4 +14,13 @@ export interface FilterParams {
   searchTerm?: string;
   month?: number;
   year?: number;
+  role?: Role;
+  userType?: UserType;
+  status?: UserStatus;
+  facultyId?: FacultyId;
+}
+
+export interface PaginationParams {
+  limit: number;
+  pageToken?: string;
 }

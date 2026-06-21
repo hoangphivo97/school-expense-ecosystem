@@ -1,123 +1,79 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { HeaderComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
-import { MatIcon } from '@angular/material/icon';
+import { Component, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, NavigationEnd } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import {
-  makeMonthlyColumnChart,
-  makeLineChart,
-  makePieChart,
-} from '../report/utils/multiple-charts-helper';
-import { calcChangePct, calcKPIs, getPrevMonth, parseRouterFilterParams, ExpenseService , ExpenseList } from '@school-expense-ecosystem/expenses/data-access';
-import {
-  filter,
-  map,
-  startWith,
-  switchMap,
-} from 'rxjs';
-import {
-  FilterParams,
-} from '@school-expense-ecosystem/shared/types';
-import { CommonModule, DecimalPipe } from '@angular/common';
-import { mainColorPieChart } from '@school-expense-ecosystem/shared/constants';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router } from '@angular/router';
+import { filter, map, startWith } from 'rxjs/operators';
+import { MatIcon } from '@angular/material/icon';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+import { HeaderComponent, FooterComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
+import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
+import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
+import { makeLineChart, makeMonthlyColumnChart, makePieChart } from './utils/multiple-charts-helper';
+import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { UserBase } from '@school-expense-ecosystem/auth/types';
 
 @Component({
   selector: 'lib-report',
   standalone: true,
   imports: [
-    HeaderComponent,
-    FilterComponent,
-    MatIcon,
-    NgApexchartsModule,
-    DecimalPipe,
     CommonModule,
+    NgApexchartsModule,
+    HeaderComponent,
+    FooterComponent,
+    FilterComponent,
+    MatIcon
   ],
   templateUrl: './report.component.html',
   styleUrl: './report.component.scss',
 })
-export class ReportComponent implements OnInit {
-  readonly expenseService = inject(ExpenseService);
+export class ReportComponent {
+  private readonly expenseService = inject(ExpenseService);
   private readonly router = inject(Router);
+  private readonly authSignalStore = inject(AuthSignalStore); // 🌟 BỔ SUNG: Khai thác quyền hạn user đăng nhập
 
-  readonly availableYears = signal<number[]>([]);
 
-  readonly refreshTrigger = signal<number>(0);
+  readonly filterModeEnum = FilterMode;
 
-  private readonly queryParamsSignal = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.router.parseUrl(this.router.url).queryParams),
-      startWith(this.router.parseUrl(this.router.url).queryParams) // Extracts parameters instantly on load
-    )
-  );
+  readonly filterParams = signal<FilterParams>({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear()
+  });
 
-  readonly filterParams = computed<FilterParams>(() =>
-    parseRouterFilterParams(this.queryParamsSignal())
-  );
+  /**
+   * 🌟 ANGULAR 22 REVOLUTION: Khai tử toàn bộ RxJS Pipeline thủ công!
+   * Tự động tái kích hoạt tín hiệu fetch data đồ thị khi user biến đổi năm/tháng trên UI
+   */
+  readonly analyticsResource = this.expenseService.getAnalyticsResource(() => {
+    const filter = this.filterParams();
+    const currentUser = this.authSignalStore.user() as UserBase;
 
-  readonly monthExpenses = toSignal(
-    toObservable(computed(() => ({ f: this.filterParams(), refresh: this.refreshTrigger() }))).pipe(
-      switchMap(({ f }) => this.expenseService.getExpenseList({ year: f.year, month: f.month }))
-    ),
-    { initialValue: [] as ExpenseList[] }
-  );
+    return {
+      year: filter.year ? Number(filter.year) : undefined,
+      month: filter.month ? Number(filter.month) : undefined,
+      role: currentUser.role,            // Chuyển giao enum phân quyền chuẩn xác
+      facultyId: currentUser.facultyId   // Chuyển giao mã khoa quản lý dòng tiền
+    };
+  });
 
-  readonly prevMonthExpenses = toSignal(
-    toObservable(computed(() => ({ f: this.filterParams(), refresh: this.refreshTrigger() }))).pipe(
-      switchMap(({ f }) => this.expenseService.getExpenseList(getPrevMonth(f)))
-    ),
-    { initialValue: [] as ExpenseList[] }
-  );
+  // 🌟 KHAI TỬ REFRESH TRIGGER: Theo dõi biến cờ Loading từ lỗi lõi của Resource
+  readonly isLoading = this.analyticsResource.isLoading;
 
-  readonly yearExpenses = toSignal(
-    toObservable(computed(() => ({ f: this.filterParams(), refresh: this.refreshTrigger() }))).pipe(
-      switchMap(({ f }) => this.expenseService.getExpenseList({ year: f.year }))
-    ),
-    { initialValue: [] as ExpenseList[] }
-  );
-
+  // Trích xuất KPI sạch sẽ ra ngoài banner tóm tắt tổng quan tiền tệ
   readonly kpis = computed(() => {
-    const curr = this.monthExpenses();
-    const prev = this.prevMonthExpenses();
-    const kNow = calcKPIs(curr);
-    const kPrev = calcKPIs(prev);
-    return { ...kNow, changePct: calcChangePct(kNow.total, kPrev.total) };
+    return this.analyticsResource.value()?.kpis ?? { total: 0, count: 0, max: 0, changePct: null };
   });
 
-  readonly lineOpts = computed(() => makeLineChart(this.monthExpenses()));
+  // 🎯 MAP CHART OPTIONS: Đưa dữ liệu thô từ Resource vào các helper ApexCharts chuẩn tên trường
+  readonly lineOpts = computed(() => makeLineChart(this.analyticsResource.value()?.lineData ?? []));
+  readonly barOpts = computed(() => makeMonthlyColumnChart(this.analyticsResource.value()?.barData ?? []));
+  readonly pieOpts = computed(() => makePieChart(this.analyticsResource.value()?.pieData ?? []));
 
-  readonly pieOpts = computed(() =>
-    makePieChart(this.monthExpenses(), {
-      title: 'Expense By Category',
-      colors: mainColorPieChart,
-    })
-  );
-
-  readonly barOpts = computed(() => {
-    const year = this.filterParams().year ?? new Date().getFullYear();
-    return makeMonthlyColumnChart(this.yearExpenses(), year, {
-      title: 'Monthly Expenses',
-      seriesName: 'Expenses',
-    });
-  });
-
-  ngOnInit() {
-    this.getCurrYear();
-  }
+  // 🌟 RESOURCE ĐỒNG BỘ: Chuyển đổi nốt danh mục năm có dữ liệu sang Resource tuần hoàn
+  readonly availableYearsResource = this.expenseService.getAllYearsResource();
+  readonly availableYears = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
 
   onFilterChanged(params: FilterParams): void {
-    this.router.navigate([], {
-      queryParams: { year: params.year, month: params.month },
-      queryParamsHandling: 'merge',
-    });
-  }
-
-  private getCurrYear() {
-    this.expenseService.getAllYearsWithDate()
-      .subscribe({
-        next: (years) => this.availableYears.set(years),
-        error: (err) => console.error('Error fetching years:', err),
-      });
+    this.filterParams.set(params);
   }
 }

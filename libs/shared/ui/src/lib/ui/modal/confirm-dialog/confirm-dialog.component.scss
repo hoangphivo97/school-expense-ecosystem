@@ -1,0 +1,8 @@
+.confirm-dialog-container {
+  max-width: 420px;
+  
+  // Custom button rounding presets to match modern high-fidelity layouts
+  .rounded {
+    border-radius: 6px !important;
+  }
+}

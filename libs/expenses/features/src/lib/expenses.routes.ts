@@ -1,16 +1,18 @@
 import { Routes } from '@angular/router';
+import { ExpenseListComponent } from './features/expense-list/expense-list.component';
+import { ReportComponent } from './features/report/report.component';
 
-export const EXPENSES_ROUTES: Routes = [
+export const EXPENSE_ROUTES_EXPENSE_LIST: Routes = [
   {
-    path: 'expense',
-    loadComponent: () =>
-      import('./features/expense-list/expense-list.component').then(
-        (m) => m.ExpenseListComponent
-      ),
-  },
+    path: '',
+    component: ExpenseListComponent
+  }
+]
+
+export const EXPENSE_ROUTES_REPORT: Routes = [
   {
-    path: 'report',
-    loadComponent: () =>
-      import('./features/report/report.component').then((m) => m.ReportComponent),
-  },
-];
+    path: '',
+    component: ReportComponent
+
+  }
+]

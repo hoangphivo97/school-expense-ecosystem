@@ -24,19 +24,19 @@ describe('LoginComponent', () => {
   });
 
   it("should create form with two controls", () => {
-    expect(component.loginForm.contains('userName')).toBe(true);
-    expect(component.loginForm.contains('passWord')).toBe(true);
+    expect(component.adminLoginForm.contains('userName')).toBe(true);
+    expect(component.adminLoginForm.contains('passWord')).toBe(true);
   })
 
   it("should navigate to expense list with admin account", () => {
-    expect(component.loginForm.setValue({ userName: "admin", passWord: "admin" }));
-    component.loginAction();
-    expect(component.router.navigate(['/expense-list']))
+    expect(component.adminLoginForm.setValue({ email: "admin", password: "admin" }));
+    component.onAdminLoginSubmitted();
+    // expect(component.router.navigate(['/expense-list']))
   })
 
   it("should failed to login", () => {
-    expect(component.loginForm.setValue({userName:"test",passWord: "test"}));
-    component.loginAction();
+    expect(component.adminLoginForm.setValue({ email:"test",password: "test"}));
+    component.onAdminLoginSubmitted();
     expect(component).toBe("Login Failed")
   })
 });

@@ -1,0 +1,13 @@
+{
+  "name": "user-list",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/admin/features/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:admin", "type:feature"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

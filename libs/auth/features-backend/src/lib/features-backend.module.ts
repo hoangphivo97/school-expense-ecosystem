@@ -1,10 +1,12 @@
-// libs/auth/features-backend/src/lib/auth-features-backend.module.ts
 import { Module } from '@nestjs/common';
-import { UserController } from './user.controller';
-import { AuthDataAccessBackendModule } from '@school-expense-ecosystem/backend/auth/data-access';
+import { AuthController } from './auth.controller';
+import { AuthDataAccessBackendModule } from '@school-expense-ecosystem/auth/data-access-backend';
+import { AuthStatusGateway } from './gateways/auth-status.gateway';
 
 @Module({
   imports: [AuthDataAccessBackendModule],
-  controllers: [UserController],
+  controllers: [AuthController],
+  providers: [AuthStatusGateway],
+  exports: [AuthStatusGateway]
 })
 export class AuthFeaturesBackendModule {}

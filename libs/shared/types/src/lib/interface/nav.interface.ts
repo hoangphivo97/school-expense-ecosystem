@@ -1,6 +1,7 @@
 export enum NavItem {
   REPORT = 'report',
   EXPENSE = 'expense',
-  USER = 'user',
-  MESSAGE = 'message',
+  USER_LIST = 'user-list',
+  BUDGET_MANAGER = 'budget-manager',
+  DASHBOARD = 'dashboard'
 }

@@ -1,18 +1,69 @@
-.header {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
+// ==========================================================================
+// Header Component Style Tokens
+// Inspired by premium modern enterprise dashboards (e.g., Tailwind Slate, Material Design Tokens)
+// ==========================================================================
 
-  .logout-button:hover {
-    background-color: #ff2848;
+$header-bg:          #ffffff;
+$text-primary:       #0f172a; // Slate 900 - Premium dark text for readability
+$text-secondary:     #64748b; // Slate 500 - Subdued tint for metadata/subtitles
+$border-divider:     #f1f5f9; // Slate 100 - Razor thin separator line
+$shadow-subtle:      0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+.app-header {
+  display: block;
+  background-color: $header-bg;
+  border-bottom: 1px solid $border-divider;
+  padding: 1.5rem 2rem; // Spacious vertical breathing room for deep enterprise viewports
+  margin-bottom: 1.75rem;
+  box-shadow: $shadow-subtle;
+
+  .header-container {
+    width: 100%;
+    max-width: 1440px; // Standard enterprise layout anchor cap
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
+}
 
-  .settings-icon {
-    cursor: pointer;
+.page-title {
+  font-size: 1.5rem; // ~24px optimal golden ratio sizing for micro layouts
+  font-weight: 700;
+  color: $text-primary;
+  letter-spacing: -0.025em; // Tightened tracking for high-end typography look
+  line-height: 1.2;
+  margin: 0;
+  
+  // Optimize rendering artifacts on high-DPI / Retina monitors
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.page-subtitle {
+  font-size: 0.875rem; // ~14px
+  font-weight: 400;
+  color: $text-secondary;
+  margin: 0;
+}
+
+// ==========================================================================
+// Micro-Animations (Performance-First Hardware Accelerated Transitions)
+// ==========================================================================
+
+.animate-fade-in {
+  // Utilizing standard cubic-bezier for snappy, elegant app response times
+  animation: headerReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+@keyframes headerReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-2px); // Minimal displacement avoids jarring content shifts
   }
-
-  h1 {
-    margin: 0;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

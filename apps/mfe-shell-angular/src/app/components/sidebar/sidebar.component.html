@@ -5,14 +5,17 @@
     <h2 class="label" [class.hide]="collapsed">
       Welcome
       @if(user()) {
-        <span>{{ user()?.displayName }}</span>
+        <span class="account-name"
+        [matTooltip]="user()?.fullName || 'User'"
+        matTooltipPosition="above"
+        >{{user()?.fullName}}</span>
       }
     </h2>
   </div>
   <ul class="ls-links">
-    @for(item of navItems; track item.key) {
+    @for(item of filteredNavItems(); track item.key) {
     <li (click)="setActive(item.key)">
-      <div class="ls-nav" [class.active]="item.key === activeItem">
+      <div class="ls-nav" [class.active]="item.key === activeItem()">
         <mat-icon>{{ item.icon }}</mat-icon>
         <a class="label" [class.hide]="collapsed">{{ item.label }}</a>
       </div>

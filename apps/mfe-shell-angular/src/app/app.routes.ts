@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@school-expense-ecosystem/auth/data-access';
+import { activeUserGuard, authGuard, onboardingGuard, rolesGuard } from '@school-expense-ecosystem/auth/data-access';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
+import { Role } from '@school-expense-ecosystem/auth/types';
 
 export const routes: Routes = [
   {
@@ -9,29 +10,63 @@ export const routes: Routes = [
     component: AuthLayoutComponent,
     children: [
       {
-        path: '', 
-        loadComponent: () => import('@school-expense-ecosystem/auth/features').then(m => m.LoginComponent)
+        path: '',
+        loadChildren: () => import('@school-expense-ecosystem/auth/features').then(m => m.AUTH_ROUTES)
       }
     ]
   },
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, activeUserGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'expense' },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
-        path: '',
+        path: 'dashboard',
+        canActivate: [rolesGuard],
+        loadComponent: () =>
+          import('@school-expense-ecosystem/dashboard/features').then((m) => m.DashboardComponent),
+      },
+      {
+        path: 'user-list',
+        canActivate: [rolesGuard],
+        loadComponent: () => 
+            import('@school-expense-ecosystem/admin/features').then((m) => m.UserListComponent)
+      },
+      {
+        path: 'expense',
+        canActivate: [rolesGuard],
+        data: { roles: [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER] },
         loadChildren: () =>
           import('@school-expense-ecosystem/expenses/features').then(
-            (m) => m.EXPENSES_ROUTES
+            (m) => m.EXPENSE_ROUTES_EXPENSE_LIST
           ),
       },
+      {
+        path: 'report',
+        canActivate: [rolesGuard],
+        data: { roles: [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN] },
+        loadChildren: () =>
+          import('@school-expense-ecosystem/expenses/features').then(
+            (m) => m.EXPENSE_ROUTES_REPORT
+          ),
+      },
+      {
+        path: 'budget-manager',
+        canActivate: [rolesGuard],
+        data: {
+          roles: [Role.LEVEL_1_FINANCE]
+        },
+        loadChildren: () =>
+          import('@school-expense-ecosystem/finance/features').then(
+            (m) => m.FINANCE_ROUTES_BUDGET_MANAGER
+          ),
+      }
     ],
   },
   // 404 fallback
-  {
-    path: '**',
-    redirectTo: '/expense',
-  },
+  // {
+  //   path: '**',
+  //   redirectTo: '/expense',
+  // },
 ];

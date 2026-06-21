@@ -1,50 +1,63 @@
 <lib-header></lib-header>
 <div class="expense-list">
-  <section class="create-section">
-    <button data-testid="open-create-modal-btn" class="create-btn" (click)="openCreateExpenseModal()">
-      Create New Expense
+  <lib-filter [mode]="filterModeEnum.EXPENSE" [yearsList]="availableYearsSignal()" [value]="filterParams()"
+    (filterChange)="onExpenseFiltersChanged($event)">
+
+    <button primaryAction mat-flat-button color="primary" (click)="openCreateExpenseModal()">
+      <mat-icon>add</mat-icon> Create Request
     </button>
-  </section>
+  </lib-filter>
 
-  <lib-filter (filterChange)="onFilterChanged($event)" [inputDataSource]="dataSource()" [yearsList]="availableYears"
-    [value]="filterParams()"></lib-filter>
-
-  @if(expensesSignal().length > 0){
   <table mat-table [dataSource]="dataSource()">
-    <!--- Note that these columns can be defined in any order.
-    The actual rendered columns are set as a property on the row definition" -->
 
-    <!-- Position Column -->
     <ng-container matColumnDef="date">
       <th mat-header-cell *matHeaderCellDef>Date</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.date.toDate() | date: 'dd/MM/yyyy' }}
+        {{ element.date | date: 'dd/MM/yyyy' }}
       </td>
     </ng-container>
 
-    <!-- Name Column -->
+    <ng-container matColumnDef="requesterCode">
+      <th mat-header-cell *matHeaderCellDef>Code</th>
+      <td mat-cell *matCellDef="let element">
+        <span class="code-badge">{{ element.requesterCode }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="requesterName">
+      <th mat-header-cell *matHeaderCellDef>Requester</th>
+      <td mat-cell *matCellDef="let element">{{ element.requesterName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="requesterType">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.requesterType | titlecase }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="facultyId">
+      <th mat-header-cell *matHeaderCellDef>Faculty</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.facultyId | uppercase }}
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="description">
       <th mat-header-cell *matHeaderCellDef>Description</th>
       <td mat-cell *matCellDef="let element">{{ element.description }}</td>
     </ng-container>
 
-    <!-- Weight Column -->
     <ng-container matColumnDef="purpose">
       <th mat-header-cell *matHeaderCellDef>Purpose</th>
       <td mat-cell *matCellDef="let element">{{ element.purpose }}</td>
     </ng-container>
 
-    <!-- Symbol Column -->
-    <ng-container matColumnDef="paid">
+    <ng-container matColumnDef="paidMethod">
       <th mat-header-cell *matHeaderCellDef>Paid Method</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.paid | enumToString }}
+        {{ element.paidMethod | enumToString }}
       </td>
-    </ng-container>
-
-    <ng-container matColumnDef="for">
-      <th mat-header-cell *matHeaderCellDef>For</th>
-      <td mat-cell *matCellDef="let element">{{ element.for }}</td>
     </ng-container>
 
     <ng-container matColumnDef="amount">
@@ -54,13 +67,18 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let element">
+        <span class="status-badge" [ngClass]="element.status.toLowerCase()">
+          {{ element.status }}
+        </span>
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="action">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let element">
-        <button mat-icon-button color="warn" (click)="openDeleteConfirmModal(element.id, element.description)"
-          aria-label="Delete expense">
-          <mat-icon>delete</mat-icon>
-        </button>
         <button mat-icon-button color="accent" (click)="openEditExpenseModal(element)" aria-label="Edit expense">
           <mat-icon>edit</mat-icon>
         </button>
@@ -69,24 +87,27 @@
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+    <tr class="mat-mdc-no-data-row" *matNoDataRow>
+      <td [attr.colspan]="displayedColumns.length">
+
+        <div class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
+          <div class="empty-icon-box mb-3">
+            <mat-icon class="material-icons-outlined text-muted">receipt_long</mat-icon>
+          </div>
+          <h3 class="empty-title m-0">No Expenses Found</h3>
+          <p class="empty-subtitle text-muted px-3">
+            There are no transactions recorded for the selected period or criteria.
+          </p>
+        </div>
+
+      </td>
+    </tr>
   </table>
-  } @else {
-  <ng-container *ngTemplateOutlet="noData"></ng-container>
-  }
 
-  <ng-template #noData>
-    <div class="no-data">No data available</div>
-  </ng-template>
+  <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
+    [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" aria-label="Select page of database users">
+  </mat-paginator>
 
-  <!-- <div class="d-flex justify-content-between p-2">
-        <ngb-pagination [collectionSize]="(total$ | async)!" [(page)]="service.page" [pageSize]="service.pageSize">
-        </ngb-pagination>
-
-        <select class="form-select" style="width: auto" name="pageSize" [(ngModel)]="service.pageSize">
-            <option [ngValue]="2">2 items per page</option>
-            <option [ngValue]="4">4 items per page</option>
-            <option [ngValue]="6">6 items per page</option>
-        </select>
-    </div> -->
 </div>
 <lib-footer></lib-footer>

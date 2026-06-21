@@ -1,19 +1,70 @@
-// backend/src/main.ts
-import { Logger } from '@nestjs/common';
+// apps/backend/src/main.ts
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { onRequest } from 'firebase-functions/v2/https'; 
+import express from 'express';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+const expressApp = express();
+let cachedServer: any;
+
+function configureNestApp(app: any) {
   app.enableCors({
-    origin: "http://localhost:4200"
+    origin: true,
+    credentials: true
   });
 
-  const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  Logger.log(
-    `🚀 Application is running on: http://localhost:${port}`,
+  const globalPrefix = 'api';
+  app.setGlobalPrefix(globalPrefix);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    })
   );
 }
 
-bootstrap();
+async function bootstrapServer() {
+  if (!cachedServer) {
+    const app = await NestFactory.create(AppModule);
+    
+    configureNestApp(app);
+    await app.init();
+    
+    cachedServer = app.getHttpAdapter().getInstance();
+  }
+  return cachedServer;
+}
+
+
+export const api = onRequest(
+  {
+    region: 'asia-east1',
+    memory: '1GiB',
+    minInstances: 1
+  },
+  async (req, res) => {
+    const server = await bootstrapServer();
+    if (server) {
+      server(req, res);
+    } else {
+      res.status(500).send('Server initialization failed');
+    }
+  }
+);
+
+if (process.env.NODE_ENV === 'development') {
+  async function bootstrapLocal() {
+    const app = await NestFactory.create(AppModule);
+    configureNestApp(app); 
+
+    const port = process.env.PORT || 3000; 
+    await app.listen(port);
+
+    Logger.log(`🔥 [Enterprise] Pháo đài Backend đang mở cổng tại: http://localhost:${port}/api`);
+  }
+
+  bootstrapLocal();
+}

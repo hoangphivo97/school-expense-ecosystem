@@ -1,0 +1,63 @@
+{
+  "hosting": [
+    {
+      "target": "shell-angular",
+      "public": "dist/apps/mfe-shell-angular",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "target": "remote-react",
+      "public": "dist/apps/mfe-remote-react",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "**/remoteEntry.js",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "**/*.+(js|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf)",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "source": "dist/backend",
+    "codebase": "default",
+    "runtime": "nodejs22"
+  }
+}

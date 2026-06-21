@@ -1,0 +1,99 @@
+<div class="vw-100 vh-100 bg-light d-flex align-items-center justify-content-center p-4">
+
+    <div class="w-full bg-white rounded-3 shadow border p-5" style="max-width: 450px;">
+
+        <div class="text-center mb-4">
+            <h2 class="h4 font-weight-bold text-dark">Account Onboarding</h2>
+            <p class="text-muted small">Please complete your profile information below to continue. This information
+                will be reviewed by the administration before your account is activated.</p>
+        </div>
+
+        <form [formGroup]="onboardingForm" (ngSubmit)="onSubmit()">
+
+            <div class="mb-3">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Full Name</mat-label>
+                    <input matInput formControlName="fullName"
+                        placeholder="English, Unaccented Vietnamese or Traditional Chinese" maxlength="50">
+                    @if (onboardingForm.get('fullName')?.touched && onboardingForm.get('fullName')?.invalid) {
+                    <mat-error>
+                        @if (onboardingForm.get('fullName')?.hasError('required')) {
+                        Full name is required.
+                        }
+                        @if (onboardingForm.get('fullName')?.hasError('minlength')) {
+                        Must be at least 2 characters.
+                        }
+                        @if (onboardingForm.get('fullName')?.hasError('pattern')) {
+                        Only English, unaccented Vietnamese, or Chinese characters are allowed.
+                        }
+                    </mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <div class="mb-3">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Faculty</mat-label>
+                    <mat-select formControlName="facultyId">
+                        @for (faculty of faculties; track faculty) {
+                        <mat-option [value]="faculty">{{ facultyLabels[faculty] }}</mat-option>
+                        }
+                    </mat-select>
+                    @if (onboardingForm.get('facultyId')?.touched && onboardingForm.get('facultyId')?.invalid) {
+                    <mat-error>Please select your faculty.</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <div class="mb-3">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Institutional Role</mat-label>
+                    <mat-select formControlName="userType">
+                        @for (type of userTypes; track type) {
+                        <mat-option [value]="type">{{ userTypeLabels[type] }}</mat-option>
+                        }
+                    </mat-select>
+                    @if (onboardingForm.get('userType')?.touched && onboardingForm.get('userType')?.invalid) {
+                    <mat-error>Please select your institutional role.</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <div class="mb-3">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>ID Code (Student / Staff ID)</mat-label>
+                    <input matInput formControlName="userCode" placeholder="Enter your unique ID">
+                    @if (onboardingForm.get('userCode')?.touched && onboardingForm.get('userCode')?.invalid) {
+                    <mat-error>Identification code is required.</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <div class="mb-4">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Date of Birth</mat-label>
+                    <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" placeholder="Choose a date">
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                    @if (onboardingForm.get('dateOfBirth')?.touched && onboardingForm.get('dateOfBirth')?.invalid) {
+                    <mat-error>Please select a valid date of birth.</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <div class="mt-2">
+                <button type="submit" mat-raised-button color="primary"
+                    [disabled]="onboardingForm.invalid || authService.isOnboardingSubmitting()">
+
+                    @if (authService.isOnboardingSubmitting()) {
+                    <mat-spinner diameter="20" class="me-2 d-inline-block align-middle"></mat-spinner>
+                    Submitting Profile...
+                    } @else {
+                    Complete Registration
+                    }
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>

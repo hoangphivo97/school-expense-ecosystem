@@ -1,0 +1,13 @@
+{
+  "name": "finance-data-access",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/finance/data-access/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:finance" , "type:data-access"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

@@ -23,9 +23,7 @@
             "output": "."
           }
         ],
-        "styles": [
-          "apps/mfe-shell-angular/src/styles.scss"
-        ],
+        "styles": ["apps/mfe-shell-angular/src/styles.scss"],
         "scripts": ["node_modules/apexcharts/dist/apexcharts.min.js"],
         "customWebpackConfig": {
           "path": "apps/mfe-shell-angular/webpack.config.ts"
@@ -36,6 +34,12 @@
       },
       "configurations": {
         "production": {
+          "fileReplacements": [
+            {
+              "replace": "apps/mfe-shell-angular/src/app/environments/environment.ts",
+              "with": "apps/mfe-shell-angular/src/app/environments/environment.prod.ts"
+            }
+          ],
           "budgets": [
             {
               "type": "initial",
