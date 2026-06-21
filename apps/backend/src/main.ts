@@ -2,10 +2,8 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import { onRequest } from 'firebase-functions/v2/https'; // 🔥 Dùng Gen 2 chạy trên Cloud Run
+import { onRequest } from 'firebase-functions/v2/https'; 
 import express from 'express';
-import { configure as serverlessExpress } from '@codegenie/serverless-express';
 
 const expressApp = express();
 let cachedServer: any;
@@ -30,10 +28,12 @@ function configureNestApp(app: any) {
 
 async function bootstrapServer() {
   if (!cachedServer) {
-    const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
+    const app = await NestFactory.create(AppModule);
+    
     configureNestApp(app);
     await app.init();
-    cachedServer = serverlessExpress({ app: expressApp });
+    
+    cachedServer = app.getHttpAdapter().getInstance();
   }
   return cachedServer;
 }
@@ -55,7 +55,7 @@ export const api = onRequest(
   }
 );
 
-if (process.env.NODE_ENV === 'development' || !process.env.FUNCTIONS_EMULATOR) {
+if (process.env.NODE_ENV === 'development') {
   async function bootstrapLocal() {
     const app = await NestFactory.create(AppModule);
     configureNestApp(app); 

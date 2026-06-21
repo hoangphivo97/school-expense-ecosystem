@@ -2519,13 +2519,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codegenie/serverless-express@npm:^4.14.1":
-  version: 4.17.1
-  resolution: "@codegenie/serverless-express@npm:4.17.1"
-  checksum: 10c0/772c5e293e2b6a5407f39b665dec93811dc1460a07adb15baff2b6db21e23904ceceefe807b6dfc4659695f8f5a00c6033d43a8617333c21efc25bff2dc819d4
-  languageName: node
-  linkType: hard
-
 "@colordx/core@npm:^5.4.3":
   version: 5.4.3
   resolution: "@colordx/core@npm:5.4.3"
@@ -23911,7 +23904,6 @@ __metadata:
     "@angular/router": "npm:22.0.0"
     "@babel/core": "npm:^7.14.5"
     "@babel/preset-react": "npm:^7.14.5"
-    "@codegenie/serverless-express": "npm:^4.14.1"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.1"
     "@eslint/js": "npm:^9.8.0"

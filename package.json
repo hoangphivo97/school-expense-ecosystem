@@ -93,7 +93,6 @@
     "@angular/platform-browser-dynamic": "22.0.0",
     "@angular/platform-server": "22.0.0",
     "@angular/router": "22.0.0",
-    "@codegenie/serverless-express": "^4.14.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fortawesome/angular-fontawesome": "^5.0.0",
