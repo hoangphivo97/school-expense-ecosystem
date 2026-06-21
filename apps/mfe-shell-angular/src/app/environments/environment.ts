@@ -22,4 +22,5 @@ export const environment = {
   authEmulatorHost: 'http://localhost:9099',
   apiUrl: 'http://localhost:3000',
   reactRemoteURL: 'http://localhost:5000/remoteEntry.js',
+  recaptchaSiteKey: "6LfVCSotAAAAADbtB1Eq7U63KNXsModgHFuu74bl"
 };

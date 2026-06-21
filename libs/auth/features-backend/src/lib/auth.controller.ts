@@ -1,8 +1,10 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService, OnboardingDto } from '@school-expense-ecosystem/auth/data-access-backend';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AppCheckGuard } from './guards/app-check.guard';
 
 @Controller('auth')
+@UseGuards(AppCheckGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
