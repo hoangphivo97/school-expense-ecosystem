@@ -1,19 +1,17 @@
-import { computed, inject, Injectable, resource, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import {
   Auth,
   signInWithPopup,
-  GoogleAuthProvider,
-  UserCredential,
-  AuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from '@angular/fire/auth';
-import { firstValueFrom, from, Observable, switchMap } from 'rxjs';
+import { firstValueFrom} from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
 import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
+import { GoogleAuthProvider } from 'firebase/auth';
 
 @Injectable({
   providedIn: 'root',
@@ -56,7 +54,6 @@ export class AuthService {
         this.http.post<LoginResponse>(`${this.apiUrl}/login`, { uid: result.user.uid, token })
       );
     } finally {
-      // Bọc trong finally để đảm bảo dù thành công hay nổ lỗi, cờ loading LUÔN LUÔN được hạ xuống
       this.isLoggingInWithEmail.set(false);
     }
   }
