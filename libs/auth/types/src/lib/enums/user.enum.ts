@@ -8,7 +8,8 @@ export enum UserStatus {
   PENDING = 'pending',
   ACTIVE = 'active', 
   REJECTED = 'rejected',
-  ONBOARDING = 'onboarding'
+  ONBOARDING = 'onboarding',
+  SUSPENDED = 'suspended'
 }
 
 export enum Role {

@@ -49,8 +49,8 @@ export class UserListService {
             const result = await this.userRepository.createUserRecord(uid, userPayload);
 
             await this.auditLogRepository.saveAdminActivityLog({
-                actorUid: executor.email,
-                actorEmail: executor.uid,
+                actorUid: executor.uid,
+                actorEmail: executor.email,
                 action: AdminActionType.USER_CREATE,
                 targetIds: [uid]
             });
@@ -82,25 +82,20 @@ export class UserListService {
         await this.userRepository.updateUserFields(targetUid, dto);
 
         if (Object.keys(changes).length > 0) {
+            const action = 'role' in changes 
+                ? AdminActionType.USER_ROLE_CHANGE 
+                : AdminActionType.USER_FACULTY_CHANGE;
+
             await this.auditLogRepository.saveAdminActivityLog({
                 actorUid: executor.uid,
                 actorEmail: executor.email,
-                action: this.determineAdminAction(changes),
+                action,
                 targetIds: [targetUid],
                 changes
             });
         }
 
         return { success: true };
-    }
-
-    private determineAdminAction(changes: IAuditLogChanges, status?: UserStatus): AdminActionType {
-        if ('role' in changes) return AdminActionType.ROLE_CHANGE;
-        if ('facultyId' in changes) return AdminActionType.FACULTY_ASSIGNMENT_CHANGE;
-
-        return status === UserStatus.ACTIVE
-            ? AdminActionType.USER_ACTIVATE
-            : AdminActionType.USER_DEACTIVATE;
     }
 
     async updateUserStatusByAdmin(targetUid: string, executor: IAdminExecutor, status: UserStatus): Promise<{ success: boolean }> {
@@ -116,11 +111,10 @@ export class UserListService {
 
         await this.userRepository.updateStatus(targetUid, status);
 
-        // AUDIT TRAIL
         await this.auditLogRepository.saveAdminActivityLog({
             actorUid: executor.uid,
             actorEmail: executor.email,
-            action: status === UserStatus.ACTIVE ? AdminActionType.USER_ACTIVATE : AdminActionType.USER_DEACTIVATE,
+            action: AdminActionType.USER_STATUS_CHANGE,
             targetIds: [targetUid],
             changes
         });

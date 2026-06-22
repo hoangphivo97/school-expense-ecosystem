@@ -71,14 +71,36 @@
           </ng-container>
 
           <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 text-end table-column-header"></th>
-            <td mat-cell *matCellDef="let user" class="py-3 px-4 text-end" (click)="$event.stopPropagation()">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
+            <td mat-cell *matCellDef="let user" class="py-3 px-4 action-column" (click)="$event.stopPropagation()">
               @if (user.uid !== currentAdminId()) {
+
+              @if (user.status === UserStatusEnum.PENDING) {
+              <button mat-icon-button color="primary" (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)"
+                matTooltip="Quick Activate Account">
+                <fa-icon [icon]="faCircleCheck" size="lg" class="text-success"></fa-icon>
+              </button>
+              } @else if (user.status === UserStatusEnum.ACTIVE) {
+              <button mat-icon-button color="warn" (click)="updateUserStatus(user, UserStatusEnum.SUSPENDED)"
+                matTooltip="Quick Deactivate Account">
+                <fa-icon [icon]="faBan" size="lg" class="text-danger"></fa-icon>
+              </button>
+              }
+
+              @else if (user.status === UserStatusEnum.SUSPENDED) {
+              <button mat-icon-button color="primary" (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)"
+                matTooltip="Lift Restriction (Re-activate)">
+                <fa-icon [icon]="faLockOpen" size="lg" class="text-primary"></fa-icon>
+              </button>
+              }
+
               <button mat-icon-button color="accent" (click)="openUpdateModal(user)"
-                aria-label="Edit system account settings">
+                aria-label="Edit system account settings" matTooltip="Edit Profile">
                 <mat-icon class="action-edit-icon">edit</mat-icon>
               </button>
-              } @else {
+              }
+
+              @else {
               <div class="d-flex align-items-center gap-1 text-muted ms-2 bg-light px-2 py-1 rounded border"
                 style="width: fit-content;" matTooltip="Self-modification protected for security reasons">
                 <mat-icon class="fs-6 w-auto h-auto m-0">lock</mat-icon>
@@ -115,7 +137,7 @@
                 </button>
               </div>
               }
-              
+
               @else {
               <div
                 class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">

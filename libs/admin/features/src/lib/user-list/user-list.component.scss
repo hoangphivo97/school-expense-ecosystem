@@ -66,6 +66,10 @@
     border-bottom: 1px solid #e2e8f0;
     font-size: 0.875rem; // 14px smooth readability text cells
   }
+
+  td.action-column{
+    display: flex;
+  }
 }
 
 .data-text-primary {
