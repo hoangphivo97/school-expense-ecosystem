@@ -2,7 +2,8 @@ import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param } from
 import { UserListService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
 import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/auth/features-backend';
-import { CreateUserDto, UpdateUserDto } from 'admin-data-access-backend';
+import { ChangeUserStatusDto, CreateUserDto, UpdateUserDto } from 'admin-data-access-backend';
+import { IAdminExecutor } from '@school-expense-ecosystem/admin/types';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -24,12 +25,30 @@ export class UserListController {
   @Post('provision')
   @Roles(Role.LEVEL_0_ADMIN)
   async manualAccountProvisioning(@Req() req: { user: UserBase }, @Body() createUserDto: CreateUserDto) {
-    return this.userListService.provisionNewUserByAdmin(req.user.uid, req.user.email, createUserDto);
+    const executor: IAdminExecutor = { uid: req.user.uid, email: req.user.email };
+    return this.userListService.provisionNewUserByAdmin(executor, createUserDto);
   }
 
   @Patch(':id')
   @Roles(Role.LEVEL_0_ADMIN)
-  async updateInstitutionalUser(@Param('id') targetUid: string, @Req() req: { user: UserBase }, @Body() updateUserDto: UpdateUserDto) {
-   return this.userListService.updateUserByAdmin(targetUid, req.user.uid, req.user.email, updateUserDto);
+  async updateUser(
+    @Param('id') id: string,
+    @Req() req: { user: UserBase },
+    @Body() updateUserDto: UpdateUserDto
+  ) {
+    const executor: IAdminExecutor = { uid: req.user.uid, email: req.user.email };
+    return this.userListService.updateUserByAdmin(id, executor, updateUserDto);
+  }
+
+  @Patch(':id/status')
+  @Roles(Role.LEVEL_0_ADMIN)
+  async changeUserStatus(
+    @Param('id') id: string,
+    @Req() req: { user: UserBase },
+    @Body() changeUserStatusDto: ChangeUserStatusDto
+  ) {
+    const executor: IAdminExecutor = { uid: req.user.uid, email: req.user.email };
+
+    return this.userListService.updateUserStatusByAdmin(id, executor, changeUserStatusDto.status);
   }
 }

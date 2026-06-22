@@ -255,7 +255,6 @@ export class UserFormModalComponent implements OnInit {
       userCode: user.userCode,
       facultyId: user.facultyId,
       dateOfBirth: user.dateOfBirth ? user.dateOfBirth : '',
-      status: user.status
     });
   }
 
@@ -274,7 +273,6 @@ export class UserFormModalComponent implements OnInit {
         fullName: rawForm.fullName,
         role: rawForm.role,
         userType: rawForm.userType,
-        status: rawForm.status,
         dateOfBirth: rawForm.dateOfBirth,
         facultyId: (selectedRole === Role.LEVEL_2_DEAN || selectedRole === Role.LEVEL_3_USER) ? rawForm.facultyId : null
       };

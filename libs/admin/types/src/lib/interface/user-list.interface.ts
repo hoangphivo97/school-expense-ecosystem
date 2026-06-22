@@ -28,7 +28,6 @@ export interface UpdateUserInput {
   fullName?: string;
   role?: Role;
   userType?: UserType;
-  status?: UserStatus;
   facultyId?: FacultyId;
 }
 

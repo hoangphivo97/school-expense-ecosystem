@@ -16,9 +16,19 @@ import { FilterComponent, FooterComponent, HeaderComponent } from '@school-expen
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
-import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
 import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome'; // 🚀 Nhập con component FA
+import { 
+  faCircleCheck, 
+  faBan, 
+  faLockOpen, 
+  faPenToSquare, 
+  faLock 
+} from '@fortawesome/free-solid-svg-icons';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'lib-user-list',
@@ -38,7 +48,9 @@ import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
     DatePipe,
     FilterComponent,
     HeaderComponent,
-    MatDialogModule
+    MatDialogModule,
+    FontAwesomeModule,
+    MatTooltipModule
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
@@ -54,6 +66,12 @@ export class UserListComponent {
 
   // Structural grid column configurations including auditing and interactive actions
   displayedColumns: string[] = ['fullName', 'email', 'userCode', 'role', 'userType', 'status', 'createdAt', 'action'];
+
+  protected readonly faCircleCheck = faCircleCheck;
+  protected readonly faBan = faBan;
+  protected readonly faLockOpen = faLockOpen;
+  protected readonly faPenToSquare = faPenToSquare;
+  protected readonly faLock = faLock;
 
   // DOM viewchild query referencing the active material pagination element
   readonly paginator = viewChild(MatPaginator);
@@ -241,6 +259,27 @@ export class UserListComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.isSuccess) {
         this.triggerRefresh();
+      }
+    });
+  }
+
+  updateUserStatus(user: UserBase, newStatus: UserStatus): void {
+    if (user.uid === this.currentAdminId()) {
+      alert('Administrative security constraint: You are restricted from mutating your own account status context.');
+      return;
+    }
+
+    this.isLoading.set(true);
+    
+    this.userListService.updateUserStatus(user.uid, newStatus).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.triggerRefresh();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        console.error('Administrative status mutation failed:', err);
+        this.errorMessage.set('Failed to alter user status configuration boundary.');
       }
     });
   }

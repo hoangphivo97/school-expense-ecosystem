@@ -56,11 +56,13 @@ export class UpdateUserDto implements UpdateUserInput {
   userType?: UserType;
 
   @IsOptional()
-  @IsEnum(UserStatus, { message: 'Invalid operational status target.' })
-  status?: UserStatus;
-
-  @IsOptional()
   @IsNotEmpty({ message: 'Faculty isolation node cannot be updated to an empty string.' })
   @IsString()
   facultyId?: FacultyId;
+}
+
+export class ChangeUserStatusDto {
+  @IsNotEmpty({ message: 'Operational status target cannot be empty.' })
+  @IsEnum(UserStatus, { message: 'Invalid operational status target.' })
+  status!: UserStatus;
 }

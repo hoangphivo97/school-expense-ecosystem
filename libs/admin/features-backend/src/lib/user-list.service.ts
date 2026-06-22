@@ -2,28 +2,28 @@ import { ConflictException, ForbiddenException, Injectable, InternalServerErrorE
 import { Role, UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
 import { UserRepository } from './repository/user.repository';
 import { CreateUserDto, UpdateUserDto } from 'admin-data-access-backend';
-import { AdminActionType, CreateUserResult, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';
+import { AdminActionType, CreateUserResult, IAdminExecutor, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';
 import { IAdminAuditLogRepository } from './repository/audit-log.repository';
 
 @Injectable()
 export class UserListService {
     constructor(
-        private readonly userRepo: UserRepository,
-        private readonly auditLogRepo: IAdminAuditLogRepository
+        private readonly userRepository: UserRepository,
+        private readonly auditLogRepository: IAdminAuditLogRepository
     ) { }
 
     async getUsersForAdmin(requester: UserBase, limit: number, pageToken?: string) {
         const facultyIdFilter = requester.role === Role.LEVEL_2_DEAN ? requester.facultyId : undefined;
 
-        return this.userRepo.findPaginated({
+        return this.userRepository.findPaginated({
             facultyId: facultyIdFilter,
             limit,
             pageToken
         });
     }
 
-    async provisionNewUserByAdmin(executorUid: string, executorEmail: string, dto: CreateUserDto): Promise<CreateUserResult> {
-        const hasConflict = await this.userRepo.checkIdentityConflict(dto.email, dto.userCode);
+    async provisionNewUserByAdmin(executor: IAdminExecutor, dto: CreateUserDto): Promise<CreateUserResult> {
+        const hasConflict = await this.userRepository.checkIdentityConflict(dto.email, dto.userCode);
         if (hasConflict) {
             throw new ConflictException('Identity conflict: Email or User Code is already registered.');
         }
@@ -33,7 +33,7 @@ export class UserListService {
         }
 
         try {
-            const uid = await this.userRepo.createAuthAccount(dto.email, dto.fullName, dto.password);
+            const uid = await this.userRepository.createAuthAccount(dto.email, dto.fullName, dto.password);
 
             const userPayload: any = {
                 email: dto.email,
@@ -41,16 +41,16 @@ export class UserListService {
                 userType: dto.userType,
                 fullName: dto.fullName,
                 userCode: dto.userCode,
-                createdBy: executorUid,
+                createdBy: executor.uid,
                 username: dto.email.split('@')[0]
             };
             if (dto.facultyId) userPayload.facultyId = dto.facultyId;
 
-            const result = await this.userRepo.createUserRecord(uid, userPayload);
+            const result = await this.userRepository.createUserRecord(uid, userPayload);
 
-            await this.auditLogRepo.saveAdminActivityLog({
-                actorUid: executorUid,
-                actorEmail: executorEmail,
+            await this.auditLogRepository.saveAdminActivityLog({
+                actorUid: executor.uid,
+                actorEmail: executor.email,
                 action: AdminActionType.USER_CREATE,
                 targetIds: [uid]
             });
@@ -62,51 +62,34 @@ export class UserListService {
         }
     }
 
-    async updateUserByAdmin(targetUid: string, executorUid: string, executorEmail: string, dto: UpdateUserDto): Promise<{ success: boolean }> {
-        const targetUser = await this.userRepo.findById(targetUid);
-        if (targetUid === executorUid) {
-            throw new ForbiddenException(
-                'Administrative safety policy violation: Self-mutation of operational roles or status within the management pool is strictly prohibited.'
-            );
-        }
-
-        if (!targetUser) {
-            throw new NotFoundException('Target user record does not exist.');
-        }
-
-        if (targetUser.createdBy && targetUser.createdBy !== executorUid && targetUser.role === Role.LEVEL_0_ADMIN) {
-            throw new ForbiddenException('Security violation: Peer Protection active. You cannot modify an elite Administrator.');
-        }
+    async updateUserByAdmin(targetUid: string, executor: IAdminExecutor, dto: UpdateUserDto): Promise<{ success: boolean }> {
+        const targetUser = await this.validateAndGetTargetUser(targetUid, executor.uid);
 
         if (dto.role === Role.LEVEL_0_ADMIN || dto.role === Role.LEVEL_1_FINANCE) {
             dto.facultyId = undefined;
         }
 
         const changes: IAuditLogChanges = {};
-        let determinedAction: AdminActionType | null = null;
 
         if (dto.role !== undefined && dto.role !== targetUser.role) {
             changes['role'] = { old: targetUser.role || null, new: dto.role };
-            determinedAction = AdminActionType.ROLE_CHANGE; // Escalates action classification
         }
+
         if (dto.facultyId !== undefined && dto.facultyId !== targetUser.facultyId) {
             changes['facultyId'] = { old: targetUser.facultyId || null, new: dto.facultyId };
-            determinedAction = AdminActionType.FACULTY_ASSIGNMENT_CHANGE;
-        }
-        if (dto.status !== undefined && dto.status !== targetUser.status) {
-            changes['status'] = { old: targetUser.status || null, new: dto.status };
-            determinedAction = dto.status === UserStatus.ACTIVE ? AdminActionType.USER_ACTIVATE : AdminActionType.USER_DEACTIVATE;
         }
 
-        // Execute the database mutation state overwrite
-        await this.userRepo.updateUserFields(targetUid, dto);
+        await this.userRepository.updateUserFields(targetUid, dto);
 
-        // 🚀 AUDIT TRAIL: Dispatch activity logs strictly if actionable mutations occurred
         if (Object.keys(changes).length > 0) {
-            await this.auditLogRepo.saveAdminActivityLog({
-                actorUid: executorUid,
-                actorEmail: executorEmail,
-                action: this.determineAdminAction(changes, dto.status), // 🌟 Clean abstraction call
+            const action = 'role' in changes 
+                ? AdminActionType.USER_ROLE_CHANGE 
+                : AdminActionType.USER_FACULTY_CHANGE;
+
+            await this.auditLogRepository.saveAdminActivityLog({
+                actorUid: executor.uid,
+                actorEmail: executor.email,
+                action,
                 targetIds: [targetUid],
                 changes
             });
@@ -115,12 +98,46 @@ export class UserListService {
         return { success: true };
     }
 
-    private determineAdminAction(changes: IAuditLogChanges, status?: UserStatus): AdminActionType {
-        if ('role' in changes) return AdminActionType.ROLE_CHANGE;
-        if ('facultyId' in changes) return AdminActionType.FACULTY_ASSIGNMENT_CHANGE;
-        
-        return status === UserStatus.ACTIVE
-            ? AdminActionType.USER_ACTIVATE 
-            : AdminActionType.USER_DEACTIVATE;
+    async updateUserStatusByAdmin(targetUid: string, executor: IAdminExecutor, status: UserStatus): Promise<{ success: boolean }> {
+        const targetUser = await this.validateAndGetTargetUser(targetUid, executor.uid);
+
+        if (status === targetUser.status) {
+            return { success: true };
+        }
+
+        const changes: IAuditLogChanges = {
+            status: { old: targetUser.status || null, new: status }
+        };
+
+        await this.userRepository.updateStatus(targetUid, status);
+
+        await this.auditLogRepository.saveAdminActivityLog({
+            actorUid: executor.uid,
+            actorEmail: executor.email,
+            action: AdminActionType.USER_STATUS_CHANGE,
+            targetIds: [targetUid],
+            changes
+        });
+
+        return { success: true };
+    }
+
+    private async validateAndGetTargetUser(targetUid: string, executorUid: string): Promise<any> {
+        if (targetUid === executorUid) {
+            throw new ForbiddenException(
+                'Administrative safety policy violation: Self-mutation of operational roles or status within the management pool is strictly prohibited.'
+            );
+        }
+
+        const targetUser = await this.userRepository.findById(targetUid);
+        if (!targetUser) {
+            throw new NotFoundException('Target user record does not exist.');
+        }
+
+        if (targetUser.createdBy && targetUser.createdBy !== executorUid && targetUser.role === Role.LEVEL_0_ADMIN) {
+            throw new ForbiddenException('Security violation: Peer Protection active. You cannot modify an elite Administrator.');
+        }
+
+        return targetUser;
     }
 }

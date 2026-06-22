@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 import { CreateUserInput, CreateUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
 
@@ -34,5 +34,9 @@ export class UserListService {
 
   updateUser(uid: string, payload: UpdateUserInput): Observable<{ success: boolean }> {
     return this.http.patch<{ success: boolean }>(`${this.apiUrl}/${uid}`, payload);
+  }
+
+  updateUserStatus(uid: string, status: UserStatus): Observable<{ success: boolean }> {
+    return this.http.patch<{ success: boolean }>(`${this.apiUrl}/${uid}/status`, { status });
   }
 }

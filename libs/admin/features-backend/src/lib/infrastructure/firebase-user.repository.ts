@@ -1,6 +1,6 @@
 import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
 import * as admin from 'firebase-admin';
 import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
 
@@ -97,5 +97,12 @@ export class FirebaseUserRepository implements UserRepository {
       }
       throw error;
     }
+  }
+
+  async updateStatus(uid: string, status: UserStatus): Promise<void> {
+    await this.db.collection('users').doc(uid).update({
+      status,
+      updatedAt: new Date()
+    });
   }
 }
