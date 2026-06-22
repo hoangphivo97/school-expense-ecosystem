@@ -1,4 +1,5 @@
 import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
+import { UserStatus } from '@school-expense-ecosystem/auth/types';
 
 export abstract class UserRepository {
   abstract findPaginated(filters: {
@@ -11,4 +12,5 @@ export abstract class UserRepository {
   abstract updateUserFields(uid: string, updateData: UpdateUserInput): Promise<void>;
   abstract createAuthAccount(email: string, fullName: string, password?: string): Promise<string>;
   abstract findById(uid: string): Promise<any | null>;
+  abstract updateStatus(uid: string, status: UserStatus): Promise<void>;
 }
