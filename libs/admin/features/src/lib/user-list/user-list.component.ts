@@ -20,13 +20,15 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
 import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { FaIconComponent } from '@fortawesome/angular-fontawesome'; // 🚀 Nhập con component FA
+
 import { 
   faCircleCheck, 
   faBan, 
   faLockOpen, 
   faPenToSquare, 
-  faLock 
+  faLock, 
+  faUserXmark,
+  faCirclePause
 } from '@fortawesome/free-solid-svg-icons';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -70,8 +72,10 @@ export class UserListComponent {
   protected readonly faCircleCheck = faCircleCheck;
   protected readonly faBan = faBan;
   protected readonly faLockOpen = faLockOpen;
+  protected readonly faCirclePause = faCirclePause;
   protected readonly faPenToSquare = faPenToSquare;
   protected readonly faLock = faLock;
+  protected readonly faUserXMark = faUserXmark
 
   // DOM viewchild query referencing the active material pagination element
   readonly paginator = viewChild(MatPaginator);
@@ -91,6 +95,7 @@ export class UserListComponent {
   private readonly refreshTrigger = signal<number>(0);
   readonly isLoading = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly processingUserId = signal<string | null>(null);
 
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(0);
@@ -269,18 +274,23 @@ export class UserListComponent {
       return;
     }
 
+    // Capture the targeted identifier to switch localized UI spinner nodes instantly
+    this.processingUserId.set(user.uid);
     this.isLoading.set(true);
     
     this.userListService.updateUserStatus(user.uid, newStatus).subscribe({
       next: () => {
         this.isLoading.set(false);
+        this.processingUserId.set(null);
         this.triggerRefresh();
       },
       error: (err) => {
         this.isLoading.set(false);
+        this.processingUserId.set(null);
         console.error('Administrative status mutation failed:', err);
         this.errorMessage.set('Failed to alter user status configuration boundary.');
       }
     });
   }
+  
 }
