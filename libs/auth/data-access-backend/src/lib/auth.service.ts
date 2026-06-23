@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -61,9 +62,20 @@ export class AuthService {
         });
       }
 
+      if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
+        throw new ForbiddenException({
+          message: 'ACCOUNT_RESTRICTED',
+          // Assuming your DB model has a field like 'rejectReason' or 'statusRemarks'
+          reason: user.statusReason || 'Access restricted by the institution administrator due to policy compliance.'
+        });
+      }
+
       const authToken = this.generateJWT(user);
       return { token: authToken, user };
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error; // Forward the structured restriction error object
+      }
       throw new UnauthorizedException('Failed to verify session token or token expired');
     }
   }

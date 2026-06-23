@@ -19,7 +19,7 @@ export const authInterceptor: HttpInterceptorFn = (
   const auth = inject(AuthService);
   const router = inject(Router);
   const authStore = inject(AuthSignalStore);
-  
+
   const showErrorModal = inject(HTTP_ERROR_DELEGATE, { optional: true });
 
   const nestJsToken = authStore.token();
@@ -47,6 +47,20 @@ export const authInterceptor: HttpInterceptorFn = (
       }
 
       if (err.status === 403) {
+        const errorBody = err.error;
+
+        if (errorBody?.message === 'ACCOUNT_RESTRICTED') {
+          // 1. Evict local cached application identity tokens instantly
+          authStore.updateAuthState(null, null);
+
+          // 2. Transfer both the state classification and the textual explanation downstream
+          router.navigate(['/auth/rejected'], {
+            state: {
+              status: errorBody.status, // UserStatus.REJECTED | UserStatus.SUSPENDED
+              reason: errorBody.reason
+            }
+          });
+        }
         return throwError(() => err);
       }
 

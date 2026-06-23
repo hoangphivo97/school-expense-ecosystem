@@ -10,25 +10,27 @@ export const activeUserGuard: CanActivateFn = () => {
 
     if (!user) return router.createUrlTree(['/auth']);
 
-    if (user.status === UserStatus.ACTIVE) {
-        return true;
-    }
+    switch (user.status) {
+        case UserStatus.ACTIVE:
+            return true;
 
-    if (user.status === UserStatus.ONBOARDING) {
-        return router.createUrlTree(['/auth/onboarding']);
-    }
+        case UserStatus.ONBOARDING:
+            return router.createUrlTree(['/auth/onboarding']);
 
-    if (user.status === UserStatus.PENDING) {
-        return router.createUrlTree(['/auth/waiting-approval']);
-    }
+        case UserStatus.PENDING:
+            return router.createUrlTree(['/auth/waiting-approval']);
 
-    if (user.status === UserStatus.REJECTED) {
-        return router.createUrlTree(['/auth/rejected']);
-    }
+        case UserStatus.REJECTED:
+        case UserStatus.SUSPENDED:
+            /**
+             * Retain the token within storage to maintain UI context upon refresh (F5),
+             * but lockdown entry points to application dashboard layout trees.
+             */
+            return router.createUrlTree(['/auth/rejected']);
 
-    if (user.status === UserStatus.SUSPENDED) {
-        return router.createUrlTree(['/auth/rejected']);
+        default:
+            // Fail-safe default: clear anomalies and bounce back to authentication gate
+            authStore.updateAuthState(null);
+            return router.createUrlTree(['/auth']);
     }
-
-    return router.createUrlTree(['/auth']);
 };

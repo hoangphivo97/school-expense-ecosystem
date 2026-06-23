@@ -1,9 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faEnvelope, faFileCircleXmark, faRightFromBracket, faUserSlash } from '@fortawesome/free-solid-svg-icons';
-import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
 import { UserStatus } from '@school-expense-ecosystem/auth/types';
+
+interface RestrictionNavigationState {
+  status?: UserStatus;
+  reason?: string;
+}
 
 @Component({
   selector: 'lib-rejected',
@@ -13,9 +17,7 @@ import { UserStatus } from '@school-expense-ecosystem/auth/types';
   standalone: true
 })
 export class RejectedComponent {
-  private readonly authStore = inject(AuthSignalStore);
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
 
   // Expose icon
   protected readonly faUserSlash = faUserSlash;
@@ -23,14 +25,19 @@ export class RejectedComponent {
   protected readonly faEnvelope = faEnvelope;
   protected readonly faRightFromBracket = faRightFromBracket;
 
-  protected readonly userStatus = this.authStore.user()?.status;
-  protected readonly statusReason = this.authStore.user()?.statusReason;
+  protected readonly restrictionData = computed<RestrictionNavigationState>(() => {
+    const activeNav = this.router.currentNavigation()?.extras.state as RestrictionNavigationState;
+    const persistentState = history.state as RestrictionNavigationState;
+
+    return {
+      status: activeNav?.status || persistentState?.status,
+      reason: activeNav?.reason || persistentState?.reason
+    };
+  });
 
   readonly userStatuEnum = UserStatus
 
-  onLogout(): void {
-    this.authService.signOut();
-
-    this.router.navigate(['/auth/login']);
+  navigateToLogin(): void {
+    this.router.navigate(['/auth']);
   }
 }
