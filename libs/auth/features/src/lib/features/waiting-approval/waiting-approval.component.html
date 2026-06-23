@@ -5,10 +5,13 @@
       <mat-progress-spinner mode="indeterminate" [diameter]="80" class="mb-4 processing-spinner">
       </mat-progress-spinner>
 
-      <h2 class="text-primary fw-bold mb-3">Verifying Your Application</h2>
+      <h2 class="text-primary fw-bold mb-1">Verifying Your Application</h2>
+      
+      <h4 class="text-secondary fw-semibold mb-4">Hello, {{ displayName() }}</h4>
 
-      <p class="text-muted text-center px-4 leadfs-6">
-        Your onboarding profile data is currently being reviewed by the administration faculty.
+      <p class="text-muted text-center px-4 lead fs-6">
+        Your onboarding profile data linked to <span class="text-primary fw-medium">{{ displayEmail() }}</span> 
+        is currently being reviewed by the administration faculty.
         You will be granted access to the ecosystem automatically upon confirmation.
       </p>
 

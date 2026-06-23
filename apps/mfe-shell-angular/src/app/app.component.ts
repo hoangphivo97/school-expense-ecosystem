@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AuthSocketService } from '@school-expense-ecosystem/auth/data-access';
 
 @Component({
   selector: 'app-root',
@@ -11,5 +10,4 @@ import { AuthSocketService } from '@school-expense-ecosystem/auth/data-access';
 })
 export class AppComponent {
   title = 'expense-tracker-app';
-  private readonly authSocketService = inject(AuthSocketService);
 }
