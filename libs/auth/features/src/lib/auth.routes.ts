@@ -3,6 +3,7 @@ import { authGuard, onboardingGuard, unauthGuard, waitingApprovalGuard } from '@
 import { LoginComponent } from './features/login/login.component';
 import { OnboardingComponent } from './features/onboarding/onboarding.component';
 import { WaitingApprovalComponent } from './features/waiting-approval/waiting-approval.component';
+import { RejectedComponent } from './features/rejected/rejected.component';
 
 export const AUTH_ROUTES: Routes = [
   {
@@ -19,5 +20,9 @@ export const AUTH_ROUTES: Routes = [
     path: 'waiting-approval',
     canActivate: [authGuard, waitingApprovalGuard],
     component: WaitingApprovalComponent
+  },
+  {
+    path: 'rejected',
+    component: RejectedComponent
   }
 ];
