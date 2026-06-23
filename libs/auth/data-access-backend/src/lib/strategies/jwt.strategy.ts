@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
@@ -21,8 +21,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
             throw new UnauthorizedException('Invalid credentials or account not found.');
         }
 
-        if(user.status === UserStatus.SUSPENDED){
-            throw new UnauthorizedException('This account has been suspended. Please contact the administrator.');
+        if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
+            throw new ForbiddenException({
+                message: 'ACCOUNT_RESTRICTED',
+                status: user.status, 
+                reason: user.statusReason || 'Access restricted by administrator policy.'
+            });
         }
 
         return user;

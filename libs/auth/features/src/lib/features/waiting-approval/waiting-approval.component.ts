@@ -14,8 +14,8 @@ import { Router } from '@angular/router';
     MatProgressSpinnerModule,
     MatButton
   ],
-  templateUrl: './waiting-approval.html',
-  styleUrl: './waiting-approval.scss',
+  templateUrl: './waiting-approval.component.html',
+  styleUrl: './waiting-approval.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WaitingApprovalComponent {
