@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard, onboardingGuard, unauthGuard, waitingApprovalGuard } from '@school-expense-ecosystem/auth/data-access';
 import { LoginComponent } from './features/login/login.component';
-import { OnboardingComponent } from './features/onboarding/onboarding';
-import { WaitingApprovalComponent } from './features/waiting-approval/waiting-approval';
+import { OnboardingComponent } from './features/onboarding/onboarding.component';
+import { WaitingApprovalComponent } from './features/waiting-approval/waiting-approval.component';
 
 export const AUTH_ROUTES: Routes = [
   {

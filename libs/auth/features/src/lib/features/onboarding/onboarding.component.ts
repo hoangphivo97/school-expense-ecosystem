@@ -26,8 +26,8 @@ import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
     MatProgressSpinnerModule,
     MatProgressSpinner
   ],
-  templateUrl: './onboarding.html',
-  styleUrl: './onboarding.scss',
+  templateUrl: './onboarding.component.html',
+  styleUrl: './onboarding.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 

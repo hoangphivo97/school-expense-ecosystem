@@ -22,5 +22,13 @@ export const activeUserGuard: CanActivateFn = () => {
         return router.createUrlTree(['/auth/waiting-approval']);
     }
 
+    if (user.status === UserStatus.REJECTED) {
+        return router.createUrlTree(['/auth/rejected']);
+    }
+
+    if (user.status === UserStatus.SUSPENDED) {
+        return router.createUrlTree(['/auth/rejected']);
+    }
+
     return router.createUrlTree(['/auth']);
 };
