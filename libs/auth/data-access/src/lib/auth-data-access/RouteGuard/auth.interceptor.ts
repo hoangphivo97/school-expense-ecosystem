@@ -50,17 +50,25 @@ export const authInterceptor: HttpInterceptorFn = (
         const errorBody = err.error;
 
         if (errorBody?.message === 'ACCOUNT_RESTRICTED') {
-          // 1. Evict local cached application identity tokens instantly
+          authStore.updateAuthState(null, null);
+          router.navigate(['/auth/rejected'], {
+            state: { status: errorBody.status, reason: errorBody.reason }
+          });
+          return throwError(() => err);
+        }
+
+        const isAppCheckFailure =
+          err.message?.includes('App Check') ||
+          errorBody?.message?.includes('App Check');
+
+        if (isAppCheckFailure) {
+          // Clear credentials synchronously to eliminate ghost or stale app states
           authStore.updateAuthState(null, null);
 
-          // 2. Transfer both the state classification and the textual explanation downstream
-          router.navigate(['/auth/rejected'], {
-            state: {
-              status: errorBody.status, // UserStatus.REJECTED | UserStatus.SUSPENDED
-              reason: errorBody.reason
-            }
-          });
+          // Command the router engine to reset the client viewport to the core login entrypoint
+          router.navigate(['/auth']);
         }
+
         return throwError(() => err);
       }
 

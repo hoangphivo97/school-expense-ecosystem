@@ -76,26 +76,49 @@
               @if (user.uid !== currentAdminId()) {
 
               @if (user.status === UserStatusEnum.PENDING) {
-              <button mat-icon-button color="primary" (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)"
-                matTooltip="Quick Activate Account">
+              <button mat-icon-button color="primary" [disabled]="processingUserId() === user.uid"
+                (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)" matTooltip="Activate Account">
+                @if (processingUserId() === user.uid) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
                 <fa-icon [icon]="faCircleCheck" size="lg" class="text-success"></fa-icon>
+                }
               </button>
-              } @else if (user.status === UserStatusEnum.ACTIVE) {
-              <button mat-icon-button color="warn" (click)="updateUserStatus(user, UserStatusEnum.SUSPENDED)"
-                matTooltip="Quick Deactivate Account">
-                <fa-icon [icon]="faBan" size="lg" class="text-danger"></fa-icon>
+
+              <button mat-icon-button color="warn" [disabled]="processingUserId() === user.uid"
+                (click)="updateUserStatus(user, UserStatusEnum.REJECTED)" matTooltip="Reject Account">
+                @if (processingUserId() === user.uid) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                <fa-icon [icon]="faUserXMark" size="lg" class="text-danger"></fa-icon>
+                }
+              </button>
+              }
+
+              @else if (user.status === UserStatusEnum.ACTIVE) {
+              <button mat-icon-button color="warn" [disabled]="processingUserId() === user.uid"
+                (click)="updateUserStatus(user, UserStatusEnum.SUSPENDED)" matTooltip="Deactivate Account">
+                @if (processingUserId() === user.uid) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                <fa-icon [icon]="faLock" size="lg" class="text-danger"></fa-icon>
+                }
               </button>
               }
 
               @else if (user.status === UserStatusEnum.SUSPENDED) {
-              <button mat-icon-button color="primary" (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)"
-                matTooltip="Lift Restriction (Re-activate)">
+              <button mat-icon-button color="primary" [disabled]="processingUserId() === user.uid"
+                (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)" matTooltip="Lift Restriction (Re-activate)">
+                @if (processingUserId() === user.uid) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
                 <fa-icon [icon]="faLockOpen" size="lg" class="text-primary"></fa-icon>
+                }
               </button>
               }
 
-              <button mat-icon-button color="accent" (click)="openUpdateModal(user)"
-                aria-label="Edit system account settings" matTooltip="Edit Profile">
+              <button mat-icon-button color="accent" [disabled]="processingUserId() === user.uid"
+                (click)="openUpdateModal(user)" aria-label="Edit system account settings" matTooltip="Edit Profile">
                 <mat-icon class="action-edit-icon">edit</mat-icon>
               </button>
               }

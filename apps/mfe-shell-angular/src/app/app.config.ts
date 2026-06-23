@@ -23,10 +23,9 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_ERROR_DELEGATE,
       useFactory: (errorModalService: ErrorModalService) => {
-        // Trả về một hàm khớp cấu trúc với Token yêu cầu
         return (dialogData: DialogError) => errorModalService.openCustomErrorModal(dialogData);
       },
-      deps: [ErrorModalService] // Tiêm con service UI xịn vào đây để làm việc thực tế
+      deps: [ErrorModalService] 
     },
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
 
