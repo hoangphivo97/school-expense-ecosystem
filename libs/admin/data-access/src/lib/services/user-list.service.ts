@@ -36,7 +36,7 @@ export class UserListService {
     return this.http.patch<{ success: boolean }>(`${this.apiUrl}/${uid}`, payload);
   }
 
-  updateUserStatus(uid: string, status: UserStatus): Observable<{ success: boolean }> {
-    return this.http.patch<{ success: boolean }>(`${this.apiUrl}/${uid}/status`, { status });
+  updateUserStatus(uid: string, status: UserStatus, reason?: string): Observable<{ success: boolean }> {
+    return this.http.patch<{ success: boolean }>(`${this.apiUrl}/${uid}/status`, { status, reason });
   }
 }

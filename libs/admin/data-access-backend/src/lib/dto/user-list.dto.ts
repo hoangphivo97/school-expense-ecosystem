@@ -57,7 +57,7 @@ export class UpdateUserDto implements UpdateUserInput {
 
   @IsOptional()
   @IsNotEmpty({ message: 'Faculty isolation node cannot be updated to an empty string.' })
-  @IsString()
+  @IsEnum(FacultyId, { message: 'Target facaulty mutation out of system boundaries.' })
   facultyId?: FacultyId;
 }
 
@@ -65,4 +65,9 @@ export class ChangeUserStatusDto {
   @IsNotEmpty({ message: 'Operational status target cannot be empty.' })
   @IsEnum(UserStatus, { message: 'Invalid operational status target.' })
   status!: UserStatus;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(4, { message: 'Justification reason must be at least 4 characters long.' })
+  reason?: string;
 }

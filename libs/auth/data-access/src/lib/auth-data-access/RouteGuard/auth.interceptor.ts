@@ -75,6 +75,12 @@ export const authInterceptor: HttpInterceptorFn = (
       if (err.status === 401) {
         const isOnboardingRequest = err.url?.includes('/auth/onboarding');
 
+        const isLoginRequest = err.url?.includes('/auth/google-login');
+
+        if (isLoginRequest) {
+          return throwError(() => err);
+        }
+
         return from(Promise.resolve(auth.getFirebaseToken(true))).pipe(
           switchMap((newToken) => next(attach(newToken))),
           catchError(async (err2) => {

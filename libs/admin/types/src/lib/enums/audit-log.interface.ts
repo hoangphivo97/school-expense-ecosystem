@@ -28,4 +28,5 @@ export interface IAuditLogInput {
   action: AdminActionType;
   targetIds: string[];  // Collection of impacted user document IDs (Supports 1 or many for Bulk)
   changes?: IAuditLogChanges; // Nullable parameter matching the Differential Logging strategy
+  reason?: string;
 }

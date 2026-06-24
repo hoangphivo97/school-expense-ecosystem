@@ -66,7 +66,7 @@ export class AuthService {
         throw new ForbiddenException({
           message: 'ACCOUNT_RESTRICTED',
           // Assuming your DB model has a field like 'rejectReason' or 'statusRemarks'
-          reason: user.statusReason || 'Access restricted by the institution administrator due to policy compliance.'
+          reason: user.reason || 'Access restricted by the institution administrator due to policy compliance.'
         });
       }
 

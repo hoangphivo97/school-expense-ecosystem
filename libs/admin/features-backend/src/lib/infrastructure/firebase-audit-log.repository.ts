@@ -11,7 +11,7 @@ export class FirestoreAuditLogRepository implements IAdminAuditLogRepository {
 
   async saveAdminActivityLog(logInput: IAuditLogInput): Promise<void> {
     const logCollectionRef = this.db.collection(this.collectionName);
-    
+
     // 1. Calculate the precise future date object required by the Firestore TTL Engine
     const expirationTargetDate = new Date();
     expirationTargetDate.setDate(expirationTargetDate.getDate() + this.TTL_DAYS_DURATION);
@@ -23,6 +23,7 @@ export class FirestoreAuditLogRepository implements IAdminAuditLogRepository {
       action: logInput.action,
       targetIds: logInput.targetIds, // Preserves bulk arrays or single target IDs uniformly
       ...(logInput.changes ? { changes: logInput.changes } : {}), // Omit completely if no diff exists
+      ...(logInput.reason ? { reason: logInput.reason } : {}),
       createdAt: admin.firestore.FieldValue.serverTimestamp(), // Hard server-driven tracking clock
       expireAt: admin.firestore.Timestamp.fromDate(expirationTargetDate) // 🌟 Direct hook target for Firestore TTL
     };
