@@ -12,5 +12,5 @@ export abstract class UserRepository {
   abstract updateUserFields(uid: string, updateData: UpdateUserInput): Promise<void>;
   abstract createAuthAccount(email: string, fullName: string, password?: string): Promise<string>;
   abstract findById(uid: string): Promise<any | null>;
-  abstract updateStatus(uid: string, status: UserStatus): Promise<void>;
+  abstract updateStatus(uid: string, status: UserStatus, reason?: string): Promise<void>;
 }

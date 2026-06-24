@@ -109,7 +109,7 @@ export class UserListService {
             status: { old: targetUser.status || null, new: status }
         };
 
-        await this.userRepository.updateStatus(targetUid, status);
+        await this.userRepository.updateStatus(targetUid, status, reason);
 
         await this.auditLogRepository.saveAdminActivityLog({
             actorUid: executor.uid,
