@@ -62,10 +62,7 @@ export const authInterceptor: HttpInterceptorFn = (
           errorBody?.message?.includes('App Check');
 
         if (isAppCheckFailure) {
-          // Clear credentials synchronously to eliminate ghost or stale app states
           authStore.updateAuthState(null, null);
-
-          // Command the router engine to reset the client viewport to the core login entrypoint
           router.navigate(['/auth']);
         }
 
@@ -74,6 +71,12 @@ export const authInterceptor: HttpInterceptorFn = (
 
       if (err.status === 401) {
         const isOnboardingRequest = err.url?.includes('/auth/onboarding');
+
+        const isLoginRequest = err.url?.includes('/auth/google-login');
+
+        if (isLoginRequest) {
+          return throwError(() => err);
+        }
 
         return from(Promise.resolve(auth.getFirebaseToken(true))).pipe(
           switchMap((newToken) => next(attach(newToken))),

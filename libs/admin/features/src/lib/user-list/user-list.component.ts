@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { Role, UserBase, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
-import { FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
+import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
@@ -274,11 +274,35 @@ export class UserListComponent {
       return;
     }
 
-    // Capture the targeted identifier to switch localized UI spinner nodes instantly
-    this.processingUserId.set(user.uid);
+    // Intercept and enforce audit logging for restrictive transitions
+    if (newStatus === this.UserStatusEnum.SUSPENDED || newStatus === this.UserStatusEnum.REJECTED) {
+      const dialogRef = this.dialog.open(BaseModalComponent, {
+        width: '440px',
+        disableClose: true,
+        data: {
+          title: `${newStatus === this.UserStatusEnum.REJECTED ? 'Reject' : 'Suspend'} User Account`,
+          message: 'An explicit administrative trail reason is mandatory to alter this profile operational boundary.',
+          placeholder: 'Enter formal reasoning context...'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe((reason: string | null) => {
+        if (reason) {
+          this.executeStatusMutation(user.uid, newStatus, reason);
+        }
+      });
+      return;
+    }
+
+    // Direct execution pipeline for standard states (e.g. Active)
+    this.executeStatusMutation(user.uid, newStatus);
+  }
+
+  private executeStatusMutation(uid: string, newStatus: UserStatus, reason?: string): void {
+    this.processingUserId.set(uid);
     this.isLoading.set(true);
-    
-    this.userListService.updateUserStatus(user.uid, newStatus).subscribe({
+
+    this.userListService.updateUserStatus(uid, newStatus, reason).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.processingUserId.set(null);

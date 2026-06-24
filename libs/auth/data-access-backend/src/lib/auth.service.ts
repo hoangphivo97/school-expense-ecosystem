@@ -65,22 +65,32 @@ export class AuthService {
       if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
         throw new ForbiddenException({
           message: 'ACCOUNT_RESTRICTED',
-          // Assuming your DB model has a field like 'rejectReason' or 'statusRemarks'
-          reason: user.statusReason || 'Access restricted by the institution administrator due to policy compliance.'
+          status: user.status,
+          reason: user.reason || 'Access restricted by the institution administrator due to policy compliance.'
         });
       }
 
       const authToken = this.generateJWT(user);
       return { token: authToken, user };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof ForbiddenException) {
         throw error; // Forward the structured restriction error object
       }
+
+      const isFirebaseDisabled = error?.code === 'auth/user-disabled' || error?.message?.includes('disabled');
+      if (isFirebaseDisabled) {
+        throw new ForbiddenException({
+          message: 'ACCOUNT_RESTRICTED',
+          status: UserStatus.SUSPENDED, // Append the state flag natively
+          reason: 'This account has been explicitly suspended or disabled in the identity provider context.'
+        });
+      }
+
       throw new UnauthorizedException('Failed to verify session token or token expired');
     }
   }
 
-  async completeOnboarding(uid: string, email:string ,dto: OnboardingDto) {
+  async completeOnboarding(uid: string, email: string, dto: OnboardingDto) {
     // 1. Dispatch identity conflict assessment via context-aware abstraction layer
     const resolution = await this.authUserRepo.validateIdentityConflict({
       uid,

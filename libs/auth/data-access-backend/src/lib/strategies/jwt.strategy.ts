@@ -21,14 +21,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
             throw new UnauthorizedException('Invalid credentials or account not found.');
         }
 
-        if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
-            throw new ForbiddenException({
-                message: 'ACCOUNT_RESTRICTED',
-                status: user.status, 
-                reason: user.statusReason || 'Access restricted by administrator policy.'
-            });
-        }
-
         return user;
     }
 }

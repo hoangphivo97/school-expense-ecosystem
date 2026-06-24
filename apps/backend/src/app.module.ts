@@ -26,7 +26,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     {
       provide: APP_GUARD,
       useClass: AppCheckGuard
-    }
+    },
   ],
 })
 export class AppModule {}

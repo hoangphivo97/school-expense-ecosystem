@@ -99,10 +99,18 @@ export class FirebaseUserRepository implements UserRepository {
     }
   }
 
-  async updateStatus(uid: string, status: UserStatus): Promise<void> {
-    await this.db.collection('users').doc(uid).update({
-      status,
-      updatedAt: new Date()
-    });
+  async updateStatus(uid: string, status: UserStatus, reason?: string): Promise<void> {
+  const updateData: any = {
+    status,
+    updatedAt: new Date()
+  };
+
+  if (reason) {
+    updateData.reason = reason;
+  } else if (status === UserStatus.ACTIVE) { 
+    updateData.reason = admin.firestore.FieldValue.delete();
   }
+
+  await this.db.collection('users').doc(uid).update(updateData);
+}
 }

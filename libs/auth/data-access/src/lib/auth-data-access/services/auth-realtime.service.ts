@@ -31,7 +31,7 @@ export class AuthRealtimeService {
 
     effect(() => {
       const updatedUser = liveUserSignal();
-      
+
       if (!updatedUser) return;
 
       switch (updatedUser.status) {
@@ -44,13 +44,12 @@ export class AuthRealtimeService {
         case UserStatus.REJECTED:
           this.authStore.updateAuthState(null, null);
           this.router.navigate(['/auth/rejected'], {
-            state: { 
-              status: UserStatus.REJECTED, 
-              reason: updatedUser.statusReason || 'Registration onboarding credentials rejected.' 
+            state: {
+              status: UserStatus.REJECTED,
+              reason: updatedUser.reason || 'Registration onboarding credentials rejected.'
             }
           });
           break;
-
         default:
           break;
       }

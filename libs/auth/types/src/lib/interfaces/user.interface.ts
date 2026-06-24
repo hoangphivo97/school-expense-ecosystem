@@ -17,7 +17,7 @@ export interface UserBase {
   dateOfBirth?: string;
   status: UserStatus;
   createdAt?: Date;
-  statusReason?: string;
+  reason?: string;
 }
 
 export interface OnboardingResponse {

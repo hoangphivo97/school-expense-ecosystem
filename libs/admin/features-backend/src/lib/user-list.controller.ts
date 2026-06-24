@@ -49,6 +49,11 @@ export class UserListController {
   ) {
     const executor: IAdminExecutor = { uid: req.user.uid, email: req.user.email };
 
-    return this.userListService.updateUserStatusByAdmin(id, executor, changeUserStatusDto.status);
+    return this.userListService.updateUserStatusByAdmin(
+      id,
+      executor,
+      changeUserStatusDto.status,
+      changeUserStatusDto.reason
+    );
   }
 }

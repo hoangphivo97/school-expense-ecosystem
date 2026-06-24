@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AppCheck, getToken } from '@angular/fire/app-check';
-import { from, switchMap, catchError } from 'rxjs';
+import { from, switchMap, catchError, of } from 'rxjs';
 
 export const appCheckInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.includes('/api')) {
@@ -15,18 +15,23 @@ export const appCheckInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   return from(getToken(appCheck)).pipe(
+    catchError((appCheckErr) => {
+      /**
+       * ISOLATED ERROR BOUNDARY: Catch errors strictly related to fetching 
+       * the local Firebase App Check token asset, preventing it from accidentally 
+       * intercepting and duplicating downstream HTTP network response errors.
+       */
+      console.error('Firebase App Check token generation failed:', appCheckErr);
+      return of({ token: '' });
+    }),
     switchMap((appCheckTokenResult) => {
       const token = appCheckTokenResult.token;
 
-      const clonedReq = req.clone({
-        headers: req.headers.set('X-Firebase-AppCheck', token),
-      });
+      const clonedReq = token
+        ? req.clone({ headers: req.headers.set('X-Firebase-AppCheck', token) })
+        : req;
 
-      return next(clonedReq);
-    }),
-    catchError((err) => {
-      console.error('App Check Interceptor Error:', err);
-      return next(req); 
+      return next(clonedReq); 
     })
   );
 };

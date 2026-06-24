@@ -1,49 +1,68 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
-  MatDialogActions,
-  MatDialogContent,
+  MatDialog,
+  MatDialogModule,
   MatDialogRef,
-  MatDialogTitle,
 } from '@angular/material/dialog';
-import { DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
-import { MatButton } from '@angular/material/button';
-import { ErrorModalService } from '../error-modal/error-modal.service';
+import { ConfirmDialogData } from '@school-expense-ecosystem/shared/types';
+import { MatButtonModule } from '@angular/material/button';
+import { MatError, MatFormFieldModule } from '@angular/material/form-field';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+
+export interface BaseModalData {
+  title: string;
+  message?: string;
+  placeholder?: string;
+}
 
 @Component({
   selector: 'lib-base-modal',
   standalone: true,
-  imports: [MatDialogActions, MatDialogContent, MatDialogTitle, MatButton],
+  imports: [MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatError, FormsModule],
   templateUrl: './base-modal.component.html',
   styleUrl: './base-modal.component.scss',
 })
 export class BaseModalComponent {
   readonly dialogRef = inject(MatDialogRef<BaseModalComponent>);
-  readonly data = inject<DialogData>(MAT_DIALOG_DATA);
-  readonly errorModalService = inject(ErrorModalService);
+  readonly data = inject<BaseModalData>(MAT_DIALOG_DATA);
+  private readonly dialog = inject(MatDialog);
 
-  dialogActionEnum = DialogActionEnum;
+  readonly reasonText = signal<string>('');
 
   onSave() {
-    const isCancel: boolean = this.data.action === DialogActionEnum.Cancel
-    const isSuccess: boolean = this.data.isSuccess === true
-    if (isCancel && isSuccess) {
-      this.errorModalService.closeAllModals();
-    } else {
-      this.dialogRef.close({ 
-        title: "Delete", 
-        action: this.dialogActionEnum.Delete, 
-        isSuccess: true,
-        data: this.data.data 
-      } as DialogData);
+    const finalizedReason = this.reasonText().trim();
+    if (finalizedReason) {
+      // Cleanly pass the text payload back to the invoking component boundary
+      this.dialogRef.close(finalizedReason);
     }
   }
 
   onCancel() {
-    this.dialogRef.close({
-      title: 'Delete',
-      action: this.dialogActionEnum.Delete,
-      isSuccess: false,
-    } as DialogData);
+    if (this.reasonText().trim()) {
+      const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '380px',
+        disableClose: true,
+        data: {
+          title: 'Discard Changes',
+          message: 'You have unsaved changes in the reason field. Are you sure you want to discard them?',
+          confirmText: 'Discard',
+          cancelText: 'Keep Editing',
+          confirmColor: 'warn'
+        } as ConfirmDialogData
+      });
+
+      confirmRef.afterClosed().subscribe((isConfirmed: boolean) => {
+        if (isConfirmed) {
+          this.dialogRef.close(null);
+        }
+      });
+      return;
+    }
+
+    // Safe to close smoothly if the input field remains pristine
+    this.dialogRef.close(null);
   }
 }

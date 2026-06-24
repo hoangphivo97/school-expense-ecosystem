@@ -82,8 +82,8 @@ export class UserListService {
         await this.userRepository.updateUserFields(targetUid, dto);
 
         if (Object.keys(changes).length > 0) {
-            const action = 'role' in changes 
-                ? AdminActionType.USER_ROLE_CHANGE 
+            const action = 'role' in changes
+                ? AdminActionType.USER_ROLE_CHANGE
                 : AdminActionType.USER_FACULTY_CHANGE;
 
             await this.auditLogRepository.saveAdminActivityLog({
@@ -98,7 +98,7 @@ export class UserListService {
         return { success: true };
     }
 
-    async updateUserStatusByAdmin(targetUid: string, executor: IAdminExecutor, status: UserStatus): Promise<{ success: boolean }> {
+    async updateUserStatusByAdmin(targetUid: string, executor: IAdminExecutor, status: UserStatus, reason?: string): Promise<{ success: boolean }> {
         const targetUser = await this.validateAndGetTargetUser(targetUid, executor.uid);
 
         if (status === targetUser.status) {
@@ -109,14 +109,15 @@ export class UserListService {
             status: { old: targetUser.status || null, new: status }
         };
 
-        await this.userRepository.updateStatus(targetUid, status);
+        await this.userRepository.updateStatus(targetUid, status, reason);
 
         await this.auditLogRepository.saveAdminActivityLog({
             actorUid: executor.uid,
             actorEmail: executor.email,
             action: AdminActionType.USER_STATUS_CHANGE,
             targetIds: [targetUid],
-            changes
+            changes,
+            ...(reason ? { reason } : {})
         });
 
         return { success: true };

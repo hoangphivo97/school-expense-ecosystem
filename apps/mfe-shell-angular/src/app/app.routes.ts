@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { activeUserGuard, authGuard, onboardingGuard, rolesGuard } from '@school-expense-ecosystem/auth/data-access';
+import { activeUserGuard, authGuard, rolesGuard } from '@school-expense-ecosystem/auth/data-access';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { Role } from '@school-expense-ecosystem/auth/types';
