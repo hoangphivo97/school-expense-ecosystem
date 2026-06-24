@@ -25,15 +25,19 @@ export const appConfig: ApplicationConfig = {
       useFactory: (errorModalService: ErrorModalService) => {
         return (dialogData: DialogError) => errorModalService.openCustomErrorModal(dialogData);
       },
-      deps: [ErrorModalService] 
+      deps: [ErrorModalService]
     },
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
 
     provideAppCheck(() => {
+      // if (!environment.production) {
+      //   (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '';
+      // }
+      
       const provider = new ReCaptchaV3Provider(environment.recaptchaSiteKey);
-      return initializeAppCheck(undefined, { 
-        provider, 
-        isTokenAutoRefreshEnabled: true 
+      return initializeAppCheck(undefined, {
+        provider,
+        isTokenAutoRefreshEnabled: true
       });
     }),
 
