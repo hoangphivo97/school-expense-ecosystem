@@ -10,7 +10,7 @@ import { DialogError } from '@school-expense-ecosystem/shared/types';
 })
 export class ErrorModalService {
   private dialog = inject(MatDialog);
-  
+
   openErrorModal(error: FirebaseError) {
     this.dialog.open(ErrorModalComponent, {
       width: '400px',

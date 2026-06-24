@@ -62,10 +62,7 @@ export const authInterceptor: HttpInterceptorFn = (
           errorBody?.message?.includes('App Check');
 
         if (isAppCheckFailure) {
-          // Clear credentials synchronously to eliminate ghost or stale app states
           authStore.updateAuthState(null, null);
-
-          // Command the router engine to reset the client viewport to the core login entrypoint
           router.navigate(['/auth']);
         }
 

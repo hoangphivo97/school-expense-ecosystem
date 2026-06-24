@@ -128,9 +128,7 @@ export class LoginComponent {
     } catch (err: any) {
       console.warn('Google OAuth authentication flow intercepted:', err);
 
-      if (err.code === 'auth/popup-closed-by-user') {
-        this.zone.run(() => {
-        });
+      if (err.status === 403 && err.error?.message === 'ACCOUNT_RESTRICTED') {
         return;
       }
 
