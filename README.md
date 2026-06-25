@@ -1,53 +1,146 @@
-# Micro Expense Tracker
+# School Expense Ecosystem
 
-A **micro front-end & back-end** full-stack project for managing personal expenses. Currently includes:
+An enterprise-grade, full-stack, distributed **Micro Front-End (MFE)** and **Domain-Driven Architecture** platform designed to manage institutional university budgets and multi-level expense approvals. 
 
+Built inside an **Nx Monorepo Workspace**, the ecosystem coordinates a secure host environment, modular frontend micro-apps, and a decoupled, resilient NestJS cloud backend.
 
-```markdown
-## 📂 Project Structure
+### Link Live: ``` https://expense-tracker-web-app-7c1d1.web.app/ ```
+---
 
+## 🏛️ Architectural & System Design
 
-micro-expense-tracker/
+This platform enforces a strict **Role-Based Access Control (RBAC)** matrix across four distinct tiers of user hierarchy (Level 0 to Level 3) combined with real-time financial budget tracking denominated in New Taiwan Dollars (NTD/TWD).
+
+### 🔑 Key Enterprise Features
+*   **Federated Micro Front-Ends:** Angular controls the robust Shell host application (routing, global guards, UI layout), while React drives granular remote sub-apps (UI features, interactive dashboard widgets) seamlessly wrapped together using Webpack Module Federation.
+*   **Immutable Financial Auditing:** Built-in decoupled infrastructure layer tracking system executors (`admin-executor`) and transaction logs asynchronously written to Cloud Firestore (`firebase-audit-log.repository`).
+*   **Anti-Spam Security Firewall:** Defensive middleware filtering logic inside NestJS coupled with Firebase OAuth to immediately block unauthorized registration, isolate bad inputs with hard purges, and drop malicious attempts via an active database blacklist entry.
+
+---
+ 
+## 🔄 Core Workflows
+
+### User Lifecycle & Onboarding State Machine
+The diagram below illustrates how public users authenticate via Firebase OAuth, transition through mandatory onboarding guards, and undergo administrative auditing before obtaining platform permissions.
+
+```mermaid
+flowchart TD
+    %% Define Enterprise-grade Styles
+    classDef actor fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
+    classDef action fill:#ffffff,stroke:#37474f,stroke-width:1.5px;
+    classDef state fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,stroke-dasharray: 4 4;
+    classDef termination fill:#eceff1,stroke:#455a64,stroke-width:2px;
+
+    %% System Actors Separated Individually
+    Admin([👑 System Admin - Lv0])
+    Finance([💼 Finance Dept - Lv1])
+    Dean([🏛️ Department Dean - Lv2])
+    EndUser([🎓 Student / Teacher / Staff - Lv3])
+
+    %% Authentication Entry Point
+    Start([Start: Access Platform]) --> Decision_Route{Identify User Level}
+
+    %% Route A: Internal Roles (Lv0, Lv1, Lv2)
+    Decision_Route -->|Pre-created: Lv0, Lv1, Lv2| Act_InternalAuth[Auth: Custom Email/Password<br>or Configured Google Auth]
+    Act_InternalAuth --> ST_Active((State:<br>ACTIVE))
+
+    %% Route B: Public Roles (Lv3)
+    Decision_Route -->|Self-Registration: Lv3| Act_FirebaseAuth[Auth: Firebase Google OAuth]
+    Act_FirebaseAuth --> Decision_Profile{Evaluate DB Account Status}
+    
+    %% Gatekeeper / Guard Logic (The Firewall)
+    Decision_Profile -->|Status: ACTIVE| ST_Active
+    Decision_Profile -->|Status: SUSPENDED| End_Block([System: Deny Access<br>Account Frozen])
+    Decision_Profile -->|Status: REJECTED| End_Blacklist([System: Instant Firewall Block<br>Spam/Intruder Prevention])
+    Decision_Profile -->|Status: PENDING_APPROVAL| End_Pending_Screen([Screen: Waiting Admin Approval])
+    Decision_Profile -->|No Record Found| ST_Onboarding((State:<br>ONBOARDING))
+
+    %% Onboarding Sub-flow (Lv3 Only)
+    ST_Onboarding --> Act_FillForm[User: Fill Profile Data<br>Name, ID, Department]
+    Act_FillForm --> Act_Submit[User: Submit for Approval]
+    Act_Submit --> ST_Pending((State:<br>PENDING_APPROVAL))
+
+    %% Admin Verification Matrix
+    ST_Pending --> Act_AdminReview[Admin: Review Pending Queue]
+    End_Pending_Screen -.->|Awaits Action| Act_AdminReview
+    Act_AdminReview --> Decision_Approve{Admin Decision?}
+    
+    %% Scenario A & B Processing
+    Decision_Approve -->|Scenario A: Input Error| Act_HardDelete[Action: Hard Delete<br>Purge from Firebase & Firestore] --> End_Purged([End: Record Erased<br>Email Released for Retry])
+    
+    Decision_Approve -->|Scenario B: Security Threat| Act_SoftDelete[Action: Soft Delete<br>Flag Status as REJECTED]
+    Act_SoftDelete --> ST_Rejected((State:<br>REJECTED))
+    ST_Rejected --> End_Blacklist
+
+    Decision_Approve -->|Valid Application| Act_Approve[Action: Approve Account] --> ST_Active
+
+    %% Post-Active Lifecycle Controls
+    ST_Active --> End_Active([Proceed to Authorized Dashboard<br>via RBAC Matrix])
+    ST_Active -.->|Administrative Sanction| Act_AdminSusp[Admin: Suspend Account] --> ST_Suspended((State:<br>SUSPENDED))
+    ST_Suspended --> Act_AdminReactiv[Admin: Reactivate Account] --> ST_Active
+    ST_Suspended --> End_Block
+
+    %% Apply Styles
+    class Admin,Finance,Dean,EndUser actor;
+    class Act_InternalAuth,Act_FirebaseAuth,Act_FillForm,Act_Submit,Act_AdminReview,Act_Approve,Act_HardDelete,Act_SoftDelete,Act_AdminSusp,Act_AdminReactiv action;
+    class ST_Onboarding,ST_Active,ST_Pending,ST_Suspended,ST_Rejected state;
+    class Start,End_Active,End_Block,End_Blacklist,End_Purged,End_Pending_Screen termination;
+```
+## 📂 System Topology & Library Boundaries
+
+The workspace uses an elegant Domain-Driven structure managed entirely by Nx. Pure business capabilities are isolated strictly into decoupled functional libraries (`libs/`), preventing dependency bleeding and optimizing computational cache hits during builds.
+
+```text
+school-expense-ecosystem/
 ├── 📱 apps/
-│   ├── mfe-shell-angular/      # 🏠 Host Application (Angular) - Main UI & Routing
-│   ├── mfe-remote-react/       # 🧩 Remote Application (React) - UI Components
-│   └── backend/                # ⚙️ API Server (NestJS) - Logic & Database
+│   ├── mfe-shell-angular/      # 🏠 Main Host Portal (Angular Shell, Guard, RBAC Routing)
+│   ├── mfe-remote-react/       # 🧩 Remote Micro-App (React Features, Data Visualization)
+│   ├── backend/                # ⚙️ Decoupled API Server Engine (NestJS App Engine)
+│   ├── mfe-shell-angular-e2e/  # 🧪 End-to-End Test Suite for Host Layer (Cypress)
+│   ├── mfe-remote-react-e2e/   # 🧪 End-to-End Test Suite for Remote Layer (Cypress)
+│   └── backend-e2e/            # 🧪 Integration End-to-End Test Suite for Core APIs (Jest)
 │
 ├── 📦 libs/
-│   └── shared/types/           # 🔗 Shared Library (Interfaces & DTOs)
+│   ├── 👥 admin/               # Administrative Business Context (User Lists, Controls)
+│   ├── 🔐 auth/                # Identity & Security Engine (Guards, JWT Strategies, Interceptors)
+│   ├── 📊 dashboard/           # Metrics & Aggregations Data Domain
+│   ├── 💰 expenses/            # Expense Claim Workflows (Requests, File Compressors, Audits)
+│   ├── 🏛️ finance/             # Fiscal Control Domain (Budget Allocation, Department Caps)
+│   └── 🛠️ shared/              # Central System Infrastructure (Firestore Modules, Tokens, Core Cross-Cutting Utils)
 │
-├── 🧪 e2e/
-│   ├── mfe-shell-angular-e2e/  # Cypress tests for Angular Shell
-│   ├── mfe-remote-react-e2e/   # Cypress tests for React Remote
-│   └── backend-e2e/            # Jest e2e tests for Backend
-│
-├── nx.json                 # Nx Configuration
-├── package.json            # Root Dependencies
-└── tsconfig.base.json      # Global TypeScript Config
+├── firebase.json               # Cloud Resource Maps
+├── nx.json                     # Smart Monorepo Graph Directives
+├── package.json                # Explicit Workspace Manifest
+└── tsconfig.base.json          # Root Inheritance Path Rules
 ```
 
-## ​ Tech Stack
+## 🛠️ Technological Blueprints
+```text
+Frontend Ecosystem: Angular (22), React (v19), TypeScript(6.0), Native SCSS Modules, Angular Signals State Store, Webpack Module Federation, ApexCharts Engine.
 
-- **Frontend**: Angular, TypeScript, SCSS , React
-- **Backend**: NestJS, TypeScript  
-- **Architecture**: Modular, Clean Architecture principles  
-- **Tools**: Git, Angular CLI, Nest CLI, Github Project, NX, ApexCharts
-- **Testing framework**: Jest for Unit test, Cypress for Automation test
+Backend Ecosystem: NestJS Server Framework, Clean Architecture Core Patterns, Passport JWT Security, Custom Performance Throttlers.
 
----
+Infrastructure & Tooling: Nx Workspace Orchestrator, Firebase Auth Provider, Cloud Firestore NoSQL Instance, Yarn Workspaces.
 
-##  Features
+Verification Foundations: Jest for isolated Unit Testing, Cypress for browser-level behavioral Automation, Storybook for UI isolated component specification.
 
-- Angular-based shell with routing and component structure
-- NestJS backend with placeholder endpoints (e.g. `/expenses`)
-- Shared type definitions to align frontend & backend
+Hosting: FE - Firebase Hosting, BE - Firebase Functions
+```
 
----
+## 🚀 Execution & Vitals
+Prerequisites
+```text
+
+### Prerequisites
+- Node.js: v22.x or more.
+- Nx CLI: yarn add nx (recommend).
+
+```
 
 ##  Getting Started
   ### Start project using NX
   ```
-  nx run-many -t serve
+  yarn nx run-many -t serve
   ```
   React run at: localhost:5000
   Angular run at: localhost:4200
@@ -55,41 +148,35 @@ micro-expense-tracker/
 
   ### Start each project (If you prefer)
   ```
-  nx serve backend
-  nx serve mfe-shell-angular
-  nx serve mfe-react-remote 
+  yarn nx serve backend
+  yarn nx serve mfe-shell-angular
+  yarn nx serve mfe-react-remote 
   ```
   For each new terminal
 
   ### Unit Test whole App
   ```
-  nx run-many -t test
+  yarn nx run-many -t test
   ```
 
   ### Unit test specific on backend
   ```
-  nx test backend
+  yarn nx test backend
   ```
   ### E2E Test Angular App
   ```
-  nx e2e mfe-shell-angular-e2e
+  yarn nx e2e mfe-shell-angular-e2e
   ```
 
   ### run Storybook React Remote App
   ```
-  nx storybook mfe-remote-react
+  yarn nx storybook mfe-remote-react
   ```
-
-### Prerequisites
-- Node.js: v18.x trở lên.
-- MongoDB: Default port is 27017.
-- Nx CLI: npm install -g nx (recommend).
 
 ### Clone the repo
 
 ```
-git clone https://github.com/hoangphivo97/micro-expense-tracker.git
-cd micro-expense-tracker
+git clone https://github.com/hoangphivo97/school-expense-ecosystem.git
 ```
 
 ### Note
