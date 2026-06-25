@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -126,7 +127,14 @@ export class AuthService {
       resolution.shouldLinkPreCreatedAccount
     );
 
-    return { status: UserStatus.PENDING };
+    const updatedUser = await this.authUserRepo.findByUid(uid);
+    if (!updatedUser) {
+      throw new NotFoundException('User record could not be retrieved after onboarding.');
+    }
+
+    const token = this.generateJWT(updatedUser);
+
+    return { token: token, user: updatedUser };
   }
 }
 

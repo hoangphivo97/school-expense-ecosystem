@@ -47,6 +47,7 @@ export class UserFormModalComponent implements OnInit {
   protected readonly UserType = UserType;
   protected readonly UserStatus = UserStatus;
   protected isSelf = false;
+  protected isOnboarding = false;
 
   protected filteredUserTypeOptions = signal<any[]>([]);
 
@@ -88,6 +89,7 @@ export class UserFormModalComponent implements OnInit {
     this.isEditMode = currentAction === DialogActionEnum.Edit;
     this.isDetailMode = currentAction === DialogActionEnum.Detail;
     this.isSelf = this.dialogData?.isSelf
+    this.isOnboarding = this.dialogData?.user.status === UserStatus.ONBOARDING
 
     this.initFormStructure();
     this.registerReactiveEngines();

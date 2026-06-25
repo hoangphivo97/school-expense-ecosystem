@@ -18,7 +18,14 @@
           <ng-container matColumnDef="fullName">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Full Name</th>
             <td mat-cell *matCellDef="let user" class="py-3 px-4 fw-semibold data-text-primary">
+              @if (user.fullName) {
               {{ user.fullName }}
+              } @else {
+              <span class="text-muted fst-italic fw-normal small" style="cursor: help;"
+                matTooltip="This user has authenticated via Google but has not yet filled out their onboarding profile info.">
+                Onboarding Pending
+              </span>
+              }
             </td>
           </ng-container>
 
@@ -32,7 +39,14 @@
           <ng-container matColumnDef="userCode">
             <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">Student/Staff ID</th>
             <td mat-cell *matCellDef="let user" class="py-3 identity-code-wrapper">
-              <code>{{ user.userCode || 'N/A' }}</code>
+              @if (user.userCode) {
+              <code>{{ user.userCode }}</code>
+              } @else {
+              <span class="text-muted fst-italic small" style="cursor: help;"
+                matTooltip="Organizational ID code will be established upon onboarding completion.">
+                Pending
+              </span>
+              }
             </td>
           </ng-container>
 
@@ -48,9 +62,20 @@
           <ng-container matColumnDef="userType">
             <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">User Type</th>
             <td mat-cell *matCellDef="let user" class="py-3">
+              @if (user.userType) {
               <span class="badge-usertype-variant" [ngClass]="'usertype-' + user.userType?.toLowerCase()">
                 {{ user.userType }}
               </span>
+              } @else {
+
+              <span class="badge-usertype-variant usertype-unassigned" style="cursor: help;"
+                [matTooltip]="(user.role === RoleEnum.LEVEL_0_ADMIN || user.role === RoleEnum.LEVEL_1_FINANCE) 
+                  ? 'System management or financial operations accounts do not require an institutional classification type.' 
+                  : 'This profile is incomplete. User classification selection is currently pending onboarding completion.'">
+                Unassigned
+              </span>
+
+              }
             </td>
           </ng-container>
 
@@ -117,10 +142,17 @@
               </button>
               }
 
-              <button mat-icon-button color="accent" [disabled]="processingUserId() === user.uid"
-                (click)="openUpdateModal(user)" aria-label="Edit system account settings" matTooltip="Edit Profile">
-                <mat-icon class="action-edit-icon">edit</mat-icon>
-              </button>
+              <span
+                [matTooltip]="user.status === UserStatusEnum.ONBOARDING ? 'Account profile is incomplete. Editing is locked during onboarding.' : 'Edit Profile'"
+                class="d-inline-block">
+
+                <button mat-icon-button color="accent"
+                  [disabled]="processingUserId() === user.uid || user.status === UserStatusEnum.ONBOARDING"
+                  (click)="openUpdateModal(user)" aria-label="Edit system account settings">
+                  <mat-icon class="action-edit-icon">edit</mat-icon>
+                </button>
+
+              </span>
               }
 
               @else {
