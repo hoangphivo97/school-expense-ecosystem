@@ -86,7 +86,7 @@ export class OnboardingComponent implements OnInit {
 
     try {
       const response = await this.authService.completeOnboarding(formData);
-      this.authStore.updateAuthState(response.token, (response as any).user);
+      this.authStore.updateAuthState(response.token, response.user);
       this.router.navigate(['/auth/waiting-approval']);
     } catch (err: any) {
       console.error('Onboarding operational database mutation failure:', err);

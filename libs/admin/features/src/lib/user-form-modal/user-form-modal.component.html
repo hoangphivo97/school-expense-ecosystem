@@ -146,7 +146,7 @@
   <button mat-button mat-dialog-close class="px-4 py-2 text-secondary fw-semibold">Cancel</button>
 
   @if (isDetailMode) {
-    @if (!isSelf) {
+    @if (!isSelf && !isOnboarding) {
       <button mat-flat-button color="accent" (click)="switchToEditMode()" class="px-4 py-2 fw-semibold shadow-sm">
         <mat-icon>edit</mat-icon> Edit Profile
       </button>

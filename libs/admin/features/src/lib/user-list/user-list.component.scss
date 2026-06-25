@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--bg-primary); 
+  background-color: var(--bg-primary);
   transition: background-color 0.3s ease;
 }
 
@@ -68,7 +68,7 @@
     font-size: 0.875rem; // 14px smooth readability text cells
   }
 
-  td.action-column{
+  td.action-column {
     display: flex;
   }
 }
@@ -156,7 +156,14 @@
     border: 1px solid #fef08a;
   }
 
-  &.status-rejected , &.status-suspended{
+  &.status-onboarding {
+    background-color: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+  }
+
+  &.status-rejected,
+  &.status-suspended {
     background-color: #fef2f2;
     color: #991b1b;
     border: 1px solid #fee2e2;
@@ -190,5 +197,11 @@
     background-color: #fffbeb;
     color: #92400e;
     border: 1px solid #fef3c7;
+  }
+
+  &.usertype-unassigned {
+    background-color: #fafafa;
+    color: #71717a;
+    border: 1px dashed #d4d4d8;
   }
 }
