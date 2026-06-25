@@ -83,6 +83,7 @@ export class AuthService {
       this.isOnboardingSubmitting.set(false);
     }
   }
+  
   async signOut() {
     try {
       await this.auth.signOut();
