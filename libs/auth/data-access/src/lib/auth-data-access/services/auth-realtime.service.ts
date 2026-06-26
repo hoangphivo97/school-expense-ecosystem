@@ -3,7 +3,7 @@ import { Firestore, doc, docData } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { Observable } from 'rxjs';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
 

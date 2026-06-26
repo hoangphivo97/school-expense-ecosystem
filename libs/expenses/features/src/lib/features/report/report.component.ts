@@ -11,7 +11,7 @@ import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { makeLineChart, makeMonthlyColumnChart, makePieChart } from './utils/multiple-charts-helper';
 import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
 
 @Component({
   selector: 'lib-report',

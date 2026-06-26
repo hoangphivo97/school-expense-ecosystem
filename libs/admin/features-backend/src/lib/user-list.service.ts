@@ -1,5 +1,5 @@
 import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { UserBase, } from '@school-expense-ecosystem/auth/types';
+import { UserBase, } from '@school-expense-ecosystem/shared/types';
 import { UserRepository } from './repository/user.repository';
 import { CreateUserDto, UpdateUserDto } from 'admin-data-access-backend';
 import { AdminActionType, CreateUserResult, IAdminExecutor, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';

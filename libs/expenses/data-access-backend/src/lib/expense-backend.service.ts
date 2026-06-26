@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
 import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseStatus, AuditAction, AuditLogEntry, PaidMethod, ExpenseFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
-import { AuthenticatedUser} from '@school-expense-ecosystem/auth/types';
+import { AuthenticatedUser} from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class ExpenseBackendService {

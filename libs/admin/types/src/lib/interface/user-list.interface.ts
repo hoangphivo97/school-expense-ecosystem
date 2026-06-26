@@ -1,6 +1,6 @@
 import { FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { FilterParams, PaginationParams } from '@school-expense-ecosystem/shared/types';
-import { UserBase } from '@school-expense-ecosystem/auth/types'
+import { UserBase } from '@school-expense-ecosystem/shared/types'
 
 /**
  * Strictly-typed business filters extracted directly from the global filter matrix.

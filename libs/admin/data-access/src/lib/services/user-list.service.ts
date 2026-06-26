@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { UserBase, UserStatus } from '@school-expense-ecosystem/shared/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 import { CreateUserInput, CreateUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
 

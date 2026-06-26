@@ -4,7 +4,7 @@
   "sourceRoot": "/libs/expenses/data-access-backend/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": ["scope:expenses", "scope:shared"],
+  "tags": ["scope:expenses"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

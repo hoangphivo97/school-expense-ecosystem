@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param } from '@nestjs/common';
 import { UserListService } from './user-list.service';
-import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
+import { Role, UserBase } from '@school-expense-ecosystem/shared/types';
 import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/auth/features-backend';
 import { ChangeUserStatusDto, CreateUserDto, UpdateUserDto } from 'admin-data-access-backend';
 import { IAdminExecutor } from '@school-expense-ecosystem/admin/types';
