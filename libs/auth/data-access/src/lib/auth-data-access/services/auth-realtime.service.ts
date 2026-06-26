@@ -2,7 +2,7 @@ import { Injectable, inject, Injector, effect } from '@angular/core';
 import { Firestore, doc, docData } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { Observable } from 'rxjs';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';

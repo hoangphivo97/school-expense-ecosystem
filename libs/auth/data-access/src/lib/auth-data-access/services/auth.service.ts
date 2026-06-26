@@ -9,7 +9,7 @@ import { firstValueFrom} from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
-import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 import { GoogleAuthProvider } from 'firebase/auth';
 

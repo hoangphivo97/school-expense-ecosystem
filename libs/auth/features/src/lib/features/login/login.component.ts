@@ -1,7 +1,7 @@
 import { Component, inject, NgZone, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse } from '@school-expense-ecosystem/auth/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
@@ -14,6 +14,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { faArrowLeft, faArrowRight, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { MatOption, MatSelect } from '@angular/material/select';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 
 interface DemoAccount {
   role: string;

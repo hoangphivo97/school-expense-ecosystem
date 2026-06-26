@@ -18,7 +18,7 @@ import { catchError, map, of, switchMap } from 'rxjs';
 import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
-import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { UserStatus, UserType, Role } from '@school-expense-ecosystem/shared/types'
 

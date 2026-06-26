@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OnboardingData } from '@school-expense-ecosystem/auth/types';
@@ -11,8 +11,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 
 @Component({
   selector: 'lib-onboarding',

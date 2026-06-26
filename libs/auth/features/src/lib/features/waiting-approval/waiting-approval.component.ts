@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, Injector, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthRealtimeService, AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthRealtimeService, AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { MatButton } from '@angular/material/button';
-import { UserStatus } from '@school-expense-ecosystem/auth/types';
-import { Router } from '@angular/router';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 
 @Component({
   selector: 'lib-waiting-approval',
@@ -18,7 +17,7 @@ import { Router } from '@angular/router';
   styleUrl: './waiting-approval.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WaitingApprovalComponent {
+export class WaitingApprovalComponent implements OnInit {
   private readonly authStore = inject(AuthSignalStore);
   private readonly realtimeService = inject(AuthRealtimeService);
   private readonly authService = inject(AuthService);
