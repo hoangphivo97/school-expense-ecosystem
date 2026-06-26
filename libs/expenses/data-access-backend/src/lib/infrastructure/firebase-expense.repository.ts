@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ExpenseRepository } from '../expense.repository';
 import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, ExpenseFilters } from '@school-expense-ecosystem/expenses/types';
-import { Role } from '@school-expense-ecosystem/auth/types';
+import { Role } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class FirebaseExpenseRepository implements ExpenseRepository {
@@ -113,11 +113,11 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     return this.mapDocToExpense(freshDoc);
   }
 
-  async update(id: string, data: Partial<ExpenseList> & { logEntry?: any }): Promise<ExpenseList> {
+  async update(id: string, data: Partial<ExpenseList> & { logEntry?: unknown }): Promise<ExpenseList> {
     const docRef = this.db.collection('expenses').doc(id);
     const { logEntry, ...cleanData } = data;
 
-    const updatePayload: Record<string, any> = {
+    const updatePayload: Record<string, unknown> = {
       ...cleanData,
       updatedAt: admin.firestore.Timestamp.now()
     };
