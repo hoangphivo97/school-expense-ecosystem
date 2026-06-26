@@ -50,7 +50,7 @@ export class AuthSignalStore {
       const payloadPart = token.split('.')[1];
       const decodedJson = atob(payloadPart);
       return JSON.parse(decodedJson) as UserBase;
-    } catch (error) {
+    } catch {
       return null;
     }
   }

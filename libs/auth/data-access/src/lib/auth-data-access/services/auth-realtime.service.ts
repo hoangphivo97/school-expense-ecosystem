@@ -3,8 +3,9 @@ import { Firestore, doc, docData } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthSignalStore } from '../RouteGuard/auth-signal.store';
-import { UserStatus, UserBase } from '@school-expense-ecosystem/auth/types';
+import { UserBase } from '@school-expense-ecosystem/auth/types';
 import { Observable } from 'rxjs';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 @Injectable({
   providedIn: 'root'
@@ -36,10 +37,12 @@ export class AuthRealtimeService {
 
       switch (updatedUser.status) {
         case UserStatus.ACTIVE:
-          const currentToken = this.authStore.token();
-          this.authStore.updateAuthState(currentToken, updatedUser);
-          this.router.navigate(['/dashboard']);
-          break;
+          {
+            const currentToken = this.authStore.token();
+            this.authStore.updateAuthState(currentToken, updatedUser);
+            this.router.navigate(['/dashboard']);
+            break;
+          }
 
         case UserStatus.REJECTED:
           this.authStore.updateAuthState(null, null);

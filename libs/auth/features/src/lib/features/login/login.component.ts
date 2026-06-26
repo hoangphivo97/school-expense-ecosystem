@@ -2,9 +2,10 @@ import { Component, inject, NgZone, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
-import { UserStatus } from '@school-expense-ecosystem/auth/types';
+import { LoginResponse, UserBase } from '@school-expense-ecosystem/auth/types';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
-import { MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardModule, MatCardTitle } from '@angular/material/card';
+import { MatCardModule, MatCardTitle } from '@angular/material/card';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatButton } from '@angular/material/button';
@@ -123,7 +124,7 @@ export class LoginComponent {
     if (this.authService.isSystemLoading()) return;
 
     try {
-      const res = await this.authService.signInWithGoogleAccount();
+      const res = await this.authService.signInWithGoogleAccount() as LoginResponse;
       this.updateTokenAndReRoute(res.token, res.user);
     } catch (err: any) {
       console.warn('Google OAuth authentication flow intercepted:', err);
@@ -158,7 +159,7 @@ export class LoginComponent {
   /**
    * Reused Core Logic: Dispatches global state updates and coordinates application routing
    */
-  updateTokenAndReRoute(token: string, user: any): void {
+  updateTokenAndReRoute(token: string, user: UserBase): void {
     this.authStore.updateAuthState(token, user);
 
     if (!user) {

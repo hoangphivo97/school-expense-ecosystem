@@ -58,7 +58,7 @@ export class AuthService {
     }
   }
 
-  async signInWithGoogleAccount(): Promise<any> {
+  async signInWithGoogleAccount(): Promise<unknown> {
     this.isLoggingInWithGoogle.set(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -66,7 +66,7 @@ export class AuthService {
       const token = await result.user.getIdToken();
 
       return await firstValueFrom(
-        this.http.post<any>(`${this.apiUrl}/google-login`, { uid: result.user.uid, token })
+        this.http.post<unknown>(`${this.apiUrl}/google-login`, { uid: result.user.uid, token })
       );
     } finally {
       this.isLoggingInWithGoogle.set(false);
