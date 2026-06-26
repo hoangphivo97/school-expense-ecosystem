@@ -8,8 +8,8 @@ export enum AdminActionType {
 }
 
 export interface IAuditLogChangeValue {
-  old: any;
-  new: any;
+  old: unknown;
+  new: unknown;
 }
 
 /**
