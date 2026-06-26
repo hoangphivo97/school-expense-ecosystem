@@ -23,7 +23,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 import { months } from '@school-expense-ecosystem/shared/constants';
 import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
-import { ExpenseStatus } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
 @Component({
@@ -43,7 +43,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
   templateUrl: './filter.component.html',
   styleUrl: './filter.component.scss',
 })
-export class FilterComponent<T = any> implements OnInit {
+export class FilterComponent<T = unknown> implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly paginator = viewChild(MatPaginator);
@@ -67,7 +67,7 @@ export class FilterComponent<T = any> implements OnInit {
   // Multi-dimensional dynamic model mapping streams
   inputDataSource = input<MatTableDataSource<T> | null>(null);
   value = input<FilterParams | null>(null);
-  rawYearsList = input<number[]>([], { alias: 'yearsList' });
+  yearsList = input<number[]>([]);
   facultiesList = input<{ facultyId: string; facultyName: string }[]>([]);
 
   filterChange = output<FilterParams>();
@@ -132,7 +132,7 @@ export class FilterComponent<T = any> implements OnInit {
   });
 
   readonly processedYears = computed(() => {
-    const years = [...this.rawYearsList()];
+    const years = [...this.yearsList()];
     if (!years.includes(this.currentYear)) {
       years.push(this.currentYear);
     }
@@ -190,24 +190,24 @@ export class FilterComponent<T = any> implements OnInit {
       .subscribe((formValues) => {
         // Core Internal Sanitizer Utility: Eradicates presentation rác values before exposure
 
-        const getValidRole = (val: any): Role | undefined => {
+        const getValidRole = (val: unknown): Role | undefined => {
           if (val === 'ALL' || val === null || val === '') return undefined;
           // Kiểm tra xem giá trị từ Form có thực sự nằm trong danh mục Enum Role hay không
           return Object.values(Role).includes(val as Role) ? (val as Role) : undefined;
         };
 
-        const getValidUserType = (val: any): UserType | undefined => {
+        const getValidUserType = (val: unknown): UserType | undefined => {
           if (val === 'ALL' || val === null || val === '') return undefined;
           // Thực hiện validation hoặc gán ép kiểu có chốt chặn kiểm soát boundary
           return val as UserType;
         };
 
-        const getValidFacultyId = (val: any): FacultyId | undefined => {
+        const getValidFacultyId = (val: unknown): FacultyId | undefined => {
           if (val === 'ALL' || val === null || val === '') return undefined;
           return val as FacultyId;
         };
 
-        const getValidStatus = (val: any): UserStatus | undefined => {
+        const getValidStatus = (val: unknown): UserStatus | undefined => {
           if (val === 'ALL' || val === null || val === '') return undefined;
           return val as UserStatus; // Hấp thụ giá trị dropdown chuyển vùng an toàn cho form
         };
@@ -224,7 +224,7 @@ export class FilterComponent<T = any> implements OnInit {
 
         const dataSource = this.inputDataSource();
         if (dataSource && this.showSearch()) {
-          dataSource.filter = payload.searchTerm!.trim().toLowerCase();
+          dataSource.filter = (payload.searchTerm as string).trim().toLowerCase();
         }
 
         this.filterChange.emit(payload);

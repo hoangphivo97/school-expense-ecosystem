@@ -4,3 +4,4 @@ export * from './lib/interface/settings.interface';
 export * from './lib/interface/nav.interface';
 export * from './lib/enums/filter.enum';
 export * from './lib/enums/user.enum';
+export * from './lib/enums/expense-shared.enum';

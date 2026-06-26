@@ -1,6 +1,6 @@
 import { FacultyId, Role, UserType } from "@school-expense-ecosystem/shared/types";
-import { AuditAction, ExpenseStatus, PaidMethod } from "../enums/expense.enum";
-import { FilterParams, PaginationParams } from "@school-expense-ecosystem/shared/types";
+import { AuditAction, PaidMethod } from "../enums/expense.enum";
+import { FilterParams, PaginationParams, ExpenseStatus} from "@school-expense-ecosystem/shared/types";
 
 export interface ExpenseList {
   id: string;
