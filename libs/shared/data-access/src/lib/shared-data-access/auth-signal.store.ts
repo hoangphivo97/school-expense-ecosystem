@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
 
 @Injectable({ providedIn: 'root' })
 export class AuthSignalStore {
@@ -50,7 +50,7 @@ export class AuthSignalStore {
       const payloadPart = token.split('.')[1];
       const decodedJson = atob(payloadPart);
       return JSON.parse(decodedJson) as UserBase;
-    } catch (error) {
+    } catch {
       return null;
     }
   }

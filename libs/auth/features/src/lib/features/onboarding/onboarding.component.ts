@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { FacultyId, OnboardingData, UserType } from '@school-expense-ecosystem/auth/types';
+import { OnboardingData } from '@school-expense-ecosystem/auth/types';
+import { UserType, FacultyId } from '@school-expense-ecosystem/shared/types';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,8 +11,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthService, AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 
 @Component({
   selector: 'lib-onboarding',
@@ -37,7 +39,7 @@ export class OnboardingComponent implements OnInit {
   private readonly router = inject(Router)
   private readonly authStore = inject(AuthSignalStore)
   private readonly errorModalService = inject(ErrorModalService)
-  
+
   onboardingForm!: FormGroup;
 
   faculties = Object.values(FacultyId);

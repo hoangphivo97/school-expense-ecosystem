@@ -1,8 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faEnvelope, faFileCircleXmark, faRightFromBracket, faUserSlash } from '@fortawesome/free-solid-svg-icons';
-import { UserStatus } from '@school-expense-ecosystem/auth/types';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 interface RestrictionNavigationState {
   status?: UserStatus;

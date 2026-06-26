@@ -11,15 +11,16 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
-import { Role, UserBase, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
-import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { UserStatus, UserType, Role } from '@school-expense-ecosystem/shared/types'
 
 import { 
   faCircleCheck, 

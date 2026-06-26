@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidatorFn } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { Role, UserType, UserStatus, FacultyId } from '@school-expense-ecosystem/auth/types';
+import { Role, UserType, UserStatus, FacultyId } from '@school-expense-ecosystem/shared/types';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -14,9 +14,10 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
+import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
 
 @Component({
-  selector: 'admin-user-form-modal',
+  selector: 'lib-user-form-modal',
   standalone: true,
   imports: [ReactiveFormsModule,
     MatButtonModule,
@@ -49,7 +50,7 @@ export class UserFormModalComponent implements OnInit {
   protected isSelf = false;
   protected isOnboarding = false;
 
-  protected filteredUserTypeOptions = signal<any[]>([]);
+  protected filteredUserTypeOptions = signal<unknown[]>([]);
 
   protected readonly roleOptions = [
     { value: Role.LEVEL_0_ADMIN, label: 'System Admin (Backdoor)' },
@@ -226,7 +227,7 @@ export class UserFormModalComponent implements OnInit {
     return null;
   }
 
-  private toggleControlState(ctrl: AbstractControl | null, enable: boolean, validators: any[] = []): void {
+  private toggleControlState(ctrl: AbstractControl | null, enable: boolean, validators: ValidatorFn[] = []): void {
     if (!ctrl) return;
     if (enable) {
       ctrl.enable();
@@ -303,7 +304,7 @@ export class UserFormModalComponent implements OnInit {
         provisionPayload.password = rawForm.password;
       }
 
-      this.userListService.provisionUser(provisionPayload).subscribe({
+      this.userListService.provisionUser(provisionPayload as CreateUserInput).subscribe({
         next: () => {
           this.showNotification('Account provisioned successfully!', 'success');
           this.dialogRef.close({ isSuccess: true, payload: provisionPayload });

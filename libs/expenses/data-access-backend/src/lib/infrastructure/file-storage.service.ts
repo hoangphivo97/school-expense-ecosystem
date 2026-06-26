@@ -34,7 +34,7 @@ export class FileStorageService {
         
         // Trả về URL cấu trúc mới chính thức
         committedUrls.push(`/uploads/expenses/${expenseId}/${fileName}`);
-      } catch (error) {
+      } catch{
         // Nếu file không có ở temp (có thể do đã lưu từ trước hoặc lỗi), giữ nguyên URL cũ
         committedUrls.push(url);
       }
@@ -46,7 +46,7 @@ export class FileStorageService {
   private async ensureDirectoryExists(dirPath: string): Promise<void> {
     try {
       await fs.mkdir(dirPath, { recursive: true });
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException('Infrastructure Failure: Cannot initialize upload directories.');
     }
   }

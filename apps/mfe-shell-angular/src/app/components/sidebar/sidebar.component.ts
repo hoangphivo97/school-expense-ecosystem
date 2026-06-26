@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { NavItem } from '@school-expense-ecosystem/shared/types';
@@ -21,7 +21,7 @@ import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ReactWrapperComponent } from '@school-expense-ecosystem/shared/ui';
 import { A11yModule } from "@angular/cdk/a11y";
-import { Role } from '@school-expense-ecosystem/auth/types';
+import { Role } from '@school-expense-ecosystem/shared/types';
 import { MatTooltip } from "@angular/material/tooltip";
 
 @Component({

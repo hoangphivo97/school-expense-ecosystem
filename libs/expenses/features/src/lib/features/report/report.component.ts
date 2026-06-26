@@ -1,17 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { filter, map, startWith } from 'rxjs/operators';
 import { MatIcon } from '@angular/material/icon';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { HeaderComponent, FooterComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
 import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { makeLineChart, makeMonthlyColumnChart, makePieChart } from './utils/multiple-charts-helper';
-import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
 
 @Component({
   selector: 'lib-report',

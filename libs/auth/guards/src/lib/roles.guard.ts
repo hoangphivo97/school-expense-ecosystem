@@ -1,8 +1,8 @@
 // libs/auth/data-access/src/lib/auth-data-access/RouteGuard/roles.guard.ts
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { AuthSignalStore } from './auth-signal.store';
-import { Role } from '@school-expense-ecosystem/auth/types';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { Role } from '@school-expense-ecosystem/shared/types';
 
 export const rolesGuard: CanActivateFn = (route, state) => {
   const authStore = inject(AuthSignalStore);

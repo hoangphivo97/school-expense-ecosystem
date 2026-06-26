@@ -1,8 +1,9 @@
 import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
-import { UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
 import * as admin from 'firebase-admin';
 import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class FirebaseUserRepository implements UserRepository {
@@ -100,17 +101,17 @@ export class FirebaseUserRepository implements UserRepository {
   }
 
   async updateStatus(uid: string, status: UserStatus, reason?: string): Promise<void> {
-  const updateData: any = {
-    status,
-    updatedAt: new Date()
-  };
+    const updateData: any = {
+      status,
+      updatedAt: new Date()
+    };
 
-  if (reason) {
-    updateData.reason = reason;
-  } else if (status === UserStatus.ACTIVE) { 
-    updateData.reason = admin.firestore.FieldValue.delete();
+    if (reason) {
+      updateData.reason = reason;
+    } else if (status === UserStatus.ACTIVE) {
+      updateData.reason = admin.firestore.FieldValue.delete();
+    }
+
+    await this.db.collection('users').doc(uid).update(updateData);
   }
-
-  await this.db.collection('users').doc(uid).update(updateData);
-}
 }

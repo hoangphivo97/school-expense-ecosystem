@@ -5,10 +5,10 @@ import {
   HttpHandlerFn,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { Router } from '@angular/router';
 import { catchError, from, switchMap, throwError } from 'rxjs';
-import { AuthSignalStore } from './auth-signal.store';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 
 import { HTTP_ERROR_DELEGATE } from '@school-expense-ecosystem/shared/tokens';
 

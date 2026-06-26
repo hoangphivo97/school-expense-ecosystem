@@ -35,7 +35,8 @@ export default [
                 'scope:auth',
                 'scope:finance',
                 'scope:shared',
-                'scope:admin'
+                'scope:admin',
+                'scope:expenses'
               ],
             },
             // Rulse for Domain Auth

@@ -3,7 +3,7 @@ import { BudgetService, FacultyBudgetInit } from '@school-expense-ecosystem/fina
 import { form, required, FormField } from '@angular/forms/signals';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FacultyId } from '@school-expense-ecosystem/auth/types';
+import { FacultyId } from '@school-expense-ecosystem/shared/types';
 
 @Component({
   selector: 'lib-budget-manager',

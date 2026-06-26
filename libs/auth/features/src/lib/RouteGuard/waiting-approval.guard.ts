@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { AuthSignalStore } from './auth-signal.store';
-import { UserStatus } from '@school-expense-ecosystem/auth/types';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 export const waitingApprovalGuard: CanActivateFn = () => {
   const router = inject(Router);

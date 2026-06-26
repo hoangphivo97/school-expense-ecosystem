@@ -1,5 +1,5 @@
 import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
-import { UserStatus } from '@school-expense-ecosystem/auth/types';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 export abstract class UserRepository {
   abstract findPaginated(filters: {

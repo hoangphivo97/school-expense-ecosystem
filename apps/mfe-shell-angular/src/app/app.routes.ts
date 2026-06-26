@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { activeUserGuard, authGuard, rolesGuard } from '@school-expense-ecosystem/auth/data-access';
+import { activeUserGuard, authGuard, rolesGuard } from '@school-expense-ecosystem/auth/guards';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
-import { Role } from '@school-expense-ecosystem/auth/types';
+import { Role } from '@school-expense-ecosystem/shared/types';
 
 export const routes: Routes = [
   {

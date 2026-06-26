@@ -4,7 +4,7 @@
   "sourceRoot": "libs/admin/data-access-backend/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["scope:admin"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
