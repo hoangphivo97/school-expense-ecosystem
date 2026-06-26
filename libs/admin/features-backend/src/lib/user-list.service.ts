@@ -1,9 +1,10 @@
 import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { Role, UserBase, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { UserBase, } from '@school-expense-ecosystem/auth/types';
 import { UserRepository } from './repository/user.repository';
 import { CreateUserDto, UpdateUserDto } from 'admin-data-access-backend';
 import { AdminActionType, CreateUserResult, IAdminExecutor, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';
 import { IAdminAuditLogRepository } from './repository/audit-log.repository';
+import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class UserListService {

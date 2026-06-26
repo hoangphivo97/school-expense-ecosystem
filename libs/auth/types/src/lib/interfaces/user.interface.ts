@@ -1,5 +1,5 @@
-import { UserType, UserStatus, Role, FacultyId, ConflictReason } from '../enums/user.enum';
-
+import { ConflictReason } from '../enums/auth.enum';
+import { UserType, UserStatus, Role, FacultyId, } from '@school-expense-ecosystem/shared/types';
 export interface LoginResponse {
   token: string;
   user: UserBase;

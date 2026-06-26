@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, ValidateIf } from "class-validator";
-import { FacultyId, Role, UserStatus, UserType } from "@school-expense-ecosystem/auth/types";
+import { FacultyId, Role, UserStatus, UserType } from "@school-expense-ecosystem/shared/types";
 import { CreateUserInput, UpdateUserInput } from "@school-expense-ecosystem/admin/types";
 
 export class CreateUserDto implements CreateUserInput {

@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { FacultyId, OnboardingData, UserType } from '@school-expense-ecosystem/auth/types';
+import { OnboardingData } from '@school-expense-ecosystem/auth/types';
+import { UserType, FacultyId } from '@school-expense-ecosystem/shared/types';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -37,7 +38,7 @@ export class OnboardingComponent implements OnInit {
   private readonly router = inject(Router)
   private readonly authStore = inject(AuthSignalStore)
   private readonly errorModalService = inject(ErrorModalService)
-  
+
   onboardingForm!: FormGroup;
 
   faculties = Object.values(FacultyId);

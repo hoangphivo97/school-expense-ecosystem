@@ -8,9 +8,10 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UserInDb } from './interface/user-db.interface';
 import { OnboardingDto } from './DTO/onboarding.dto';
-import { ConflictReason, Role, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { ConflictReason  } from '@school-expense-ecosystem/auth/types';
 import { AuthUserRepository } from './auth-user.repository';
 import { IdentityProvider } from './interface/identify-provider.interface';
+import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class AuthService {

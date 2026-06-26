@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { Role, UserType, UserStatus, FacultyId } from '@school-expense-ecosystem/auth/types';
+import { Role, UserType, UserStatus, FacultyId } from '@school-expense-ecosystem/shared/types';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';

@@ -1,4 +1,4 @@
-import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
+import { FacultyId, Role, UserStatus, UserType } from '../enums/user.enum';
 import * as React from 'react';
 
 export interface ReactComponentType {

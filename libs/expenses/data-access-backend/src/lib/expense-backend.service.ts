@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
 import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseStatus, AuditAction, AuditLogEntry, PaidMethod, ExpenseFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
-import { AuthenticatedUser, FacultyId, Role } from '@school-expense-ecosystem/auth/types';
+import { AuthenticatedUser} from '@school-expense-ecosystem/auth/types';
 
 @Injectable()
 export class ExpenseBackendService {
@@ -137,7 +137,6 @@ export class ExpenseBackendService {
     return this.expenseRepo.findAvailableYears(userId);
   }
 
-  // 🌟 ĐỒNG BỘ ENUM: Ép kiểu Role và FacultyId thay vì dùng string thô sơ
   async getExpenseAnalytics(filter: AnalyticsFilters): Promise<ExpenseAnalyticsDto> {
     return this.expenseRepo.getAnalytics(filter);
   }

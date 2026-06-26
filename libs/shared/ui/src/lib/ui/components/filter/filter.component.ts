@@ -22,7 +22,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 import { months } from '@school-expense-ecosystem/shared/constants';
-import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
+import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/expenses/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 

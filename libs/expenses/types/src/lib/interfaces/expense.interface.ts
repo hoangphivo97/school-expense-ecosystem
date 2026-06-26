@@ -1,4 +1,4 @@
-import { FacultyId, Role, UserType } from "@school-expense-ecosystem/auth/types";
+import { FacultyId, Role, UserType } from "@school-expense-ecosystem/shared/types";
 import { AuditAction, ExpenseStatus, PaidMethod } from "../enums/expense.enum";
 import { FilterParams, PaginationParams } from "@school-expense-ecosystem/shared/types";
 
