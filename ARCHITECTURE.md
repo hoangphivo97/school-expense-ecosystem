@@ -380,3 +380,85 @@ graph TB
 ```
 
 </details>
+<details>
+<summary><b>4. Firestore NoSQL Data Model Diagram (Click to expand)</b></summary>
+  
+```mermaid
+erDiagram
+    USERS {
+        string id PK "uid (Firebase Auth)"
+        string username "Optional"
+        string fullName "Required"
+        string role "Role Enum: STUDENT | TEACHER | DEAN | FINANCE | ADMIN"
+        string email "Institutional Email"
+        string facultyId "FacultyId Enum"
+        string userType "UserType Enum"
+        string userCode "Unique Academic/Staff ID"
+        string dateOfBirth "Required"
+        string status "UserStatus Enum"
+        date createdAt "ISO String Timestamp"
+        string reason "Onboarding Rejection Reason"
+    }
+
+    EXPENSES {
+        string id PK "Auto-generated Document UUID"
+        string expenseCode UK "[FACULTY]-[MMYY]-[CRYPTO]"
+        string userId FK "Links to USERS.id"
+        string requesterCode "userCode at submission"
+        string requesterName "fullName at submission"
+        string facultyId "FacultyId Enum"
+        number amount "Reimbursement Value (TWD)"
+        string purpose "Statement of Purpose"
+        string description "Detailed Field Notes"
+        string status "ExpenseStatus Enum"
+        string paidMethod "PaidMethod Enum"
+        string date "Target Appointment / Expense Date"
+        string appointmentStatus "AppointmentStatus Enum"
+        array_string proofUrls "Cloud Storage References"
+        array_object history "Embedded Array of AuditLogEntry objects"
+        string requesterType "UserType Enum"
+        string rejectReason "Optional"
+        string createdAt "ISO String Timestamp"
+        string updatedAt "ISO String Timestamp"
+    }
+
+    PAYOUTS {
+        string id PK "payoutId (Auto-generated UUID)"
+        string payoutCode UK "PAY-[MMYY]-[CRYPTO]"
+        array_string targetExpenses "Array of linked Expense IDs"
+        string payoutDate "Reconciliation Date"
+        string payoutType "PaidMethod Enum"
+        string proofUrl "Master Bank Receipt PDF URL"
+        string reason "Reconciliation Notes"
+        string status "PayoutStatus Enum"
+        string createdAt "ISO String Timestamp"
+        string updatedAt "ISO String Timestamp"
+    }
+
+    BUDGET_CAPS {
+        string id PK "Document ID equals facultyId"
+        number totalBudget "Total Static Envelope"
+        number frozenAmount "Encumbered Funds"
+        number availableAmount "Spendable Balance"
+        string createdAt "ISO String Timestamp"
+        string updatedAt "ISO String Timestamp"
+    }
+
+    ADMIN_LOGS {
+        string id PK "Auto-generated Log UUID"
+        string actorId FK "Links to USERS.id (ADMIN UID)"
+        string actorCode "Admin employee code"
+        string actorName "Admin full name"
+        string action "AdminAction: USER_APPROVE | USER_REJECT | USER_STATUS_CHANGE"
+        string targetUserId "UID of the affected user being managed"
+        string description "Semantic detail (e.g., Activated Student Account)"
+        string createdAt "ISO String Timestamp"
+    }
+
+    USERS ||--o{ EXPENSES : "submits"
+    BUDGET_CAPS ||--o{ EXPENSES : "allocates_funds_for"
+    PAYOUTS ||--o{ EXPENSES : "reconciles_and_disburses"
+    USERS ||--o{ ADMIN_LOGS : "executes_user_administrative_action"
+```
+
+</details>
