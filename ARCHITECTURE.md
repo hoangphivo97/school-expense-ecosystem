@@ -1,7 +1,7 @@
 ### 📑 Core Modules Flowcharts
 
 <details>
-<summary><b>1. User Management Flow (Click to expand)</b></summary>
+<summary><b>1.User Management Business Logic Flowchart (Click to expand)</b></summary>
   
 ```mermaid
 flowchart TD
@@ -69,7 +69,7 @@ class Start,End_Active,End_Block,End_Blacklist,End_Purged,End_Pending_Screen ter
 </details>
 
 <details>
-<summary><b>2. Expense Management & Payout Sub-Module Flow (Click to expand)</b></summary>
+<summary><b>2.Business Logic Flowchart for Expense Management & Payout Lifecycle  (Click to expand)</b></summary>
   
 ```mermaid
 
@@ -81,91 +81,164 @@ classDef condition fill:#eceff1,stroke:#455a64,stroke-width:1.5px;
 classDef success fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
 classDef log fill:#e0f7fa,stroke:#00838f,stroke-width:1.5px;
 
+%% Pre-define Centralized State Node to avoid parser conflicts
+ST_Rejected((State:<br/>REJECTED))
+
 subgraph Expense_Module ["📑 EXPENSE MODULE (Document & Approval Lifecycle)"]
-    Start([🚀 Start: Student Submits Request]) --> Act_Input[Student Inputs Details & proofUrls]
-    Act_Input --> Decision_Format{"Validation:<br/>Valid Uniform Invoice No. GUI?"}
+    Start([🚀 Start: User Submits Request]) --> Act_Input
+    Act_Input["Input Details & Uniform Invoice No. GUI"] --> Decision_Format
+    Decision_Format{"Validation:<br/>Valid GUI Format?"}
     
-    Decision_Format -->|"No"| Act_FixForm[Prompt Error to Correct] --> Act_Input
+    Decision_Format -->|"No"| Act_FixForm
+    Act_FixForm["Prompt Error to Correct"] --> Act_Input
     
-    Decision_Format -->|"Yes"| Log_Create[(Create AuditLogEntry<br/>action: SUBMIT<br/>status: PENDING_TEACHER_REVIEW)]
-    Log_Create -->|"Push to history[]"| ST_PendingTeacher((State:<br/>PENDING_TEACHER_REVIEW))
+    Decision_Format -->|"Yes"| Log_Create
+    Log_Create["Create AuditLogEntry<br/>action: SUBMIT"] --> Decision_Role
     
-    ST_PendingTeacher --> Decision_Teacher{"Staff Review:<br/>Filter by departmentId"}
+    Decision_Role{"Evaluate Submitter Role<br/>via JWT Custom Claims"}
     
-    Decision_Teacher -->|"Reject"| Log_StaffReject[(Create AuditLogEntry<br/>action: REJECT & capture rejectReason)] --> Act_SetStaffReject[System: Set ExpenseStatus to REJECTED] --> ST_Rejected
+    %% Branch 1: Student takes the full path
+    ST_PendingTeacher(("State:<br/>PENDING_TEACHER_REVIEW"))
+    Decision_Role -->|"Role: STUDENT"| ST_PendingTeacher
     
-    Decision_Teacher -->|"Approve"| Log_StaffApprove[(Create AuditLogEntry<br/>action: APPROVE)] -->|"Push to history[]"| ST_PendingDean((State:<br/>PENDING_DEAN_APPROVAL))
+    ST_PendingTeacher --> Decision_Teacher
+    Decision_Teacher{"Staff Review:<br/>Filter by departmentId"}
     
-    ST_PendingDean --> Decision_Dean{"Dean Review:<br/>Check Faculty Budget Cap in TWD"}
+    Decision_Teacher -->|"Reject"| Log_StaffReject
+    Log_StaffReject["Create AuditLogEntry<br/>action: REJECT & capture rejectReason"] --> Act_SetStaffReject
+    Act_SetStaffReject["System: Set ExpenseStatus to REJECTED"] --> ST_Rejected
     
-    Decision_Dean -->|"Reject"| Log_DeanReject[(Create AuditLogEntry<br/>action: REJECT & capture rejectReason)] --> Act_SetDeanReject[System: Set ExpenseStatus to REJECTED] --> ST_Rejected
+    %% Branch 2: Teacher / Staff bypasses Teacher Review
+    ST_PendingDean(("State:<br/>PENDING_DEAN_APPROVAL"))
+    Decision_Role -->|"Role: TEACHER / STAFF"| ST_PendingDean
+    Decision_Teacher -->|"Approve"| Log_StaffApprove
+    Log_StaffApprove["Create AuditLogEntry<br/>action: APPROVE"] -->|"Push to history"| ST_PendingDean
     
-    Decision_Dean -->|"Approve"| Act_Freeze[Freeze Requested TWD Amount] --> Log_DeanApprove[(Create AuditLogEntry<br/>action: APPROVE & Budget Frozen)] -->|"Push to history[]"| ST_PendingDisbursement((State:<br/>PENDING_DISBURSEMENT))
+    ST_PendingDean --> Decision_Dean
+    Decision_Dean{"Dean Review:<br/>Check Faculty Budget Cap in TWD"}
     
-    ST_PendingDisbursement --> Decision_Finance{"Finance Audit:<br/>Verify School Tax ID 04126516?"}
+    Decision_Dean -->|"Reject"| Log_DeanReject
+    Log_DeanReject["Create AuditLogEntry<br/>action: REJECT & capture rejectReason"] --> Act_SetDeanReject
+    Act_SetDeanReject["System: Set ExpenseStatus to REJECTED"] --> ST_Rejected
     
-    Decision_Finance -->|"Invalid"| Log_FinReject[(Create AuditLogEntry<br/>action: REJECT & capture rejectReason)] --> Act_SetFinReject[System: Set ExpenseStatus to REJECTED] --> Act_FinUnfreeze[DB Transaction: Unfreeze TWD Balance] --> ST_Rejected
+    %% Branch 3: Dean bypasses manual reviews but system forces immediate budget freeze
+    ST_PendingFinanceApproval(("State:<br/>PENDING_FINANCE_APPROVAL"))
+    Decision_Role -->|"Role: DEAN"| Act_Freeze
+    Decision_Dean -->|"Approve"| Act_Freeze
     
-    Decision_Finance -->|"Valid"| Log_FinApprove[(Create AuditLogEntry<br/>action: APPROVE ➔ Ready for Payout)] --> Act_ReadyForPayout[Lock Document Data & Queue for Payout]
+    Act_Freeze["DB Transaction:<br/>Freeze Requested TWD Amount"] --> Log_DeanApprove
+    Log_DeanApprove["Create AuditLogEntry<br/>action: APPROVE & Budget Frozen"] -->|"Push to history"| ST_PendingFinanceApproval
+    
+    %% Unified Finance Audit Stage
+    ST_PendingFinanceApproval --> Decision_Finance
+    Decision_Finance{"Finance Audit:<br/>Verify School Tax ID 04126516?"}
+    
+    Decision_Finance -->|"Invalid"| Log_FinReject
+    Log_FinReject["Create AuditLogEntry<br/>action: REJECT & capture rejectReason"] --> Act_SetFinReject
+    Act_SetFinReject["System: Set ExpenseStatus to REJECTED"] --> Act_FinUnfreeze
+    Act_FinUnfreeze["DB Transaction: Unfreeze TWD Balance"] --> ST_Rejected
+    
+    Decision_Finance -->|"Valid"| Log_FinApprove
+    Log_FinApprove["Create AuditLogEntry<br/>action: APPROVE ➔ Ready for Payout"] --> Act_ReadyForPayout
+    Act_ReadyForPayout["Lock Document Data & Queue for Payout"]
 end
 
 subgraph Payout_Module ["🏦 PAYOUT MODULE (Manual Reconciliation & Execution)"]
-    Act_ReadyForPayout --> Decision_PayoutMethod{"Finance Officer Action:<br/>Select Strategy PaidMethod"}
+    ST_PendingDisbursement(("State:<br/>PENDING_DISBURSEMENT"))
+    Act_ReadyForPayout -->|"System Sync: Set Status to PENDING_DISBURSEMENT"| ST_PendingDisbursement
     
-    %% Branch B: Cash Processing
-    Decision_PayoutMethod -->|"PaidMethod.CASH"| Act_CreateCash[Select Single Request ➔ Issue Cash]
-    Act_CreateCash --> Act_VerifyPaper[Student Presents Original Paper GUI Invoice]
-    Act_VerifyPaper --> Act_StampPaper[Stamp '已核銷 - PAID' on Physical Bill]
+    ST_PendingDisbursement --> Decision_PayoutMethod
+    Decision_PayoutMethod{"Finance Officer Action:<br/>Select Strategy PaidMethod"}
     
-    Act_StampPaper --> Act_UploadCashProof[Upload Photo of Stamped Invoice to proofUrls]
-    Act_UploadCashProof --> Act_ManualCashPaid[Click 'Confirm Cash Paid' on Dashboard]
-    Act_ManualCashPaid --> Log_CashPaid[(Create AuditLogEntry<br/>action: DISBURSE)] --> Act_SyncDisbursed
+    %% ==========================================
+    %% AUTOMATED CASH PROCESSING WITH CRON JOB
+    %% ==========================================
+    Decision_PayoutMethod -->|"PaidMethod.CASH"| Act_CheckSlot
+    Act_CheckSlot["Student opens UI Modal:<br/>Fetches available dates from payout-slots"] --> Decision_Quota
     
-    %% Branch A: Bulk Processing
-    Decision_PayoutMethod -->|"PaidMethod.BANK_TRANSFER"| Act_CreateBatch[Select Multiple Requests ➔ Create Batch Record]
-    Act_CreateBatch --> Act_ExportBank[Export Batch File & Manually Upload to Bank Portal]
-    Act_ExportBank --> Log_BatchExport[(Log: Batch Exported with linked expenseIds)] --> Act_ReviewOffline[Finance Officer: Reviews Offline Bank Report]
+    Decision_Quota{"Is Selected Date<br/>Quota < 100?"}
+    Decision_Quota -->|"No: Slot Full"| Act_CheckSlot
     
-    Act_ReviewOffline --> Decision_ManualRecon{"Manual Reconciliation Dashboard:<br/>Finance Officer Updates Status"}
+    Decision_Quota -->|"Yes: Slot Available"| Act_BookSlot
+    Act_BookSlot["DB Transaction:<br/>Increment currentCount & Bind date to Expense"] --> Act_WaitDay
+    
+    Act_WaitDay["Wait for Scheduled Appointment Date"] --> Decision_Attendance
+    Decision_Attendance{"Lifecycle Event Audit:<br/>Trigger Condition Type?"}
+    
+    %% AUTOMATED RESET LOOP VIA MIDNIGHT CRON JOB
+    Decision_Attendance -->|"Midnight Cron: Past & Unpaid"| Act_CronReset
+    Act_CronReset["Automated Midnight Cron Job:<br/>Reset appointmentStatus to MISSED & Unlock User"] --> Act_CheckSlot
+    
+    %% Process if student arrived within the day
+    Decision_Attendance -->|"Manual: Student Present Within Slot"| Act_VerifyPaper
+    Act_VerifyPaper["Verify Original Physical GUI Invoice"] --> Act_StampPaper
+    Act_StampPaper["Stamp '已核銷 - PAID' on Physical Bill"] --> Act_UploadCashProof
+    
+    Act_UploadCashProof["Upload Photo of Stamped Invoice to proofUrls"] --> Act_ManualCashPaid
+    Act_ManualCashPaid["Click 'Confirm Cash Paid' on Payout Page"] --> Log_CashPaid
+    Log_CashPaid["Create AuditLogEntry<br/>action: DISBURSE"] --> Act_SyncDisbursed
+    
+    %% ==========================================
+    %% BRANCH: BANK TRANSFER PROCESSING (WITH FAILURE PROOF UPLOADS)
+    %% ==========================================
+    Decision_PayoutMethod -->|"PaidMethod.BANK_TRANSFER"| Act_CreateBatch
+    Act_CreateBatch["Select Multiple Requests ➔ Create Batch Record"] --> Act_ExportBank
+    Act_ExportBank["Export Batch File & Manually Upload to Bank Portal"] --> Log_BatchExport
+    Log_BatchExport["Log: Batch Exported with linked expenseIds"] --> Act_ReviewOffline
+    Act_ReviewOffline["Finance Officer: Reviews Offline Bank Report"] --> Decision_ManualRecon
+    
+    Decision_ManualRecon{"Manual Reconciliation View:<br/>Finance Officer Updates Status"}
     
     %% Scenario 1: All Successful
-    Decision_ManualRecon -->|"All Successful"| Act_UploadMasterReceipt[Upload Master Bank Receipt PDF to Batch proofUrls]
-    Act_UploadMasterReceipt --> Act_MarkBatchPaid[Click 'Mark Batch as Paid']
-    Act_MarkBatchPaid --> Log_BatchSuccess[(Create AuditLogEntry for All Items<br/>action: DISBURSE & Inherit Receipt)] --> Act_SyncDisbursed
+    Decision_ManualRecon -->|"All Successful"| Act_UploadMasterReceipt
+    Act_UploadMasterReceipt["Upload Master Bank Receipt PDF to Batch proofUrls"] --> Act_MarkBatchPaid
+    Act_MarkBatchPaid["Click 'Mark Batch as Paid'"] --> Log_BatchSuccess
+    Log_BatchSuccess["Create AuditLogEntry for All Items<br/>action: DISBURSE & Inherit Receipt"] --> Act_SyncDisbursed
     
     %% Scenario 2: Total Failure
-    Decision_ManualRecon -->|"Total Failure"| Act_RejectBatch[Click 'Reject Batch']
-    Act_RejectBatch --> Log_BatchFail[(Log: Batch Canceled & Capture rejectReason)] --> Act_SyncAllRejected --> Act_BatchUnfreeze[DB Transaction: Unfreeze TWD Balance for All Items] --> ST_Rejected
+    Decision_ManualRecon -->|"Total Failure"| Act_UploadTotalFailProof
+    Act_UploadTotalFailProof["Upload Bank Failure Report/Error Statement to Batch proofUrls"] --> Act_RejectBatch
+    Act_RejectBatch["Click 'Reject Batch'"] --> Log_BatchFail
+    Log_BatchFail["Log: Batch Canceled & Capture rejectReason"] --> Act_SyncAllRejected
+    Act_SyncAllRejected["System Sync: Set ExpenseStatus to REJECTED<br/>➔ Append final AuditLogEntry with rejectReason to history"] --> Act_BatchUnfreeze
+    Act_BatchUnfreeze["DB Transaction: Unfreeze TWD Balance for All Items"] --> ST_Rejected
     
     %% Scenario 3: Partial Failure
-    Decision_ManualRecon -->|"Partial Failure"| Act_LineAudit[Isolate Failed Requests on UI]
+    Decision_ManualRecon -->|"Partial Failure"| Act_UploadPartialFailProof
+    Act_UploadPartialFailProof["Upload Bank Statement detailing failed line-items to Batch proofUrls"] --> Act_LineAudit
+    Act_LineAudit["Isolate Failed Requests on Payout View"] --> Act_MarkFailedItems
     
-    %% Partial Failure Branch - Failed Items Line Logic
-    Act_LineAudit --> Act_MarkFailedItems[Click 'Mark Selected as Failed']
-    Act_MarkFailedItems --> Log_LineFail[(Create AuditLogEntry for Lines<br/>action: REJECT & capture rejectReason)] --> Act_SyncLineRejected --> Act_LineUnfreeze[DB Transaction: Unfreeze TWD Balance for Failed Lines] --> ST_Rejected
+    Act_MarkFailedItems["Click 'Mark Selected as Failed'"] --> Log_LineFail
+    Log_LineFail["Create AuditLogEntry for Lines<br/>action: REJECT & capture rejectReason"] --> Act_SyncLineRejected
+    Act_SyncLineRejected["System Sync: Set Failed Line-Items Status to REJECTED<br/>➔ Append final AuditLogEntry with rejectReason to history"] --> Act_LineUnfreeze
+    Act_LineUnfreeze["DB Transaction: Unfreeze TWD Balance for Failed Lines"] --> ST_Rejected
     
     %% Partial Failure Branch - Success Items Line Logic
-    Act_LineAudit --> Act_UploadPartialReceipt[Upload Master Bank Receipt PDF for Successful Part]
-    Act_UploadPartialReceipt --> Act_MarkSuccessItems[Click 'Mark Remaining as Paid']
-    Act_MarkSuccessItems --> Log_LineSuccess[(Create AuditLogEntry for Lines<br/>action: DISBURSE & Inherit Receipt)] --> Act_SyncDisbursed
+    Act_LineAudit --> Act_UploadPartialReceipt
+    Act_UploadPartialReceipt["Upload Master Bank Receipt PDF for Successful Part"] --> Act_MarkSuccessItems
+    Act_MarkSuccessItems["Click 'Mark Remaining as Paid'"] --> Log_LineSuccess
+    Log_LineSuccess["Create AuditLogEntry for Lines<br/>action: DISBURSE & Inherit Receipt"] --> Act_SyncDisbursed
 end
 
 %% Cross-Module State Sync Hooks
-Act_SyncDisbursed[System Sync: Set ExpenseStatus to DISBURSED<br/>➔ Append final AuditLogEntry to history] --> ST_Disbursed((State:<br/>DISBURSED)) --> End_Success([🏁 End: Expense Closed])
+ST_Disbursed(("State:<br/>DISBURSED"))
+End_Success([🏁 End: Expense Closed])
+Act_SyncDisbursed["System Sync: Set ExpenseStatus to DISBURSED<br/>➔ Append final AuditLogEntry to history"] --> ST_Disbursed --> End_Success
 
-%% Centralized State Node Hook for REJECTED
-Act_SetStaffReject & Act_SetDeanReject & Act_FinUnfreeze & Act_BatchUnfreeze & Act_LineUnfreeze --> ST_Rejected((State:<br/>REJECTED))
+%% Linear mapping to prevent Mermaid Array Length limits
+Act_SetStaffReject --> ST_Rejected
+Act_SetDeanReject --> ST_Rejected
+Act_FinUnfreeze --> ST_Rejected
+Act_BatchUnfreeze --> ST_Rejected
+Act_LineUnfreeze --> ST_Rejected
 
-%% System Sync Actions mapping to State Change
-Act_SyncAllRejected[System Sync: Set ExpenseStatus to REJECTED<br/>➔ Append final AuditLogEntry with rejectReason to history]
-Act_SyncLineRejected[System Sync: Set Failed Line-Items Status to REJECTED<br/>➔ Append final AuditLogEntry with rejectReason to history]
-
-ST_Rejected --> Act_Clone[UX Rule: Student Clones Request to Fix Details<br/>➔ Copy Text Metadata & Purge old proofUrls] --> Start
+Act_Clone["UX Rule: Student Clones Request to Fix Details<br/>➔ Copy Text Metadata & Purge old proofUrls"]
+ST_Rejected --> Act_Clone --> Start
 
 %% Apply Styling Classes
-class Act_Input,Act_FixForm,Act_Freeze,Act_SetStaffReject,Act_SetDeanReject,Act_SetFinReject,Act_FinUnfreeze,Act_ReadyForPayout,Act_CreateCash,Act_VerifyPaper,Act_StampPaper,Act_UploadCashProof,Act_ManualCashPaid,Act_CreateBatch,Act_ExportBank,Act_ReviewOffline,Act_UploadMasterReceipt,Act_MarkBatchPaid,Act_RejectBatch,Act_SyncAllRejected,Act_BatchUnfreeze,Act_LineAudit,Act_MarkFailedItems,Act_SyncLineRejected,Act_LineUnfreeze,Act_UploadPartialReceipt,Act_MarkSuccessItems,Act_SyncDisbursed,Act_Clone action;
-class ST_PendingTeacher,ST_PendingDean,ST_PendingDisbursement,ST_Rejected,ST_Disbursed state;
-class Decision_Format,Decision_Teacher,Decision_Dean,Decision_Finance,Decision_PayoutMethod,Decision_ManualRecon condition;
+class Act_Input,Act_FixForm,Act_Freeze,Act_SetStaffReject,Act_SetDeanReject,Act_SetFinReject,Act_FinUnfreeze,Act_ReadyForPayout,Act_CheckSlot,Act_BookSlot,Act_WaitDay,Act_CronReset,Act_VerifyPaper,Act_StampPaper,Act_UploadCashProof,Act_ManualCashPaid,Act_CreateBatch,Act_ExportBank,Act_ReviewOffline,Act_UploadMasterReceipt,Act_MarkBatchPaid,Act_UploadTotalFailProof,Act_RejectBatch,Act_SyncAllRejected,Act_BatchUnfreeze,Act_UploadPartialFailProof,Act_LineAudit,Act_MarkFailedItems,Act_SyncLineRejected,Act_LineUnfreeze,Act_UploadPartialReceipt,Act_MarkSuccessItems,Act_SyncDisbursed,Act_Clone action;
+class ST_PendingTeacher,ST_PendingDean,ST_PendingFinanceApproval,ST_PendingDisbursement,ST_Rejected,ST_Disbursed state;
+class Decision_Format,Decision_Role,Decision_Teacher,Decision_Dean,Decision_Finance,Decision_PayoutMethod,Decision_Quota,Decision_Attendance,Decision_ManualRecon condition;
 class End_Success success;
 class Log_Create,Log_StaffReject,Log_StaffApprove,Log_DeanReject,Log_DeanApprove,Log_FinReject,Log_FinApprove,Log_CashPaid,Log_BatchExport,Log_BatchSuccess,Log_BatchFail,Log_LineFail,Log_LineSuccess log;
 ```
@@ -173,9 +246,137 @@ class Log_Create,Log_StaffReject,Log_StaffApprove,Log_DeanReject,Log_DeanApprove
 </details>
 
 <details>
+<summary><b>3. High-level Architectural Block Diagram (Click to expand)</b></summary>
   
 ```mermaid
+graph TB
+    %% Define DDD Architecture Styles
+    classDef domain fill:#f1f8e9,stroke:#558b2f,stroke-width:2px;
+    classDef client fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px;
+    classDef backend fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px;
+    classDef shared fill:#fffide,stroke:#fbc02d,stroke-width:1.5px;
+    classDef infra fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    %% Styled specifically for planned components to signal Phase 2 Roadmap
+    classDef planned fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1.5px,stroke-dasharray: 5 5;
 
+    subgraph Workspace_Monorepo ["📦 NX MONOREPO WORKSPACE BOUNDARY (Enterprise Scale)"]
+        
+        %% --- FRONTEND CONTEXTS LAYER ---
+        subgraph FE_Layer ["🖥️ FRONTEND LAYER (Domain-Driven Micro-Frontends)"]
+            App_Shell["mfe-shell-angular<br/>(Angular Host Application)"]
+            App_Remote["mfe-remote-react<br/>(React Remote Application)"]
+            
+            subgraph Expense_FE ["📦 EXPENSES BOUNDED CONTEXT"]
+                FE_Exp_Feature["features<br/>(Smart Components / List & Modals)"]
+                FE_Exp_DA["data-access<br/>(State Management & Angular Services)"]
+            end
+            
+            subgraph Payout_FE ["📦 PAYOUT BOUNDED CONTEXT (Planned - Phase 2)"]
+                FE_Pay_Feature["features<br/>(Batch Management Dashboard)"]
+                FE_Pay_DA["data-access<br/>(Reconciliation Services)"]
+            end
+            
+            subgraph Auth_FE ["📦 AUTH BOUNDED CONTEXT"]
+                FE_Auth_Feature["features<br/>(Login & Route Guards)"]
+                FE_Auth_DA["data-access<br/>(Signals Store / Auth State)"]
+            end
+            
+            subgraph Finance_FE ["📦 FINANCE BOUNDED CONTEXT"]
+                FE_Fin_Feature["features<br/>(Budget Manager Components)"]
+                FE_Fin_DA["data-access<br/>(Budget HTTP Services)"]
+            end
+        end
+
+        %% --- BACKEND CONTEXTS LAYER ---
+        subgraph BE_Layer ["⚙️ APPLICATION LOGIC LAYER (NestJS Backend - apps/backend)"]
+            subgraph Expense_BE ["📦 EXPENSES BACKEND DOMAIN"]
+                BE_Exp_Ctrl["features-backend<br/>(Expense Controller Layer)"]
+                BE_Exp_Service["data-access-backend<br/>(Domain Services & Tx Logic)"]
+                BE_Exp_Repo["data-access-backend<br/>(Repository Interface Abstraction)"]
+            end
+            
+            subgraph Payout_BE ["📦 PAYOUT BACKEND DOMAIN (Planned - Phase 2)"]
+                BE_Pay_Ctrl["features-backend<br/>(Payout Batch Controller)"]
+                BE_Pay_Service["data-access-backend<br/>(Bulk Transfer & PDF Parsing Logic)"]
+            end
+            
+            subgraph Auth_BE ["📦 AUTH BACKEND DOMAIN"]
+                BE_Auth_Ctrl["features-backend<br/>(Auth Controller & JWT Guards)"]
+                BE_Auth_Service["data-access-backend<br/>(Session & Claims Services)"]
+            end
+            
+            subgraph Finance_BE ["📦 FINANCE BACKEND DOMAIN"]
+                BE_Fin_Ctrl["features-backend<br/>(Budget Controller Layer)"]
+                BE_Fin_Service["data-access-backend<br/>(TWD Budget Allocation Logic)"]
+            end
+        end
+
+        %% --- SHARED KERNEL ---
+        subgraph Shared_Kernel ["💛 SHARED KERNEL (libs/shared/*)"]
+            Shared_UI["ui & ui-react<br/>(Design System / DarkModeToggle)"]
+            Shared_Tokens["tokens<br/>(Injection Tokens & Configuration)"]
+            Shared_Types["types<br/>(Global Enums & Shared Interfaces)"]
+        end
+    end
+
+    %% --- INFRASTRUCTURE ADAPTERS LAYER ---
+    subgraph Infrastructure ["🗄️ INFRASTRUCTURE & INTEGRATION LAYER"]
+        FB_Auth["Firebase Authentication<br/>(Identity Service Gateway)"]
+        Firestore[("Firebase Firestore Adapter<br/>(NoSQL Bounded Collections)")]
+        Storage[("Firebase Cloud Storage Adapter<br/>(GUI Receipts & Master PDFs)")]
+        BankBOT[["Bank of Taiwan App<br/>(Offline File-Based Clearing)"]]
+    end
+
+    %% Core Internal Backend Connections
+    BE_Exp_Ctrl --> BE_Exp_Service
+    BE_Exp_Service --> BE_Exp_Repo
+    BE_Auth_Ctrl --> BE_Auth_Service
+    BE_Fin_Ctrl --> BE_Fin_Service
+    BE_Pay_Ctrl --> BE_Pay_Service
+
+    %% Frontend Apps Dependencies
+    App_Shell -->|"Injects Features"| FE_Exp_Feature
+    App_Shell -->|"Injects Features"| FE_Auth_Feature
+    App_Shell -->|"Injects Features"| FE_Fin_Feature
+    App_Shell -->|"Injects Features (Future)"| FE_Pay_Feature
+    App_Remote -->|"Exposes Layout Feature"| App_Shell
+    
+    %% Tactical Layering Connections (Feature -> Data Access)
+    FE_Exp_Feature --> FE_Exp_DA
+    FE_Auth_Feature --> FE_Auth_DA
+    FE_Fin_Feature --> FE_Fin_DA
+    FE_Pay_Feature --> FE_Pay_DA
+    
+    %% REST API Network Boundaries
+    FE_Exp_DA -->|"HTTPS REST API<br/>(JWT + App Check)"| BE_Exp_Ctrl
+    FE_Auth_DA -->|"HTTPS REST API<br/>(JWT + App Check)"| BE_Auth_Ctrl
+    FE_Fin_DA -->|"HTTPS REST API<br/>(JWT + App Check)"| BE_Fin_Ctrl
+    FE_Pay_DA -->|"HTTPS REST API (Future)"| BE_Pay_Ctrl
+    
+    %% Core Async Communication between Domains (Decoupling)
+    BE_Exp_Service -.->|"Triggers State Mutation Event"| BE_Pay_Ctrl
+    
+    %% Infrastructure Adapters Implementations
+    BE_Exp_Repo -->|"Firebase Admin SDK Server Operations"| Firestore
+    BE_Exp_Service -->|"Cloud Storage Service"| Storage
+    BE_Pay_Service -.->|"Uploads Master Receipt PDF"| Storage
+    FE_Auth_DA -.->|"Direct Client Verification"| FB_Auth
+    
+    %% Shared Kernel Core Connections
+    Shared_Types -.->|"Provides Contracts"| FE_Exp_DA
+    Shared_Types -.->|"Provides Contracts"| BE_Exp_Ctrl
+    Shared_UI -.->|"Provides Presentation Atoms"| App_Shell
+
+    %% External System Boundary
+    BE_Fin_Ctrl -.->|"Generates Batch Export Excel"| BankBOT
+    BE_Pay_Service -.->|"Processes Bank Transfers (Future)"| BankBOT
+
+    %% Apply DDD Architecture Styles to Nodes
+    class App_Shell,App_Remote,FE_Exp_Feature,FE_Exp_DA,FE_Auth_Feature,FE_Auth_DA,FE_Fin_Feature,FE_Fin_DA client;
+    class BE_Exp_Ctrl,BE_Exp_Service,BE_Exp_Repo,BE_Auth_Ctrl,BE_Auth_Service,BE_Fin_Ctrl,BE_Fin_Service backend;
+    class FE_Pay_Feature,FE_Pay_DA,BE_Pay_Ctrl,BE_Pay_Service planned;
+    class Shared_UI,Shared_Tokens,Shared_Types shared;
+    class FB_Auth,Firestore,Storage,BankBOT infra;
 ```
 
 </details>
