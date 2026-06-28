@@ -4,7 +4,7 @@ An enterprise-grade, full-stack, distributed **Micro Front-End (MFE)** and **Dom
 
 Built inside an **Nx Monorepo Workspace**, the ecosystem coordinates a secure host environment, modular frontend micro-apps, and a decoupled, resilient NestJS cloud backend.
 
-### Link Live: ``` https://expense-tracker-web-app-7c1d1.web.app/ ```
+### Live: [Link Live](https://expense-tracker-web-app-7c1d1.web.app/) 
 ---
 
 ## 🏛️ Architectural & System Design
@@ -15,7 +15,7 @@ This platform enforces a strict **Role-Based Access Control (RBAC)** matrix acro
 *   **Federated Micro Front-Ends:** Angular controls the robust Shell host application (routing, global guards, UI layout), while React drives granular remote sub-apps (UI features, interactive dashboard widgets) seamlessly wrapped together using Webpack Module Federation.
 *   **Immutable Financial Auditing:** Built-in decoupled infrastructure layer tracking system executors (`admin-executor`) and transaction logs asynchronously written to Cloud Firestore (`firebase-audit-log.repository`).
 *   **Anti-Spam Security Firewall:** Defensive middleware filtering logic inside NestJS coupled with Firebase OAuth to immediately block unauthorized registration, isolate bad inputs with hard purges, and drop malicious attempts via an active database blacklist entry.
-
+### Detail Diagram Link: [ARCHITECTURE](https://github.com/hoangphivo97/school-expense-ecosystem/blob/main/ARCHITECTURE.md)
 ---
  
 
