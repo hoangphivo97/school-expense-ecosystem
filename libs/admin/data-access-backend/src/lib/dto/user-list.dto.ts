@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, ValidateIf } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, ValidateIf, IsDateString } from "class-validator";
 import { FacultyId, Role, UserStatus, UserType } from "@school-expense-ecosystem/shared/types";
 import { CreateUserInput, UpdateUserInput } from "@school-expense-ecosystem/admin/types";
 
@@ -39,6 +39,10 @@ export class CreateUserDto implements CreateUserInput {
   @IsOptional()
   @IsString()
   createdBy?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'dateOfBirth must be a valid ISO date string' })
+  dateOfBirth?: string;
 }
 
 export class UpdateUserDto implements UpdateUserInput {
@@ -59,6 +63,10 @@ export class UpdateUserDto implements UpdateUserInput {
   @IsNotEmpty({ message: 'Faculty isolation node cannot be updated to an empty string.' })
   @IsEnum(FacultyId, { message: 'Target facaulty mutation out of system boundaries.' })
   facultyId?: FacultyId;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'dateOfBirth must be a valid ISO date string' })
+  dateOfBirth?: string;
 }
 
 export class ChangeUserStatusDto {
