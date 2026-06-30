@@ -3,7 +3,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse } from '@school-expense-ecosystem/auth/types';
-import { UserBase } from '@school-expense-ecosystem/shared/types';
+import { DemoAccount, UserBase } from '@school-expense-ecosystem/shared/types';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { MatCardModule, MatCardTitle } from '@angular/material/card';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
@@ -15,13 +15,7 @@ import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { faArrowLeft, faArrowRight, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { MatOption, MatSelect } from '@angular/material/select';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
-
-interface DemoAccount {
-  role: string;
-  email: string;
-  password: string;
-  description: string;
-}
+import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';
 
 @Component({
   selector: 'lib-login',
@@ -37,8 +31,8 @@ interface DemoAccount {
     MatLabel,
     MatSelect,
     MatOption,
-    MatCardModule
-  ],
+    MatCardModule,
+],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -60,26 +54,7 @@ export class LoginComponent {
   readonly isAdminMode = signal<boolean>(false);
   readonly selectedAccount = signal<DemoAccount | null>(null);
 
-  readonly demoAccounts: DemoAccount[] = [
-    {
-      role: 'Professor / Department Approver',
-      email: 'professor.demo@ntust.edu.tw',
-      password: 'DemoPassword123',
-      description: 'Reviews, approves or rejects student expense and lab research requests.'
-    },
-    {
-      role: 'Finance Officer / Accountant',
-      email: 'finance.staff@ntust.edu.tw',
-      password: 'DemoPassword123',
-      description: 'Manages university budgets, verifies invoices, and executes payouts.'
-    },
-    {
-      role: 'System Administrator',
-      email: 'sysadmin.core@ntust.edu.tw',
-      password: 'DemoPassword123',
-      description: 'Full global access to audit logs, system parameters, and system rules.'
-    }
-  ];
+  readonly demoAccounts: DemoAccount[] = DemoAccountArr;
 
   // Dedicated Form configuration for the hidden Admin Console fallback
   readonly adminLoginForm = this.fb.group({

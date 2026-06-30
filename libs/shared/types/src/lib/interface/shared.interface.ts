@@ -43,3 +43,10 @@ export interface UserBase {
   createdAt?: Date;
   reason?: string;
 }
+
+export interface DemoAccount {
+  role: string;
+  email: string;
+  password: string;
+  description: string;
+}
