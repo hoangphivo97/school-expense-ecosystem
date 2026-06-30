@@ -3,9 +3,11 @@
 
   <lib-filter [mode]="filterModeEnum.USER" [value]="activeFilters()" (filterChange)="onUserFiltersChanged($event)">
 
+    @if(isAdmin()){
     <button primaryAction mat-flat-button color="primary" (click)="openProvisionModal()">
       <mat-icon>person_add</mat-icon> Create User
     </button>
+    }
 
   </lib-filter>
 
@@ -69,7 +71,7 @@
               } @else {
 
               <span class="badge-usertype-variant usertype-unassigned" style="cursor: help;"
-                [matTooltip]="(user.role === RoleEnum.LEVEL_0_ADMIN || user.role === RoleEnum.LEVEL_1_FINANCE) 
+                [matTooltip]="(isAdmin() || isFinance()) 
                   ? 'System management or financial operations accounts do not require an institutional classification type.' 
                   : 'This profile is incomplete. User classification selection is currently pending onboarding completion.'">
                 Unassigned
@@ -98,21 +100,21 @@
           <ng-container matColumnDef="action">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
             <td mat-cell *matCellDef="let user" class="py-3 px-4 action-column" (click)="$event.stopPropagation()">
-              @if (user.uid !== currentAdminId()) {
+              @if (user.isNotCurrentAdmin) {
 
-              @if (user.status === UserStatusEnum.PENDING) {
-              <button mat-icon-button color="primary" [disabled]="processingUserId() === user.uid"
+              @if (user.isPending) {
+              <button mat-icon-button color="primary" [disabled]="user.isProcessing"
                 (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)" matTooltip="Activate Account">
-                @if (processingUserId() === user.uid) {
+                @if (user.isProcessing) {
                 <mat-spinner diameter="20"></mat-spinner>
                 } @else {
                 <fa-icon [icon]="faCircleCheck" size="lg" class="text-success"></fa-icon>
                 }
               </button>
 
-              <button mat-icon-button color="warn" [disabled]="processingUserId() === user.uid"
+              <button mat-icon-button color="warn" [disabled]="user.isProcessing"
                 (click)="updateUserStatus(user, UserStatusEnum.REJECTED)" matTooltip="Reject Account">
-                @if (processingUserId() === user.uid) {
+                @if (user.isProcessing) {
                 <mat-spinner diameter="20"></mat-spinner>
                 } @else {
                 <fa-icon [icon]="faUserXMark" size="lg" class="text-danger"></fa-icon>
@@ -120,10 +122,10 @@
               </button>
               }
 
-              @else if (user.status === UserStatusEnum.ACTIVE) {
-              <button mat-icon-button color="warn" [disabled]="processingUserId() === user.uid"
+              @else if (user.isActive) {
+              <button mat-icon-button color="warn" [disabled]="user.isProcessing"
                 (click)="updateUserStatus(user, UserStatusEnum.SUSPENDED)" matTooltip="Deactivate Account">
-                @if (processingUserId() === user.uid) {
+                @if (user.isProcessing) {
                 <mat-spinner diameter="20"></mat-spinner>
                 } @else {
                 <fa-icon [icon]="faLock" size="lg" class="text-danger"></fa-icon>
@@ -131,10 +133,10 @@
               </button>
               }
 
-              @else if (user.status === UserStatusEnum.SUSPENDED) {
-              <button mat-icon-button color="primary" [disabled]="processingUserId() === user.uid"
+              @else if (user.isSuspended) {
+              <button mat-icon-button color="primary" [disabled]="user.isProcessing"
                 (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)" matTooltip="Lift Restriction (Re-activate)">
-                @if (processingUserId() === user.uid) {
+                @if (user.isProcessing) {
                 <mat-spinner diameter="20"></mat-spinner>
                 } @else {
                 <fa-icon [icon]="faLockOpen" size="lg" class="text-primary"></fa-icon>
@@ -143,11 +145,10 @@
               }
 
               <span
-                [matTooltip]="user.status === UserStatusEnum.ONBOARDING ? 'Account profile is incomplete. Editing is locked during onboarding.' : 'Edit Profile'"
+                [matTooltip]="user.isOnboarding ? 'Account profile is incomplete. Editing is locked during onboarding.' : 'Edit Profile'"
                 class="d-inline-block">
 
-                <button mat-icon-button color="accent"
-                  [disabled]="processingUserId() === user.uid || user.status === UserStatusEnum.ONBOARDING"
+                <button mat-icon-button color="accent" [disabled]="user.isProcessing || user.isOnboarding"
                   (click)="openUpdateModal(user)" aria-label="Edit system account settings">
                   <mat-icon class="action-edit-icon">edit</mat-icon>
                 </button>

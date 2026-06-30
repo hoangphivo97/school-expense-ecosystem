@@ -22,12 +22,12 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { UserStatus, UserType, Role } from '@school-expense-ecosystem/shared/types'
 
-import { 
-  faCircleCheck, 
-  faBan, 
-  faLockOpen, 
-  faPenToSquare, 
-  faLock, 
+import {
+  faCircleCheck,
+  faBan,
+  faLockOpen,
+  faPenToSquare,
+  faLock,
   faUserXmark,
   faCirclePause
 } from '@fortawesome/free-solid-svg-icons';
@@ -101,9 +101,10 @@ export class UserListComponent {
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(0);
   private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
-
-  readonly RoleEnum = Role;
   readonly UserStatusEnum = UserStatus;
+
+  readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
+  readonly isFinance = computed(() => this.authStore.user()?.role === Role.LEVEL_1_FINANCE);
 
   // Commercial English translation registry mapping raw system roles into presentation texts
   readonly roleLabels: Record<Role, string> = {
@@ -183,14 +184,16 @@ export class UserListComponent {
       return matchesQuery && matchesRole && matchesStatus && matchesUserType;
     });
 
-    const processedList = filteredList.map((user: UserBase) => {
-      return {
-        ...user,
-        roleLabel: this.roleLabels[user.role as Role] || String(user.role)
-      };
-    });
-
-    return new MatTableDataSource<any>(processedList);
+    return filteredList.map((user: UserBase) => ({
+      ...user,
+      roleLabel: this.roleLabels[user.role as Role] || String(user.role),
+      isPending: user.status === UserStatus.PENDING,
+      isNotCurrentAdmin: user.uid !== this.currentAdminId(),
+      isProcessing: user.uid === this.processingUserId(),
+      isActive: user.status === UserStatus.ACTIVE,
+      isSuspended: user.status === UserStatus.SUSPENDED,
+      isOnboarding: user.status === UserStatus.ONBOARDING,
+    }));
   });
 
   constructor() {
@@ -276,12 +279,12 @@ export class UserListComponent {
     }
 
     // Intercept and enforce audit logging for restrictive transitions
-    if (newStatus === this.UserStatusEnum.SUSPENDED || newStatus === this.UserStatusEnum.REJECTED) {
+    if (newStatus === UserStatus.SUSPENDED || newStatus === UserStatus.REJECTED) {
       const dialogRef = this.dialog.open(BaseModalComponent, {
         width: '440px',
         disableClose: true,
         data: {
-          title: `${newStatus === this.UserStatusEnum.REJECTED ? 'Reject' : 'Suspend'} User Account`,
+          title: `${newStatus === UserStatus.REJECTED ? 'Reject' : 'Suspend'} User Account`,
           message: 'An explicit administrative trail reason is mandatory to alter this profile operational boundary.',
           placeholder: 'Enter formal reasoning context...'
         }
@@ -317,5 +320,5 @@ export class UserListComponent {
       }
     });
   }
-  
+
 }
