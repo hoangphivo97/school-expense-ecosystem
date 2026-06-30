@@ -18,11 +18,13 @@ body {
   }
 
   .expense-list {
-    padding: 0px 40px 60px 40px;
-    flex: 1 1 auto;
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
 
-    ::ng-deep{
-      .mat-mdc-table{
+    ::ng-deep {
+      .mat-mdc-table {
         background-color: var(--bg-secondary);
       }
     }
@@ -46,10 +48,32 @@ body {
       }
     }
 
-    table{
-      ::ng-deep{
-        th, td{
-          color: var(--text-primary)
+    table {
+      ::ng-deep {
+        tr.mat-mdc-header-row {
+          background-color: #f1f5f9; // Light gray slate tint matching enterprise standard
+          border-bottom: 2px solid #cbd5e1;
+        }
+
+        tr.mat-mdc-row:hover {
+          cursor: pointer;
+          background-color: #F0F2FF;
+        }
+
+        th.table-column-header {
+          font-size: 0.75rem; // 12px sleek tracking titles
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          color: #475569;
+        }
+
+        td.mat-mdc-cell {
+          border-bottom: 1px solid #e2e8f0;
+          font-size: 0.875rem; // 14px smooth readability text cells
+        }
+
+        td.action-column {
+          display: flex;
         }
       }
     }

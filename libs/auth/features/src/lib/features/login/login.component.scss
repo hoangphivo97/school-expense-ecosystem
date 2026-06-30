@@ -1,12 +1,21 @@
-.clickable-role-card {
-  border: 1px solid #dee2e6;
-  background-color: #fff;
-  
-  &:hover {
-    border-color: #0d6efd !important;
-    background-color: #f8f9fa;
+:host {
+  .clickable-role-card {
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+
+    &:hover {
+      border-color: #0d6efd !important;
+      background-color: #f8f9fa;
+    }
   }
-}
-.transition-all {
-  transition: all 0.2s ease-in-out;
+
+  .transition-all {
+    transition: all 0.2s ease-in-out;
+  }
+
+  ::ng-deep{
+    .mat-mdc-form-field-bottom-align{
+      display: none;
+    }
+  }
 }

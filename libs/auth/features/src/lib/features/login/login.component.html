@@ -20,7 +20,8 @@
         <mat-spinner diameter="20" class="me-2 d-inline-block align-middle"></mat-spinner>
         Authenticating Core Stream...
         } @else{
-        <mat-label class="align-items-center d-flex gap-2"><fa-icon [icon]="faGoogle" class="fs-5 d-inline-flex align-items-center"></fa-icon> Continue with Google</mat-label>
+        <mat-label class="align-items-center d-flex gap-2"><fa-icon [icon]="faGoogle"
+            class="fs-5 d-inline-flex align-items-center"></fa-icon> Continue with Google</mat-label>
         }
       </button>
 
@@ -44,7 +45,6 @@
     </mat-card-header>
 
     <mat-card-content>
-
       <div class="mb-3 d-flex flex-column">
         <mat-form-field appearance="outline" class="w-100 fs-7">
           <mat-label>Select a Preset Demo Role</mat-label>
@@ -59,6 +59,9 @@
 
       @if (selectedAccount(); as activeAccount) {
       <div class="alert alert-info py-2 px-3 fs-7 mb-4 rounded-3 border-0 bg-light text-secondary animate-fade-in">
+        <div class="alert alert-info">
+          * Account operates under Read-Only Sandbox Restrictions for evaluation safety.
+        </div>
         <div class="fw-bold text-dark mb-1">
           <fa-icon [icon]="faShieldHalved" class="text-warning me-1"></fa-icon>
           {{ activeAccount.role }} Scope:

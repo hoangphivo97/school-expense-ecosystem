@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService, OnboardingDto } from '@school-expense-ecosystem/auth/data-access-backend';
-import { JwtAuthGuard , AppCheckGuard} from '@school-expense-ecosystem/shared/guards-backend';
+import { JwtAuthGuard , AppCheckGuard, Public} from '@school-expense-ecosystem/shared/guards-backend';
 import { OnboardingResponse } from '@school-expense-ecosystem/auth/types';
 
 @Controller('auth')
@@ -8,6 +8,7 @@ import { OnboardingResponse } from '@school-expense-ecosystem/auth/types';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
+  @Public()
   @Post('login')
   async login(@Body('token') token: string) {
     const result = await this.authService.handleFirebaseLogin(token);
@@ -17,6 +18,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('google-login')
   async googleLogin(@Body('token') token: string) {
     const result = await this.authService.handleFirebaseLogin(token);
@@ -27,7 +29,6 @@ export class AuthController {
   }
 
   @Post('onboarding')
-  @UseGuards(JwtAuthGuard)
   async completeOnboarding(@Req() req: any, @Body() dto: OnboardingDto): Promise<OnboardingResponse> {
     const firebaseUid = req.user.uid; 
     const email = req.user.email;
