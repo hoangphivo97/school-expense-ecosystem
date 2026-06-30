@@ -23,6 +23,7 @@ export interface CreateUserInput {
   userType?: UserType;
   facultyId?: FacultyId;
   createdBy?: string;
+  dateOfBirth?: string;
 }
 
 export interface UpdateUserInput {
@@ -30,6 +31,7 @@ export interface UpdateUserInput {
   role?: Role;
   userType?: UserType;
   facultyId?: FacultyId;
+  dateOfBirth?: string;
 }
 
 export interface CreateUserResult {
