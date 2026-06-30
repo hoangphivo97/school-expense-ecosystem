@@ -43,7 +43,8 @@ body {
   --purple-bland-8: color-mix(in srgb, var(--text-primary) 8%, transparent);
   --bg-secondary: #FFF;
   --bg-modal-primary: #2d3748;
-  --bg-input: #f3f4f6; /* Nền input xám nhạt */
+  --bg-input: #f3f4f6;
+  /* Light gray input background */
   --text-input: #111827;
 }
 
@@ -52,17 +53,24 @@ body.dark-mode {
   /* A. Variable Overrides */
   --btn-disabled-bg: rgba(255, 255, 255, 0.12);
   --btn-disabled-text: rgba(255, 255, 255, 0.38);
-  --bg-input: #1e293b; /* Slate-800 */
+  --bg-input: #1e293b;
+  /* Slate-800 */
   --text-input: #f9fafb;
-  --bg-primary: #0f172a; /* Slate 900 */
-  --bg-secondary: #1e293b; /* Slate 800 */
+  --bg-primary: #0f172a;
+  /* Slate 900 */
+  --bg-secondary: #1e293b;
+  /* Slate 800 */
   --bg-modal: #2d3748;
-  --text-primary: #f1f5f9; /* Slate 100 */
-  --text-secondary: #94a3b8; /* Slate 400 */
-  --border-color: #818cf8; /* Slate 700 */
-  --primary-color: #818cf8; /* Indigo 400 */
+  --text-primary: #f1f5f9;
+  /* Slate 100 */
+  --text-secondary: #94a3b8;
+  /* Slate 400 */
+  --border-color: #818cf8;
+  /* Slate 700 */
+  --primary-color: #818cf8;
+  /* Indigo 400 */
   --hover-bg: rgba(129, 140, 248, 0.1);
-  
+
   /* Material Datepicker Variables */
   --mat-datepicker-calendar-container-background-color: var(--bg-primary);
   --mat-datepicker-calendar-container-text-color: var(--text-primary);
@@ -135,18 +143,100 @@ body.dark-mode {
     background: var(--bg-secondary) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
-    
+
     .apexcharts-xaxistooltip-text {
-      color: var(--text-primary) !important; 
+      color: var(--text-primary) !important;
     }
   }
 
   .apexcharts-xaxistooltip-bottom:before {
     border-bottom-color: var(--border-color) !important;
   }
-  
+
   .apexcharts-xaxistooltip-bottom:after {
     border-bottom-color: var(--bg-secondary) !important;
+  }
+
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    background-color: var(--bg-secondary) !important; // Matches your Slate 800 configuration
+    color: var(--text-primary) !important; // Slate 100
+  }
+
+  // B. Force the Modal title to light up (Overrides Bootstrap's text-dark and border-light classes)
+  h2.mat-mdc-dialog-title.text-dark {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important; // Separator line for Slate 700
+  }
+
+  // C. Layout standardization for form fields (Input & Select) inside the Modal
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      background-color: var(--bg-input) !important; // Dark input field background for Slate 800
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    // Apply thin border to exactly 3 segments smoothly to avoid cutting off label text
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: var(--border-color) !important;
+      border-width: 1px !important;
+    }
+
+    // Sharp Indigo glow on hover when mouse pointers enter input fields
+    &:hover {
+
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: var(--primary-color) !important;
+      }
+    }
+
+    // Displayed text when typing or selecting from dropdown (Milky white #f9fafb)
+    .mat-mdc-input-element,
+    input.mat-mdc-input-element,
+    .mat-mdc-select-value,
+    .mat-mdc-select-value-text {
+      color: var(--text-input) !important;
+    }
+
+    // Floating label title when active
+    .mat-mdc-form-field-label mat-label,
+    .mat-mdc-floating-label mat-label {
+      color: var(--text-secondary) !important;
+    }
+
+    // Small arrow icon for dropdown select
+    .mat-mdc-select-arrow svg {
+      fill: var(--text-primary) !important;
+    }
+  }
+
+  // D. Standardize the Auth Stream data badge container (Overrides Bootstrap's bg-light class)
+  .auth-stream-badge.bg-light {
+    background-color: var(--bg-primary) !important; // Deep black background Slate 900
+    border-color: var(--border-color) !important; // Dashed border Slate 700
+
+    .text-muted {
+      color: var(--text-secondary) !important;
+    }
+
+    .text-primary {
+      color: var(--primary-color) !important;
+    }
+
+    // Luminous Indigo data stream
+  }
+
+  // E. Modal footer line where cancel/create buttons reside (Overrides border-light)
+  .mat-mdc-dialog-actions.border-top {
+    border-color: var(--border-color) !important;
+
+    .text-secondary {
+      color: var(--text-secondary) !important;
+    }
   }
 }
 
@@ -156,7 +246,7 @@ body.dark-mode {
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  /* Hiệu ứng chuyển màu mượt mà */
+  /* Smooth color transition effect */
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -197,6 +287,7 @@ body {
 
 /* --- C. Material Datepicker (.ct-datepicker-dm) --- */
 .ct-datepicker-dm {
+
   .mat-calendar-period-button,
   .mat-calendar-previous-button,
   .mat-calendar-next-button {
@@ -221,20 +312,17 @@ body {
 }
 
 .toast-success {
-  @include mat.snack-bar-overrides((
-    container-color: #198754,                 // Bootstrap success green
-    button-color: #ffffff,                    // Action text color (Close button)
-    supporting-text-color: #ffffff,           // Primary toast message text color
-    container-shape: var(--mat-sys-corner-extra-small) // Standard system boundary radius
-  ));
+  @include mat.snack-bar-overrides((container-color: #198754, // Bootstrap success green
+      button-color: #ffffff, // Action text color (Close button)
+      supporting-text-color: #ffffff, // Primary toast message text color
+      container-shape: var(--mat-sys-corner-extra-small) // Standard system boundary radius
+    ));
 }
 
 /* Scoped design tokens for failure and infrastructure error streams */
 .toast-error {
-  @include mat.snack-bar-overrides((
-    container-color: #dc3545,                 // Bootstrap danger red
-    button-color: #ffffff,                    // Action text color (Close button)
-    supporting-text-color: #ffffff,           // Primary error message text color
-    container-shape: var(--mat-sys-corner-extra-small)
-  ));
+  @include mat.snack-bar-overrides((container-color: #dc3545, // Bootstrap danger red
+      button-color: #ffffff, // Action text color (Close button)
+      supporting-text-color: #ffffff, // Primary error message text color
+      container-shape: var(--mat-sys-corner-extra-small)));
 }

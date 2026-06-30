@@ -1,4 +1,3 @@
-// libs/auth/data-access/src/lib/auth-data-access/RouteGuard/roles.guard.ts
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
