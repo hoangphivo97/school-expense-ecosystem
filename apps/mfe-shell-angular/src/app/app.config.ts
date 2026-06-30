@@ -30,9 +30,9 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
 
     provideAppCheck(() => {
-      if (!environment.production) {
-        (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '5D16B6F1-6B84-4AB4-96AC-51FBF167BAB9';
-      }
+      // if (!environment.production) {
+      //   (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '';
+      // }
       
       const provider = new ReCaptchaV3Provider(environment.recaptchaSiteKey);
       return initializeAppCheck(undefined, {

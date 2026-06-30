@@ -16,6 +16,8 @@ export class FirebaseUserRepository implements UserRepository {
       query = query.where('facultyId', '==', filters.facultyId);
     }
 
+    const countQuery = query;
+
     if (filters.pageToken) {
       const startDoc = await this.db.collection('users').doc(filters.pageToken).get();
       if (startDoc.exists) {
@@ -43,7 +45,7 @@ export class FirebaseUserRepository implements UserRepository {
     const lastDoc = snapshot.docs[snapshot.docs.length - 1];
     const nextPageToken = lastDoc ? lastDoc.id : null;
 
-    const countSnapshot = await this.db.collection('users').count().get();
+    const countSnapshot = await countQuery.count().get();
     const totalItems = countSnapshot.data().count;
 
     return {

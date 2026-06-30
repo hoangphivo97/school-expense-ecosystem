@@ -51,8 +51,8 @@
             Manages institutional identities, centralized role provisioning (Admin, Finance, Dean, Student), and
             onboarding status flows with role-based boundaries.
           </p>
-          <span [matTooltip]="!isAdmin() ? 'This page is only for users with the Admin role' : null">
-            <button [routerLink]=" isAdmin() ? '/user-list' : ''" [disabled]="!isAdmin()"
+          <span [matTooltip]="!isAdmin() && !isDean() ? 'This page is only for users with the Admin role' : null">
+            <button [routerLink]=" isAdmin() || isDean() ? '/user-list' : ''" [disabled]="!isAdmin() && !isDean()"
               class="btn btn-primary btn-sm mt-3 fw-semibold py-2 rounded-3 w-100 shadow-none">
               Explore Core Directory &rarr;
             </button>
