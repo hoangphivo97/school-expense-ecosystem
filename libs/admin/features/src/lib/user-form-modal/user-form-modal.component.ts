@@ -50,7 +50,7 @@ export class UserFormModalComponent implements OnInit {
   protected isSelf = false;
   protected isOnboarding = false;
 
-  protected filteredUserTypeOptions = signal<unknown[]>([]);
+  protected filteredUserTypeOptions = signal<any[]>([]);
 
   protected readonly roleOptions = [
     { value: Role.LEVEL_0_ADMIN, label: 'System Admin (Backdoor)' },
@@ -90,13 +90,13 @@ export class UserFormModalComponent implements OnInit {
     this.isEditMode = currentAction === DialogActionEnum.Edit;
     this.isDetailMode = currentAction === DialogActionEnum.Detail;
     this.isSelf = this.dialogData?.isSelf
-    this.isOnboarding = this.dialogData?.user.status === UserStatus.ONBOARDING
 
     this.initFormStructure();
     this.registerReactiveEngines();
 
     if (this.isEditMode || this.isDetailMode) {
       this.patchExistingData();
+      this.isOnboarding = this.dialogData?.user.status === UserStatus.ONBOARDING
     }
 
     if (this.isDetailMode) {

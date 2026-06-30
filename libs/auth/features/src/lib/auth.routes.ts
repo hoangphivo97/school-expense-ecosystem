@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './RouteGuard/auth.guard';
+import { authGuard } from '@school-expense-ecosystem/auth/guards';
 import { LoginComponent } from './features/login/login.component';
 import { OnboardingComponent } from './features/onboarding/onboarding.component';
 import { WaitingApprovalComponent } from './features/waiting-approval/waiting-approval.component';

@@ -8,7 +8,7 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { firebaseConfig } from './environments/environment';
 import { provideStore } from '@ngrx/store';
 import { initializeApp } from 'firebase/app';
-import { appCheckInterceptor, authInterceptor } from '@school-expense-ecosystem/auth/data-access';
+import { appCheckInterceptor, authInterceptor } from '@school-expense-ecosystem/auth/features';
 import { MatDialogModule } from '@angular/material/dialog';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { environment } from './environments/environment';
@@ -30,9 +30,9 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
 
     provideAppCheck(() => {
-      // if (!environment.production) {
-      //   (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '';
-      // }
+      if (!environment.production) {
+        (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '5D16B6F1-6B84-4AB4-96AC-51FBF167BAB9';
+      }
       
       const provider = new ReCaptchaV3Provider(environment.recaptchaSiteKey);
       return initializeAppCheck(undefined, {
