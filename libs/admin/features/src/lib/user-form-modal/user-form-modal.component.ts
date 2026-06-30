@@ -44,9 +44,7 @@ export class UserFormModalComponent implements OnInit {
   private readonly errorModalService = inject(ErrorModalService);
 
   // Expose Enums directly to the HTML template for structural directive evaluations
-  protected readonly Role = Role;
-  protected readonly UserType = UserType;
-  protected readonly UserStatus = UserStatus;
+  
   protected isSelf = false;
   protected isOnboarding = false;
 
@@ -87,6 +85,7 @@ export class UserFormModalComponent implements OnInit {
   ngOnInit(): void {
     const currentAction = this.dialogData?.action;
 
+    
     this.isEditMode = currentAction === DialogActionEnum.Edit;
     this.isDetailMode = currentAction === DialogActionEnum.Detail;
     this.isSelf = this.dialogData?.isSelf

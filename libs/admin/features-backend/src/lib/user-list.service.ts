@@ -13,7 +13,7 @@ export class UserListService {
         private readonly auditLogRepository: IAdminAuditLogRepository
     ) { }
 
-    async getUsersForAdmin(requester: UserBase, limit: number, pageToken?: string) {
+    async getUsersForManagement(requester: UserBase, limit: number, pageToken?: string) {
         const facultyIdFilter = requester.role === Role.LEVEL_2_DEAN ? requester.facultyId : undefined;
 
         return this.userRepository.findPaginated({

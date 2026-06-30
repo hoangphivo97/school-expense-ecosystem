@@ -13,14 +13,14 @@ export class UserListController {
   constructor(private readonly userListService: UserListService) { }
 
   @Get()
-  async getAllUsersForAdmin(
+  async getManagedUsers(
     @Req() req: { user: UserBase },
     @Query('limit') limit = 10,
     @Query('pageToken') pageToken?: string
   ) {
     const requester = req.user as UserBase;
 
-    return this.userListService.getUsersForAdmin(requester, Number(limit), pageToken);
+    return this.userListService.getUsersForManagement(requester, Number(limit), pageToken);
   }
 
   @Post('provision')
