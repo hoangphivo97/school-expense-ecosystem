@@ -1,7 +1,7 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidatorFn } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { Role, UserType, UserStatus, FacultyId } from '@school-expense-ecosystem/shared/types';
+import { Role, UserType, UserStatus, FacultyId, UserBase } from '@school-expense-ecosystem/shared/types';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -11,23 +11,17 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DATE_LOCALE } from '@angular/material/core';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 
 @Component({
   selector: 'lib-user-form-modal',
   standalone: true,
-  imports: [ReactiveFormsModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatSnackBarModule,
-    MatIconModule
+  imports: [
+    ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule,
+    MatInputModule, MatSelectModule, MatDatepickerModule, MatSnackBarModule, MatIconModule
   ],
   templateUrl: './user-form-modal.component.html',
   providers: [
@@ -42,14 +36,24 @@ export class UserFormModalComponent implements OnInit {
   protected readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true });
   private readonly snackBar = inject(MatSnackBar);
   private readonly errorModalService = inject(ErrorModalService);
+  private readonly authStore = inject(AuthSignalStore);
 
-  // Expose Enums directly to the HTML template for structural directive evaluations
+  // Unify Component State into Modern Angular Signals
+  protected readonly mode = signal<'create' | 'edit' | 'detail'>('create');
+  protected readonly isEditMode = computed(() => this.mode() === 'edit');
+  protected readonly isDetailMode = computed(() => this.mode() === 'detail');
+  protected readonly isSelf = signal(false);
+  protected readonly isOnboarding = signal(false);
+  protected readonly targetIsAdmin = signal(false);
   
-  protected isSelf = false;
-  protected isOnboarding = false;
+  protected readonly authMethodDisplay = signal<string>('Google OAuth');
+  protected readonly filteredUserTypeOptions = signal<any[]>([]);
+  protected userForm!: FormGroup;
 
-  protected filteredUserTypeOptions = signal<any[]>([]);
+  protected readonly currentAdminId = computed(() => this.authStore.user()?.uid ?? '');
+  protected readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
 
+  // Static Metadata Dropdowns
   protected readonly roleOptions = [
     { value: Role.LEVEL_0_ADMIN, label: 'System Admin (Backdoor)' },
     { value: Role.LEVEL_1_FINANCE, label: 'Finance Officer (Institutional)' },
@@ -72,170 +76,103 @@ export class UserFormModalComponent implements OnInit {
   protected readonly statusOptions = [
     { value: UserStatus.ACTIVE, label: 'Active' },
     { value: UserStatus.PENDING, label: 'Pending' },
-    { value: UserStatus.ONBOARDING, label: 'Onboarding' },
-    // { value: UserStatus.SUSPENDED, label: 'Suspended' }
+    { value: UserStatus.ONBOARDING, label: 'Onboarding' }
   ];
 
-  // Component state management
-  protected isEditMode = false;
-  protected isDetailMode = false;
-  protected authMethodDisplay = signal<string>('Google OAuth');
-  protected userForm!: FormGroup;
-
   ngOnInit(): void {
-    const currentAction = this.dialogData?.action;
-
-    
-    this.isEditMode = currentAction === DialogActionEnum.Edit;
-    this.isDetailMode = currentAction === DialogActionEnum.Detail;
-    this.isSelf = this.dialogData?.isSelf
-
+    this.mapIncomingDialogAction();
     this.initFormStructure();
     this.registerReactiveEngines();
 
-    if (this.isEditMode || this.isDetailMode) {
-      this.patchExistingData();
-      this.isOnboarding = this.dialogData?.user.status === UserStatus.ONBOARDING
-    }
-
-    if (this.isDetailMode) {
-      this.userForm.disable();
+    if (this.isEditMode() || this.isDetailMode()) {
+      this.hydrateFormTree();
     }
   }
 
-  /**
-   * Initializes the Reactive Form structural invariants and standard validators.
-   */
+  private mapIncomingDialogAction(): void {
+    const actionMap: Partial<Record<DialogActionEnum, 'create' | 'edit' | 'detail'>> = {
+      [DialogActionEnum.Create]: 'create',
+      [DialogActionEnum.Edit]: 'edit',
+      [DialogActionEnum.Detail]: 'detail',
+    };
+    this.mode.set(actionMap[this.dialogData?.action as DialogActionEnum] ?? 'create');
+  }
+
   private initFormStructure(): void {
     this.userForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      email: [{ value: '', disabled: this.isEditMode() }, [Validators.required, Validators.email]],
       role: ['', [Validators.required]],
       userType: ['', [Validators.required]],
       fullName: ['', [Validators.required, Validators.minLength(2)]],
       dateOfBirth: ['', [Validators.required]],
-      userCode: ['', [Validators.required]],
-      facultyId: [{ value: null, disabled: true }], // Locked by default, dynamically enabled via role
+      userCode: [{ value: '', disabled: this.isEditMode() }, [Validators.required]],
+      facultyId: [{ value: null, disabled: true }],
       password: [{ value: '', disabled: true }],
-      confirmPassword: [{ value: '', disabled: true }],    // Enforced only for local Admin provisioning
-      status: [{ value: UserStatus.ACTIVE, disabled: true }]                   // Utilized exclusively within update streams
-    }, {
-      validators: [this.passwordMatchValidator]
-    });
-
-    // Immutable fields isolation during data modification mutations
-    if (this.isEditMode) {
-      this.userForm.get('email')?.disable();
-      this.userForm.get('userCode')?.disable();
-    }
+      confirmPassword: [{ value: '', disabled: true }],
+      status: [{ value: UserStatus.ACTIVE, disabled: true }]
+    }, { validators: [this.passwordMatchValidator] });
   }
 
   private registerReactiveEngines(): void {
-    // Stream 1: Monitor Role mutations to toggle secondary branches
-    this.userForm.get('role')?.valueChanges.subscribe((selectedRole: Role) => {
-      this.evaluateRoleConditionalState(selectedRole);
-    });
-
-    // Stream 2: Monitor UserType mutations specifically for Level 3 sub-branch visibility
-    this.userForm.get('userType')?.valueChanges.subscribe((selectedType: UserType) => {
-      this.evaluateUserTypeConditionalState(selectedType);
-    });
+    this.userForm.get('role')?.valueChanges.subscribe(role => this.evaluateRoleConditionalState(role));
+    this.userForm.get('userType')?.valueChanges.subscribe(type => this.evaluateUserTypeConditionalState(type));
   }
 
-  /**
-   * Dynamic UI Logic Engine.
-   * Monitors operational role mutations to dynamically handle field visibility,
-   * authentication mechanics, and data isolation boundaries.
-   */
   private evaluateRoleConditionalState(selectedRole: Role): void {
-    const facultyCtrl = this.userForm.get('facultyId');
-    const passwordCtrl = this.userForm.get('password');
-    const confirmPasswordCtrl = this.userForm.get('confirmPassword');
-    const userTypeCtrl = this.userForm.get('userType');
+    const { facultyId, password, confirmPassword, userType } = this.userForm.controls;
+    const isLocalAdminProv = selectedRole === Role.LEVEL_0_ADMIN && !this.isEditMode();
 
-    // Branch 1 & 2: Institutional Back-office Management (Admin / Finance)
-    if (selectedRole === Role.LEVEL_0_ADMIN || selectedRole === Role.LEVEL_1_FINANCE) {
-      userTypeCtrl?.setValue(UserType.STAFF);
-      userTypeCtrl?.disable();
-      facultyCtrl?.disable();
-      facultyCtrl?.setValue(null);
+    // Reset default behaviors
+    this.authMethodDisplay.set(isLocalAdminProv ? 'System Email/Password' : 'Google OAuth');
+    this.toggleControlState(password, isLocalAdminProv, [Validators.required, Validators.minLength(6)]);
+    this.toggleControlState(confirmPassword, isLocalAdminProv, [Validators.required]);
 
-      if (selectedRole === Role.LEVEL_0_ADMIN && !this.isEditMode) {
-        this.authMethodDisplay.set('System Email/Password');
-        this.toggleControlState(passwordCtrl, true, [Validators.required, Validators.minLength(6)]);
-        this.toggleControlState(confirmPasswordCtrl, true, [Validators.required]);
-      } else {
-        this.authMethodDisplay.set('Google OAuth');
-        this.toggleControlState(passwordCtrl, false);
-        this.toggleControlState(confirmPasswordCtrl, false);
-      }
+    switch (selectedRole) {
+      case Role.LEVEL_0_ADMIN:
+      case Role.LEVEL_1_FINANCE:
+        userType.setValue(UserType.STAFF);
+        userType.disable();
+        this.toggleControlState(facultyId, false);
+        break;
+
+      case Role.LEVEL_2_DEAN:
+        this.filteredUserTypeOptions.set(this.userTypeOptions.filter(o => o.value !== UserType.STUDENT));
+        userType.enable();
+        this.toggleControlState(facultyId, true, [Validators.required]);
+        break;
+
+      case Role.LEVEL_3_USER:
+        this.filteredUserTypeOptions.set(this.userTypeOptions);
+        userType.enable();
+        this.toggleControlState(facultyId, false);
+        break;
     }
-    // Branch 3: Faculty Dean Domain Scope
-    else if (selectedRole === Role.LEVEL_2_DEAN) {
-      this.authMethodDisplay.set('Google OAuth');
-      this.toggleControlState(passwordCtrl, false);
-      this.toggleControlState(confirmPasswordCtrl, false);
-
-      // Filter out STUDENT classification for Deans
-      this.filteredUserTypeOptions.set(this.userTypeOptions.filter(o => o.value !== UserType.STUDENT));
-      userTypeCtrl?.enable();
-
-      this.toggleControlState(facultyCtrl, true, [Validators.required]);
-    }
-    // Branch 4: Standard End Users
-    else if (selectedRole === Role.LEVEL_3_USER) {
-      this.authMethodDisplay.set('Google OAuth');
-      this.toggleControlState(passwordCtrl, false);
-      this.toggleControlState(confirmPasswordCtrl, false);
-
-      // Expose complete user classification choices
-      this.filteredUserTypeOptions.set(this.userTypeOptions);
-      userTypeCtrl?.enable();
-
-      // Initial reset, sub-state will be calculated by the UserType subscriber stream
-      facultyCtrl?.setValue(null);
-      facultyCtrl?.disable();
-    }
-
     this.refreshFormTreeValidity();
   }
 
   private evaluateUserTypeConditionalState(selectedType: UserType): void {
-    const role = this.userForm.get('role')?.value;
-    const facultyCtrl = this.userForm.get('facultyId');
-
-    // Only apply sub-logic constraints to standard Level 3 End Users
-    if (role === Role.LEVEL_3_USER) {
-      if (selectedType === UserType.STUDENT || selectedType === UserType.TEACHER) {
-        this.toggleControlState(facultyCtrl, true, [Validators.required]);
-      } else if (selectedType === UserType.STAFF) {
-        this.toggleControlState(facultyCtrl, false);
-      }
-      facultyCtrl?.updateValueAndValidity();
+    if (this.userForm.get('role')?.value === Role.LEVEL_3_USER) {
+      const isAcademic = [UserType.STUDENT, UserType.TEACHER].includes(selectedType);
+      this.toggleControlState(this.userForm.get('facultyId')!, isAcademic, [Validators.required]);
     }
   }
 
-  private passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
+  private passwordMatchValidator: ValidatorFn = (control: AbstractControl) => {
     const password = control.get('password')?.value;
     const confirmPassword = control.get('confirmPassword')?.value;
-    const role = control.get('role')?.value;
+    const isSystemAdmin = control.get('role')?.value === Role.LEVEL_0_ADMIN;
 
-    if (role === Role.LEVEL_0_ADMIN && password !== confirmPassword) {
+    if (isSystemAdmin && password !== confirmPassword) {
       control.get('confirmPassword')?.setErrors({ passwordMismatch: true });
       return { passwordMismatch: true };
     }
     return null;
-  }
+  };
 
-  private toggleControlState(ctrl: AbstractControl | null, enable: boolean, validators: ValidatorFn[] = []): void {
-    if (!ctrl) return;
-    if (enable) {
-      ctrl.enable();
-      if (validators.length > 0) ctrl.setValidators(validators);
-    } else {
-      ctrl.disable();
-      ctrl.setValue('');
-      ctrl.clearValidators();
-    }
+  private toggleControlState(ctrl: AbstractControl, enable: boolean, validators: ValidatorFn[] = []): void {
+    enable ? ctrl.enable() : ctrl.disable();
+    ctrl.setValidators(enable ? validators : []);
+    if (!enable) ctrl.setValue(ctrl === this.userForm.get('facultyId') ? null : '');
   }
 
   private refreshFormTreeValidity(): void {
@@ -244,78 +181,55 @@ export class UserFormModalComponent implements OnInit {
     });
   }
 
-  /**
-   * Hydrates the form state with pre-existing persistence layers during edit operations.
-   */
-  private patchExistingData(): void {
-    const user = this.dialogData.user;
-    this.userForm.patchValue({
-      email: user.email,
-      role: user.role,
-      userType: user.userType,
-      fullName: user.fullName,
-      userCode: user.userCode,
-      facultyId: user.facultyId,
-      dateOfBirth: user.dateOfBirth ? user.dateOfBirth : '',
-    });
+  private hydrateFormTree(): void {
+    const user = this.dialogData.user as UserBase;
+    this.userForm.patchValue({ ...user, dateOfBirth: user.dateOfBirth ?? '' });
+    
+    this.isOnboarding.set(user.status === UserStatus.ONBOARDING);
+    this.isSelf.set(user.uid === this.currentAdminId());
+    this.targetIsAdmin.set(user.role === Role.LEVEL_0_ADMIN);
+
+    if (this.isDetailMode()) this.userForm.disable();
   }
 
-  /**
-   * Dispatches the validated data payload to the infrastructure API layer.
-   */
   protected onSubmit(): void {
     if (this.userForm.invalid) return;
 
     const rawForm = this.userForm.getRawValue();
-    const selectedRole = rawForm.role;
+    const targetUid = this.dialogData?.user?.uid;
+    const isScopedRole = [Role.LEVEL_2_DEAN, Role.LEVEL_3_USER].includes(rawForm.role);
 
-    if (this.isEditMode) {
+    // Streamlined Base Payload Construction
+    const basePayload = {
+      fullName: rawForm.fullName,
+      role: rawForm.role,
+      userType: rawForm.userType,
+      dateOfBirth: rawForm.dateOfBirth,
+      facultyId: isScopedRole ? rawForm.facultyId : null
+    };
 
-      const updatePayload = {
-        fullName: rawForm.fullName,
-        role: rawForm.role,
-        userType: rawForm.userType,
-        dateOfBirth: rawForm.dateOfBirth,
-        facultyId: (selectedRole === Role.LEVEL_2_DEAN || selectedRole === Role.LEVEL_3_USER) ? rawForm.facultyId : null
-      };
+    const mutation$ = this.isEditMode()
+      ? this.userListService.updateUser(targetUid, basePayload)
+      : this.userListService.provisionUser({
+          ...basePayload,
+          email: rawForm.email,
+          userCode: rawForm.userCode,
+          ...(rawForm.role === Role.LEVEL_0_ADMIN ? { password: rawForm.password } : {})
+        } as CreateUserInput);
 
-      this.userListService.updateUser(this.dialogData.user.uid, updatePayload).subscribe({
-        next: () => {
-          this.showNotification('User profile updated successfully!', 'success');
-          this.dialogRef.close({ isSuccess: true, payload: updatePayload });
-        },
-        error: (err) => this.handleLocalApiError(err)
-      });
-
-    } else {
-
-      const provisionPayload: any = {
-        email: rawForm.email,
-        role: rawForm.role,
-        userType: rawForm.userType,
-        userCode: rawForm.userCode,
-        fullName: rawForm.fullName,
-        dateOfBirth: rawForm.dateOfBirth,
-        facultyId: (selectedRole === Role.LEVEL_2_DEAN || selectedRole === Role.LEVEL_3_USER) ? rawForm.facultyId : null
-      };
-
-      if (selectedRole === Role.LEVEL_0_ADMIN) {
-        provisionPayload.password = rawForm.password;
-      }
-
-      this.userListService.provisionUser(provisionPayload as CreateUserInput).subscribe({
-        next: () => {
-          this.showNotification('Account provisioned successfully!', 'success');
-          this.dialogRef.close({ isSuccess: true, payload: provisionPayload });
-        },
-        error: (err) => this.handleLocalApiError(err)
-      });
-    }
+    mutation$.subscribe({
+      next: () => {
+        const msg = this.isEditMode() ? 'User profile updated successfully!' : 'Account provisioned successfully!';
+        this.showNotification(msg, 'success');
+        this.dialogRef.close({ isSuccess: true, payload: basePayload });
+      },
+      error: (err) => this.handleLocalApiError(err)
+    });
   }
 
   private showNotification(message: string, type: 'success' | 'error'): void {
     this.snackBar.open(message, 'Close', {
-      duration: 5000, // Visible for 5 seconds to let the admin read the full error
+      duration: 5000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
       panelClass: type === 'success' ? ['toast-success'] : ['toast-error']
@@ -328,16 +242,11 @@ export class UserFormModalComponent implements OnInit {
   }
 
   protected switchToEditMode(): void {
-    this.isDetailMode = false;
-    this.isEditMode = true;
-
+    this.mode.set('edit');
     this.userForm.enable();
-
-    this.userForm.get('email')?.disable();
-    this.userForm.get('userCode')?.disable();
-    this.userForm.get('status')?.disable();
-
-    const currentRole = this.userForm.get('role')?.value;
-    this.evaluateRoleConditionalState(currentRole);
+    
+    // Maintain immutable field constraints
+    ['email', 'userCode', 'status'].forEach(k => this.userForm.get(k)?.disable());
+    this.evaluateRoleConditionalState(this.userForm.get('role')?.value);
   }
 }

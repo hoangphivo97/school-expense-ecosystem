@@ -125,21 +125,23 @@ export class UserListService {
     }
 
     private async validateAndGetTargetUser(targetUid: string, executorUid: string): Promise<any> {
-        if (targetUid === executorUid) {
-            throw new ForbiddenException(
-                'Administrative safety policy violation: Self-mutation of operational roles or status within the management pool is strictly prohibited.'
-            );
-        }
-
-        const targetUser = await this.userRepository.findById(targetUid);
-        if (!targetUser) {
-            throw new NotFoundException('Target user record does not exist.');
-        }
-
-        if (targetUser.createdBy && targetUser.createdBy !== executorUid && targetUser.role === Role.LEVEL_0_ADMIN) {
-            throw new ForbiddenException('Security violation: Peer Protection active. You cannot modify an elite Administrator.');
-        }
-
-        return targetUser;
+    if (targetUid === executorUid) {
+        throw new ForbiddenException(
+            'Administrative safety policy violation: Self-mutation of operational roles or status within the management pool is strictly prohibited.'
+        );
     }
+
+    const targetUser = await this.userRepository.findById(targetUid);
+    if (!targetUser) {
+        throw new NotFoundException('Target user record does not exist.');
+    }
+
+    if (targetUser.role === Role.LEVEL_0_ADMIN) {
+        throw new ForbiddenException(
+            'Security violation: Absolute Peer Protection active. Modifying another elite Administrator within this management pool is strictly prohibited.'
+        );
+    }
+
+    return targetUser;
+}
 }

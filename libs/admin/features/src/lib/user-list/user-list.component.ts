@@ -193,6 +193,7 @@ export class UserListComponent {
       isActive: user.status === UserStatus.ACTIVE,
       isSuspended: user.status === UserStatus.SUSPENDED,
       isOnboarding: user.status === UserStatus.ONBOARDING,
+      targetIsAdmin: user.role === Role.LEVEL_0_ADMIN
     }));
   });
 
@@ -261,7 +262,6 @@ export class UserListComponent {
         user: user,
         title: 'User Detail',
         action: this.dialogActionEnum.Detail,
-        isSelf: user.uid === this.currentAdminId()
       },
     });
 
