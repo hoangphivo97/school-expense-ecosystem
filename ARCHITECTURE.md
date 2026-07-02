@@ -251,11 +251,14 @@ class Log_Create,Log_StaffReject,Log_StaffApprove,Log_DeanReject,Log_DeanApprove
 ```mermaid
 graph TB
     %% Define DDD Architecture Styles
-    classDef domain fill:#f1f8e9,stroke:#558b2f,stroke-width:2px;
     classDef client fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px;
     classDef backend fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px;
-    classDef shared fill:#fffide,stroke:#fbc02d,stroke-width:1.5px;
+    classDef shared fill:#fffde7,stroke:#fbc02d,stroke-width:1.5px;
     classDef infra fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    
+    %% STRICT DATA ABSTRACTION LAYER CLASS (The Interface/Repository boundaries)
+    classDef data_abstraction fill:#e0f2f1,stroke:#004d40,stroke-width:2.5px;
+    
     %% Styled specifically for planned components to signal Phase 2 Roadmap
     classDef planned fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1.5px,stroke-dasharray: 5 5;
 
@@ -292,22 +295,25 @@ graph TB
             subgraph Expense_BE ["📦 EXPENSES BACKEND DOMAIN"]
                 BE_Exp_Ctrl["features-backend<br/>(Expense Controller Layer)"]
                 BE_Exp_Service["data-access-backend<br/>(Domain Services & Tx Logic)"]
-                BE_Exp_Repo["data-access-backend<br/>(Repository Interface Abstraction)"]
+                BE_Exp_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Repository Interface Contract]"]
             end
             
             subgraph Payout_BE ["📦 PAYOUT BACKEND DOMAIN (Planned - Phase 2)"]
                 BE_Pay_Ctrl["features-backend<br/>(Payout Batch Controller)"]
                 BE_Pay_Service["data-access-backend<br/>(Bulk Transfer & PDF Parsing Logic)"]
+                BE_Pay_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Storage Repository Contract]"]
             end
             
             subgraph Auth_BE ["📦 AUTH BACKEND DOMAIN"]
                 BE_Auth_Ctrl["features-backend<br/>(Auth Controller & JWT Guards)"]
                 BE_Auth_Service["data-access-backend<br/>(Session & Claims Services)"]
+                BE_Auth_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Identity Provider Interface]"]
             end
             
             subgraph Finance_BE ["📦 FINANCE BACKEND DOMAIN"]
                 BE_Fin_Ctrl["features-backend<br/>(Budget Controller Layer)"]
                 BE_Fin_Service["data-access-backend<br/>(TWD Budget Allocation Logic)"]
+                BE_Fin_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Budget Repository Contract]"]
             end
         end
 
@@ -319,20 +325,23 @@ graph TB
         end
     end
 
-    %% --- INFRASTRUCTURE ADAPTERS LAYER ---
-    subgraph Infrastructure ["🗄️ INFRASTRUCTURE & INTEGRATION LAYER"]
-        FB_Auth["Firebase Authentication<br/>(Identity Service Gateway)"]
+    %% --- INFRASTRUCTURE ADAPTERS LAYER (Can be easily swapped out thanks to Repositories)
+    subgraph Infrastructure ["🗄️ INFRASTRUCTURE ADAPTERS LAYER (Swappable Providers)"]
+        FB_Auth["Firebase Authentication Adapter<br/>(Identity Service Gateway)"]
         Firestore[("Firebase Firestore Adapter<br/>(NoSQL Bounded Collections)")]
         Storage[("Firebase Cloud Storage Adapter<br/>(GUI Receipts & Master PDFs)")]
         BankBOT[["Bank of Taiwan App<br/>(Offline File-Based Clearing)"]]
     end
 
-    %% Core Internal Backend Connections
+    %% Core Internal Backend Connections (Decoupled via Repositories)
     BE_Exp_Ctrl --> BE_Exp_Service
-    BE_Exp_Service --> BE_Exp_Repo
+    BE_Exp_Service -->|"Calls Interface"| BE_Exp_Repo
     BE_Auth_Ctrl --> BE_Auth_Service
+    BE_Auth_Service -->|"Calls Interface"| BE_Auth_Repo
     BE_Fin_Ctrl --> BE_Fin_Service
+    BE_Fin_Service -->|"Calls Interface"| BE_Fin_Repo
     BE_Pay_Ctrl --> BE_Pay_Service
+    BE_Pay_Service -->|"Calls Interface"| BE_Pay_Repo
 
     %% Frontend Apps Dependencies
     App_Shell -->|"Injects Features"| FE_Exp_Feature
@@ -356,10 +365,12 @@ graph TB
     %% Core Async Communication between Domains (Decoupling)
     BE_Exp_Service -.->|"Triggers State Mutation Event"| BE_Pay_Ctrl
     
-    %% Infrastructure Adapters Implementations
-    BE_Exp_Repo -->|"Firebase Admin SDK Server Operations"| Firestore
-    BE_Exp_Service -->|"Cloud Storage Service"| Storage
-    BE_Pay_Service -.->|"Uploads Master Receipt PDF"| Storage
+    %% Infrastructure Adapters Implementations (Bound STRICTLY to Repositories, NOT Services)
+    BE_Exp_Repo -->|"Plugs Into"| Firestore
+    BE_Exp_Repo -->|"Plugs Into"| Storage
+    BE_Fin_Repo -->|"Plugs Into"| Firestore
+    BE_Pay_Repo -.->|"Plugs Into"| Storage
+    BE_Auth_Repo -->|"Plugs Into"| FB_Auth
     FE_Auth_DA -.->|"Direct Client Verification"| FB_Auth
     
     %% Shared Kernel Core Connections
@@ -373,10 +384,15 @@ graph TB
 
     %% Apply DDD Architecture Styles to Nodes
     class App_Shell,App_Remote,FE_Exp_Feature,FE_Exp_DA,FE_Auth_Feature,FE_Auth_DA,FE_Fin_Feature,FE_Fin_DA client;
-    class BE_Exp_Ctrl,BE_Exp_Service,BE_Exp_Repo,BE_Auth_Ctrl,BE_Auth_Service,BE_Fin_Ctrl,BE_Fin_Service backend;
-    class FE_Pay_Feature,FE_Pay_DA,BE_Pay_Ctrl,BE_Pay_Service planned;
+    class BE_Exp_Ctrl,BE_Exp_Service,BE_Auth_Ctrl,BE_Auth_Service,BE_Fin_Ctrl,BE_Fin_Service backend;
     class Shared_UI,Shared_Tokens,Shared_Types shared;
     class FB_Auth,Firestore,Storage,BankBOT infra;
+    
+    %% HIGHLIGHTING THE ACTUAL DATA ABSTRACTION LAYER (THE REPOSITORIES CONTRACTS)
+    class BE_Exp_Repo,BE_Auth_Repo,BE_Fin_Repo data_abstraction;
+    
+    %% Apply Planned Roadmap Styles (Overriding for Phase 2 components)
+    class FE_Pay_Feature,FE_Pay_DA,BE_Pay_Ctrl,BE_Pay_Service,BE_Pay_Repo planned;
 ```
 
 </details>
