@@ -1,26 +1,11 @@
-<button
-  mat-icon-button
-  class="collapse-btn"
-  [class.collapsed]="collapsed"
-  (click)="toggleSidebar()"
->
+<button mat-icon-button class="collapse-btn" [class.collapsed]="collapsed" (click)="toggleSidebar()">
   <mat-icon class="collapse-icon">{{ toggleIcon }}</mat-icon>
 </button>
 <!-- main-layout.component.html -->
 <mat-sidenav-container class="sidenav-container">
   <!-- Sidebar -->
-  <mat-sidenav
-    mode="side"
-    class="app-sidenav"
-    [opened]="true"
-    [fixedInViewport]="true"
-    [class.collapsed]="collapsed"
-  >
-    <app-sidebar
-      [collapsed]="collapsed"
-      (toggle)="toggleSidebar()"
-      (logout)="logout()"
-    ></app-sidebar>
+  <mat-sidenav mode="side" class="app-sidenav" [opened]="true" [fixedInViewport]="true" [class.collapsed]="collapsed">
+    <app-sidebar [collapsed]="collapsed" (toggle)="toggleSidebar()" (logout)="logout()"></app-sidebar>
   </mat-sidenav>
 
   <!-- Content -->
