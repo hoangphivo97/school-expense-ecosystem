@@ -23,7 +23,11 @@
             "output": "."
           }
         ],
-        "styles": ["apps/mfe-shell-angular/src/styles.scss"],
+        "styles": [
+          "apps/mfe-shell-angular/src/styles.scss",
+          "node_modules/bootstrap/dist/css/bootstrap-grid.min.css",
+          "node_modules/bootstrap/dist/css/bootstrap-utilities.min.css"
+        ],
         "scripts": ["node_modules/apexcharts/dist/apexcharts.min.js"],
         "customWebpackConfig": {
           "path": "apps/mfe-shell-angular/webpack.config.ts"
