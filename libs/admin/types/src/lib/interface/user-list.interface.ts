@@ -1,6 +1,7 @@
 import { FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { FilterParams, PaginationParams } from '@school-expense-ecosystem/shared/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types'
+import { DeleteReasonType } from '../enums/user-list.enum';
 
 /**
  * Strictly-typed business filters extracted directly from the global filter matrix.
@@ -43,4 +44,9 @@ export interface PaginatedUserResult {
   users: UserBase[];
   nextPageToken: string | null;
   totalItems: number;
+}
+
+export interface DeleteUserPayload {
+  reasonType: DeleteReasonType;
+  confirmationText: string;
 }

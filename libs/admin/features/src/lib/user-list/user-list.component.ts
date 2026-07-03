@@ -32,6 +32,7 @@ import {
   faCirclePause
 } from '@fortawesome/free-solid-svg-icons';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal';
 
 @Component({
   selector: 'lib-user-list',
@@ -193,7 +194,8 @@ export class UserListComponent {
       isActive: user.status === UserStatus.ACTIVE,
       isSuspended: user.status === UserStatus.SUSPENDED,
       isOnboarding: user.status === UserStatus.ONBOARDING,
-      targetIsAdmin: user.role === Role.LEVEL_0_ADMIN
+      targetIsAdmin: user.role === Role.LEVEL_0_ADMIN,
+      isRejected: user.status === UserStatus.REJECTED
     }));
   });
 
@@ -317,6 +319,27 @@ export class UserListComponent {
         this.processingUserId.set(null);
         console.error('Administrative status mutation failed:', err);
         this.errorMessage.set('Failed to alter user status configuration boundary.');
+      }
+    });
+  }
+
+  protected openDeleteModal(user: UserBase): void {
+    const dialogRef = this.dialog.open(UserDeleteModalComponent, {
+      data: { user },
+      autoFocus: false,
+      disableClose: true,
+      width: '640px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) return;
+
+      if (result.isDeleted && result.targetUid) {
+        // this.handlePostDeletion(result.targetUid);
+      }
+
+      if (result.action === 'SECURITY_LOCKED') {
+
       }
     });
   }

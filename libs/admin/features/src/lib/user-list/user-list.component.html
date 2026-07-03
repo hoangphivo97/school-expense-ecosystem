@@ -109,7 +109,7 @@
                 @if (user.isProcessing) {
                 <mat-spinner diameter="20"></mat-spinner>
                 } @else {
-                <fa-icon [icon]="faCircleCheck" size="lg" class="text-success"></fa-icon>
+                <fa-icon [icon]="faCircleCheck" transform="shrink-3" class="text-success"></fa-icon>
                 }
               </button>
 
@@ -118,7 +118,7 @@
                 @if (user.isProcessing) {
                 <mat-spinner diameter="20"></mat-spinner>
                 } @else {
-                <fa-icon [icon]="faUserXMark" size="lg" class="text-danger"></fa-icon>
+                <fa-icon [icon]="faUserXMark" transform="shrink-3" class="text-danger"></fa-icon>
                 }
               </button>
               }
@@ -129,7 +129,7 @@
                 @if (user.isProcessing) {
                 <mat-spinner diameter="20"></mat-spinner>
                 } @else {
-                <fa-icon [icon]="faLock" size="lg" class="text-danger"></fa-icon>
+                <fa-icon [icon]="faLock" transform="shrink-3" class="text-danger"></fa-icon>
                 }
               </button>
               }
@@ -140,11 +140,12 @@
                 @if (user.isProcessing) {
                 <mat-spinner diameter="20"></mat-spinner>
                 } @else {
-                <fa-icon [icon]="faLockOpen" size="lg" class="text-primary"></fa-icon>
+                <fa-icon [icon]="faLockOpen" transform="shrink-3" class="text-primary"></fa-icon>
                 }
               </button>
               }
 
+              @else if(!user.isRejected){
               <span
                 [matTooltip]="user.isOnboarding ? 'Account profile is incomplete. Editing is locked during onboarding.' : 'Edit Profile'"
                 class="d-inline-block">
@@ -156,10 +157,22 @@
 
               </span>
               }
+              @else if (user.isRejected) {
+              <span class="d-inline-block">
+
+                <button mat-icon-button color="warn" (click)="openDeleteModal(user)"
+                  aria-label="Delete system account settings">
+                  <mat-icon class="action-edit-icon">delete</mat-icon>
+                </button>
+
+              </span>
+              }
+              }
 
               @else {
               <div class="d-flex align-items-center gap-1 text-muted ms-2 bg-light px-2 py-1 rounded border"
-                style="width: fit-content;" matTooltip="Self-modification is restricted, and other admins cannot be changed for security reasons">
+                style="width: fit-content;"
+                matTooltip="Self-modification is restricted, and other admins cannot be changed for security reasons">
                 <mat-icon class="fs-6 w-auto h-auto m-0">lock</mat-icon>
                 <span class="small-text fw-semibold">Protected @if(!user.isNotCurrentAdmin){
                   <span>(You)</span>}
