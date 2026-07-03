@@ -8,8 +8,19 @@
     <app-sidebar [collapsed]="collapsed" (toggle)="toggleSidebar()" (logout)="logout()"></app-sidebar>
   </mat-sidenav>
 
-  <!-- Content -->
+  <!-- Dynamic Content Display Viewport Area -->
   <mat-sidenav-content [class.collapsed]="collapsed">
     <router-outlet></router-outlet>
   </mat-sidenav-content>
+
 </mat-sidenav-container>
+
+<!-- Floating Responsive Action Controller Button -->
+<button
+  mat-icon-button
+  class="collapse-btn"
+  [class.collapsed]="collapsed"
+  (click)="toggleSidebar()"
+>
+  <mat-icon class="collapse-icon">{{ toggleIcon }}</mat-icon>
+</button>
