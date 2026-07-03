@@ -1,105 +1,101 @@
-$icon-color-inactive: #bdc2c5;
-$text-color-inactive: #7d8388;
-$color-active: #7d45ff;
-$color-danger: #dc2626;
-$red-bland-8: rgba(220, 38, 38, 0.08);
-$purple-bland-8: rgba($color-active, 0.08);
+/* ==========================================================================
+   LAYOUT SCOPE TOKENS (DYNAMIC LAYOUT ENGINE)
+   ========================================================================== */
+:host {
+  // Define default continuous width parameters for the sidebar using rem
+  --sidebar-width: 16.25rem; // Equivalent to 260px
+  --toggle-btn-size: 1.625rem; // Equivalent to 26px
 
+  // Override structural width token when layout enters a collapsed state
+  &.collapsed,
+  .collapsed {
+    --sidebar-width: 5rem; // Equivalent to 80px
+  }
+}
+
+/* ==========================================================================
+   1. CORE SIDENAV CONTAINER MATRIX
+   ========================================================================== */
 .sidenav-container {
   height: 100vh;
   position: relative;
-  font-size: 1.4rem;
+  font-size: 1rem; // Scaled to inherit base standard font size
 }
 
 .app-sidenav {
-  width: 260px;
-  transition: width 0.3s ease;
+  width: var(--sidebar-width) !important; // Controlled dynamically by scope token
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-  &.collapsed {
-    width: 80px;
-  }
-
+  // Fix overflow issues on icon rendering within Material context
   ::ng-deep .mat-icon {
     overflow: visible !important;
   }
 }
 
+/* ==========================================================================
+   2. CONTENT VIEWPORT ADJUSTMENT (ZERO !IMPORTANT HACK)
+   ========================================================================== */
 mat-sidenav-content {
-  transition: margin-left 0.3s ease;
-  margin-left: 260px !important;
-
-  &.collapsed {
-    margin-left: 80px !important;
-  }
+  // Let Angular Material handle base offsets, apply smooth transition behaviors
+  transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background-color: var(--bg-primary);
 }
 
+/* ==========================================================================
+   3. FLOATING TOGGLE INTERACTIVE BUTTON
+   ========================================================================== */
 .collapse-btn {
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  background: white;
-  border: 1px solid #ccc;
+  
+  // Fully linked to global theme tokens for flawless Light/Dark mode transitions
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
   border-radius: 50%;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  transition: left 0.3s ease;
-  left: 245px;
+  
+  width: var(--toggle-btn-size) !important;
+  height: var(--toggle-btn-size) !important;
+  padding: 0 !important;
+  cursor: pointer;
+  
+  // Mathematical fluid positioning: placing the button center exactly on the boundary edge
+  left: calc(var(--sidebar-width) - (var(--toggle-btn-size) / 2));
+  transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.2s;
 
-  &.collapsed {
-    left: 65px;
+  &:hover {
+    background-color: var(--hover-bg) !important;
+    
+    .collapse-icon {
+      animation: raceMove 0.6s ease-in-out forwards;
+    }
+  }
+
+  // Trigger alternate animation context when button is in collapsed state
+  &.collapsed:hover {
+    .collapse-icon {
+      animation: raceBack 0.6s ease-in-out forwards;
+    }
   }
 }
 
-.collapse-btn:hover .collapse-icon {
-  animation: raceMove 0.6s ease-in-out;
-}
-
-.collapsed:hover .collapse-icon {
-  animation: raceBack 0.6s ease-in-out;
-}
-
+/* ==========================================================================
+   4. PERFORMANCE-OPTIMIZED KEYFRAME ANIMATIONS (REM BASED)
+   ========================================================================== */
 @keyframes raceMove {
-  0% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-
-  40% {
-    transform: translateX(-50px);
-    opacity: 0;
-  }
-
-  60% {
-    transform: translateX(50px);
-    opacity: 0;
-  }
-
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  0%   { transform: translateX(0); opacity: 1; }
+  40%  { transform: translateX(-3.125rem); opacity: 0; } // ~50px fluid translation
+  60%  { transform: translateX(3.125rem); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes raceBack {
-  0% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-
-  40% {
-    transform: translateX(50px);
-    opacity: 0;
-  }
-
-  60% {
-    transform: translateX(-50px);
-    opacity: 0;
-  }
-
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  0%   { transform: translateX(0); opacity: 1; }
+  40%  { transform: translateX(3.125rem); opacity: 0; }
+  60%  { transform: translateX(-3.125rem); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
 }

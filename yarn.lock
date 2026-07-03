@@ -6773,22 +6773,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ng-bootstrap/ng-bootstrap@npm:^19.0.1":
-  version: 19.0.1
-  resolution: "@ng-bootstrap/ng-bootstrap@npm:19.0.1"
-  dependencies:
-    tslib: "npm:^2.3.0"
-  peerDependencies:
-    "@angular/common": ^20.0.0
-    "@angular/core": ^20.0.0
-    "@angular/forms": ^20.0.0
-    "@angular/localize": ^20.0.0
-    "@popperjs/core": ^2.11.8
-    rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/aeddaf8c2092ec7e7f34456541d61e70820a78b4ef1348fb8e1c1941632cf98f52977dcf92e9ab4d2bc5b3fba7fed74180f6f20d8ab6cb718ea99baec7ab75d5
-  languageName: node
-  linkType: hard
-
 "@ngrx/effects@npm:20.0.0":
   version: 20.0.0
   resolution: "@ngrx/effects@npm:20.0.0"
@@ -12313,15 +12297,6 @@ __metadata:
   version: 1.0.0
   resolution: "boolbase@npm:1.0.0"
   checksum: 10c0/e4b53deb4f2b85c52be0e21a273f2045c7b6a6ea002b0e139c744cb6f95e9ec044439a52883b0d74dedd1ff3da55ed140cfdddfed7fb0cccbed373de5dce1bcf
-  languageName: node
-  linkType: hard
-
-"bootstrap@npm:^5.3.2":
-  version: 5.3.8
-  resolution: "bootstrap@npm:5.3.8"
-  peerDependencies:
-    "@popperjs/core": ^2.11.8
-  checksum: 10c0/0039a9df2c3e7bfa04f1abca199c299ff3b75869d578c0cb1721c6f1f203c91531788a5631ecbee01513481979314d0e4ba0d90c2011e6ce18fc2e0bc93e18d9
   languageName: node
   linkType: hard
 
@@ -23926,7 +23901,6 @@ __metadata:
     "@nestjs/testing": "npm:^11.0.0"
     "@nestjs/throttler": "npm:^6.5.0"
     "@nestjs/websockets": "npm:^11.1.26"
-    "@ng-bootstrap/ng-bootstrap": "npm:^19.0.1"
     "@ngrx/effects": "npm:20.0.0"
     "@ngrx/entity": "npm:20.0.0"
     "@ngrx/router-store": "npm:20.0.0"
@@ -23973,7 +23947,6 @@ __metadata:
     babel-jest: "npm:^30.0.2"
     bcrypt: "npm:^6.0.0"
     bcryptjs: "npm:^3.0.3"
-    bootstrap: "npm:^5.3.2"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.3"
     cypress: "npm:^15.2.0"
