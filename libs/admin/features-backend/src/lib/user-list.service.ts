@@ -1,8 +1,8 @@
-import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UserBase, } from '@school-expense-ecosystem/shared/types';
 import { UserRepository } from './repository/user.repository';
-import { CreateUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
-import { AdminActionType, CreateUserResult, IAdminExecutor, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';
+import { CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
+import { AdminActionType, CreateUserResult, DeleteReasonType, IAdminExecutor, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';
 import { IAdminAuditLogRepository } from './repository/audit-log.repository';
 import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
 
@@ -125,23 +125,58 @@ export class UserListService {
     }
 
     private async validateAndGetTargetUser(targetUid: string, executorUid: string): Promise<any> {
-    if (targetUid === executorUid) {
-        throw new ForbiddenException(
-            'Administrative safety policy violation: Self-mutation of operational roles or status within the management pool is strictly prohibited.'
-        );
+        if (targetUid === executorUid) {
+            throw new ForbiddenException(
+                'Administrative safety policy violation: Self-mutation of operational roles or status within the management pool is strictly prohibited.'
+            );
+        }
+
+        const targetUser = await this.userRepository.findById(targetUid);
+        if (!targetUser) {
+            throw new NotFoundException('Target user record does not exist.');
+        }
+
+        if (targetUser.role === Role.LEVEL_0_ADMIN) {
+            throw new ForbiddenException(
+                'Security violation: Absolute Peer Protection active. Modifying another elite Administrator within this management pool is strictly prohibited.'
+            );
+        }
+
+        return targetUser;
     }
 
-    const targetUser = await this.userRepository.findById(targetUid);
-    if (!targetUser) {
-        throw new NotFoundException('Target user record does not exist.');
-    }
+    async deleteUserByAdmin(targetUid: string, executor: IAdminExecutor, dto: DeleteUserDto): Promise<{ success: boolean }> {
+        const targetUser = await this.validateAndGetTargetUser(targetUid, executor.uid);
 
-    if (targetUser.role === Role.LEVEL_0_ADMIN) {
-        throw new ForbiddenException(
-            'Security violation: Absolute Peer Protection active. Modifying another elite Administrator within this management pool is strictly prohibited.'
-        );
-    }
+        if (targetUser.status !== UserStatus.REJECTED) {
+            throw new BadRequestException(
+                'Administrative policy violation: Only user accounts with a "Rejected" status are eligible for deletion handling.'
+            );
+        }
 
-    return targetUser;
-}
+        if (dto.reasonType === DeleteReasonType.INPUT_ERROR) {
+            await this.userRepository.deleteAuthAccount(targetUid);
+            await this.userRepository.deleteUserRecord(targetUid);
+
+            await this.auditLogRepository.saveAdminActivityLog({
+                actorUid: executor.uid,
+                actorEmail: executor.email,
+                action: AdminActionType.USER_DELETE,
+                targetIds: [targetUid],
+                changes: {
+                    deletionReason: { old: null, new: DeleteReasonType.INPUT_ERROR }
+                }
+            });
+
+            return { success: true };
+        }
+
+        if (dto.reasonType === DeleteReasonType.SECURITY_THREAT) {
+            throw new BadRequestException(
+                'Infrastructural Restriction: Security threat retention must be handled locally on the client layer for this product version.'
+            );
+        }
+
+        return { success: false };
+    }
 }

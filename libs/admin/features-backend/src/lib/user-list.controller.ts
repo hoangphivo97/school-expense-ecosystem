@@ -1,9 +1,10 @@
-import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UserListService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/shared/types';
 import { JwtAuthGuard, RolesGuard, Roles } from '@school-expense-ecosystem/shared/guards-backend';
-import { ChangeUserStatusDto, CreateUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
+import { ChangeUserStatusDto, CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
 import { IAdminExecutor } from '@school-expense-ecosystem/admin/types';
+import { ActiveAdmin } from './decorators/admin-executor.decorator';
 
 
 @Controller('users')
@@ -25,8 +26,9 @@ export class UserListController {
 
   @Post('provision')
   @Roles(Role.LEVEL_0_ADMIN)
-  async manualAccountProvisioning(@Req() req: { user: UserBase }, @Body() createUserDto: CreateUserDto) {
-    const executor: IAdminExecutor = { uid: req.user.uid, email: req.user.email };
+  async manualAccountProvisioning(
+    @Body() createUserDto: CreateUserDto,
+    @ActiveAdmin() executor: IAdminExecutor) {
     return this.userListService.provisionNewUserByAdmin(executor, createUserDto);
   }
 
@@ -34,10 +36,9 @@ export class UserListController {
   @Roles(Role.LEVEL_0_ADMIN)
   async updateUser(
     @Param('id') id: string,
-    @Req() req: { user: UserBase },
+    @ActiveAdmin() executor: IAdminExecutor,
     @Body() updateUserDto: UpdateUserDto
   ) {
-    const executor: IAdminExecutor = { uid: req.user.uid, email: req.user.email };
     return this.userListService.updateUserByAdmin(id, executor, updateUserDto);
   }
 
@@ -45,10 +46,9 @@ export class UserListController {
   @Roles(Role.LEVEL_0_ADMIN)
   async changeUserStatus(
     @Param('id') id: string,
-    @Req() req: { user: UserBase },
+    @ActiveAdmin() executor: IAdminExecutor,
     @Body() changeUserStatusDto: ChangeUserStatusDto
   ) {
-    const executor: IAdminExecutor = { uid: req.user.uid, email: req.user.email };
 
     return this.userListService.updateUserStatusByAdmin(
       id,
@@ -56,5 +56,16 @@ export class UserListController {
       changeUserStatusDto.status,
       changeUserStatusDto.reason
     );
+  }
+
+  @Delete(':id')
+  @Roles(Role.LEVEL_0_ADMIN)
+  async executeUserDeletion(
+    @Param('id') id: string,
+    @ActiveAdmin() executor: IAdminExecutor,
+    @Body() deleteUserDto: DeleteUserDto
+  ) {
+
+    return this.userListService.deleteUserByAdmin(id, executor, deleteUserDto);
   }
 }

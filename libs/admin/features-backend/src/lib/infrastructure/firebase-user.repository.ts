@@ -116,4 +116,19 @@ export class FirebaseUserRepository implements UserRepository {
 
     await this.db.collection('users').doc(uid).update(updateData);
   }
+
+  async deleteUserRecord(uid: string): Promise<void> {
+    await this.db.collection('users').doc(uid).delete();
+  }
+
+  async deleteAuthAccount(uid: string): Promise<void> {
+    try {
+      await admin.auth().deleteUser(uid);
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        return;
+      }
+      throw error;
+    }
+  }
 }
