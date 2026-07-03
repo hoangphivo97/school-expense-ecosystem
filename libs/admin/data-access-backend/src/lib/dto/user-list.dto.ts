@@ -1,6 +1,6 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, ValidateIf, IsDateString } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, ValidateIf, IsDateString, Equals } from "class-validator";
 import { FacultyId, Role, UserStatus, UserType } from "@school-expense-ecosystem/shared/types";
-import { CreateUserInput, UpdateUserInput } from "@school-expense-ecosystem/admin/types";
+import { CreateUserInput, DeleteReasonType, UpdateUserInput } from "@school-expense-ecosystem/admin/types";
 
 export class CreateUserDto implements CreateUserInput {
   @IsNotEmpty({ message: 'Institutional email address is mandatory.' })
@@ -78,4 +78,16 @@ export class ChangeUserStatusDto {
   @IsString()
   @MinLength(4, { message: 'Justification reason must be at least 4 characters long.' })
   reason?: string;
+}
+
+export class DeleteUserDto {
+  @IsNotEmpty({ message: 'Delete reason type is required.' })
+  @IsEnum(DeleteReasonType, { message: 'Invalid delete reason classification.' })
+  reasonType!: DeleteReasonType;
+
+  @ValidateIf(o => o.reasonType === DeleteReasonType.INPUT_ERROR)
+  @IsNotEmpty({ message: 'Confirmation text is mandatory for input error deletions.' })
+  @IsString()
+  @Equals('DELETE', { message: 'Confirmation text must be exactly "DELETE".' })
+  confirmationText?: string;
 }

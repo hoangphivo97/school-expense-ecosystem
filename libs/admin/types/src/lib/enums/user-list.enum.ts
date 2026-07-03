@@ -1,0 +1,4 @@
+export enum DeleteReasonType {
+  INPUT_ERROR = 'INPUT_ERROR',
+  SECURITY_THREAT = 'SECURITY_THREAT'
+}

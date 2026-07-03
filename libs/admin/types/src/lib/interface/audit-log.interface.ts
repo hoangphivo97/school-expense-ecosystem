@@ -1,11 +1,4 @@
-export enum AdminActionType {
-  USER_CREATE = 'USER_CREATE',
-  USER_STATUS_CHANGE = 'USER_STATUS_CHANGE',     
-  USER_ROLE_CHANGE = 'USER_ROLE_CHANGE',           
-  USER_FACULTY_CHANGE = 'USER_FACULTY_CHANGE',           
-  BULK_USER_STATUS_CHANGE = 'BULK_USER_STATUS_CHANGE', 
-  BULK_USER_ROLE_CHANGE = 'BULK_USER_ROLE_CHANGE'
-}
+import { AdminActionType } from "../enums/audit-log.enum";
 
 export interface IAuditLogChangeValue {
   old: unknown;

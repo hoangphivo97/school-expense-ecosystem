@@ -13,4 +13,6 @@ export abstract class UserRepository {
   abstract createAuthAccount(email: string, fullName: string, password?: string): Promise<string>;
   abstract findById(uid: string): Promise<any | null>;
   abstract updateStatus(uid: string, status: UserStatus, reason?: string): Promise<void>;
+  abstract deleteUserRecord(uid: string): Promise<void>;
+  abstract deleteAuthAccount(uid: string) : Promise<void>;
 }
