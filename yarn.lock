@@ -23956,10 +23956,7 @@ __metadata:
     babel-jest: "npm:^30.0.2"
     bcrypt: "npm:^6.0.0"
     bcryptjs: "npm:^3.0.3"
-<<<<<<< HEAD
     bootstrap: "npm:^5.3.8"
-=======
->>>>>>> 8e0bf6ede5b461a2d9070cf3d08bb8aa13695684
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.3"
     cypress: "npm:^15.2.0"
