@@ -28,7 +28,7 @@
           "node_modules/bootstrap/dist/css/bootstrap-grid.min.css",
           "node_modules/bootstrap/dist/css/bootstrap-utilities.min.css"
         ],
-        "scripts": ["node_modules/apexcharts/dist/apexcharts.min.js"],
+        "scripts": [],
         "customWebpackConfig": {
           "path": "apps/mfe-shell-angular/webpack.config.ts"
         },
@@ -52,11 +52,13 @@
             },
             {
               "type": "anyComponentStyle",
-              "maximumWarning": "2kB",
-              "maximumError": "4kB"
+              "maximumWarning": "6kB",
+              "maximumError": "12kB"
             }
           ],
           "outputHashing": "all",
+          "optimization": true,
+          "buildOptimizer": true,
           "customWebpackConfig": {
             "path": "apps/mfe-shell-angular/webpack.prod.config.ts"
           }

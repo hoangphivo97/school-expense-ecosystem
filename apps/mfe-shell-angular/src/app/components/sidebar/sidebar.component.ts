@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { NavItem } from '@school-expense-ecosystem/shared/types';
 import { MatDialog } from '@angular/material/dialog';
-import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons/faArrowRightFromBracket';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { navItems } from '@school-expense-ecosystem/shared/constants';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';

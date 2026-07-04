@@ -11,8 +11,10 @@ import { MatError, MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faGoogle } from '@fortawesome/free-brands-svg-icons';
-import { faArrowLeft, faArrowRight, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
+import { faGoogle } from '@fortawesome/free-brands-svg-icons/faGoogle';
+import { faArrowLeft  } from '@fortawesome/free-solid-svg-icons/faArrowLeft'
+import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight'
+import { faShieldHalved } from '@fortawesome/free-solid-svg-icons/faShieldHalved'
 import { MatSelectModule } from '@angular/material/select';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';

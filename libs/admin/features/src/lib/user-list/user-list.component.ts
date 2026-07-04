@@ -21,16 +21,12 @@ import { UserFormModalComponent } from '../user-form-modal/user-form-modal.compo
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { UserStatus, UserType, Role } from '@school-expense-ecosystem/shared/types'
-
-import {
-  faCircleCheck,
-  faBan,
-  faLockOpen,
-  faPenToSquare,
-  faLock,
-  faUserXmark,
-  faCirclePause
-} from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck } from '@fortawesome/free-solid-svg-icons/faCircleCheck';
+import { faBan } from '@fortawesome/free-solid-svg-icons/faBan';
+import { faLockOpen } from '@fortawesome/free-solid-svg-icons/faLockOpen';
+import { faLock } from '@fortawesome/free-solid-svg-icons/faLock';
+import { faUserXmark } from '@fortawesome/free-solid-svg-icons/faUserXmark';
+import { faCirclePause } from '@fortawesome/free-solid-svg-icons/faCirclePause';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal';
 
@@ -75,7 +71,6 @@ export class UserListComponent {
   protected readonly faBan = faBan;
   protected readonly faLockOpen = faLockOpen;
   protected readonly faCirclePause = faCirclePause;
-  protected readonly faPenToSquare = faPenToSquare;
   protected readonly faLock = faLock;
   protected readonly faUserXMark = faUserXmark
 

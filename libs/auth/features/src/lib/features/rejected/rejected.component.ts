@@ -1,7 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faEnvelope, faFileCircleXmark, faRightFromBracket, faUserSlash } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope} from '@fortawesome/free-solid-svg-icons/faEnvelope';
+import { faFileCircleXmark} from '@fortawesome/free-solid-svg-icons/faFileCircleXmark';
+import { faUserSlash } from '@fortawesome/free-solid-svg-icons/faUserSlash';
+import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons/faRightFromBracket';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 interface RestrictionNavigationState {
