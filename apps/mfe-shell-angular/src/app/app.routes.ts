@@ -1,13 +1,11 @@
 import { Routes } from '@angular/router';
 import { activeUserGuard, authGuard, rolesGuard } from '@school-expense-ecosystem/auth/guards';
-import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
-import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { Role } from '@school-expense-ecosystem/shared/types';
 
 export const routes: Routes = [
   {
     path: 'auth',
-    component: AuthLayoutComponent,
+    loadComponent: () => import('./layouts/auth-layout/auth-layout.component').then(m => m.AuthLayoutComponent),
     children: [
       {
         path: '',
@@ -17,25 +15,23 @@ export const routes: Routes = [
   },
   {
     path: '',
-    component: MainLayoutComponent,
+    loadComponent: () => import('./layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     canActivate: [authGuard, activeUserGuard],
+    canActivateChild: [rolesGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
-        canActivate: [rolesGuard],
         loadComponent: () =>
           import('@school-expense-ecosystem/dashboard/features').then((m) => m.DashboardComponent),
       },
       {
         path: 'user-list',
-        canActivate: [rolesGuard],
-        loadComponent: () => 
-            import('@school-expense-ecosystem/admin/features').then((m) => m.UserListComponent)
+        loadComponent: () =>
+          import('@school-expense-ecosystem/admin/features').then((m) => m.UserListComponent)
       },
       {
         path: 'expense',
-        canActivate: [rolesGuard],
         data: { roles: [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER] },
         loadChildren: () =>
           import('@school-expense-ecosystem/expenses/features').then(
@@ -44,7 +40,6 @@ export const routes: Routes = [
       },
       {
         path: 'report',
-        canActivate: [rolesGuard],
         data: { roles: [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN] },
         loadChildren: () =>
           import('@school-expense-ecosystem/expenses/features').then(
@@ -53,7 +48,6 @@ export const routes: Routes = [
       },
       {
         path: 'budget-manager',
-        canActivate: [rolesGuard],
         data: {
           roles: [Role.LEVEL_1_FINANCE]
         },
@@ -61,12 +55,11 @@ export const routes: Routes = [
           import('@school-expense-ecosystem/finance/features').then(
             (m) => m.FINANCE_ROUTES_BUDGET_MANAGER
           ),
-      }
+      },
+      {
+        path: '**',
+        redirectTo: 'dashboard',
+      },
     ],
   },
-  // 404 fallback
-  // {
-  //   path: '**',
-  //   redirectTo: '/expense',
-  // },
 ];
