@@ -4,7 +4,7 @@
   "sourceRoot": "libs/dashboard/features/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": ["scope:dashboard", "type:feature"],
+  "tags": ["scope:dashboard", "type:data-access"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

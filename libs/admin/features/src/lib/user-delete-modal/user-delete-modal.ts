@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,7 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { DeleteReasonType, DeleteUserPayload } from '@school-expense-ecosystem/admin/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
-import { form, FormField, pattern, required, validate, } from '@angular/forms/signals';
+import { form, FormField, required, validate, } from '@angular/forms/signals';
 
 @Component({
   selector: 'lib-user-delete-modal',

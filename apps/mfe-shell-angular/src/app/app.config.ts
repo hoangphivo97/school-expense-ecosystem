@@ -8,7 +8,7 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { firebaseConfig } from './environments/environment';
 import { provideStore } from '@ngrx/store';
 import { initializeApp } from 'firebase/app';
-import { appCheckInterceptor, authInterceptor } from '@school-expense-ecosystem/auth/features';
+import { appCheckInterceptor, authInterceptor } from '@school-expense-ecosystem/auth/guards';
 import { MatDialogModule } from '@angular/material/dialog';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { environment } from './environments/environment';
