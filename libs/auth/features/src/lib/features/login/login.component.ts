@@ -108,7 +108,7 @@ export class LoginComponent {
     } catch (err: any) {
       console.warn('Google OAuth authentication flow intercepted:', err);
 
-      if (err.status === 403 && err.error?.message === 'ACCOUNT_RESTRICTED') {
+      if (err.status === 403 && err.error?.code === 'ACCOUNT_RESTRICTED') {
         return;
       }
 

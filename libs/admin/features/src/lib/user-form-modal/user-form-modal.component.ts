@@ -227,7 +227,6 @@ export class UserFormModalComponent implements OnInit {
         this.showNotification(msg, 'success');
         this.dialogRef.close({ isSuccess: true, payload: basePayload });
       },
-      error: (err) => this.handleLocalApiError(err)
     });
   }
 
@@ -239,12 +238,7 @@ export class UserFormModalComponent implements OnInit {
       panelClass: type === 'success' ? ['toast-success'] : ['toast-error']
     });
   }
-
-  private handleLocalApiError(err: any): void {
-    console.error('Infrastructure API mutation failure:', err);
-    this.errorModalService.openErrorModal(err);
-  }
-
+  
   protected switchToEditMode(): void {
     this.mode.set('edit');
     this.userForm.enable();

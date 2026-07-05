@@ -1,3 +1,5 @@
+import { ErrorResponse } from "./auth.interface";
+
 export interface DialogData <T = unknown>{
   title: string;
   action: DialogActionEnum;
@@ -16,9 +18,8 @@ export enum DialogActionEnum {
   Detail
 }
 
-export interface DialogError {
+export interface DialogError extends ErrorResponse{
   title: string;
-  errorMsg: string;
   hint?: string;
 }
 

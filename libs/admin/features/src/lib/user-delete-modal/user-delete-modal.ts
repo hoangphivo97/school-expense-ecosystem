@@ -73,9 +73,6 @@ export class UserDeleteModalComponent {
       next: () => {
         this.snackBar.open('Account purged successfully.', 'Close', { duration: 4000 });
         this.dialogRef.close({ isDeleted: true, targetUid: this.targetUser.uid });
-      },
-      error: (err) => {
-        this.snackBar.open(err.error?.message || 'Purge operation failed.', 'Close', { duration: 5000 });
       }
     });
   }

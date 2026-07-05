@@ -66,7 +66,7 @@ export class AuthService {
 
       if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
         throw new ForbiddenException({
-          message: 'ACCOUNT_RESTRICTED',
+          code: 'ACCOUNT_RESTRICTED',
           status: user.status,
           reason: user.reason || 'Access restricted by the institution administrator due to policy compliance.'
         });
@@ -82,7 +82,7 @@ export class AuthService {
       const isFirebaseDisabled = error?.code === 'auth/user-disabled' || error?.message?.includes('disabled');
       if (isFirebaseDisabled) {
         throw new ForbiddenException({
-          message: 'ACCOUNT_RESTRICTED',
+          code: 'ACCOUNT_RESTRICTED',
           status: UserStatus.SUSPENDED, // Append the state flag natively
           reason: 'This account has been explicitly suspended or disabled in the identity provider context.'
         });
