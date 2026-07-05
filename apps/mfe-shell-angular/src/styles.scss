@@ -5,9 +5,9 @@
    ========================================================================== */
 
 // @import 'bootstrap/scss/bootstrap';
-@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
-@import 'libs/shared/ui/src/lib/ui/styles/variables';
-@import 'libs/shared/ui/src/lib/ui/styles/utilities';
+@use '@angular/material/prebuilt-themes/deeppurple-amber.css';
+@use 'libs/shared/ui/src/lib/ui/styles/variables';
+@use 'libs/shared/ui/src/lib/ui/styles/utilities';
 
 /* ==========================================================================
    2. GLOBAL CSS DESIGN TOKENS (DYNAMIC ARCHITECTURE)
