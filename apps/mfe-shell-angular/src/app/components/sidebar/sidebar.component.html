@@ -1,32 +1,35 @@
-<!-- sidebar.component.html -->
+<!-- Main structural wrapper for the navigation sidebar -->
 <div class="sidebar-section">
+  <!-- Profile & Account Matrix Area -->
   <div class="account-section">
-    <mat-icon class="icon-size account-icon">account_circle</mat-icon>
+    <mat-icon class="account-icon">account_circle</mat-icon>
     <h2 class="label" [class.hide]="collapsed">
       Welcome
-      @if(user()) {
-        <span class="account-name"
-        [matTooltip]="user()?.fullName || 'User'"
-        matTooltipPosition="above"
-        >{{user()?.fullName}}</span>
+      @if (user()) {
+      <span class="account-name" [matTooltip]="user()?.fullName || 'User'" matTooltipPosition="above">
+        {{ user()?.fullName }}
+      </span>
       }
     </h2>
   </div>
-  <ul class="ls-links">
-    @for(item of filteredNavItems(); track item.key) {
-    <li (click)="setActive(item.key)">
-      <div class="ls-nav" [class.active]="item.key === activeItem()">
-        <mat-icon>{{ item.icon }}</mat-icon>
-        <a class="label" [class.hide]="collapsed">{{ item.label }}</a>
-      </div>
-    </li>
+
+  <!-- Centralized Navigation Menu Links -->
+  <nav class="navigation-menu">
+    @for (item of filteredNavItems(); track item.key) {
+    <a class="nav-item-link" [class.active]="item.key === activeItem()" (click)="setActive(item.key)">
+      <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+      <span class="label" [class.hide]="collapsed">{{ item.label }}</span>
+    </a>
     }
-  </ul>
+  </nav>
+
+  <!-- Persistent Bottom Action / Sign-out Section -->
   <div class="logout-section">
     <!-- <lib-react-wrapper></lib-react-wrapper> -->
-    <button (click)="logout.emit()" class="logout-btn">
-      <fa-icon class="fa-solid icon-style" [icon]="faArrowRightFromBracket"></fa-icon>
-      <label class="label" [class.hide]="collapsed">Log Out</label>
+    <button type="button" class="logout-btn" (click)="logout.emit()">
+      <fa-icon [icon]="faArrowRightFromBracket" size="1x" class="logout-icon"></fa-icon>
+      <span class="label" [class.hide]="collapsed">Log Out</span>
     </button>
   </div>
+
 </div>

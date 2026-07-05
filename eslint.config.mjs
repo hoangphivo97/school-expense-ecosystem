@@ -78,6 +78,7 @@ export default [
                 'type:shared-utils',
                 'type:types',
                 'type:constants',
+                "type:data-access"
               ],
             },
             {

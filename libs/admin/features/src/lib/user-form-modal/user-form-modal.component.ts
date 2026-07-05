@@ -45,7 +45,7 @@ export class UserFormModalComponent implements OnInit {
   protected readonly isSelf = signal(false);
   protected readonly isOnboarding = signal(false);
   protected readonly targetIsAdmin = signal(false);
-  
+
   protected readonly authMethodDisplay = signal<string>('Google OAuth');
   protected readonly filteredUserTypeOptions = signal<any[]>([]);
   protected userForm!: FormGroup;
@@ -170,7 +170,11 @@ export class UserFormModalComponent implements OnInit {
   };
 
   private toggleControlState(ctrl: AbstractControl, enable: boolean, validators: ValidatorFn[] = []): void {
-    enable ? ctrl.enable() : ctrl.disable();
+    if (enable) {
+      ctrl.enable();
+    } else {
+      ctrl.disable();
+    }
     ctrl.setValidators(enable ? validators : []);
     if (!enable) ctrl.setValue(ctrl === this.userForm.get('facultyId') ? null : '');
   }
@@ -184,7 +188,7 @@ export class UserFormModalComponent implements OnInit {
   private hydrateFormTree(): void {
     const user = this.dialogData.user as UserBase;
     this.userForm.patchValue({ ...user, dateOfBirth: user.dateOfBirth ?? '' });
-    
+
     this.isOnboarding.set(user.status === UserStatus.ONBOARDING);
     this.isSelf.set(user.uid === this.currentAdminId());
     this.targetIsAdmin.set(user.role === Role.LEVEL_0_ADMIN);
@@ -211,11 +215,11 @@ export class UserFormModalComponent implements OnInit {
     const mutation$ = this.isEditMode()
       ? this.userListService.updateUser(targetUid, basePayload)
       : this.userListService.provisionUser({
-          ...basePayload,
-          email: rawForm.email,
-          userCode: rawForm.userCode,
-          ...(rawForm.role === Role.LEVEL_0_ADMIN ? { password: rawForm.password } : {})
-        } as CreateUserInput);
+        ...basePayload,
+        email: rawForm.email,
+        userCode: rawForm.userCode,
+        ...(rawForm.role === Role.LEVEL_0_ADMIN ? { password: rawForm.password } : {})
+      } as CreateUserInput);
 
     mutation$.subscribe({
       next: () => {
@@ -244,7 +248,7 @@ export class UserFormModalComponent implements OnInit {
   protected switchToEditMode(): void {
     this.mode.set('edit');
     this.userForm.enable();
-    
+
     // Maintain immutable field constraints
     ['email', 'userCode', 'status'].forEach(k => this.userForm.get(k)?.disable());
     this.evaluateRoleConditionalState(this.userForm.get('role')?.value);

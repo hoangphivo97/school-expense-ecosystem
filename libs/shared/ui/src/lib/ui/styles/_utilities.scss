@@ -1,0 +1,251 @@
+/* ==========================================================================
+   SYSTEM BREAKPOINTS CONFIGURATION
+   ========================================================================== */
+$breakpoints: (
+  sm: 600px,
+  // Large mobile / Handset Landscape
+  md: 960px,
+  // Tablet / Handset Portrait extended
+  lg: 1280px,
+  // Standard Laptop / Desktop
+  xl: 1920px // Large display monitors
+);
+
+/* ==========================================================================
+   1. CORE FLEXBOX & LAYOUT UTILITIES (MOBILE-FIRST APPROACH)
+   ========================================================================== */
+.d-flex {
+  display: flex !important;
+}
+
+.d-inline-flex {
+  display: inline-flex !important;
+}
+
+.flex-column {
+  flex-direction: column !important;
+}
+
+.flex-row {
+  flex-direction: row !important;
+}
+
+.flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+.w-100 {
+  width: 100% !important;
+}
+
+.h-100 {
+  height: 100% !important;
+}
+
+.min-vh-100 {
+  min-height: 100vh !important;
+}
+
+.justify-content-start {
+  justify-content: flex-start !important;
+}
+
+.justify-content-end {
+  justify-content: flex-end !important;
+}
+
+.justify-content-center {
+  justify-content: center !important;
+}
+
+.justify-content-between {
+  justify-content: space-between !important;
+}
+
+.align-items-center {
+  align-items: center !important;
+}
+
+.align-items-start {
+  align-items: flex-start !important;
+}
+
+.align-items-end {
+  align-items: flex-end !important;
+}
+
+/* Grid Row Layout Emulator */
+.row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  margin-right: -12px;
+  margin-left: -12px;
+}
+
+/* Default Mobile Column (Full Width) */
+[class*="col-"] {
+  width: 100%;
+  padding-right: 12px;
+  padding-left: 12px;
+  box-sizing: border-box;
+}
+
+/* Base Mobile Grid System Generator (col-1 to col-12) */
+@for $i from 1 through 12 {
+  .col-#{$i} {
+    flex: 0 0 calc(#{$i} / 12 * 100%);
+    max-width: calc(#{$i} / 12 * 100%);
+  }
+}
+
+/* ==========================================================================
+   2. DYNAMIC RESPONSIVE UTILITIES GENERATOR (SM, MD, LG, XL)
+   ========================================================================== */
+@each $key, $val in $breakpoints {
+  @media (min-width: $val) {
+
+    /* Responsive Grid Columns (e.g., col-md-6, col-lg-4) */
+    @for $i from 1 through 12 {
+      .col-#{$key}-#{$i} {
+        flex: 0 0 calc(#{$i} / 12 * 100%) !important;
+        max-width: calc(#{$i} / 12 * 100%) !important;
+      }
+    }
+
+    /* Responsive Flexbox Behaviors (e.g., d-md-flex, flex-lg-row) */
+    .d-#{$key}-flex {
+      display: flex !important;
+    }
+
+    .flex-#{$key}-row {
+      flex-direction: row !important;
+    }
+
+    .flex-#{$key}-column {
+      flex-direction: column !important;
+    }
+
+    .justify-content-#{$key}-between {
+      justify-content: space-between !important;
+    }
+
+    .justify-content-#{$key}-center {
+      justify-content: center !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   3. BOX MODEL SPACING EMULATOR (P-0 to P-5, M-0 to M-5 using 8px system)
+   ========================================================================== */
+@for $i from 0 through 5 {
+  .p-#{$i} {
+    padding: #{$i * 8px} !important;
+  }
+
+  .pt-#{$i} {
+    padding-top: #{$i * 8px} !important;
+  }
+
+  .pb-#{$i} {
+    padding-bottom: #{$i * 8px} !important;
+  }
+
+  .ps-#{$i} {
+    padding-left: #{$i * 8px} !important;
+  }
+
+  .pe-#{$i} {
+    padding-right: #{$i * 8px} !important;
+  }
+
+  .m-#{$i} {
+    margin: #{$i * 8px} !important;
+  }
+
+  .mt-#{$i} {
+    margin-top: #{$i * 8px} !important;
+  }
+
+  .mb-#{$i} {
+    margin-bottom: #{$i * 8px} !important;
+  }
+
+  .ms-#{$i} {
+    margin-left: #{$i * 8px} !important;
+  }
+
+  .me-#{$i} {
+    margin-right: #{$i * 8px} !important;
+  }
+}
+
+/* ==========================================================================
+   4. TYPOGRAPHY UTILITIES
+   ========================================================================== */
+.text-center {
+  text-align: center !important;
+}
+
+.text-end {
+  text-align: right !important;
+}
+
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* ==========================================================================
+   5. ACCESSIBILITY-COMPLIANT TYPOGRAPHY UTILITIES (REM BASED)
+   ========================================================================== */
+.fs-1 {
+  font-size: 2.5rem !important;
+  /* ~40px */
+}
+
+.fs-2 {
+  font-size: 2rem !important;
+  /* ~32px */
+}
+
+.fs-3 {
+  font-size: 1.75rem !important;
+  /* ~28px */
+}
+
+.fs-4 {
+  font-size: 1.5rem !important;
+  /* ~24px */
+}
+
+.fs-5 {
+  font-size: 1.25rem !important;
+  /* ~20px */
+}
+
+.fs-6 {
+  font-size: 1rem !important;
+  /* ~16px (Base) */
+}
+
+.fs-7 {
+  font-size: 0.875rem !important;
+  /* ~14px */
+}
+
+.fs-8 {
+  font-size: 0.75rem !important;
+  /* ~12px */
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-end {
+  text-align: right !important;
+}
+
+.text-muted {
+  color: var(--text-secondary) !important;
+}

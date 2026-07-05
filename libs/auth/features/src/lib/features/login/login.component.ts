@@ -5,17 +5,20 @@ import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse } from '@school-expense-ecosystem/auth/types';
 import { DemoAccount, UserBase } from '@school-expense-ecosystem/shared/types';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
-import { MatCardModule, MatCardTitle } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
-import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatError, MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatButton } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faGoogle } from '@fortawesome/free-brands-svg-icons';
-import { faArrowLeft, faArrowRight, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
-import { MatOption, MatSelect } from '@angular/material/select';
+import { faGoogle } from '@fortawesome/free-brands-svg-icons/faGoogle';
+import { faArrowLeft  } from '@fortawesome/free-solid-svg-icons/faArrowLeft'
+import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight'
+import { faShieldHalved } from '@fortawesome/free-solid-svg-icons/faShieldHalved'
+import { MatSelectModule } from '@angular/material/select';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'lib-login',
@@ -24,15 +27,14 @@ import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';
     ReactiveFormsModule,
     MatError,
     MatProgressSpinner,
-    MatCardTitle,
-    MatButton,
-    FontAwesomeModule,
-    MatFormField,
-    MatLabel,
-    MatSelect,
-    MatOption,
     MatCardModule,
-],
+    MatButtonModule,
+    FontAwesomeModule,
+    MatSelectModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
