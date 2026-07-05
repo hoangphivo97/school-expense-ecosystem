@@ -25,7 +25,7 @@ export class RolesGuard implements CanActivate {
         statusCode: HttpStatus.FORBIDDEN,
         errorCode: 'AUTH_USER_CONTEXT_NOT_FOUND',
         errorMsg: 'Access denied: Unable to resolve authenticated session context details.',
-      } as ErrorResponse);
+      } satisfies ErrorResponse);
     }
 
 
@@ -36,7 +36,7 @@ export class RolesGuard implements CanActivate {
         statusCode: HttpStatus.FORBIDDEN,
         errorCode: 'AUTH_INSUFFICIENT_PERMISSIONS',
         errorMsg: 'Access denied: Your account scope does not possess the required security clearances.',
-      } as ErrorResponse);
+      } satisfies ErrorResponse);
     }
 
     return true;

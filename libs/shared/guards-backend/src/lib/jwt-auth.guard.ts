@@ -25,7 +25,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         statusCode: HttpStatus.UNAUTHORIZED,
         errorCode: 'AUTH_INVALID_CREDENTIALS',
         errorMsg: 'Authentication failed: Invalid credentials or the target identity context was not found.',
-      } as ErrorResponse );
+      } satisfies ErrorResponse );
     }
 
     /**
@@ -37,7 +37,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         statusCode: HttpStatus.FORBIDDEN,
         errorCode: 'AUTH_ACCOUNT_RESTRICTED',
         errorMsg: user.statusReason || 'Access denied: This account has been restricted by administrative policy.',
-      } as ErrorResponse);
+      } satisfies ErrorResponse);
     }
 
     return user;

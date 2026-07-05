@@ -1,6 +1,7 @@
 import {
   ConflictException,
   ForbiddenException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -8,10 +9,10 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UserInDb } from './interface/user-db.interface';
 import { OnboardingDto } from './DTO/onboarding.dto';
-import { ConflictReason  } from '@school-expense-ecosystem/auth/types';
+import { ConflictReason, OnboardingData } from '@school-expense-ecosystem/auth/types';
 import { AuthUserRepository } from './auth-user.repository';
 import { IdentityProvider } from './interface/identify-provider.interface';
-import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
+import { UserStatus, Role, RestrictedAccountError } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class AuthService {
@@ -65,11 +66,14 @@ export class AuthService {
       }
 
       if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
-        throw new ForbiddenException({
-          code: 'ACCOUNT_RESTRICTED',
-          status: user.status,
+        const restrictionError: RestrictedAccountError = {
+          statusCode: HttpStatus.FORBIDDEN,
+          errorCode: 'AUTH_ACCOUNT_RESTRICTED',
+          errorMsg: 'Access denied: Your account scope has been restricted by system policies.',
+          userStatus: user.status,
           reason: user.reason || 'Access restricted by the institution administrator due to policy compliance.'
-        });
+        }
+        throw new ForbiddenException(restrictionError);
       }
 
       const authToken = this.generateJWT(user);
@@ -81,14 +85,22 @@ export class AuthService {
 
       const isFirebaseDisabled = error?.code === 'auth/user-disabled' || error?.message?.includes('disabled');
       if (isFirebaseDisabled) {
-        throw new ForbiddenException({
-          code: 'ACCOUNT_RESTRICTED',
-          status: UserStatus.SUSPENDED, // Append the state flag natively
+        const restrictionError: RestrictedAccountError = {
+          statusCode: HttpStatus.FORBIDDEN,
+          errorCode: 'AUTH_ACCOUNT_RESTRICTED',
+          errorMsg: 'Access denied: Identity provider session has been terminated.',
+          userStatus: UserStatus.SUSPENDED,
           reason: 'This account has been explicitly suspended or disabled in the identity provider context.'
-        });
+        }
+
+        throw new ForbiddenException(restrictionError);
       }
 
-      throw new UnauthorizedException('Failed to verify session token or token expired');
+      throw new UnauthorizedException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorCode: 'AUTH_INVALID_TOKEN',
+        message: 'Authentication failed: Failed to verify session token or token expired.',
+      });
     }
   }
 
@@ -103,17 +115,21 @@ export class AuthService {
     // 2. Terminate pipeline and throw explicit standard REST HTTP 409 exceptions upon conflict triggers
     if (resolution.isConflict) {
       if (resolution.reason === ConflictReason.EMWP) {
-        throw new ConflictException(
-          `Security Violation: The User Code '${dto.userCode}' is exclusively allocated to a different email address structure.`
-        );
+        throw new ConflictException({
+          statusCode: HttpStatus.CONFLICT,
+          errorCode: 'AUTH_IDENTITY_CONFLICT_EMAIL',
+          message: `Security Violation: The User Code '${dto.userCode}' is exclusively allocated to a different email address structure.`,
+        })
       }
-      throw new ConflictException(
-        `Identity Conflict: The User Code '${dto.userCode}' has already been claimed by another active verified system user.`
-      );
+      throw new ConflictException({
+        statusCode: HttpStatus.CONFLICT,
+        errorCode: 'AUTH_IDENTITY_CONFLICT_CLAIMED',
+        message: `Identity Conflict: The User Code '${dto.userCode}' has already been claimed by another active verified system user.`,
+      });
     }
 
     // 3. Assemble clean domain mutation payload strictly isolating structural parameters
-    const onboardingPayload = {
+    const onboardingPayload: OnboardingData = {
       fullName: dto.fullName,     // Derived from strict registration form configurations
       facultyId: dto.facultyId,   // Validated system enumeration references
       userType: dto.userType,     // Access tier categorizations
@@ -130,7 +146,11 @@ export class AuthService {
 
     const updatedUser = await this.authUserRepo.findByUid(uid);
     if (!updatedUser) {
-      throw new NotFoundException('User record could not be retrieved after onboarding.');
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        errorCode: 'AUTH_USER_NOT_FOUND',
+        message: 'User record could not be retrieved after onboarding.',
+      });
     }
 
     const token = this.generateJWT(updatedUser);

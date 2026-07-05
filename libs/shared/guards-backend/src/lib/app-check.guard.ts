@@ -32,7 +32,7 @@ export class AppCheckGuard implements CanActivate {
           statusCode: HttpStatus.FORBIDDEN,
           errorCode: "AUTH_MISSING_APP_CHECK_TOKEN",
           errorMsg: "Hold up, what sketchy bot is trying to crash the party? Missing App Check Token!"
-        } as ErrorResponse,
+        } satisfies ErrorResponse,
         HttpStatus.FORBIDDEN
       );
     }
@@ -46,7 +46,7 @@ export class AppCheckGuard implements CanActivate {
           statusCode: HttpStatus.FORBIDDEN,
           errorCode: 'AUTH_INVALID_APP_CHECK_TOKEN',
           errorMsg: 'That token is either a fake or ancient history! Access denied!',
-        } as ErrorResponse,
+        } satisfies ErrorResponse,
         HttpStatus.FORBIDDEN
       );
     }
