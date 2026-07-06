@@ -44,6 +44,15 @@
           "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
         }
       }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "commands": [
+          "firebase deploy --only hosting:mfe-remote-react --token \"{args.token}\" --non-interactive"
+        ]
+      }
     }
   }
 }
