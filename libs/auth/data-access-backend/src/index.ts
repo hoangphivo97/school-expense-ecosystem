@@ -5,3 +5,4 @@ export * from './lib/interface/user-db.interface'
 export * from './lib/DTO/onboarding.dto';
 export * from './lib/interface/identify-provider.interface'
 export * from './lib/auth-user.repository';
+export * from './lib/exceptions/auth.exception';
