@@ -1,7 +1,5 @@
 {
-  "installation": {
-    "version": "22.7.5"
-  },
+  "installation": { "version": "22.7.5" },
   "plugins": [
     {
       "plugin": "@nx/webpack/plugin",
@@ -14,12 +12,7 @@
         "serveStaticTargetName": "serve-static"
       }
     },
-    {
-      "plugin": "@nx/eslint/plugin",
-      "options": {
-        "targetName": "lint"
-      }
-    },
+    { "plugin": "@nx/eslint/plugin", "options": { "targetName": "lint" } },
     {
       "plugin": "@nx/cypress/plugin",
       "options": {
@@ -31,9 +24,7 @@
     },
     {
       "plugin": "@nx/jest/plugin",
-      "options": {
-        "targetName": "test"
-      },
+      "options": { "targetName": "test" },
       "exclude": [
         "mfe-shell-angular/**/*",
         "backend-e2e/**/*",
@@ -61,26 +52,19 @@
         "linter": "eslint",
         "bundler": "webpack"
       },
-      "component": {
-        "style": "scss"
-      },
+      "component": { "style": "scss" },
       "library": {
         "style": "scss",
         "linter": "eslint",
         "unitTestRunner": "none"
       }
     },
-    "@nx/angular:component": {
-      "style": "css"
-    },
-    "@nx/angular:library": {
-      "linter": "eslint",
-      "unitTestRunner": "none"
-    }
+    "@nx/angular:component": { "style": "css" },
+    "@nx/angular:library": { "linter": "eslint", "unitTestRunner": "none" }
   },
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "master",
-  "nxCloudId": "694416a963b1cd6a321319f6",
+  "nxCloudId": "6a4ba01714370c0e45eee0d9",
   "targetDefaults": {
     "@nx/angular:webpack-browser": {
       "cache": true,
