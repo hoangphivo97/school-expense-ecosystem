@@ -1,4 +1,4 @@
-import { UserBase } from "@school-expense-ecosystem/auth/types";
+import { ErrorResponse } from "./auth.interface";
 
 export interface DialogData <T = unknown>{
   title: string;
@@ -18,9 +18,8 @@ export enum DialogActionEnum {
   Detail
 }
 
-export interface DialogError {
+export interface DialogError extends ErrorResponse{
   title: string;
-  errorMsg: string;
   hint?: string;
 }
 

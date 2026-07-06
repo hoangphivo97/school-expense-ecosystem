@@ -8,7 +8,7 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { firebaseConfig } from './environments/environment';
 import { provideStore } from '@ngrx/store';
 import { initializeApp } from 'firebase/app';
-import { appCheckInterceptor, authInterceptor } from '@school-expense-ecosystem/auth/data-access';
+import { appCheckInterceptor, authInterceptor } from '@school-expense-ecosystem/auth/guards';
 import { MatDialogModule } from '@angular/material/dialog';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { environment } from './environments/environment';
@@ -23,18 +23,21 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_ERROR_DELEGATE,
       useFactory: (errorModalService: ErrorModalService) => {
-        // Trả về một hàm khớp cấu trúc với Token yêu cầu
         return (dialogData: DialogError) => errorModalService.openCustomErrorModal(dialogData);
       },
-      deps: [ErrorModalService] // Tiêm con service UI xịn vào đây để làm việc thực tế
+      deps: [ErrorModalService]
     },
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
 
     provideAppCheck(() => {
+      // if (!environment.production) {
+      //   (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '';
+      // }
+      
       const provider = new ReCaptchaV3Provider(environment.recaptchaSiteKey);
-      return initializeAppCheck(undefined, { 
-        provider, 
-        isTokenAutoRefreshEnabled: true 
+      return initializeAppCheck(undefined, {
+        provider,
+        isTokenAutoRefreshEnabled: true
       });
     }),
 

@@ -46,6 +46,7 @@ mat-sidenav-content {
   padding: 0;
   transition: left 0.3s ease;
   left: 245px;
+  cursor: pointer;
 
   &.collapsed {
     left: 65px;

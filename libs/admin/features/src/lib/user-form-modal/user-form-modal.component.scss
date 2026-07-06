@@ -1,55 +1,48 @@
+// libs/admin/features/src/lib/user-form-modal/user-form-modal.component.scss
 :host {
   display: block;
   font-family: 'Roboto', sans-serif;
 }
 
-/* Micro-spacing typography styling */
-.small-text {
-  font-size: 0.72rem;
-}
+.small-text { font-size: 0.72rem; }
+.tracking-wider { letter-spacing: 0.05em; }
 
-.tracking-wider {
-  letter-spacing: 0.05em;
-}
-
-/* Auth Stream Custom Dashboard Element */
 .auth-stream-badge {
   background-color: #f8f9fa;
   border-color: #dee2e6 !important;
   transition: all 0.3s ease-in-out;
   
   .indicator-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
   }
 }
 
-/* Smooth structural animation when inputs render dynamically */
 .animate-fade-in {
   animation: fadeInFormGroup 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes fadeInFormGroup {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Angular Material Global Style Refinement overrides inside the modal */
-::v-deep {
+::ng-deep {
   .mat-mdc-dialog-container {
     border-radius: 12px !important;
-    overflow: hidden;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
   }
-  .mat-mdc-form-field-error {
-    font-size: 11px !important;
-    font-weight: 500;
+  .mat-mdc-form-field-subscript-wrapper { display: none !important; }
+  .enterprise-dense-field {
+    .mat-mdc-text-field-wrapper {
+      background-color: #ffffff; border-radius: 8px; height: 40px !important;
+      padding: 0 12px !important; display: flex; align-items: center;
+      border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+      transition: all 0.2s ease-in-out;
+      &:hover { border-color: #cbd5e1; }
+    }
+    .mat-mdc-form-field-flex { height: 100%; align-items: center; }
+    .mat-mdc-form-field-infix { padding: 0; min-height: unset; display: flex; align-items: center; }
+    .mat-mdc-select-trigger { font-size: 14px; color: #334155; }
+    .mat-mdc-form-field-focus-indicator { display: none; }
   }
 }

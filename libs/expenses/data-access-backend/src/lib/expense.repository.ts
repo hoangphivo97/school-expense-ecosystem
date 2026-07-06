@@ -4,7 +4,7 @@ export abstract class ExpenseRepository {
   abstract findPaginated(filters: ExpenseFilters): Promise<PaginatedExpensesResponse>;
   abstract findById(id: string): Promise<ExpenseList | null>;
   abstract create(data: Omit<ExpenseList, 'id'>): Promise<ExpenseList>;
-  abstract update(id: string, data: Partial<ExpenseList> & { logEntry?: any }): Promise<ExpenseList>;
+  abstract update(id: string, data: Partial<ExpenseList> & { logEntry?: unknown }): Promise<ExpenseList>;
   abstract findAvailableYears(userId: string): Promise<number[]>;
   abstract getAnalytics(filter: AnalyticsFilters): Promise<ExpenseAnalyticsDto>
 }

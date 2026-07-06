@@ -3,9 +3,11 @@
 
   <lib-filter [mode]="filterModeEnum.USER" [value]="activeFilters()" (filterChange)="onUserFiltersChanged($event)">
 
+    @if(isAdmin()){
     <button primaryAction mat-flat-button color="primary" (click)="openProvisionModal()">
       <mat-icon>person_add</mat-icon> Create User
     </button>
+    }
 
   </lib-filter>
 
@@ -18,7 +20,14 @@
           <ng-container matColumnDef="fullName">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Full Name</th>
             <td mat-cell *matCellDef="let user" class="py-3 px-4 fw-semibold data-text-primary">
+              @if (user.fullName) {
               {{ user.fullName }}
+              } @else {
+              <span class="text-muted fst-italic fw-normal small" style="cursor: help;"
+                matTooltip="This user has authenticated via Google but has not yet filled out their onboarding profile info.">
+                Onboarding Pending
+              </span>
+              }
             </td>
           </ng-container>
 
@@ -32,7 +41,14 @@
           <ng-container matColumnDef="userCode">
             <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">Student/Staff ID</th>
             <td mat-cell *matCellDef="let user" class="py-3 identity-code-wrapper">
-              <code>{{ user.userCode || 'N/A' }}</code>
+              @if (user.userCode) {
+              <code>{{ user.userCode }}</code>
+              } @else {
+              <span class="text-muted fst-italic small" style="cursor: help;"
+                matTooltip="Organizational ID code will be established upon onboarding completion.">
+                Pending
+              </span>
+              }
             </td>
           </ng-container>
 
@@ -48,9 +64,20 @@
           <ng-container matColumnDef="userType">
             <th mat-header-cell *matHeaderCellDef class="py-3 table-column-header">User Type</th>
             <td mat-cell *matCellDef="let user" class="py-3">
+              @if (user.userType) {
               <span class="badge-usertype-variant" [ngClass]="'usertype-' + user.userType?.toLowerCase()">
                 {{ user.userType }}
               </span>
+              } @else {
+
+              <span class="badge-usertype-variant usertype-unassigned" style="cursor: help;"
+                [matTooltip]="(isAdmin() || isFinance()) 
+                  ? 'System management or financial operations accounts do not require an institutional classification type.' 
+                  : 'This profile is incomplete. User classification selection is currently pending onboarding completion.'">
+                Unassigned
+              </span>
+
+              }
             </td>
           </ng-container>
 
@@ -71,19 +98,87 @@
           </ng-container>
 
           <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 text-end table-column-header"></th>
-            <td mat-cell *matCellDef="let user" class="py-3 px-4 text-end" (click)="$event.stopPropagation()">
-              @if (user.uid !== currentAdminId()) {
-              <button mat-icon-button color="accent" (click)="openUpdateModal(user)"
-                aria-label="Edit system account settings">
-                <mat-icon class="action-edit-icon">edit</mat-icon>
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
+            <td mat-cell *matCellDef="let user" class="py-3 px-4 action-column" (click)="$event.stopPropagation()">
+              @if(isAdmin()){
+              @if (user.isNotCurrentAdmin && !user.targetIsAdmin) {
+
+              @if (user.isPending) {
+              <button mat-icon-button color="primary" [disabled]="user.isProcessing"
+                (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)" matTooltip="Activate Account">
+                @if (user.isProcessing) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                <fa-icon [icon]="faCircleCheck" transform="shrink-3" class="text-success"></fa-icon>
+                }
               </button>
-              } @else {
+
+              <button mat-icon-button color="warn" [disabled]="user.isProcessing"
+                (click)="updateUserStatus(user, UserStatusEnum.REJECTED)" matTooltip="Reject Account">
+                @if (user.isProcessing) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                <fa-icon [icon]="faUserXMark" transform="shrink-3" class="text-danger"></fa-icon>
+                }
+              </button>
+              }
+
+              @else if (user.isActive) {
+              <button mat-icon-button color="warn" [disabled]="user.isProcessing"
+                (click)="updateUserStatus(user, UserStatusEnum.SUSPENDED)" matTooltip="Deactivate Account">
+                @if (user.isProcessing) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                <fa-icon [icon]="faLock" transform="shrink-3" class="text-danger"></fa-icon>
+                }
+              </button>
+              }
+
+              @else if (user.isSuspended) {
+              <button mat-icon-button color="primary" [disabled]="user.isProcessing"
+                (click)="updateUserStatus(user, UserStatusEnum.ACTIVE)" matTooltip="Lift Restriction (Re-activate)">
+                @if (user.isProcessing) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                <fa-icon [icon]="faLockOpen" transform="shrink-3" class="text-primary"></fa-icon>
+                }
+              </button>
+              }
+
+              @else if(!user.isRejected){
+              <span
+                [matTooltip]="user.isOnboarding ? 'Account profile is incomplete. Editing is locked during onboarding.' : 'Edit Profile'"
+                class="d-inline-block">
+
+                <button mat-icon-button color="accent" [disabled]="user.isProcessing || user.isOnboarding"
+                  (click)="openUpdateModal(user)" aria-label="Edit system account settings">
+                  <mat-icon class="action-edit-icon">edit</mat-icon>
+                </button>
+
+              </span>
+              }
+              @else if (user.isRejected) {
+              <span class="d-inline-block">
+
+                <button mat-icon-button color="warn" (click)="openDeleteModal(user)"
+                  aria-label="Delete system account settings">
+                  <mat-icon class="action-edit-icon">delete</mat-icon>
+                </button>
+
+              </span>
+              }
+              }
+
+              @else {
               <div class="d-flex align-items-center gap-1 text-muted ms-2 bg-light px-2 py-1 rounded border"
-                style="width: fit-content;" matTooltip="Self-modification protected for security reasons">
+                style="width: fit-content;"
+                matTooltip="Self-modification is restricted, and other admins cannot be changed for security reasons">
                 <mat-icon class="fs-6 w-auto h-auto m-0">lock</mat-icon>
-                <span class="small-text fw-semibold">Protected (You)</span>
+                <span class="small-text fw-semibold">Protected @if(!user.isNotCurrentAdmin){
+                  <span>(You)</span>}
+                </span>
               </div>
+              }
               }
             </td>
           </ng-container>
@@ -115,7 +210,7 @@
                 </button>
               </div>
               }
-              
+
               @else {
               <div
                 class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">

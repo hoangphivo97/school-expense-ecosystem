@@ -1,1 +1,121 @@
-<p>DashboardFeatures works!</p>
+<!-- Main responsive dashboard viewport container -->
+<div class="dashboard-wrapper">
+  
+  <!-- Architectural Showcase Hero Banner Block -->
+  <section class="hero-banner">
+    <div class="banner-content">
+      <span class="brand-badge">Academic Portfolio Gateway</span>
+      <h1 class="banner-title">School Expense Ecosystem</h1>
+      
+      <p class="banner-description">
+        Welcome to the core enterprise administration gateway. This platform is architected as an advanced,
+        high-performance <strong>Nx Monorepo</strong> utilizing <strong>Micro-frontends (Module Federation)</strong> with an Angular Shell
+        application and React Remote modules, orchestrated alongside a secure NestJS backend.
+      </p>
+      
+      <p class="banner-notice">Dark Mode optimization active for all federated views.</p>
+      
+      <p class="banner-link-wrapper">
+        <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/blob/main/ARCHITECTURE.md" class="architecture-link">
+          View Architecture Documentation &rarr;
+        </a>
+      </p>
+      
+      <hr class="divider">
+      
+      <!-- Tech Stack Tags Container Matrix -->
+      <div class="tech-tags-matrix">
+        <span class="stack-tag">Angular 22</span>
+        <span class="stack-tag">React 19+</span>
+        <span class="stack-tag">NestJS Backend</span>
+        <span class="stack-tag">Nx Monorepo Workspace</span>
+        <span class="stack-tag">Module Federation</span>
+        <span class="stack-tag">Firebase</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- System Sub-Components Grid Header Section -->
+  <h2 class="section-title">System Components & Integration Status</h2>
+  
+  <!-- High Performance Fluid CSS Grid Matrix -->
+  <div class="components-grid">
+
+    <!-- User Directory Sub-App Module Card -->
+    <article class="integration-card">
+      <div class="card-header">
+        <div class="card-icon-box status-success">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="meta-icon">
+            <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 7.97a3 3 0 1 1-1.42-3.865 3 3 0 0 1 1.42 3.865"/>
+          </svg>
+        </div>
+        <span class="status-badge state-success">Fully Functional</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title">User Directory</h3>
+        <p class="card-text">
+          Manages institutional identities, centralized role provisioning (Admin, Finance, Dean, Student), and
+          onboarding status flows with role-based boundaries.
+        </p>
+      </div>
+      <div class="card-footer">
+        <span class="action-trigger-wrapper" [matTooltip]="!isAdmin() && !isDean() ? 'This page is only for users with the Admin role' : null">
+          <button type="button" [routerLink]="isAdmin() || isDean() ? '/user-list' : ''" [disabled]="!isAdmin() && !isDean()" class="action-btn primary-btn">
+            Explore Core Directory &rarr;
+          </button>
+        </span>
+      </div>
+    </article>
+
+    <!-- Expense & Budgeting Module Card -->
+    <article class="integration-card">
+      <div class="card-header">
+        <div class="card-icon-box status-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="meta-icon">
+            <path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.432-1.499zM5.562 3H13V1.78a.5.5 0 0 0-.621-.484zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5z"/>
+          </svg>
+        </div>
+        <span class="status-badge state-warning">Staging Validation</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title">Expense & Budgeting</h3>
+        <p class="card-text">
+          Aggregates dynamic expense transaction records, financial invoice proofs, and multi-level department quota
+          tracking metrics.
+        </p>
+      </div>
+      <div class="card-footer">
+        <span class="action-trigger-wrapper" [matTooltip]="!isDean() && !isUser() ? 'This page is only for users with the Dean or Student/Teacher role' : null">
+          <button type="button" [routerLink]="(isDean() || isUser()) ? '/expense' : ''" [disabled]="!isDean() && !isUser()" class="action-btn primary-btn">
+            Phase 2 Integration
+          </button>
+        </span>
+      </div>
+    </article>
+
+    <!-- Federated Gateway Diagnostics Card -->
+    <article class="integration-card">
+      <div class="card-header">
+        <div class="card-icon-box status-info">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="meta-icon">
+            <path d="M5 0a.5.5 0 0 1 .5.5V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1a.5.5 0 0 1 .5.5v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1a.5.5 0 0 1-.5.5h-1v1a.5.5 0 0 1-1 0V14h-1v1a.5.5 0 0 1-1 0V14h-1v1a.5.5 0 0 1-1 0V14h-1v1a.5.5 0 0 1-1 0V14h-1a.5.5 0 0 1-.5-.5v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2V3a.5.5 0 0 1 .5-.5h1V1a.5.5 0 0 1 .5-.5m1 2h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1"/>
+          </svg>
+        </div>
+        <span class="status-badge state-info">Federated</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title">Federation Gateway</h3>
+        <p class="card-text">
+          Monitors real-time cross-application asynchronous mount profiles, cross-framework event-bus messaging
+          streams, and shared signal states.
+        </p>
+      </div>
+      <div class="card-footer">
+        <button type="button" disabled class="action-btn disabled-btn">
+          Sub-App Mounted
+        </button>
+      </div>
+    </article>
+
+  </div>
+</div>

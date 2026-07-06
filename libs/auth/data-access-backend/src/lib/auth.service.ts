@@ -1,14 +1,13 @@
 import {
-  ConflictException,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserInDb } from './interface/user-db.interface';
 import { OnboardingDto } from './DTO/onboarding.dto';
-import { ConflictReason, Role, UserStatus } from '@school-expense-ecosystem/auth/types';
+import { ConflictReason, OnboardingData } from '@school-expense-ecosystem/auth/types';
 import { AuthUserRepository } from './auth-user.repository';
 import { IdentityProvider } from './interface/identify-provider.interface';
+import { UserStatus, Role, UserBase } from '@school-expense-ecosystem/shared/types';
+import { AccountRestrictedException, IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
 
 @Injectable()
 export class AuthService {
@@ -18,16 +17,16 @@ export class AuthService {
     private readonly identityProvider: IdentityProvider
   ) { }
 
-  async findByUid(uid: string): Promise<UserInDb | null> {
+  async findByUid(uid: string): Promise<UserBase | null> {
     return this.authUserRepo.findByUid(uid);
   }
 
-  async createUser(userData: UserInDb): Promise<UserInDb> {
+  async createUser(userData: UserBase): Promise<UserBase> {
     return this.authUserRepo.createUser(userData);
   }
 
-  generateJWT(user: UserInDb): string {
-    const payload: UserInDb = {
+  generateJWT(user: UserBase): string {
+    const payload: UserBase = {
       uid: user.uid,
       email: user.email,
       username: user.username,
@@ -41,7 +40,7 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async handleFirebaseLogin(token: string): Promise<{ token: string; user: UserInDb }> {
+  async handleFirebaseLogin(token: string): Promise<{ token: string; user: UserBase }> {
     try {
       const decodedProfile = await this.identityProvider.verifyToken(token);
       const { uid, email, name } = decodedProfile;
@@ -61,14 +60,31 @@ export class AuthService {
         });
       }
 
+      if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
+        throw new AccountRestrictedException(user.status, user.reason)
+      }
+
       const authToken = this.generateJWT(user);
       return { token: authToken, user };
-    } catch (error) {
-      throw new UnauthorizedException('Failed to verify session token or token expired');
+    } catch (error: any) {
+      if (error instanceof AccountRestrictedException) {
+        throw error; // Forward the structured restriction error object
+      }
+
+      const isFirebaseDisabled = error?.code === 'auth/user-disabled' || error?.message?.includes('disabled');
+      if (isFirebaseDisabled) {
+        throw new AccountRestrictedException(
+          UserStatus.SUSPENDED,
+          'This account has been explicitly suspended or disabled in the identity provider context.',
+          'Access denied: Identity provider session has been terminated.'
+        );
+      }
+
+      throw new InvalidTokenException()
     }
   }
 
-  async completeOnboarding(uid: string, email:string ,dto: OnboardingDto) {
+  async completeOnboarding(uid: string, email: string, dto: OnboardingDto) {
     // 1. Dispatch identity conflict assessment via context-aware abstraction layer
     const resolution = await this.authUserRepo.validateIdentityConflict({
       uid,
@@ -79,17 +95,13 @@ export class AuthService {
     // 2. Terminate pipeline and throw explicit standard REST HTTP 409 exceptions upon conflict triggers
     if (resolution.isConflict) {
       if (resolution.reason === ConflictReason.EMWP) {
-        throw new ConflictException(
-          `Security Violation: The User Code '${dto.userCode}' is exclusively allocated to a different email address structure.`
-        );
+        throw new IdentityConflictEmailException(dto.userCode)
       }
-      throw new ConflictException(
-        `Identity Conflict: The User Code '${dto.userCode}' has already been claimed by another active verified system user.`
-      );
+      throw new IdentityConflictClaimedException(dto.userCode);
     }
 
     // 3. Assemble clean domain mutation payload strictly isolating structural parameters
-    const onboardingPayload = {
+    const onboardingPayload: OnboardingData = {
       fullName: dto.fullName,     // Derived from strict registration form configurations
       facultyId: dto.facultyId,   // Validated system enumeration references
       userType: dto.userType,     // Access tier categorizations
@@ -104,7 +116,14 @@ export class AuthService {
       resolution.shouldLinkPreCreatedAccount
     );
 
-    return { status: UserStatus.PENDING };
+    const updatedUser = await this.authUserRepo.findByUid(uid);
+    if (!updatedUser) {
+      throw new UserNotFoundException();
+    }
+
+    const token = this.generateJWT(updatedUser);
+
+    return { token: token, user: updatedUser };
   }
 }
 

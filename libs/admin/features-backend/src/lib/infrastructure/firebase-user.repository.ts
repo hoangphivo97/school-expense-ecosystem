@@ -1,8 +1,9 @@
 import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
 import * as admin from 'firebase-admin';
 import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class FirebaseUserRepository implements UserRepository {
@@ -14,6 +15,8 @@ export class FirebaseUserRepository implements UserRepository {
     if (filters.facultyId) {
       query = query.where('facultyId', '==', filters.facultyId);
     }
+
+    const countQuery = query;
 
     if (filters.pageToken) {
       const startDoc = await this.db.collection('users').doc(filters.pageToken).get();
@@ -42,7 +45,7 @@ export class FirebaseUserRepository implements UserRepository {
     const lastDoc = snapshot.docs[snapshot.docs.length - 1];
     const nextPageToken = lastDoc ? lastDoc.id : null;
 
-    const countSnapshot = await this.db.collection('users').count().get();
+    const countSnapshot = await countQuery.count().get();
     const totalItems = countSnapshot.data().count;
 
     return {
@@ -94,6 +97,36 @@ export class FirebaseUserRepository implements UserRepository {
     } catch (error: any) {
       if (error.code === 'auth/email-already-exists') {
         throw new ConflictException('The email address is already in use by another account.');
+      }
+      throw error;
+    }
+  }
+
+  async updateStatus(uid: string, status: UserStatus, reason?: string): Promise<void> {
+    const updateData: any = {
+      status,
+      updatedAt: new Date()
+    };
+
+    if (reason) {
+      updateData.reason = reason;
+    } else if (status === UserStatus.ACTIVE) {
+      updateData.reason = admin.firestore.FieldValue.delete();
+    }
+
+    await this.db.collection('users').doc(uid).update(updateData);
+  }
+
+  async deleteUserRecord(uid: string): Promise<void> {
+    await this.db.collection('users').doc(uid).delete();
+  }
+
+  async deleteAuthAccount(uid: string): Promise<void> {
+    try {
+      await admin.auth().deleteUser(uid);
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        return;
       }
       throw error;
     }

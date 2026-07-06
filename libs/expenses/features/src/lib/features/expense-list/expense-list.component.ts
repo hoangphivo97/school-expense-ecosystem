@@ -1,5 +1,5 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal, effect, untracked } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,17 +9,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, startWith, map } from 'rxjs/operators';
+import { filter} from 'rxjs/operators';
 
 import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
 import { FilterParams, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
 import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
-import { DateFormatValue, LocalStorageKey, ModalMessage } from '@school-expense-ecosystem/shared/constants';
+import { DateFormatValue, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FilterMode } from '@school-expense-ecosystem/shared/types'
 
 @Component({

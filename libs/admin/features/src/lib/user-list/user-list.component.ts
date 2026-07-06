@@ -6,19 +6,29 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
-import { Role, UserBase, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
-import { FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
+import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
-import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
-import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { UserStatus, UserType, Role } from '@school-expense-ecosystem/shared/types'
+import { faCircleCheck } from '@fortawesome/free-solid-svg-icons/faCircleCheck';
+import { faBan } from '@fortawesome/free-solid-svg-icons/faBan';
+import { faLockOpen } from '@fortawesome/free-solid-svg-icons/faLockOpen';
+import { faLock } from '@fortawesome/free-solid-svg-icons/faLock';
+import { faUserXmark } from '@fortawesome/free-solid-svg-icons/faUserXmark';
+import { faCirclePause } from '@fortawesome/free-solid-svg-icons/faCirclePause';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal';
 
 @Component({
   selector: 'lib-user-list',
@@ -38,7 +48,9 @@ import { AuthSignalStore } from '@school-expense-ecosystem/auth/data-access';
     DatePipe,
     FilterComponent,
     HeaderComponent,
-    MatDialogModule
+    MatDialogModule,
+    FontAwesomeModule,
+    MatTooltipModule
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
@@ -54,6 +66,13 @@ export class UserListComponent {
 
   // Structural grid column configurations including auditing and interactive actions
   displayedColumns: string[] = ['fullName', 'email', 'userCode', 'role', 'userType', 'status', 'createdAt', 'action'];
+
+  protected readonly faCircleCheck = faCircleCheck;
+  protected readonly faBan = faBan;
+  protected readonly faLockOpen = faLockOpen;
+  protected readonly faCirclePause = faCirclePause;
+  protected readonly faLock = faLock;
+  protected readonly faUserXMark = faUserXmark
 
   // DOM viewchild query referencing the active material pagination element
   readonly paginator = viewChild(MatPaginator);
@@ -73,13 +92,15 @@ export class UserListComponent {
   private readonly refreshTrigger = signal<number>(0);
   readonly isLoading = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly processingUserId = signal<string | null>(null);
 
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(0);
   private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
-
-  readonly RoleEnum = Role;
   readonly UserStatusEnum = UserStatus;
+
+  readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
+  readonly isFinance = computed(() => this.authStore.user()?.role === Role.LEVEL_1_FINANCE);
 
   // Commercial English translation registry mapping raw system roles into presentation texts
   readonly roleLabels: Record<Role, string> = {
@@ -115,7 +136,8 @@ export class UserListComponent {
       return this.userListService.getPaginatedUsers(limit, pageToken).pipe(
         catchError((err) => {
           console.error('Fetch paginated users failed:', err);
-          this.errorMessage.set('Failed to load user directory. Please verify server connectivity');
+          this.isLoading.set(false);
+          this.errorMessage.set('Failed to load user directory. Please verify server connectivity.');
           return of({ users: [] as UserBase[], nextPageToken: null as string | null, totalItems: 0 });
         })
       );
@@ -159,14 +181,18 @@ export class UserListComponent {
       return matchesQuery && matchesRole && matchesStatus && matchesUserType;
     });
 
-    const processedList = filteredList.map((user: UserBase) => {
-      return {
-        ...user,
-        roleLabel: this.roleLabels[user.role as Role] || String(user.role)
-      };
-    });
-
-    return new MatTableDataSource<any>(processedList);
+    return filteredList.map((user: UserBase) => ({
+      ...user,
+      roleLabel: this.roleLabels[user.role as Role] || String(user.role),
+      isPending: user.status === UserStatus.PENDING,
+      isNotCurrentAdmin: user.uid !== this.currentAdminId(),
+      isProcessing: user.uid === this.processingUserId(),
+      isActive: user.status === UserStatus.ACTIVE,
+      isSuspended: user.status === UserStatus.SUSPENDED,
+      isOnboarding: user.status === UserStatus.ONBOARDING,
+      targetIsAdmin: user.role === Role.LEVEL_0_ADMIN,
+      isRejected: user.status === UserStatus.REJECTED
+    }));
   });
 
   constructor() {
@@ -234,7 +260,6 @@ export class UserListComponent {
         user: user,
         title: 'User Detail',
         action: this.dialogActionEnum.Detail,
-        isSelf: user.uid === this.currentAdminId()
       },
     });
 
@@ -244,4 +269,78 @@ export class UserListComponent {
       }
     });
   }
+
+  updateUserStatus(user: UserBase, newStatus: UserStatus): void {
+    if (user.uid === this.currentAdminId()) {
+      alert('Administrative security constraint: You are restricted from mutating your own account status context.');
+      return;
+    }
+
+    // Intercept and enforce audit logging for restrictive transitions
+    if (newStatus === UserStatus.SUSPENDED || newStatus === UserStatus.REJECTED) {
+      const dialogRef = this.dialog.open(BaseModalComponent, {
+        width: '440px',
+        disableClose: true,
+        data: {
+          title: `${newStatus === UserStatus.REJECTED ? 'Reject' : 'Suspend'} User Account`,
+          message: 'An explicit administrative trail reason is mandatory to alter this profile operational boundary.',
+          placeholder: 'Enter formal reasoning context...'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe((reason: string | null) => {
+        if (reason) {
+          this.executeStatusMutation(user.uid, newStatus, reason);
+        }
+      });
+      return;
+    }
+
+    // Direct execution pipeline for standard states (e.g. Active)
+    this.executeStatusMutation(user.uid, newStatus);
+  }
+
+  private executeStatusMutation(uid: string, newStatus: UserStatus, reason?: string): void {
+    this.processingUserId.set(uid);
+    this.isLoading.set(true);
+
+    this.userListService.updateUserStatus(uid, newStatus, reason).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.processingUserId.set(null);
+        this.triggerRefresh();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.processingUserId.set(null);
+
+        console.error('Administrative status mutation failed:', err);
+
+        const apiErrorMsg = err.error?.errorMsg || 'Failed to alter user status configuration boundary.';
+        this.errorMessage.set(apiErrorMsg);
+      }
+    });
+  }
+
+  protected openDeleteModal(user: UserBase): void {
+    const dialogRef = this.dialog.open(UserDeleteModalComponent, {
+      data: { user },
+      autoFocus: false,
+      disableClose: true,
+      width: '640px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) return;
+
+      if (result.isDeleted && result.targetUid) {
+        // this.handlePostDeletion(result.targetUid);
+      }
+
+      if (result.action === 'SECURITY_LOCKED') {
+        // For Future develop
+      }
+    });
+  }
+
 }

@@ -5,15 +5,5 @@
   "projectType": "library",
   "tags": ["scope:auth", "type:types"],
   "targets": {
-    "build": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "outputPath": "dist/libs/auth/types",
-        "main": "libs/auth/types/src/index.ts",
-        "tsConfig": "libs/auth/types/tsconfig.lib.json",
-        "assets": ["libs/auth/types/*.md"]
-      }
-    }
   }
 }

@@ -1,6 +1,6 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, ValidateIf } from "class-validator";
-import { FacultyId, Role, UserStatus, UserType } from "@school-expense-ecosystem/auth/types";
-import { CreateUserInput, UpdateUserInput } from "@school-expense-ecosystem/admin/types";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, ValidateIf, IsDateString, Equals } from "class-validator";
+import { FacultyId, Role, UserStatus, UserType } from "@school-expense-ecosystem/shared/types";
+import { CreateUserInput, DeleteReasonType, UpdateUserInput } from "@school-expense-ecosystem/admin/types";
 
 export class CreateUserDto implements CreateUserInput {
   @IsNotEmpty({ message: 'Institutional email address is mandatory.' })
@@ -39,6 +39,10 @@ export class CreateUserDto implements CreateUserInput {
   @IsOptional()
   @IsString()
   createdBy?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'dateOfBirth must be a valid ISO date string' })
+  dateOfBirth?: string;
 }
 
 export class UpdateUserDto implements UpdateUserInput {
@@ -56,11 +60,34 @@ export class UpdateUserDto implements UpdateUserInput {
   userType?: UserType;
 
   @IsOptional()
-  @IsEnum(UserStatus, { message: 'Invalid operational status target.' })
-  status?: UserStatus;
+  @IsNotEmpty({ message: 'Faculty isolation node cannot be updated to an empty string.' })
+  @IsEnum(FacultyId, { message: 'Target facaulty mutation out of system boundaries.' })
+  facultyId?: FacultyId;
 
   @IsOptional()
-  @IsNotEmpty({ message: 'Faculty isolation node cannot be updated to an empty string.' })
+  @IsDateString({}, { message: 'dateOfBirth must be a valid ISO date string' })
+  dateOfBirth?: string;
+}
+
+export class ChangeUserStatusDto {
+  @IsNotEmpty({ message: 'Operational status target cannot be empty.' })
+  @IsEnum(UserStatus, { message: 'Invalid operational status target.' })
+  status!: UserStatus;
+
+  @IsOptional()
   @IsString()
-  facultyId?: FacultyId;
+  @MinLength(4, { message: 'Justification reason must be at least 4 characters long.' })
+  reason?: string;
+}
+
+export class DeleteUserDto {
+  @IsNotEmpty({ message: 'Delete reason type is required.' })
+  @IsEnum(DeleteReasonType, { message: 'Invalid delete reason classification.' })
+  reasonType!: DeleteReasonType;
+
+  @ValidateIf(o => o.reasonType === DeleteReasonType.INPUT_ERROR)
+  @IsNotEmpty({ message: 'Confirmation text is mandatory for input error deletions.' })
+  @IsString()
+  @Equals('DELETE', { message: 'Confirmation text must be exactly "DELETE".' })
+  confirmationText?: string;
 }

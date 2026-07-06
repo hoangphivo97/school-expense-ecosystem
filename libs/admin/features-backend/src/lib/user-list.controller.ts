@@ -1,8 +1,11 @@
-import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UserListService } from './user-list.service';
-import { Role, UserBase } from '@school-expense-ecosystem/auth/types';
-import { JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/auth/features-backend';
-import { CreateUserDto, UpdateUserDto } from 'admin-data-access-backend';
+import { Role, UserBase } from '@school-expense-ecosystem/shared/types';
+import { JwtAuthGuard, RolesGuard, Roles } from '@school-expense-ecosystem/shared/guards-backend';
+import { ChangeUserStatusDto, CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
+import { IAdminExecutor } from '@school-expense-ecosystem/admin/types';
+import { ActiveAdmin } from './decorators/admin-executor.decorator';
+
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -11,25 +14,58 @@ export class UserListController {
   constructor(private readonly userListService: UserListService) { }
 
   @Get()
-  async getAllUsersForAdmin(
+  async getManagedUsers(
     @Req() req: { user: UserBase },
     @Query('limit') limit = 10,
     @Query('pageToken') pageToken?: string
   ) {
     const requester = req.user as UserBase;
 
-    return this.userListService.getUsersForAdmin(requester, Number(limit), pageToken);
+    return this.userListService.getUsersForManagement(requester, Number(limit), pageToken);
   }
 
   @Post('provision')
   @Roles(Role.LEVEL_0_ADMIN)
-  async manualAccountProvisioning(@Req() req: { user: UserBase }, @Body() createUserDto: CreateUserDto) {
-    return this.userListService.provisionNewUserByAdmin(req.user.uid, req.user.email, createUserDto);
+  async manualAccountProvisioning(
+    @Body() createUserDto: CreateUserDto,
+    @ActiveAdmin() executor: IAdminExecutor) {
+    return this.userListService.provisionNewUserByAdmin(executor, createUserDto);
   }
 
   @Patch(':id')
   @Roles(Role.LEVEL_0_ADMIN)
-  async updateInstitutionalUser(@Param('id') targetUid: string, @Req() req: { user: UserBase }, @Body() updateUserDto: UpdateUserDto) {
-   return this.userListService.updateUserByAdmin(targetUid, req.user.uid, req.user.email, updateUserDto);
+  async updateUser(
+    @Param('id') id: string,
+    @ActiveAdmin() executor: IAdminExecutor,
+    @Body() updateUserDto: UpdateUserDto
+  ) {
+    return this.userListService.updateUserByAdmin(id, executor, updateUserDto);
+  }
+
+  @Patch(':id/status')
+  @Roles(Role.LEVEL_0_ADMIN)
+  async changeUserStatus(
+    @Param('id') id: string,
+    @ActiveAdmin() executor: IAdminExecutor,
+    @Body() changeUserStatusDto: ChangeUserStatusDto
+  ) {
+
+    return this.userListService.updateUserStatusByAdmin(
+      id,
+      executor,
+      changeUserStatusDto.status,
+      changeUserStatusDto.reason
+    );
+  }
+
+  @Delete(':id')
+  @Roles(Role.LEVEL_0_ADMIN)
+  async executeUserDeletion(
+    @Param('id') id: string,
+    @ActiveAdmin() executor: IAdminExecutor,
+    @Body() deleteUserDto: DeleteUserDto
+  ) {
+
+    return this.userListService.deleteUserByAdmin(id, executor, deleteUserDto);
   }
 }

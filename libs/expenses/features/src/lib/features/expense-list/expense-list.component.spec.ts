@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExpenseListComponent } from './expense-list.component';
-import { ExpenseList, PaidMethodEnum } from '@school-expense-ecosystem/shared/types'; // Sửa import từ shared/types
+import { ExpenseList, PaidMethodEnum } from '@school-expense-ecosystem/shared/types';
 import { of, Subject } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatDialog } from '@angular/material/dialog';
-import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access'; // Sửa import alias của Nx
+import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access'; 
 import { MatTableModule } from '@angular/material/table';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { expect, describe, it, beforeEach } from '@jest/globals'; // Xoá afterEach không dùng
+import { expect, describe, it, beforeEach, jest } from '@jest/globals'; 
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { SettingsServiceService } from '@school-expense-ecosystem/shared/ui'; // Điền path hợp lệ
+import { SettingsServiceService } from '@school-expense-ecosystem/shared/ui'; 
 
 class MockExpeseService {
   private _$ = new Subject<ExpenseList[]>();

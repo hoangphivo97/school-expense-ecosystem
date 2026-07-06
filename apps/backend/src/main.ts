@@ -3,9 +3,8 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { onRequest } from 'firebase-functions/v2/https'; 
-import express from 'express';
+import { GlobalExceptionFilter } from './filters/global-exception.filter';
 
-const expressApp = express();
 let cachedServer: any;
 
 function configureNestApp(app: any) {
@@ -16,6 +15,7 @@ function configureNestApp(app: any) {
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.useGlobalPipes(
     new ValidationPipe({

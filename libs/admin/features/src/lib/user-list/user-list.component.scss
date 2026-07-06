@@ -3,187 +3,378 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f8fafc; // Soft corporate slate background canvas
-}
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
 
-.user-directory-layout-root {
-  flex: 1 0 auto; // Keeps footer safely pinned to page bottom limits
-}
-
-.layout-headline {
-  font-size: 1.7rem;
-  letter-spacing: -0.02em;
-  font-family: var(--bs-font-sans-serif);
-}
-
-// Adaptive custom spacing widths for the interactive Filter Bar
-.filter-field {
-  max-width: 100%;
-
-  &.search-input-field {
-    width: 280px;
+  .user-directory-layout-root {
+    flex: 1 0 auto; // Keeps footer safely pinned to page bottom limits
   }
 
-  &.select-dropdown-field {
-    width: 200px;
+  .layout-headline {
+    font-size: 1.7rem;
+    letter-spacing: -0.02em;
+    font-family: var(--bs-font-sans-serif);
   }
 
-  ::ng-deep {
-    .mat-mdc-form-field-subscript-wrapper {
-      display: none !important; // Disables dynamic spacing expansion shifts on focus actions
+  // Adaptive custom spacing widths for the interactive Filter Bar
+  .filter-field {
+    max-width: 100%;
+
+    &.search-input-field {
+      width: 280px;
+    }
+
+    &.select-dropdown-field {
+      width: 200px;
+    }
+
+    ::ng-deep {
+      .mat-mdc-form-field-subscript-wrapper {
+        display: none; // Disables dynamic spacing expansion shifts on focus actions
+      }
+    }
+  }
+
+  .muted-icon {
+    color: #64748b;
+    margin-right: 6px;
+  }
+
+  // Enterprise grid typography and alignment standardization over-rides
+  .synchronized-material-table {
+    background-color: transparent;
+    font-family: var(--bs-font-sans-serif);
+
+    tr.mat-mdc-header-row {
+      background-color: #f1f5f9; // Light gray slate tint matching enterprise standard
+      border-bottom: 2px solid #cbd5e1;
+    }
+
+    tr.mat-mdc-row:hover {
+      cursor: pointer;
+      background-color: #F0F2FF;
+    }
+
+    th.table-column-header {
+      font-size: 0.75rem; // 12px sleek tracking titles
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #475569;
+    }
+
+    td.mat-mdc-cell {
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.875rem; // 14px smooth readability text cells
+    }
+
+    td.action-column {
+      display: flex;
+    }
+  }
+
+  .data-text-primary {
+    color: #0f172a;
+  }
+
+  .data-text-secondary {
+    color: #475569;
+  }
+
+  .action-edit-icon {
+    font-size: 1.25rem;
+  }
+
+  .status-feedback-wrapper {
+    min-height: 300px;
+  }
+
+  .empty-search-icon {
+    font-size: 3.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .identity-code-wrapper code {
+    font-family: var(--bs-font-monospace);
+    color: #4f46e5;
+    background-color: #f5f3ff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  // 🏷️ HUMANIZED ROLE CHIP STYLING: Premium distinct theme border layers
+  .badge-role-variant {
+    font-weight: 600;
+    padding: 0.45em 0.8em;
+    border-radius: 6px;
+    font-size: 0.75rem;
+
+    &.role-admin {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+
+    &.role-finance_officer {
+      background-color: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    &.role-faculty_dean {
+      background-color: #f3e8ff;
+      color: #6b21a8;
+      border: 1px solid #e9d5ff;
+    }
+
+    &.role-end_user {
+      background-color: #f0f9ff;
+      color: #075985;
+      border: 1px solid #bae6fd;
+    }
+  }
+
+  // 🏷️ ACCOUNT STATUS CHIP STYLING: Ecosystem matching verification markers
+  .badge-status-variant {
+    font-weight: 600;
+    padding: 0.45em 0.8em;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    text-transform: capitalize;
+
+    &.status-active {
+      background-color: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    &.status-pending {
+      background-color: #fefce8;
+      color: #854d0e;
+      border: 1px solid #fef08a;
+    }
+
+    &.status-onboarding {
+      background-color: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+
+    &.status-rejected,
+    &.status-suspended {
+      background-color: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fee2e2;
+    }
+  }
+
+  .badge-usertype-variant {
+    font-weight: 600;
+    padding: 0.45em 0.8em;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    text-transform: capitalize;
+    display: inline-block;
+
+    &.usertype-student {
+      background-color: #e0e7ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+    }
+
+    &.usertype-teacher {
+      background-color: #f0fdfa;
+      color: #115e59;
+      border: 1px solid #99f6e4;
+    }
+
+    &.usertype-staff {
+      background-color: #fffbeb;
+      color: #92400e;
+      border: 1px solid #fef3c7;
+    }
+
+    &.usertype-unassigned {
+      background-color: #fafafa;
+      color: #71717a;
+      border: 1px dashed #d4d4d8;
     }
   }
 }
 
-.muted-icon {
-  color: #64748b;
-  margin-right: 6px;
-}
+// ==========================================================================
+// 🌟 BULLETPROOF DARK MODE OVERRIDES WITH ::ng-deep
+// ==========================================================================
+::ng-deep body.dark-mode {
 
-// Enterprise grid typography and alignment standardization over-rides
-.synchronized-material-table {
-  background-color: transparent !important;
-  font-family: var(--bs-font-sans-serif) !important;
-
-  tr.mat-mdc-header-row {
-    background-color: #f1f5f9 !important; // Light gray slate tint matching enterprise standard
-    border-bottom: 2px solid #cbd5e1;
+  // 1. Nền Card tối màu Slate 800 từ biến của bạn
+  .card {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
   }
 
-  tr.mat-mdc-row:hover {
-    cursor: pointer;
-    background-color: #F0F2FF;
+  // 2. Màu sắc Table
+  .synchronized-material-table {
+    tr.mat-mdc-header-row {
+      background-color: var(--bg-input) !important;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.15) !important;
+    }
+
+    tr.mat-mdc-row:hover {
+      background-color: var(--hover-bg) !important;
+    }
+
+    th.table-column-header {
+      color: var(--primary-color) !important;
+      background-color: var(--bg-secondary);
+    }
+
+    td.mat-mdc-cell {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
   }
 
-  th.table-column-header {
-    font-size: 0.75rem !important; // 12px sleek tracking titles
-    font-weight: 600 !important;
-    letter-spacing: 0.05em !important;
-    color: #475569 !important;
+  // 3. Màu chữ hiển thị dữ liệu
+  .data-text-primary {
+    color: var(--text-primary) !important;
   }
 
-  td.mat-mdc-cell {
-    border-bottom: 1px solid #e2e8f0;
-    font-size: 0.875rem; // 14px smooth readability text cells
-  }
-}
-
-.data-text-primary {
-  color: #0f172a;
-}
-
-.data-text-secondary {
-  color: #475569;
-}
-
-.action-edit-icon {
-  font-size: 1.25rem !important;
-}
-
-.status-feedback-wrapper {
-  min-height: 300px;
-}
-
-.empty-search-icon {
-  font-size: 3.5rem !important;
-  width: 3.5rem !important;
-  height: 3.5rem !important;
-}
-
-.identity-code-wrapper code {
-  font-family: var(--bs-font-monospace);
-  color: #4f46e5;
-  background-color: #f5f3ff;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-weight: 500;
-}
-
-// 🏷️ HUMANIZED ROLE CHIP STYLING: Premium distinct theme border layers
-.badge-role-variant {
-  font-weight: 600;
-  padding: 0.45em 0.8em;
-  border-radius: 6px;
-  font-size: 0.75rem;
-
-  &.role-admin {
-    background-color: #f1f5f9;
-    color: #0f172a;
-    border: 1px solid #cbd5e1;
+  .data-text-secondary {
+    color: var(--text-secondary) !important;
   }
 
-  &.role-finance_officer {
-    background-color: #f0fdf4;
-    color: #166534;
-    border: 1px solid #bbf7d0;
+  .identity-code-wrapper code {
+    color: var(--primary-color) !important;
+    background-color: var(--hover-bg) !important;
   }
 
-  &.role-faculty_dean {
-    background-color: #f3e8ff;
-    color: #6b21a8;
-    border: 1px solid #e9d5ff;
+  // 4 "PROTECTED (YOU)"
+  td.action-column {
+    .bg-light.border.text-muted {
+      background-color: var(--bg-input) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: var(--primary-color) !important;
+    }
   }
 
-  &.role-end_user {
-    background-color: #f0f9ff;
-    color: #075985;
-    border: 1px solid #bae6fd;
-  }
-}
+  // 5. 🏷️ DARK MODE ROLE BADGES
+  .badge-role-variant {
+    &.role-admin {
+      background-color: var(--bg-input) !important;
+      color: var(--text-primary) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
 
-// 🏷️ ACCOUNT STATUS CHIP STYLING: Ecosystem matching verification markers
-.badge-status-variant {
-  font-weight: 600;
-  padding: 0.45em 0.8em;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  text-transform: capitalize;
+    &.role-finance_officer {
+      background-color: #064e3b !important;
+      color: #34d399 !important;
+      border: 1px solid #047857 !important;
+    }
 
-  &.status-active {
-    background-color: #ecfdf5;
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-  }
+    &.role-faculty_dean {
+      background-color: #581c87 !important;
+      color: #c084fc !important;
+      border: 1px solid #7e22ce !important;
+    }
 
-  &.status-pending {
-    background-color: #fefce8;
-    color: #854d0e;
-    border: 1px solid #fef08a;
-  }
-
-  &.status-rejected {
-    background-color: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fee2e2;
-  }
-}
-
-.badge-usertype-variant {
-  font-weight: 600;
-  padding: 0.45em 0.8em;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  text-transform: capitalize;
-  display: inline-block;
-
-  // Trạng thái dành cho Sinh viên (Tông màu Indigo lịch lãm)
-  &.usertype-student {
-    background-color: #e0e7ff;
-    color: #3730a3;
-    border: 1px solid #c7d2fe;
+    &.role-end_user {
+      background-color: #0c4a6e !important;
+      color: #38bdf8 !important;
+      border: 1px solid #0369a1 !important;
+    }
   }
 
-  // Trạng thái dành cho Giảng viên/Giáo sư (Tông màu Teal học thuật sạch sẽ)
-  &.usertype-teacher {
-    background-color: #f0fdfa;
-    color: #115e59;
-    border: 1px solid #99f6e4;
+  .badge-status-variant {
+    &.status-active {
+      background-color: #064e3b !important;
+      color: #34d399 !important;
+      border: 1px solid #047857 !important;
+    }
+
+    &.status-pending {
+      background-color: #78350f !important;
+      color: #fde047 !important;
+      border: 1px solid #a16207 !important;
+    }
+
+    &.status-onboarding {
+      background-color: #1e3a8a !important;
+      color: #60a5fa !important;
+      border: 1px solid #1d4ed8 !important;
+    }
+
+    &.status-rejected,
+    &.status-suspended {
+      background-color: #7f1d1d !important;
+      color: #fca5a5 !important;
+      border: 1px solid #991b1b !important;
+    }
   }
 
-  // Trạng thái dành cho Nhân viên phòng ban (Tông màu Amber/Orange ấm áp)
-  &.usertype-staff {
-    background-color: #fffbeb;
-    color: #92400e;
-    border: 1px solid #fef3c7;
+  .badge-usertype-variant {
+    &.usertype-student {
+      background-color: #1e1b4b !important;
+      color: #818cf8 !important;
+      border: 1px solid #4338ca !important;
+    }
+
+    &.usertype-teacher {
+      background-color: #115e59 !important;
+      color: #2dd4bf !important;
+      border: 1px solid #0d9488 !important;
+    }
+
+    &.usertype-staff {
+      background-color: #7c2d12 !important;
+      color: #fb923c !important;
+      border: 1px solid #9a3412 !important;
+    }
+
+    &.usertype-unassigned {
+      background-color: #27272a !important;
+      color: #a1a1aa !important;
+      border: 1px dashed #52525b !important;
+    }
+  }
+
+  .mat-mdc-paginator,
+  .mat-mdc-paginator-container,
+  .mat-mdc-paginator-page-size-label,
+  .mat-mdc-paginator-range-label {
+    background-color: transparent !important;
+    color: var(--text-primary) !important;
+  }
+
+  .mat-mdc-paginator {
+    .mat-mdc-icon-button {
+      color: var(--text-primary) !important;
+
+      svg {
+        fill: var(--text-primary) !important;
+      }
+
+      &:disabled {
+        color: var(--text-secondary) !important;
+        opacity: 0.35;
+
+        svg {
+          fill: var(--text-secondary) !important;
+        }
+      }
+    }
+
+    .mat-mdc-select-arrow {
+      color: var(--text-primary) !important;
+
+      svg {
+        fill: var(--text-primary) !important;
+      }
+    }
+
+    .mat-mdc-select-value {
+      color: var(--text-primary) !important;
+    }
   }
 }

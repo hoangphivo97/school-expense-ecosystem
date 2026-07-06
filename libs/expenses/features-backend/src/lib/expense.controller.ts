@@ -1,10 +1,10 @@
 /// <reference types="multer" />
 import { Controller, Get, Post, Put, Body, Param, Query, Req, UseGuards, BadRequestException, ForbiddenException, UseInterceptors, ParseFilePipe, UploadedFile, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
 import { ExpenseBackendService, StorageProvider } from '@school-expense-ecosystem/expenses/data-access-backend';
-import { JwtAuthGuard } from '@school-expense-ecosystem/auth/features-backend';
+import { JwtAuthGuard, RolesGuard } from '@school-expense-ecosystem/shared/guards-backend';
 import { AuditAction } from '@school-expense-ecosystem/expenses/types';
 import { Request } from 'express';
-import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/auth/types';
+import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/data-access-backend';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -13,7 +13,7 @@ interface AuthenticatedRequest extends Request {
   user: AuthenticatedUser;
 }
 @Controller('expenses')
-@UseGuards(JwtAuthGuard)
+@UseGuards(RolesGuard)
 export class ExpenseController {
   constructor(private readonly expenseBackendService: ExpenseBackendService,
     private readonly storageProvider: StorageProvider

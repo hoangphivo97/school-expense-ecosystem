@@ -1,0 +1,9 @@
+{
+  "name": "guards",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/auth/guards/src",
+  "projectType": "library",
+  "tags": ["scope:auth", "type:data-access"],
+  "// targets": "to see all targets run: nx show project guards --web",
+  "targets": {}
+}

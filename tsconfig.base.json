@@ -10,7 +10,10 @@
     "importHelpers": true,
     "target": "es2022",
     "module": "commonjs",
-    "lib": ["es2020", "dom"],
+    "lib": [
+      "es2020",
+      "dom"
+    ],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
@@ -28,7 +31,9 @@
       "@school-expense-ecosystem/auth/data-access": [
         "./libs/auth/data-access/src/index.ts"
       ],
-      "@school-expense-ecosystem/shared/ui": ["./libs/shared/ui/src/index.ts"],
+      "@school-expense-ecosystem/shared/ui": [
+        "./libs/shared/ui/src/index.ts"
+      ],
       "@school-expense-ecosystem/auth/features": [
         "./libs/auth/features/src/index.ts"
       ],
@@ -68,7 +73,9 @@
       "@school-expense-ecosystem/dashboard/features": [
         "./libs/dashboard/features/src/index.ts"
       ],
-      "@school-expense-ecosystem/auth/ui": ["./libs/auth/ui/src/index.ts"],
+      "@school-expense-ecosystem/auth/ui": [
+        "./libs/auth/ui/src/index.ts"
+      ],
       "@school-expense-ecosystem/admin/features-backend": [
         "./libs/admin/features-backend/src/index.ts"
       ],
@@ -96,10 +103,19 @@
       "@school-expense-ecosystem/admin/types": [
         "./libs/admin/types/src/index.ts"
       ],
-      "admin-data-access-backend": [
+      "@school-expense-ecosystem/admin/data-access-backend": [
         "./libs/admin/data-access-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/guards-backend": [
+        "./libs/shared/guards-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/auth/guards": [
+        "./libs/auth/guards/src/index.ts"
       ]
     }
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }

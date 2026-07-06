@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
-import { SkipAppCheck } from '@school-expense-ecosystem/auth/features-backend';
+import { SkipAppCheck } from '@school-expense-ecosystem/shared/guards-backend';
 @Controller()
 export class AppController {
 

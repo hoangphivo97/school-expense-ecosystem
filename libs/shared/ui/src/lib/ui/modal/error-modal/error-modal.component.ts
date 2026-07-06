@@ -10,7 +10,7 @@ import { MatButton } from '@angular/material/button';
 import { DialogError } from '@school-expense-ecosystem/shared/types';
 import { MatIconModule } from '@angular/material/icon';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faBug } from '@fortawesome/free-solid-svg-icons';
+import { faBug } from '@fortawesome/free-solid-svg-icons/faBug';
 
 @Component({
   selector: 'lib-error-modal',

@@ -1,196 +1,207 @@
-@use 'libs/shared/ui/src/lib/ui/styles/_variables' as *;
+:host {
 
-.sidebar-section {
-  height: 100%;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  overflow: clip;
-  padding-top: 25px;
-  transition: background-color 0.3s ease;
-  background-color: var(--bg-secondary);
+  /* ==========================================================================
+     CORE SIDEBAR CONTAINER LAYOUT
+     ========================================================================== */
+  .sidebar-section {
+    height: 100%;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: clip;
+    padding-top: 24px;
+    box-sizing: border-box;
+    background-color: var(--bg-secondary);
+    transition: background-color 0.3s ease, width 0.3s ease;
 
-  .label {
-    display: inline-block;
-    transition:
-      opacity 0.3s ease,
-      transform 0.3s ease;
-    opacity: 1;
-    transform: translateX(0);
-    white-space: nowrap;
-    color: var(--text-primary);
+    /* Responsive text transitions for expanding/collapsing actions */
+    .label {
+      display: inline-block;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      opacity: 1;
+      transform: translateX(0);
+      white-space: nowrap;
+      color: var(--text-primary);
+      font-size: 1.25rem;
 
-    &.hide {
-      opacity: 0;
-      transform: translateX(-10px);
-      pointer-events: none;
-    }
-  }
-
-  .logout {
-    &-section {
-      margin-top: auto;
-      text-align: left;
-    }
-
-    &-btn {
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      padding: 10px;
-      border: none;
-      background: none;
-      color: var(--text-color-inactive);
-      font-weight: 500;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      z-index: 0;
-      width: 100%;
-      transition: color 0.3s ease;
-
-      label {
-        cursor: pointer;
-      }
-
-      fa-icon {
-        color: var(--icon-color-inactive);
-        z-index: 1;
-        transition: color 0.3s ease;
-      }
-
-      &:hover {
-        color: var(--color-danger);
-        background-color: var(--bg-secondary);
-
-        fa-icon {
-          color: var(--color-danger);
-        }
-
-        animation: shake 0.3s ease-in-out;
+      &.hide {
+        opacity: 0;
+        transform: translateX(-12px);
+        pointer-events: none;
       }
     }
   }
-}
 
-.account {
-  &-section {
+  /* ==========================================================================
+     ACCOUNT PROFILE BLOCK
+     ========================================================================== */
+  .account-section {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 6px;
-    border-bottom: 1px solid #e9ecef;
+    padding: 12px 6px;
+    border-bottom: 1px solid var(--border-color); // Linked to root color variables
 
     h2 {
       margin: 0;
     }
- 
+
     .label {
       margin: 0;
-      font-size: 20px;
+      font-size: 1.25rem;
       font-weight: 500;
-      color: #495057;
+      color: var(--text-secondary);
       line-height: 1.4;
       display: flex;
       flex-direction: column;
 
       span {
         font-weight: 700;
-        color: #673ab7;
+        color: var(--primary-color); 
       }
     }
   }
 
-  &-name {
+  .account-name {
     display: block;
-    max-width: 160px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: pointer;
   }
 
-  &-icon {
-    font-size: 36px;
-    width: 36px;
-    height: 36px;
-    color: var(--text-primary);
+  .account-icon {
+    font-size: 2.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--primary-color);
   }
-}
 
-.ls-links {
-  margin-top: 50px;
-  list-style-type: none;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  padding: 0;
-
-  li {
+  /* ==========================================================================
+     NAVIGATION LINKS MATRIX (FLEX ENHANCED)
+     ========================================================================== */
+  .navigation-menu {
+    margin-top: 48px;
     display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Optimized layout spacing */
+  }
+
+  .nav-item-link {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 12px;
+    border-radius: 8px;
+    /* Clean rounded profiles */
+    cursor: pointer;
+    text-decoration: none;
     position: relative;
+    transition: background-color 0.2s ease;
 
-    .ls-nav {
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      gap: 25px;
-      cursor: pointer;
-      width: 100%;
+    .nav-icon {
+      color: var(--icon-color-inactive);
+      transition: color 0.2s ease;
+    }
 
-      mat-icon {
-        color: var(--icon-color-inactive);
+    .label {
+      color: var(--text-color-inactive);
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    /* Interactive hover configurations */
+    &:hover {
+      background-color: var(--purple-bland-8);
+    }
+
+    /* Active application link status */
+    &.active {
+      background-color: var(--purple-bland-8);
+
+      .nav-icon,
+      .label {
+        color: var(--primary-color);
       }
 
-      a {
-        text-decoration: none;
-        color: var(--text-color-inactive);
-      }
-
-      &:hover {
-        background-color: var(--purple-bland-8);
-      }
-
-      &.active {
-
-        mat-icon,
-        a {
-          color: var(--text-primary);
-        }
-
-        &::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          width: 5px;
-          background-color: var(--text-primary);
-          transform: translateX(-1rem);
-        }
+      /* Synchronized active marker strip */
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 4px;
+        background-color: var(--primary-color);
+        border-radius: 0 4px 4px 0;
       }
     }
   }
-}
 
-@keyframes shake {
-  0% {
-    transform: translateX(0);
+  /* ==========================================================================
+     PERSISTENT FOOTER SIGN-OUT INTERFACE
+     ========================================================================== */
+  .logout-section {
+    margin-top: auto;
+    padding-top: 16px;
   }
 
-  25% {
-    transform: translateX(-2px);
+  .logout-btn {
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease;
+
+    .logout-icon {
+      color: var(--icon-color-inactive);
+      transition: color 0.2s ease;
+    }
+
+    .label {
+      color: var(--text-color-inactive);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    &:hover {
+      background-color: rgba(220, 38, 38, 0.08);
+      /* Faded dangerous state backdrop */
+      animation: buttonShake 0.3s ease-in-out forwards;
+
+      .logout-icon,
+      .label {
+        color: var(--color-danger);
+      }
+    }
   }
 
-  50% {
-    transform: translateX(2px);
-  }
+  /* Structural keyframe animation logic for sign-out hover effects */
+  @keyframes buttonShake {
 
-  75% {
-    transform: translateX(-1px);
-  }
+    0%,
+    100% {
+      transform: translateX(0);
+    }
 
-  100% {
-    transform: translateX(0);
+    25% {
+      transform: translateX(-2px);
+    }
+
+    50% {
+      transform: translateX(2px);
+    }
+
+    75% {
+      transform: translateX(-1px);
+    }
   }
 }

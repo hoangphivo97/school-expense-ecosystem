@@ -1,18 +1,20 @@
-import { FacultyId, Role, UserBase, UserStatus, UserType } from '@school-expense-ecosystem/auth/types';
+import { FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { FilterParams, PaginationParams } from '@school-expense-ecosystem/shared/types';
+import { UserBase } from '@school-expense-ecosystem/shared/types'
+import { DeleteReasonType } from '../enums/user-list.enum';
 
 /**
  * Strictly-typed business filters extracted directly from the global filter matrix.
  * Every field is contextually optional because the Admin can clear filters to view all users.
  */
-export interface UserFilters extends Pick<FilterParams, 'searchTerm' | 'role' | 'status' | 'userType' | 'facultyId'> { }
+export type UserFilters = Pick<FilterParams, 'searchTerm' | 'role' | 'status' | 'userType' | 'facultyId'>;
 
 /**
  * Unified Flat User Query Payload Contract.
  * Composes pristine business criteria with strict technical pagination tokens.
  * Completely eliminates loose parameter code smells in the service layer.
  */
-export interface UserQueryPayload extends UserFilters, PaginationParams { }
+export type UserQueryPayload = UserFilters & PaginationParams;
 
 export interface CreateUserInput {
   fullName: string;
@@ -22,14 +24,15 @@ export interface CreateUserInput {
   userType?: UserType;
   facultyId?: FacultyId;
   createdBy?: string;
+  dateOfBirth?: string;
 }
 
 export interface UpdateUserInput {
   fullName?: string;
   role?: Role;
   userType?: UserType;
-  status?: UserStatus;
   facultyId?: FacultyId;
+  dateOfBirth?: string;
 }
 
 export interface CreateUserResult {
@@ -41,4 +44,9 @@ export interface PaginatedUserResult {
   users: UserBase[];
   nextPageToken: string | null;
   totalItems: number;
+}
+
+export interface DeleteUserPayload {
+  reasonType: DeleteReasonType;
+  confirmationText: string;
 }

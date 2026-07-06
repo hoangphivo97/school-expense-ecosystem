@@ -1,0 +1,5 @@
+export enum ConflictReason{
+  CAD = 'CODE_ALREADY_CLAIMED',
+  EMWP ='EMAIL_MISMATCH_WITH_PRECREATED',
+  NONE = 'NONE'
+}

@@ -1,7 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -17,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         const user = await this.authService.findByUid(payload.uid);
 
         if (!user) {
-            throw new UnauthorizedException('Phiên đăng nhập không hợp lệ hoặc tài khoản không tồn tại.');
+            throw new UnauthorizedException('Invalid credentials or account not found.');
         }
 
         return user;

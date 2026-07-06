@@ -7,33 +7,47 @@
   margin-bottom: 1.5rem;
 
   // Deep shadow component compilation overrides targeting Material forms
-  ::v-deep {
+  ::ng-deep {
     .enterprise-dense-field {
       .mat-mdc-form-field-subscript-wrapper {
-        display: none !important; // Eradicates extra height reservations for errors/hints
+        display: none;
       }
       .mat-mdc-text-field-wrapper {
-        background-color: #ffffff !important;
-        border-radius: 8px !important;
-        height: 40px !important; // Perfectly crisp, dense structural thickness line
-        padding: 0 12px !important;
+        background-color: #ffffff;
+        border-radius: 8px;
+        height: 60px; // Perfectly crisp, dense structural thickness line
+        padding: 0 12px;
         display: flex;
         align-items: center;
-        border: 1px solid #e2e8f0; // Subtle Slate 200 frame border
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
         transition: all 0.2s ease-in-out;
+      }
 
-        &:hover {
-          border-color: #cbd5e1; // Slate 300
+      // 🌟 SỬA LỖI CẮT NGANG CHỮ: Áp border vào đúng 3 mảnh viền gốc của Material outline
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: #e2e8f0 !important;
+        border-width: 1px ;
+        transition: border-color 0.2s ease-in-out;
+      }
+
+      // Hiệu ứng Hover viền cho Light Mode
+      &:hover {
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+          border-color: #cbd5e1 ;
         }
       }
+
       .mat-mdc-form-field-flex {
-        height: 100% !important;
-        align-items: center !important;
+        height: 100% ;
+        align-items: center ;
       }
       .mat-mdc-form-field-infix {
-        padding: 0 !important;
-        min-height: unset !important;
+        padding: 0 ;
+        min-height: unset ;
         display: flex;
         align-items: center;
       }
@@ -50,10 +64,7 @@
 
 .toolbar-primary-row {
   width: 100%;
-  
-  .search-input-field {
-    max-width: 100%;
-  }
+  .search-input-field { max-width: 100%; }
 }
 
 .toolbar-secondary-row {
@@ -104,4 +115,80 @@
 @keyframes filterReveal {
   from { opacity: 0; transform: translateY(2px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+// ==========================================================================
+// 🌟 BULLETPROOF DARK MODE OVERRIDES WITH ::ng-deep
+// ==========================================================================
+::ng-deep body.dark-mode {
+  .app-toolbar-wrapper {
+    .enterprise-dense-field {
+      // 1. Nền ô nhập liệu và dropdowns chuyển sang màu Slate 800 của bạn
+      .mat-mdc-text-field-wrapper {
+        background-color: var(--bg-secondary) !important;
+        box-shadow: none !important;
+      }
+
+      // Đổi màu viền mảnh outline ban đêm theo đúng cổng màu border-color từ styles.scss
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.15) !important; // Hoặc var(--border-color) mờ dịu mắt
+      }
+
+      &:hover {
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+          border-color: var(--primary-color) !important; // Sáng bừng xanh Indigo khi di chuột
+        }
+      }
+
+      // 2. 🌟 ÉP MÀU MŨI TÊN TRONG SELECTOR SÁNG LÊN (Slate 100)
+      .mat-mdc-select-arrow {
+        color: var(--text-primary) !important;
+        svg {
+          fill: var(--text-primary) !important; // Khóa màu cho hình lõi SVG
+        }
+      }
+
+      // Chữ hiển thị trong các ô dropdown sáng lên (Slate 100)
+      .mat-mdc-select-trigger,
+      .mat-mdc-select-value,
+      .mat-mdc-select-value-text {
+        color: var(--text-primary) !important;
+      }
+
+      // Chữ khi người dùng gõ vào ô tìm kiếm (Trắng sữa #f9fafb)
+      .mat-mdc-input-element,
+      input.mat-mdc-input-element {
+        color: var(--text-input) !important;
+      }
+
+      // Nhãn tiêu đề (Search query, System Role...) sáng dịu (Slate 400) - KHÔNG CÒN VẠCH CẮT NGANG
+      .mat-mdc-form-field-label mat-label,
+      .mat-mdc-form-field-label,
+      .mat-mdc-floating-label mat-label {
+        color: var(--text-secondary) !important;
+      }
+
+      // Icon kính lúp tìm kiếm
+      .mat-icon.text-muted, .mat-icon {
+        color: var(--text-secondary) !important;
+      }
+    }
+
+    // Nút dọn dẹp bộ lọc (Reset button) sang màu tối
+    .filter-reset-btn {
+      background-color: var(--bg-input) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: var(--text-secondary) !important;
+
+      &:hover {
+        background-color: var(--hover-bg) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--primary-color) !important;
+      }
+    }
+  }
 }

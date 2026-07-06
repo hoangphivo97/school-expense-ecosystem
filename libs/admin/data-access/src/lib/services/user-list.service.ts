@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UserBase } from '@school-expense-ecosystem/auth/types';
+import { UserBase, UserStatus } from '@school-expense-ecosystem/shared/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-import { CreateUserInput, CreateUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
+import { CreateUserInput, CreateUserResult, DeleteUserPayload, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
 
 export interface PaginatedUsersResponse {
   users: UserBase[];
@@ -34,5 +34,15 @@ export class UserListService {
 
   updateUser(uid: string, payload: UpdateUserInput): Observable<{ success: boolean }> {
     return this.http.patch<{ success: boolean }>(`${this.apiUrl}/${uid}`, payload);
+  }
+
+  updateUserStatus(uid: string, status: UserStatus, reason?: string): Observable<{ success: boolean }> {
+    return this.http.patch<{ success: boolean }>(`${this.apiUrl}/${uid}/status`, { status, reason });
+  }
+
+  deleteUser(uid: string, payload: DeleteUserPayload): Observable<{ success: boolean }> {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/${uid}`, {
+      body: payload
+    });
   }
 }

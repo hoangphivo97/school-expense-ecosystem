@@ -1,16 +1,81 @@
 @use '@angular/material' as mat;
-/* =========================================
-   1. IMPORTS
-   ========================================= */
-/* Importing Bootstrap SCSS file. */
-@import 'bootstrap/scss/bootstrap';
-@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
-@import '@angular/material/prebuilt-themes/azure-blue.css';
 
+/* ==========================================================================
+   1. SHARED LIBRARIES & WORKSPACE PATH IMPORTS
+   ========================================================================== */
 
-/* =========================================
-   2. BASE STYLES & UTILITIES
-   ========================================= */
+// @import 'bootstrap/scss/bootstrap';
+@use '@angular/material/prebuilt-themes/deeppurple-amber.css';
+@use 'libs/shared/ui/src/lib/ui/styles/variables';
+@use 'libs/shared/ui/src/lib/ui/styles/utilities';
+
+/* ==========================================================================
+   2. GLOBAL CSS DESIGN TOKENS (DYNAMIC ARCHITECTURE)
+   ========================================================================== */
+
+/* --- SYSTEM LIGHT MODE SETUP (DEFAULT BRAND) --- */
+:root {
+  /* Layout Presentation Surfaces */
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --bg-modal-primary: #ffffff;
+  --bg-input: #f3f4f6;
+  --border-color: #e5e7eb;
+
+  /* Primary Brand Identity - Core Purple Accent */
+  --primary-color: #7d45ff;
+  --hover-bg: rgba(125, 69, 255, 0.08);
+  --purple-bland-8: color-mix(in srgb, var(--primary-color) 8%, transparent);
+
+  /* Typography Matrix */
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-input: #111827;
+
+  /* System UI Status Identifiers */
+  --icon-color-inactive: #bdc2c5;
+  --text-color-inactive: #7d8388;
+  --color-danger: #dc2626;
+
+  /* Form & Button Control Boundaries */
+  --btn-disabled-bg: rgba(0, 0, 0, 0.12);
+  --btn-disabled-text: rgba(0, 0, 0, 0.26);
+}
+
+/* --- SYSTEM DARK MODE SETUP (DYNAMIC OVERRIDES) --- */
+body.dark-mode {
+  /* Layout Presentation Surfaces */
+  --bg-primary: #0f172a; // Slate 900
+  --bg-secondary: #1e293b; // Slate 800
+  --bg-input: #1e293b; // Slate 800
+  --bg-modal: #2d3748; // Slate 700
+
+  /* Typography Matrix */
+  --text-primary: #f1f5f9; // Slate 100
+  --text-secondary: #94a3b8; // Slate 400
+  --text-input: #f9fafb; // Milky White
+
+  --border-color: #334155; // Slate 700
+
+  /* Primary Brand Identity - Luminous High-Contrast Purple for Dark Mode */
+  --primary-color: #9d66ff; // Vibrant Light Purple
+  --hover-bg: rgba(157, 102, 255, 0.12);
+  --purple-bland-8: color-mix(in srgb, var(--primary-color) 12%, transparent);
+
+  /* Form & Button Control Boundaries */
+  --btn-disabled-bg: rgba(255, 255, 255, 0.12);
+  --btn-disabled-text: rgba(255, 255, 255, 0.38);
+
+  /* Material Datepicker Semantic Tokens */
+  --mat-datepicker-calendar-container-background-color: var(--bg-primary);
+  --mat-datepicker-calendar-container-text-color: var(--text-primary);
+  --mat-datepicker-calendar-header-text-color: var(--text-primary);
+  --mat-datepicker-calendar-date-text-color: var(--text-primary);
+}
+
+/* ==========================================================================
+   3. BASE STYLES & LAYOUT RESET
+   ========================================================================== */
 html,
 body {
   height: 100%;
@@ -20,6 +85,10 @@ body {
 
 body {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 1rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .uppercase_title {
@@ -27,60 +96,98 @@ body {
 }
 
 .icon-size {
-  font-size: 26px;
+  font-size: 1.625rem;
 }
 
-/* =========================================
-   3. THEMING & VARIABLES
-   ========================================= */
-
-/* --- LIGHT MODE (DEFAULT) --- */
-:root {
-  --icon-color-inactive: #bdc2c5;
-  --text-color-inactive: #7d8388;
-  --text-primary: #7d45ff;
-  --color-danger: #dc2626;
-  --purple-bland-8: color-mix(in srgb, var(--text-primary) 8%, transparent);
-  --bg-secondary: #FFF;
-  --bg-modal-primary: #2d3748;
-  --bg-input: #f3f4f6; /* Nền input xám nhạt */
-  --text-input: #111827;
-}
-
-/* --- DARK MODE CONFIGURATION --- */
+/* ==========================================================================
+   4. MATERIAL COMPONENT DARK MODE ENHANCEMENTS
+   ========================================================================== */
 body.dark-mode {
-  /* A. Variable Overrides */
-  --btn-disabled-bg: rgba(255, 255, 255, 0.12);
-  --btn-disabled-text: rgba(255, 255, 255, 0.38);
-  --bg-input: #1e293b; /* Slate-800 */
-  --text-input: #f9fafb;
-  --bg-primary: #0f172a; /* Slate 900 */
-  --bg-secondary: #1e293b; /* Slate 800 */
-  --bg-modal: #2d3748;
-  --text-primary: #f1f5f9; /* Slate 100 */
-  --text-secondary: #94a3b8; /* Slate 400 */
-  --border-color: #818cf8; /* Slate 700 */
-  --primary-color: #818cf8; /* Indigo 400 */
-  --hover-bg: rgba(129, 140, 248, 0.1);
-  
-  /* Material Datepicker Variables */
-  --mat-datepicker-calendar-container-background-color: var(--bg-primary);
-  --mat-datepicker-calendar-container-text-color: var(--text-primary);
-  --mat-datepicker-calendar-header-text-color: var(--text-primary);
-  --mat-datepicker-calendar-date-text-color: var(--text-primary);
 
-  /* B. Dark Mode Specific Layout Fixes */
+  /* Sidenav Viewport Contexts */
   .mat-drawer-content,
   .mat-sidenav-content {
     background-color: var(--bg-primary) !important;
     color: var(--text-primary);
   }
 
-  /* C. ApexCharts Dark Mode Logic */
-  .apexcharts-text {
-    fill: var(--text-primary) !important;
+  /* Structural Dialog Sheets */
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
   }
 
+  h2.mat-mdc-dialog-title {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+  }
+
+  /* Form Fields Configuration Block */
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      background-color: var(--bg-input) !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: var(--border-color) !important;
+      border-width: 1px !important;
+    }
+
+    &:hover {
+
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: var(--primary-color) !important;
+      }
+    }
+
+    .mat-mdc-input-element,
+    input.mat-mdc-input-element,
+    .mat-mdc-select-value,
+    .mat-mdc-select-value-text {
+      color: var(--text-input) !important;
+    }
+
+    .mat-mdc-form-field-label mat-label,
+    .mat-mdc-floating-label mat-label {
+      color: var(--text-secondary) !important;
+    }
+
+    .mat-mdc-select-arrow svg {
+      fill: var(--text-primary) !important;
+    }
+  }
+
+  /* Authorization Stream Status Indicator Badge */
+  .auth-stream-badge {
+    background-color: var(--bg-primary) !important;
+    border: 1px dashed var(--border-color) !important;
+
+    .text-muted {
+      color: var(--text-secondary) !important;
+    }
+
+    .text-primary {
+      color: var(--primary-color) !important;
+    }
+  }
+
+  /* Dialog Actions Footer Anchor */
+  .mat-mdc-dialog-actions {
+    border-top: 1px solid var(--border-color) !important;
+
+    .text-secondary {
+      color: var(--text-secondary) !important;
+    }
+  }
+
+  /* --- APEXCHARTS INTEGRATED MATRIX THEME --- */
+  .apexcharts-text,
   .apexcharts-title-text,
   .apexcharts-subtitle-text {
     fill: var(--text-primary) !important;
@@ -95,7 +202,6 @@ body.dark-mode {
     font-family: inherit !important;
   }
 
-  /* Tooltip Styles */
   .apexcharts-tooltip {
     background: var(--bg-secondary) !important;
     border-color: var(--border-color) !important;
@@ -108,14 +214,11 @@ body.dark-mode {
       font-family: inherit !important;
     }
 
-    .apexcharts-tooltip-text-y-value,
-    .apexcharts-tooltip-text-goals-value,
-    .apexcharts-tooltip-text-z-value {
+    .apexcharts-tooltip-text-y-value {
       color: var(--text-primary) !important;
     }
   }
 
-  /* Menu Styles */
   .apexcharts-menu-icon svg {
     fill: var(--text-primary) !important;
   }
@@ -130,41 +233,30 @@ body.dark-mode {
     }
   }
 
-  /* X-Axis Tooltip */
   .apexcharts-xaxistooltip {
     background: var(--bg-secondary) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
-    
+
     .apexcharts-xaxistooltip-text {
-      color: var(--text-primary) !important; 
+      color: var(--text-primary) !important;
     }
   }
 
   .apexcharts-xaxistooltip-bottom:before {
     border-bottom-color: var(--border-color) !important;
   }
-  
+
   .apexcharts-xaxistooltip-bottom:after {
     border-bottom-color: var(--bg-secondary) !important;
   }
 }
 
-/* =========================================
-   4. GLOBAL APP STYLES
-   ========================================= */
-body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  /* Hiệu ứng chuyển màu mượt mà */
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
+/* ==========================================================================
+   5. COMPONENT ENHANCEMENTS AND PSEUDO-STATES
+   ========================================================================== */
 
-/* =========================================
-   5. COMPONENT CUSTOMIZATION
-   ========================================= */
-
-/* --- A. Buttons (Disabled State) --- */
+/* --- A. Button Controls Custom Interactive States --- */
 .mat-mdc-button:disabled,
 .mat-mdc-raised-button:disabled,
 .mat-mdc-unelevated-button:disabled,
@@ -180,23 +272,24 @@ body {
   border-color: var(--btn-disabled-bg) !important;
 }
 
-/* --- B. Material Select (.ct-select-dm) --- */
+/* --- B. Dropdown Picker Overrides (.ct-select-dm) --- */
 .ct-select-dm {
   --mat-select-panel-background-color: var(--bg-secondary);
   --mat-option-label-text-color: var(--text-primary);
-  --mat-option-selected-state-label-text-color: var(--color-active, #7d45ff);
+  --mat-option-selected-state-label-text-color: var(--primary-color);
 
   .mat-mdc-select-panel {
     background: var(--bg-secondary);
   }
 
   .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: var(--hover-bg);
   }
 }
 
-/* --- C. Material Datepicker (.ct-datepicker-dm) --- */
+/* --- C. Fluid Calendar Control Overrides (.ct-datepicker-dm) --- */
 .ct-datepicker-dm {
+
   .mat-calendar-period-button,
   .mat-calendar-previous-button,
   .mat-calendar-next-button {
@@ -208,7 +301,7 @@ body {
   }
 
   .mat-calendar-table-header th {
-    color: var(--text-secondary, #9ca3af);
+    color: var(--text-secondary);
   }
 
   .mat-calendar-body td.mat-calendar-body-label {
@@ -220,21 +313,34 @@ body {
   }
 }
 
+/* --- D. Notification SnackBars Overrides --- */
 .toast-success {
-  @include mat.snack-bar-overrides((
-    container-color: #198754,                 // Bootstrap success green
-    button-color: #ffffff,                    // Action text color (Close button)
-    supporting-text-color: #ffffff,           // Primary toast message text color
-    container-shape: var(--mat-sys-corner-extra-small) // Standard system boundary radius
-  ));
+  @include mat.snack-bar-overrides((container-color: #198754,
+      button-color: #ffffff,
+      supporting-text-color: #ffffff,
+      container-shape: var(--mat-sys-corner-extra-small)));
 }
 
-/* Scoped design tokens for failure and infrastructure error streams */
 .toast-error {
-  @include mat.snack-bar-overrides((
-    container-color: #dc3545,                 // Bootstrap danger red
-    button-color: #ffffff,                    // Action text color (Close button)
-    supporting-text-color: #ffffff,           // Primary error message text color
-    container-shape: var(--mat-sys-corner-extra-small)
-  ));
+  @include mat.snack-bar-overrides((container-color: #dc3545,
+      button-color: #ffffff,
+      supporting-text-color: #ffffff,
+      container-shape: var(--mat-sys-corner-extra-small)));
+}
+
+.toast-warning {
+  @include mat.snack-bar-overrides((container-color: #f57c00,
+      button-color: #ffffff,
+      supporting-text-color: #ffffff,
+      container-shape: var(--mat-sys-corner-extra-small)))
+}
+
+
+/* ==========================================================================
+   6. ARCHITECTURAL LAYOUT FIX HACKS
+   ========================================================================== */
+::ng-deep {
+  .mat-mdc-form-field-bottom-align {
+    display: none;
+  }
 }
