@@ -1,11 +1,12 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@school-expense-ecosystem/shared/types';
 import { ROLES_KEY } from './decorators/roles.decorator';
+import { InsufficientPermissionsException, UserContextNotFoundException } from '@school-expense-ecosystem/auth/data-access-backend';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
@@ -21,14 +22,14 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('Can not find the user information.');
+      throw new UserContextNotFoundException();
     }
 
 
     const hasPermission = requiredRoles.some((role) => user.role === role);
 
     if (!hasPermission) {
-      throw new ForbiddenException('Your account doen not have permission.');
+      throw new InsufficientPermissionsException();
     }
 
     return true;

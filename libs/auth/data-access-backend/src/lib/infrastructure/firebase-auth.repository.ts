@@ -1,10 +1,9 @@
 // firebase-user.repository.ts
 import { Injectable, Inject } from '@nestjs/common';
 import { AuthUserRepository } from '../auth-user.repository';
-import { UserInDb } from '../interface/user-db.interface';
 import * as admin from 'firebase-admin';
 import { ConflictReason, IAuthIdentityCheck, IConflictResolution } from '@school-expense-ecosystem/auth/types';
-import { UserStatus } from '@school-expense-ecosystem/shared/types';
+import { UserBase, UserStatus } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class FirebaseAuthRepository implements AuthUserRepository {
@@ -12,7 +11,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
         @Inject('FIRESTORE_INSTANCE') private readonly db: admin.firestore.Firestore
     ) { }
 
-    async findByUid(uid: string): Promise<UserInDb | null> {
+    async findByUid(uid: string): Promise<UserBase | null> {
         const doc = await this.db.collection('users').doc(uid).get();
         if (!doc.exists) return null;
 
@@ -27,22 +26,22 @@ export class FirebaseAuthRepository implements AuthUserRepository {
             ...data,
             uid: data['uid'] || doc.id,
             createdAt: cleanedCreatedAt
-        } as unknown as UserInDb;
+        } as UserBase;
     }
 
-    async createUser(userData: UserInDb): Promise<UserInDb> {
+    async createUser(userData: UserBase): Promise<UserBase> {
         const nativeDate = userData.createdAt ? new Date(userData.createdAt) : new Date();
 
         const firestorePayload = {
             ...userData,
-            createdAt: admin.firestore.Timestamp.fromDate(nativeDate) // Lưu xuống DB dạng Timestamp xịn
+            createdAt: admin.firestore.Timestamp.fromDate(nativeDate)
         };
 
         await this.db.collection('users').doc(userData.uid).set(firestorePayload);
         return userData;
     }
 
-    async updateUser(uid: string, updateData: Partial<UserInDb>): Promise<UserInDb> {
+    async updateUser(uid: string, updateData: Partial<UserBase>): Promise<UserBase> {
         const docRef = this.db.collection('users').doc(uid);
 
         const firestoreUpdateData: Record<string, any> = { ...updateData };

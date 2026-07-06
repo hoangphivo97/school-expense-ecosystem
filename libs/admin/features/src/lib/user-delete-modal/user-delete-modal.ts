@@ -35,7 +35,7 @@ export class UserDeleteModalComponent {
   protected readonly deleteForm = form(this.deleteModel, (fields) => {
     required(fields.reasonType);
 
-    validate(fields.confirmationText, ({value}) => {
+    validate(fields.confirmationText, ({ value }) => {
       const currentReason = this.deleteModel().reasonType;
       const text = value();
 
@@ -44,7 +44,7 @@ export class UserDeleteModalComponent {
           return { kind: 'required', message: "This field is required" };
         }
         if (text !== 'DELETE') {
-          return { kind: 'pattern' , message: "Verification match string failure (Must be exactly 'DELETE')" };
+          return { kind: 'pattern', message: "Verification match string failure (Must be exactly 'DELETE')" };
         }
       }
       return undefined;
@@ -75,7 +75,18 @@ export class UserDeleteModalComponent {
         this.dialogRef.close({ isDeleted: true, targetUid: this.targetUser.uid });
       },
       error: (err) => {
-        this.snackBar.open(err.error?.message || 'Purge operation failed.', 'Close', { duration: 5000 });
+        if (err.status === 403 && err.error?.errorCode === 'AUTH_DEMO_READ_ONLY') {
+          return;
+        }
+        console.error('Account purging pipeline failed:', err);
+
+        const fallbackMsg = 'Failed to purge user account due to administrative policy restrictions.';
+        const apiErrorMsg = err.error?.errorMsg || fallbackMsg;
+
+        this.snackBar.open(apiErrorMsg, 'Close', {
+          duration: 5000,
+          panelClass: ['toast-error']
+        });
       }
     });
   }

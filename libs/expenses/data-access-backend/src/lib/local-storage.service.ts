@@ -9,7 +9,6 @@ export class LocalStorageAdapter implements StorageProvider {
   private readonly baseDir = path.join(process.cwd(), 'uploads');
 
   constructor() {
-    // Tự động khởi tạo 2 thư mục temp và uploaded ngay khi khởi chạy hệ thống
     this.ensureDir(path.join(this.baseDir, 'temp'));
     this.ensureDir(path.join(this.baseDir, 'uploaded'));
   }
@@ -20,7 +19,6 @@ export class LocalStorageAdapter implements StorageProvider {
     
     await fs.writeFile(targetPath, file.buffer);
     
-    // Trả về một URL giả định trỏ về local của bạn
     return `/uploads/temp/${fileName}`;
   }
 
@@ -36,10 +34,10 @@ export class LocalStorageAdapter implements StorageProvider {
 
       try {
         await fs.access(sourcePath);
-        await fs.rename(sourcePath, targetPath); // "Đổi hộ khẩu" file
+        await fs.rename(sourcePath, targetPath); 
         finalUrls.push(`/uploads/uploaded/${expenseId}/${fileName}`);
       } catch {
-        finalUrls.push(url); // Nếu không tìm thấy file tạm, giữ nguyên url cũ
+        finalUrls.push(url); 
       }
     }
     return finalUrls;

@@ -21,17 +21,17 @@
   --bg-modal-primary: #ffffff;
   --bg-input: #f3f4f6;
   --border-color: #e5e7eb;
-  
+
   /* Primary Brand Identity - Core Purple Accent */
-  --primary-color: #7d45ff; 
-  --hover-bg: rgba(125, 69, 255, 0.08); 
+  --primary-color: #7d45ff;
+  --hover-bg: rgba(125, 69, 255, 0.08);
   --purple-bland-8: color-mix(in srgb, var(--primary-color) 8%, transparent);
 
   /* Typography Matrix */
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --text-input: #111827;
-  
+
   /* System UI Status Identifiers */
   --icon-color-inactive: #bdc2c5;
   --text-color-inactive: #7d8388;
@@ -45,20 +45,20 @@
 /* --- SYSTEM DARK MODE SETUP (DYNAMIC OVERRIDES) --- */
 body.dark-mode {
   /* Layout Presentation Surfaces */
-  --bg-primary: #0f172a;     // Slate 900
-  --bg-secondary: #1e293b;   // Slate 800
-  --bg-input: #1e293b;       // Slate 800
-  --bg-modal: #2d3748;       // Slate 700
-  
-  /* Typography Matrix */
-  --text-primary: #f1f5f9;   // Slate 100
-  --text-secondary: #94a3b8; // Slate 400
-  --text-input: #f9fafb;     // Milky White
+  --bg-primary: #0f172a; // Slate 900
+  --bg-secondary: #1e293b; // Slate 800
+  --bg-input: #1e293b; // Slate 800
+  --bg-modal: #2d3748; // Slate 700
 
-  --border-color: #334155;   // Slate 700
-  
+  /* Typography Matrix */
+  --text-primary: #f1f5f9; // Slate 100
+  --text-secondary: #94a3b8; // Slate 400
+  --text-input: #f9fafb; // Milky White
+
+  --border-color: #334155; // Slate 700
+
   /* Primary Brand Identity - Luminous High-Contrast Purple for Dark Mode */
-  --primary-color: #9d66ff;  // Vibrant Light Purple
+  --primary-color: #9d66ff; // Vibrant Light Purple
   --hover-bg: rgba(157, 102, 255, 0.12);
   --purple-bland-8: color-mix(in srgb, var(--primary-color) 12%, transparent);
 
@@ -76,7 +76,8 @@ body.dark-mode {
 /* ==========================================================================
    3. BASE STYLES & LAYOUT RESET
    ========================================================================== */
-html, body {
+html,
+body {
   height: 100%;
   padding: 0;
   margin: 0;
@@ -84,14 +85,19 @@ html, body {
 
 body {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
-  font-size: 1rem; 
+  font-size: 1rem;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease; 
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.uppercase_title { text-transform: capitalize; }
-.icon-size       { font-size: 1.625rem; }
+.uppercase_title {
+  text-transform: capitalize;
+}
+
+.icon-size {
+  font-size: 1.625rem;
+}
 
 /* ==========================================================================
    4. MATERIAL COMPONENT DARK MODE ENHANCEMENTS
@@ -132,6 +138,7 @@ body.dark-mode {
     }
 
     &:hover {
+
       .mdc-notched-outline__leading,
       .mdc-notched-outline__notch,
       .mdc-notched-outline__trailing {
@@ -161,22 +168,39 @@ body.dark-mode {
     background-color: var(--bg-primary) !important;
     border: 1px dashed var(--border-color) !important;
 
-    .text-muted { color: var(--text-secondary) !important; }
-    .text-primary { color: var(--primary-color) !important; }
+    .text-muted {
+      color: var(--text-secondary) !important;
+    }
+
+    .text-primary {
+      color: var(--primary-color) !important;
+    }
   }
 
   /* Dialog Actions Footer Anchor */
   .mat-mdc-dialog-actions {
     border-top: 1px solid var(--border-color) !important;
-    .text-secondary { color: var(--text-secondary) !important; }
+
+    .text-secondary {
+      color: var(--text-secondary) !important;
+    }
   }
 
   /* --- APEXCHARTS INTEGRATED MATRIX THEME --- */
-  .apexcharts-text, .apexcharts-title-text, .apexcharts-subtitle-text {
+  .apexcharts-text,
+  .apexcharts-title-text,
+  .apexcharts-subtitle-text {
     fill: var(--text-primary) !important;
   }
-  .apexcharts-gridline { stroke: var(--border-color) !important; }
-  .apexcharts-legend-text { color: var(--text-primary) !important; font-family: inherit !important; }
+
+  .apexcharts-gridline {
+    stroke: var(--border-color) !important;
+  }
+
+  .apexcharts-legend-text {
+    color: var(--text-primary) !important;
+    font-family: inherit !important;
+  }
 
   .apexcharts-tooltip {
     background: var(--bg-secondary) !important;
@@ -189,25 +213,43 @@ body.dark-mode {
       border-bottom: 1px solid var(--border-color) !important;
       font-family: inherit !important;
     }
-    .apexcharts-tooltip-text-y-value { color: var(--text-primary) !important; }
+
+    .apexcharts-tooltip-text-y-value {
+      color: var(--text-primary) !important;
+    }
   }
 
-  .apexcharts-menu-icon svg { fill: var(--text-primary) !important; }
+  .apexcharts-menu-icon svg {
+    fill: var(--text-primary) !important;
+  }
+
   .apexcharts-menu {
     background: var(--bg-secondary) !important;
     color: var(--text-primary) !important;
     border-color: var(--border-color) !important;
-    .apexcharts-menu-item:hover { background: var(--hover-bg) !important; }
+
+    .apexcharts-menu-item:hover {
+      background: var(--hover-bg) !important;
+    }
   }
 
   .apexcharts-xaxistooltip {
     background: var(--bg-secondary) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
-    .apexcharts-xaxistooltip-text { color: var(--text-primary) !important; }
+
+    .apexcharts-xaxistooltip-text {
+      color: var(--text-primary) !important;
+    }
   }
-  .apexcharts-xaxistooltip-bottom:before { border-bottom-color: var(--border-color) !important; }
-  .apexcharts-xaxistooltip-bottom:after { border-bottom-color: var(--bg-secondary) !important; }
+
+  .apexcharts-xaxistooltip-bottom:before {
+    border-bottom-color: var(--border-color) !important;
+  }
+
+  .apexcharts-xaxistooltip-bottom:after {
+    border-bottom-color: var(--bg-secondary) !important;
+  }
 }
 
 /* ==========================================================================
@@ -224,6 +266,7 @@ body.dark-mode {
   cursor: not-allowed !important;
   box-shadow: none !important;
 }
+
 .mat-mdc-outlined-button:disabled {
   background-color: transparent !important;
   border-color: var(--btn-disabled-bg) !important;
@@ -235,7 +278,10 @@ body.dark-mode {
   --mat-option-label-text-color: var(--text-primary);
   --mat-option-selected-state-label-text-color: var(--primary-color);
 
-  .mat-mdc-select-panel { background: var(--bg-secondary); }
+  .mat-mdc-select-panel {
+    background: var(--bg-secondary);
+  }
+
   .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
     background-color: var(--hover-bg);
   }
@@ -243,33 +289,52 @@ body.dark-mode {
 
 /* --- C. Fluid Calendar Control Overrides (.ct-datepicker-dm) --- */
 .ct-datepicker-dm {
+
   .mat-calendar-period-button,
   .mat-calendar-previous-button,
-  .mat-calendar-next-button { color: var(--text-primary) !important; }
-  .mat-calendar-arrow { fill: var(--text-primary) !important; }
-  .mat-calendar-table-header th { color: var(--text-secondary); }
-  .mat-calendar-body td.mat-calendar-body-label { color: var(--text-primary); }
-  .mat-datepicker-content .mat-calendar-header { color: var(--text-primary) !important; }
+  .mat-calendar-next-button {
+    color: var(--text-primary) !important;
+  }
+
+  .mat-calendar-arrow {
+    fill: var(--text-primary) !important;
+  }
+
+  .mat-calendar-table-header th {
+    color: var(--text-secondary);
+  }
+
+  .mat-calendar-body td.mat-calendar-body-label {
+    color: var(--text-primary);
+  }
+
+  .mat-datepicker-content .mat-calendar-header {
+    color: var(--text-primary) !important;
+  }
 }
 
 /* --- D. Notification SnackBars Overrides --- */
 .toast-success {
-  @include mat.snack-bar-overrides((
-    container-color: #198754,
-    button-color: #ffffff,
-    supporting-text-color: #ffffff,
-    container-shape: var(--mat-sys-corner-extra-small)
-  ));
+  @include mat.snack-bar-overrides((container-color: #198754,
+      button-color: #ffffff,
+      supporting-text-color: #ffffff,
+      container-shape: var(--mat-sys-corner-extra-small)));
 }
 
 .toast-error {
-  @include mat.snack-bar-overrides((
-    container-color: #dc3545,
-    button-color: #ffffff,
-    supporting-text-color: #ffffff,
-    container-shape: var(--mat-sys-corner-extra-small)
-  ));
+  @include mat.snack-bar-overrides((container-color: #dc3545,
+      button-color: #ffffff,
+      supporting-text-color: #ffffff,
+      container-shape: var(--mat-sys-corner-extra-small)));
 }
+
+.toast-warning {
+  @include mat.snack-bar-overrides((container-color: #f57c00,
+      button-color: #ffffff,
+      supporting-text-color: #ffffff,
+      container-shape: var(--mat-sys-corner-extra-small)))
+}
+
 
 /* ==========================================================================
    6. ARCHITECTURAL LAYOUT FIX HACKS

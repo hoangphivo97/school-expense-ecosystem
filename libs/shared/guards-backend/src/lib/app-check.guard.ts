@@ -1,5 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus, SetMetadata } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { InvalidAppCheckTokenException, MissingAppCheckTokenException } from '@school-expense-ecosystem/auth/data-access-backend';
 import * as admin from 'firebase-admin';
 
 export const SKIP_APP_CHECK_KEY = 'skipAppCheck';
@@ -26,20 +27,14 @@ export class AppCheckGuard implements CanActivate {
     const appCheckToken = request.header('X-Firebase-AppCheck');
 
     if (!appCheckToken) {
-      throw new HttpException(
-        'Hold up, what sketchy bot is trying to crash the party? Missing App Check Token!',
-        HttpStatus.FORBIDDEN
-      );
+      throw new MissingAppCheckTokenException();
     }
 
     try {
       await admin.appCheck().verifyToken(appCheckToken);
       return true;
-    } catch (err) {
-      throw new HttpException(
-        'That token is either a fake or ancient history! Access denied!',
-        HttpStatus.FORBIDDEN
-      );
+    } catch {
+      throw new InvalidAppCheckTokenException();
     }
   }
 }

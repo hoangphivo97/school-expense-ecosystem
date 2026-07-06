@@ -1,12 +1,13 @@
-import { ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
+import { AccountRestrictedException, InvalidCredentialsException } from '@school-expense-ecosystem/auth/data-access-backend';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector){
+  constructor(private reflector: Reflector) {
     super()
   }
 
@@ -21,7 +22,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     if (err || !user) {
-      throw err || new UnauthorizedException('Invalid credentials or account not found.');
+      throw err || new InvalidCredentialsException();
     }
 
     /**
@@ -29,11 +30,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
      * to enforce system restriction policies safely outside Passport boundary.
      */
     if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
-      throw new ForbiddenException({
-        message: 'ACCOUNT_RESTRICTED',
-        status: user.status,
-        reason: user.statusReason || 'Access restricted by administrator policy.'
-      });
+      throw new AccountRestrictedException(user.status, user.statusReason);
     }
 
     return user;
