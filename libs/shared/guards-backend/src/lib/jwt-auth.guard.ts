@@ -1,12 +1,13 @@
-import { ExecutionContext, ForbiddenException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { ErrorResponse, UserStatus } from '@school-expense-ecosystem/shared/types';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
+import { AccountRestrictedException, InvalidCredentialsException } from '@school-expense-ecosystem/auth/data-access-backend';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector){
+  constructor(private reflector: Reflector) {
     super()
   }
 
@@ -21,11 +22,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     if (err || !user) {
-      throw err || new UnauthorizedException({
-        statusCode: HttpStatus.UNAUTHORIZED,
-        errorCode: 'AUTH_INVALID_CREDENTIALS',
-        errorMsg: 'Authentication failed: Invalid credentials or the target identity context was not found.',
-      } satisfies ErrorResponse );
+      throw err || new InvalidCredentialsException();
     }
 
     /**
@@ -33,11 +30,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
      * to enforce system restriction policies safely outside Passport boundary.
      */
     if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REJECTED) {
-      throw new ForbiddenException({
-        statusCode: HttpStatus.FORBIDDEN,
-        errorCode: 'AUTH_ACCOUNT_RESTRICTED',
-        errorMsg: user.statusReason || 'Access denied: This account has been restricted by administrative policy.',
-      } satisfies ErrorResponse);
+      throw new AccountRestrictedException(user.status, user.statusReason);
     }
 
     return user;

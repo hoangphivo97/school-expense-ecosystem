@@ -1,7 +1,8 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, HttpStatus } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ErrorResponse, Role } from '@school-expense-ecosystem/shared/types';
+import { Role } from '@school-expense-ecosystem/shared/types';
 import { ROLES_KEY } from './decorators/roles.decorator';
+import { InsufficientPermissionsException, UserContextNotFoundException } from '@school-expense-ecosystem/auth/data-access-backend';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -21,22 +22,14 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException({
-        statusCode: HttpStatus.FORBIDDEN,
-        errorCode: 'AUTH_USER_CONTEXT_NOT_FOUND',
-        errorMsg: 'Access denied: Unable to resolve authenticated session context details.',
-      } satisfies ErrorResponse);
+      throw new UserContextNotFoundException();
     }
 
 
     const hasPermission = requiredRoles.some((role) => user.role === role);
 
     if (!hasPermission) {
-      throw new ForbiddenException({
-        statusCode: HttpStatus.FORBIDDEN,
-        errorCode: 'AUTH_INSUFFICIENT_PERMISSIONS',
-        errorMsg: 'Access denied: Your account scope does not possess the required security clearances.',
-      } satisfies ErrorResponse);
+      throw new InsufficientPermissionsException();
     }
 
     return true;

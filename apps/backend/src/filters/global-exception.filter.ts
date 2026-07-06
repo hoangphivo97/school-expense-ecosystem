@@ -65,14 +65,23 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     private mapAuthCodeToHttpStatus(errorCode: string): HttpStatus {
         switch (errorCode) {
             case 'AUTH_USER_NOT_FOUND':
-                return HttpStatus.NOT_FOUND;
+                return HttpStatus.NOT_FOUND; // 404
+
             case 'AUTH_INVALID_TOKEN':
-                return HttpStatus.UNAUTHORIZED; // 401
+            case 'AUTH_INVALID_CREDENTIALS': //401 
+                return HttpStatus.UNAUTHORIZED;
+
             case 'AUTH_ACCOUNT_RESTRICTED':
-                return HttpStatus.FORBIDDEN; // 403
+            case 'AUTH_USER_CONTEXT_NOT_FOUND':    //  GUARD
+            case 'AUTH_INSUFFICIENT_PERMISSIONS':  //  centralize return to
+            case 'AUTH_MISSING_APP_CHECK_TOKEN':   //  403
+            case 'AUTH_INVALID_APP_CHECK_TOKEN':
+                return HttpStatus.FORBIDDEN;
+
             case 'AUTH_IDENTITY_CONFLICT_EMAIL':
             case 'AUTH_IDENTITY_CONFLICT_CLAIMED':
                 return HttpStatus.CONFLICT; // 409
+
             default:
                 return HttpStatus.BAD_REQUEST; // 400
         }
