@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { BaseAuthException } from '@school-expense-ecosystem/auth/data-access-backend';
 import { ErrorResponse, RestrictedAccountError } from '@school-expense-ecosystem/shared/types';
 import { BaseAdminException } from '@school-expense-ecosystem/admin/data-access-backend';
+import { BaseExpenseException } from '@school-expense-ecosystem/expenses/data-access-backend';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -33,6 +34,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
         if (exception instanceof BaseAdminException) {
             const httpStatus = this.mapAdminCodeToHttpStatus(exception.errorCode);
+            return response.status(httpStatus).json({
+                statusCode: httpStatus,
+                errorCode: exception.errorCode,
+                errorMsg: exception.message,
+                ...exception.extraData
+            });
+        }
+
+        if (exception instanceof BaseExpenseException) {
+            const httpStatus = this.mapExpenseCodeToHttpStatus(exception.errorCode);
             return response.status(httpStatus).json({
                 statusCode: httpStatus,
                 errorCode: exception.errorCode,
@@ -79,6 +90,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             case 'ADMIN_INVALID_DELETION_STATUS':
             case 'ADMIN_SECURITY_THREAT_RESTRICTION':
                 return HttpStatus.BAD_REQUEST; // 400
+            default:
+                return HttpStatus.BAD_REQUEST;
+        }
+    }
+
+    private mapExpenseCodeToHttpStatus(errorCode: string): HttpStatus {
+        switch (errorCode) {
+            case 'EXPENSE_NOT_FOUND':
+                return HttpStatus.NOT_FOUND; // 404
+            case 'EXPENSE_AMOUNT_LIMIT_EXCEEDED':
+            case 'EXPENSE_MODIFICATION_LOCKED':
+            case 'EXPENSE_REJECTION_REASON_MANDATORY':
+            case 'EXPENSE_INVALID_DISBURSEMENT_ACTION':
+            case 'EXPENSE_WORKFLOW_LOCKED':
+                return HttpStatus.BAD_REQUEST; // 400 
             default:
                 return HttpStatus.BAD_REQUEST;
         }

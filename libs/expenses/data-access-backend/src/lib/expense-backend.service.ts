@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
 import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, AuditLogEntry, PaidMethod, ExpenseFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
-import { AuthenticatedUser} from '@school-expense-ecosystem/shared/types';
+import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
+import { ExpenseAmountLimitExceededException, ExpenseInvalidDisbursementActionException, ExpenseMissingRejectionReasonException, ExpenseModificationLockedException, ExpenseNotFoundException, ExpenseWorkflowLockedException } from './exceptions/expense.exception';
 
 @Injectable()
 export class ExpenseBackendService {
@@ -17,6 +18,20 @@ export class ExpenseBackendService {
 
   async createExpense(user: AuthenticatedUser, dto: CreateExpenseInput): Promise<ExpenseList> {
     const initialStatus = ExpenseStatus.PENDING_TEACHER_REVIEW;
+    const amount = dto.amount;
+    const userType = user.userType;
+    const userRole = user.role;
+
+    if (userRole === Role.LEVEL_3_USER) {
+      if (userType === UserType.STUDENT && amount > 2000) {
+        throw new ExpenseAmountLimitExceededException(UserType.STUDENT, 2000);
+      }
+
+      if ((userType === UserType.TEACHER || userType === UserType.STAFF) && amount > 10000) {
+        throw new ExpenseAmountLimitExceededException(userType, 10000);
+      }
+    }
+
 
     const submitLog: AuditLogEntry = {
       actorId: user.uid,
@@ -55,17 +70,16 @@ export class ExpenseBackendService {
   async updateExpense(id: string, userId: string, user: AuthenticatedUser, dto: UpdateExpenseInput): Promise<ExpenseList> {
     const existing = await this.expenseRepo.findById(id);
     if (!existing || existing.userId !== userId) {
-      throw new NotFoundException(`Expense listing with security ID ${id} not found.`);
+      throw new ExpenseNotFoundException(id);
     }
 
     if (existing.status !== ExpenseStatus.REJECTED) {
-      throw new BadRequestException('Operation Locked: Only rejected expense claims can be modified.');
+      throw new ExpenseModificationLockedException();
     }
 
     const nextStatus = ExpenseStatus.PENDING_TEACHER_REVIEW;
     const finalProofUrls = dto.proofUrls || existing.proofUrls;
 
-    // Tạo dòng log tái sinh đơn
     const resubmitLog = {
       actorId: user.uid,
       actorName: user.fullName,
@@ -87,13 +101,13 @@ export class ExpenseBackendService {
 
   async reviewExpense(id: string, user: AuthenticatedUser, action: AuditAction, reason?: string): Promise<ExpenseList> {
     const expense = await this.expenseRepo.findById(id);
-    if (!expense) throw new NotFoundException(`Expense claim with ID ${id} does not exist.`);
+    if (!expense) throw new ExpenseNotFoundException(id);
 
     let nextStatus: ExpenseStatus;
 
     if (action === AuditAction.REJECT) {
       if (!reason || reason.trim() === '') {
-        throw new BadRequestException('Compliance Failure: A specific reason is strictly mandatory when rejecting a claim.');
+        throw new ExpenseMissingRejectionReasonException();
       }
       nextStatus = ExpenseStatus.REJECTED;
     } else {
@@ -105,11 +119,11 @@ export class ExpenseBackendService {
           nextStatus = ExpenseStatus.PENDING_DISBURSEMENT;
           break;
         case ExpenseStatus.PENDING_DISBURSEMENT:
-          if (action !== AuditAction.DISBURSE) throw new BadRequestException('Invalid action. Only Finance Staff can disburse funds.');
+          if (action !== AuditAction.DISBURSE) throw new ExpenseInvalidDisbursementActionException();
           nextStatus = ExpenseStatus.DISBURSED;
           break;
         default:
-          throw new BadRequestException('Workflow Locked: This claim has already reached its final terminal state.');
+          throw new ExpenseWorkflowLockedException();
       }
     }
 
