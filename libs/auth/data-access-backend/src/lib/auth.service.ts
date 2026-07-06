@@ -2,12 +2,11 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserInDb } from './interface/user-db.interface';
 import { OnboardingDto } from './DTO/onboarding.dto';
 import { ConflictReason, OnboardingData } from '@school-expense-ecosystem/auth/types';
 import { AuthUserRepository } from './auth-user.repository';
 import { IdentityProvider } from './interface/identify-provider.interface';
-import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
+import { UserStatus, Role, UserBase } from '@school-expense-ecosystem/shared/types';
 import { AccountRestrictedException, IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
 
 @Injectable()
@@ -18,16 +17,16 @@ export class AuthService {
     private readonly identityProvider: IdentityProvider
   ) { }
 
-  async findByUid(uid: string): Promise<UserInDb | null> {
+  async findByUid(uid: string): Promise<UserBase | null> {
     return this.authUserRepo.findByUid(uid);
   }
 
-  async createUser(userData: UserInDb): Promise<UserInDb> {
+  async createUser(userData: UserBase): Promise<UserBase> {
     return this.authUserRepo.createUser(userData);
   }
 
-  generateJWT(user: UserInDb): string {
-    const payload: UserInDb = {
+  generateJWT(user: UserBase): string {
+    const payload: UserBase = {
       uid: user.uid,
       email: user.email,
       username: user.username,
@@ -41,7 +40,7 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async handleFirebaseLogin(token: string): Promise<{ token: string; user: UserInDb }> {
+  async handleFirebaseLogin(token: string): Promise<{ token: string; user: UserBase }> {
     try {
       const decodedProfile = await this.identityProvider.verifyToken(token);
       const { uid, email, name } = decodedProfile;

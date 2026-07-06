@@ -1,9 +1,8 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, HttpStatus } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserInDb } from '@school-expense-ecosystem/auth/data-access-backend';
 import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';
 import { IS_PUBLIC_KEY } from '@school-expense-ecosystem/shared/guards-backend';
-import { ErrorResponse } from '@school-expense-ecosystem/shared/types';
+import { ErrorResponse, UserBase } from '@school-expense-ecosystem/shared/types';
 import { Request } from 'express';
 
 @Injectable()
@@ -23,7 +22,7 @@ export class DemoSandboxGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     
     // Extract the authenticated user attached by JwtAuthGuard previously
-    const user = request.user as UserInDb; 
+    const user = request.user as UserBase; 
 
     // HTTP methods that mutate data inside the production database
     const writeMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];

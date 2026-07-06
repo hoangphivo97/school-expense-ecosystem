@@ -1,8 +1,8 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserBase, } from '@school-expense-ecosystem/shared/types';
 import { UserRepository } from './repository/user.repository';
-import { CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
-import { AdminActionType, CreateUserResult, DeleteReasonType, IAdminExecutor, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';
+import { AdminIdentityConflictException, AdminInvalidDeletionStatusException, AdminPeerProtectionException, AdminSecurityThreatException, AdminSelfMutationException, AdminUserNotFoundException, CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
+import { AdminActionType, CreateUserInput, CreateUserResult, DeleteReasonType, IAdminExecutor, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';
 import { IAdminAuditLogRepository } from './repository/audit-log.repository';
 import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
 
@@ -26,41 +26,36 @@ export class UserListService {
     async provisionNewUserByAdmin(executor: IAdminExecutor, dto: CreateUserDto): Promise<CreateUserResult> {
         const hasConflict = await this.userRepository.checkIdentityConflict(dto.email, dto.userCode);
         if (hasConflict) {
-            throw new ConflictException('Identity conflict: Email or User Code is already registered.');
+            throw new AdminIdentityConflictException();
         }
 
         if (dto.role === Role.LEVEL_0_ADMIN || dto.role === Role.LEVEL_1_FINANCE) {
             dto.facultyId = undefined;
         }
 
-        try {
-            const uid = await this.userRepository.createAuthAccount(dto.email, dto.fullName, dto.password);
+        const uid = await this.userRepository.createAuthAccount(dto.email, dto.fullName, dto.password);
 
-            const userPayload: any = {
-                email: dto.email,
-                role: dto.role,
-                userType: dto.userType,
-                fullName: dto.fullName,
-                userCode: dto.userCode,
-                createdBy: executor.uid,
-                username: dto.email.split('@')[0]
-            };
-            if (dto.facultyId) userPayload.facultyId = dto.facultyId;
+        const userPayload: CreateUserInput & { username: string } = {
+            email: dto.email,
+            role: dto.role,
+            userType: dto.userType,
+            fullName: dto.fullName,
+            userCode: dto.userCode,
+            createdBy: executor.uid,
+            username: dto.email.split('@')[0],
+            ...(dto.facultyId && { facultyId: dto.facultyId })
+        };
 
-            const result = await this.userRepository.createUserRecord(uid, userPayload);
+        const result = await this.userRepository.createUserRecord(uid, userPayload);
 
-            await this.auditLogRepository.saveAdminActivityLog({
-                actorUid: executor.uid,
-                actorEmail: executor.email,
-                action: AdminActionType.USER_CREATE,
-                targetIds: [uid]
-            });
+        await this.auditLogRepository.saveAdminActivityLog({
+            actorUid: executor.uid,
+            actorEmail: executor.email,
+            action: AdminActionType.USER_CREATE,
+            targetIds: [uid]
+        });
 
-            return result;
-        } catch (error: any) {
-            if (error instanceof ConflictException) throw error;
-            throw new InternalServerErrorException('Account provisioning failed due to infrastructure error.');
-        }
+        return result;
     }
 
     async updateUserByAdmin(targetUid: string, executor: IAdminExecutor, dto: UpdateUserDto): Promise<{ success: boolean }> {
@@ -124,22 +119,18 @@ export class UserListService {
         return { success: true };
     }
 
-    private async validateAndGetTargetUser(targetUid: string, executorUid: string): Promise<any> {
+    private async validateAndGetTargetUser(targetUid: string, executorUid: string): Promise<UserBase> {
         if (targetUid === executorUid) {
-            throw new ForbiddenException(
-                'Administrative safety policy violation: Self-mutation of operational roles or status within the management pool is strictly prohibited.'
-            );
+            throw new AdminSelfMutationException();
         }
 
         const targetUser = await this.userRepository.findById(targetUid);
         if (!targetUser) {
-            throw new NotFoundException('Target user record does not exist.');
+            throw new AdminUserNotFoundException();
         }
 
         if (targetUser.role === Role.LEVEL_0_ADMIN) {
-            throw new ForbiddenException(
-                'Security violation: Absolute Peer Protection active. Modifying another elite Administrator within this management pool is strictly prohibited.'
-            );
+            throw new AdminPeerProtectionException();
         }
 
         return targetUser;
@@ -149,9 +140,7 @@ export class UserListService {
         const targetUser = await this.validateAndGetTargetUser(targetUid, executor.uid);
 
         if (targetUser.status !== UserStatus.REJECTED) {
-            throw new BadRequestException(
-                'Administrative policy violation: Only user accounts with a "Rejected" status are eligible for deletion handling.'
-            );
+            throw new AdminInvalidDeletionStatusException();
         }
 
         if (dto.reasonType === DeleteReasonType.INPUT_ERROR) {
@@ -172,9 +161,7 @@ export class UserListService {
         }
 
         if (dto.reasonType === DeleteReasonType.SECURITY_THREAT) {
-            throw new BadRequestException(
-                'Infrastructural Restriction: Security threat retention must be handled locally on the client layer for this product version.'
-            );
+            throw new AdminSecurityThreatException();
         }
 
         return { success: false };

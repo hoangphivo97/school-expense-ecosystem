@@ -2,6 +2,7 @@ import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus } from '@nestjs/commo
 import { Response } from 'express';
 import { BaseAuthException } from '@school-expense-ecosystem/auth/data-access-backend';
 import { ErrorResponse, RestrictedAccountError } from '@school-expense-ecosystem/shared/types';
+import { BaseAdminException } from '@school-expense-ecosystem/admin/data-access-backend';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -30,6 +31,24 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             return response.status(httpStatus).json(errorPayload);
         }
 
+        if (exception instanceof BaseAdminException) {
+            const httpStatus = this.mapAdminCodeToHttpStatus(exception.errorCode);
+            return response.status(httpStatus).json({
+                statusCode: httpStatus,
+                errorCode: exception.errorCode,
+                errorMsg: exception.message,
+                ...exception.extraData
+            });
+        }
+
+        console.error('Unhandled Critical System Crash:', exception);
+
+        return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+            errorCode: 'INTERNAL_SERVER_ERROR',
+            errorMsg: 'An unexpected infrastructural error occurred on the server.'
+        });
+
     }
 
     private mapAuthCodeToHttpStatus(errorCode: string): HttpStatus {
@@ -45,6 +64,23 @@ export class GlobalExceptionFilter implements ExceptionFilter {
                 return HttpStatus.CONFLICT; // 409
             default:
                 return HttpStatus.BAD_REQUEST; // 400
+        }
+    }
+
+    private mapAdminCodeToHttpStatus(errorCode: string): HttpStatus {
+        switch (errorCode) {
+            case 'ADMIN_USER_NOT_FOUND':
+                return HttpStatus.NOT_FOUND; // 404
+            case 'ADMIN_SELF_MUTATION_VIOLATION':
+            case 'ADMIN_PEER_PROTECTION_VIOLATION':
+                return HttpStatus.FORBIDDEN; // 403
+            case 'ADMIN_IDENTITY_CONFLICT':
+                return HttpStatus.CONFLICT; // 409
+            case 'ADMIN_INVALID_DELETION_STATUS':
+            case 'ADMIN_SECURITY_THREAT_RESTRICTION':
+                return HttpStatus.BAD_REQUEST; // 400
+            default:
+                return HttpStatus.BAD_REQUEST;
         }
     }
 }
