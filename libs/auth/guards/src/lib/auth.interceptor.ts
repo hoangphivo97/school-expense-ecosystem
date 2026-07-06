@@ -12,7 +12,7 @@ import { catchError, from, Observable, switchMap, throwError } from 'rxjs';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { HTTP_ERROR_DELEGATE } from '@school-expense-ecosystem/shared/tokens';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { DialogError } from '@school-expense-ecosystem/shared/types';
+import { DialogError, ErrorResponse, RestrictedAccountError } from '@school-expense-ecosystem/shared/types';
 
 type ErrorModalDelegate = (payload: DialogError) => void;
 
@@ -51,10 +51,14 @@ export const authInterceptor: HttpInterceptorFn = (
 };
 
 function handle500Error(err: HttpErrorResponse, showErrorModal: ErrorModalDelegate | null): Observable<never> {
+  const errorBody = err.error as Partial<ErrorResponse>;
+
   if (showErrorModal) {
     showErrorModal({
+      statusCode: 500,
+      errorCode: errorBody?.errorCode || 'INTERNAL_SERVER_ERROR',
+      errorMsg: errorBody?.errorMsg || 'The server encountered an internal error and was unable to complete your request.',
       title: 'Server Error',
-      errorMsg: 'The server encountered an internal error and was unable to complete your request.',
       hint: 'Please try again later or contact the system administrator.'
     });
   }
@@ -63,39 +67,50 @@ function handle500Error(err: HttpErrorResponse, showErrorModal: ErrorModalDelega
 
 // Error 403
 function handle403Error(
-  err: HttpErrorResponse, 
-  authStore: AuthSignalStore, 
-  router: Router, 
+  err: HttpErrorResponse,
+  authStore: AuthSignalStore,
+  router: Router,
   snackBar: MatSnackBar
 ): Observable<never> {
-  const errorBody = err.error;
+  const errorBody = err.error as ErrorResponse;
 
-  // Case 1: Tài khoản bị khóa quyền truy cập hệ thống
-  if (errorBody?.code === 'ACCOUNT_RESTRICTED') {
-    authStore.updateAuthState(null, null);
-    router.navigate(['/auth/rejected'], {
-      state: { status: errorBody.status, reason: errorBody.reason }
-    });
-    return throwError(() => err);
+  switch (errorBody.errorCode) {
+    // Case 1: USER ACCOUNT SUSPENDED
+    case 'AUTH_ACCOUNT_RESTRICTED': {
+      const restrictedError = errorBody as RestrictedAccountError;
+      authStore.updateAuthState(null, null);
+      router.navigate(['/auth/rejected'], {
+        state: { status: restrictedError.userStatus, reason: restrictedError.reason }
+      });
+      break;
+    }
+
+    case 'AUTH_DEMO_READ_ONLY': {
+      snackBar.open(errorBody.errorMsg, 'Close', {
+        duration: 6000,
+        panelClass: ['toast-warning']
+      });
+      break;
+    }
+
+    // Case 2: APP CHECK FAIL
+    case 'AUTH_MISSING_APP_CHECK_TOKEN':
+    case 'AUTH_INVALID_APP_CHECK_TOKEN': {
+      authStore.updateAuthState(null, null);
+      router.navigate(['/auth']);
+      break;
+    }
+
+    // Case 3: DEMO ACCOUNT
+    default: {
+      const fallbackMessage = errorBody?.errorMsg || 'Action denied: Insufficient permissions.';
+      snackBar.open(fallbackMessage, 'Close', {
+        duration: 5000,
+        panelClass: ['toast-error']
+      });
+      break;
+    }
   }
-
-  // Firebase App Check Error
-  const isAppCheckFailure =
-    err.message?.includes('App Check') ||
-    errorBody?.message?.includes('App Check');
-
-  if (isAppCheckFailure) {
-    authStore.updateAuthState(null, null);
-    router.navigate(['/auth']);
-    return throwError(() => err);
-  }
-
-  // Demo Account Read-only
-  const demoErrorMessage = errorBody?.message || 'Action denied: Demo accounts have read-only access.';
-  snackBar.open(demoErrorMessage, 'Close', { 
-    duration: 5000,
-    panelClass: ['snack-bar-error'] 
-  });
 
   return throwError(() => err);
 }
@@ -125,14 +140,21 @@ function handle401Error(
       await auth.signOut();
 
       if (showErrorModal) {
+        const basePayload = {
+          statusCode: 401,
+          errorCode: 'FE_SESSION_EXPIRED',
+        };
+
         if (isOnboardingRequest) {
           showErrorModal({
+            ...basePayload,
             title: 'Account Setup Failed',
             errorMsg: 'We could not verify your temporary onboarding session.',
             hint: 'Please try signing in with Google again to restart your registration.'
           });
         } else {
           showErrorModal({
+            ...basePayload,
             title: 'Session Expired',
             errorMsg: 'Your active authorization session has expired or become invalid.',
             hint: 'Please log back into your account to securely resume your work.'

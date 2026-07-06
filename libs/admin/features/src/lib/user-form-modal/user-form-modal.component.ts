@@ -8,7 +8,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
@@ -35,7 +34,6 @@ export class UserFormModalComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<UserFormModalComponent>);
   protected readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true });
   private readonly snackBar = inject(MatSnackBar);
-  private readonly errorModalService = inject(ErrorModalService);
   private readonly authStore = inject(AuthSignalStore);
 
   // Unify Component State into Modern Angular Signals
@@ -227,6 +225,20 @@ export class UserFormModalComponent implements OnInit {
         this.showNotification(msg, 'success');
         this.dialogRef.close({ isSuccess: true, payload: basePayload });
       },
+      error: (err) => {
+        if (err.status === 403 && err.error?.errorCode === 'AUTH_DEMO_READ_ONLY') {
+          return;
+        }
+        console.error('User mutation pipeline failed:', err);
+
+        const fallbackMsg = this.isEditMode()
+          ? 'Failed to update user profile due to a system boundary error.'
+          : 'Failed to provision user account due to an identity conflict.';
+
+        const apiErrorMsg = err.error?.errorMsg || fallbackMsg;
+
+        this.showNotification(apiErrorMsg, 'error');
+      }
     });
   }
 
@@ -238,7 +250,7 @@ export class UserFormModalComponent implements OnInit {
       panelClass: type === 'success' ? ['toast-success'] : ['toast-error']
     });
   }
-  
+
   protected switchToEditMode(): void {
     this.mode.set('edit');
     this.userForm.enable();

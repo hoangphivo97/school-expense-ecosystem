@@ -12,7 +12,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons/faGoogle';
-import { faArrowLeft  } from '@fortawesome/free-solid-svg-icons/faArrowLeft'
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft'
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight'
 import { faShieldHalved } from '@fortawesome/free-solid-svg-icons/faShieldHalved'
 import { MatSelectModule } from '@angular/material/select';
@@ -108,9 +108,11 @@ export class LoginComponent {
     } catch (err: any) {
       console.warn('Google OAuth authentication flow intercepted:', err);
 
-      if (err.status === 403 && err.error?.code === 'ACCOUNT_RESTRICTED') {
+      if (err.status === 403 && err.error?.errorCode === 'AUTH_ACCOUNT_RESTRICTED') {
         return;
       }
+
+      if (err.status === 401 || err.status === 403) return;
 
       this.errorModalService.openErrorModal(err);
     }
@@ -131,6 +133,10 @@ export class LoginComponent {
       const res = await this.authService.signInWithUserAccount(email, password);
       this.updateTokenAndReRoute(res.token, res.user);
     } catch (err: any) {
+      console.warn('Admin credential authentication flow intercepted:', err);
+
+      if (err.status === 401 || err.status === 403) return;
+
       this.errorModalService.openErrorModal(err);
     }
   }

@@ -136,7 +136,8 @@ export class UserListComponent {
       return this.userListService.getPaginatedUsers(limit, pageToken).pipe(
         catchError((err) => {
           console.error('Fetch paginated users failed:', err);
-          this.errorMessage.set('Failed to load user directory. Please verify server connectivity');
+          this.isLoading.set(false);
+          this.errorMessage.set('Failed to load user directory. Please verify server connectivity.');
           return of({ users: [] as UserBase[], nextPageToken: null as string | null, totalItems: 0 });
         })
       );
@@ -312,8 +313,11 @@ export class UserListComponent {
       error: (err) => {
         this.isLoading.set(false);
         this.processingUserId.set(null);
+
         console.error('Administrative status mutation failed:', err);
-        this.errorMessage.set('Failed to alter user status configuration boundary.');
+
+        const apiErrorMsg = err.error?.errorMsg || 'Failed to alter user status configuration boundary.';
+        this.errorMessage.set(apiErrorMsg);
       }
     });
   }

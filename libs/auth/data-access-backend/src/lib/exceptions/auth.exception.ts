@@ -72,3 +72,21 @@ export class InvalidAppCheckTokenException extends BaseAuthException {
     super('AUTH_INVALID_APP_CHECK_TOKEN', 'That token is either a fake or ancient history! Access denied!');
   }
 }
+
+export class DemoReadOnlyException extends BaseAuthException {
+  constructor() {
+    super(
+      'AUTH_DEMO_READ_ONLY',
+      'Demo Mode: Data mutation is disabled in this evaluation sandbox to preserve live database integrity.'
+    );
+  }
+}
+
+export class RateLimitExceededException extends BaseAuthException {
+  constructor() {
+    super(
+      'API_RATE_LIMIT_EXCEEDED',
+      "Whoa, slow down turbo! You're clicking faster than a sweatlord in an RPG raid. Chill for a minute!"
+    );
+  }
+}

@@ -76,7 +76,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             case 'AUTH_INSUFFICIENT_PERMISSIONS':  //  centralize return to
             case 'AUTH_MISSING_APP_CHECK_TOKEN':   //  403
             case 'AUTH_INVALID_APP_CHECK_TOKEN':
+            case 'AUTH_DEMO_READ_ONLY':
                 return HttpStatus.FORBIDDEN;
+
+            case 'API_RATE_LIMIT_EXCEEDED':         //429
+                return HttpStatus.TOO_MANY_REQUESTS;
 
             case 'AUTH_IDENTITY_CONFLICT_EMAIL':
             case 'AUTH_IDENTITY_CONFLICT_CLAIMED':
