@@ -73,7 +73,8 @@
         "commands": [
           "cp .yarnrc.yml dist/backend/.yarnrc.yml",
           "firebase deploy --only functions:backend --token \"{args.token}\" --non-interactive"
-        ]
+        ],
+        "forwardAllArgs": false
       }
     }
   }
