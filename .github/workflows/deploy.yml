@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Enable Corepack
-        run: corepack enable[cite: 14]
+        run: corepack enable
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -28,7 +28,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install Dependencies
-        run: yarn install --immutable[cite: 14]
+        run: yarn install --immutable
 
       - name: Derive appropriate SHAs for affected commands
         uses: nrwl/nx-set-shas@v4
