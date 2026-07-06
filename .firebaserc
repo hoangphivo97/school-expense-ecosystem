@@ -5,10 +5,10 @@
   "targets": {
     "expense-tracker-web-app-7c1d1": {
       "hosting": {
-        "shell-angular": [
+        "mfe-shell-angular": [
           "expense-tracker-web-app-7c1d1"
         ],
-        "remote-react": [
+        "mfe-remote-react": [
           "expense-tracker-remote-react"
         ]
       }

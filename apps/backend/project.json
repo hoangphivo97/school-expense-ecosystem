@@ -65,6 +65,15 @@
       "options": {
         "passWithNoTests": true
       }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["prune"],
+      "options": {
+        "commands": [
+          "firebase deploy --only functions:backend --token \"{args.token}\" --non-interactive"
+        ]
+      }
     }
   }
 }
