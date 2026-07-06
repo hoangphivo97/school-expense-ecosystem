@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Enable Corepack
-        run: corepack enable
+        run: corepack enable[cite: 14]
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -28,14 +28,10 @@ jobs:
           cache: 'yarn'
 
       - name: Install Dependencies
-        run: yarn install --immutable
+        run: yarn install --immutable[cite: 14]
 
-      - name: Build Ecosystem Production
-        run: yarn nx run-many -t build --configuration=production --skip-nx-cache
+      - name: Derive appropriate SHAs for affected commands
+        uses: nrwl/nx-set-shas@v4
 
-      - name: Prune Backend Dependencies
-        run: yarn nx run backend:prune --skip-nx-cache
-
-      - name: Deploy to Firebase Cloud
-        run: |
-          yarn dlx firebase-tools deploy --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
+      - name: Deploy Affected Applications Only
+        run: yarn nx affected -t deploy --token "${{ secrets.FIREBASE_TOKEN }}"

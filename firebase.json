@@ -1,7 +1,7 @@
 {
   "hosting": [
     {
-      "target": "shell-angular",
+      "target": "mfe-shell-angular",
       "public": "dist/apps/mfe-shell-angular",
       "ignore": [
         "firebase.json",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "target": "remote-react",
+      "target": "mfe-remote-react",
       "public": "dist/apps/mfe-remote-react",
       "ignore": [
         "firebase.json",
@@ -57,7 +57,7 @@
   ],
   "functions": {
     "source": "dist/backend",
-    "codebase": "default",
+    "codebase": "backend",
     "runtime": "nodejs22"
   }
 }

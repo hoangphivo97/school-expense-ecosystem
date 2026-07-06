@@ -108,6 +108,15 @@
         "styles": ["apps/mfe-shell-angular/src/styles.scss"],
         "scripts": []
       }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "commands": [
+          "firebase deploy --only hosting:mfe-shell-angular --token \"{args.token}\" --non-interactive"
+        ]
+      }
     }
   }
 }
