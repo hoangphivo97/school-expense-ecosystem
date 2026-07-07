@@ -15,19 +15,12 @@
                     <mat-label>Full Name</mat-label>
                     <input matInput formControlName="fullName"
                         placeholder="English, Unaccented Vietnamese or Traditional Chinese" maxlength="50">
-                    @if (onboardingForm.get('fullName')?.touched && onboardingForm.get('fullName')?.invalid) {
                     <mat-error>
-                        @if (onboardingForm.get('fullName')?.hasError('required')) {
-                        Full name is required.
-                        }
-                        @if (onboardingForm.get('fullName')?.hasError('minlength')) {
-                        Must be at least 2 characters.
-                        }
-                        @if (onboardingForm.get('fullName')?.hasError('pattern')) {
-                        Only English, unaccented Vietnamese, or Chinese characters are allowed.
-                        }
+                        {{ onboardingForm.get('fullName')?.errors | formError:{
+                        required: 'Full Name is required.',
+                        pattern: 'Only English, unaccented Vietnamese, or Chinese characters are allowed.'
+                        } }}
                     </mat-error>
-                    }
                 </mat-form-field>
             </div>
 
@@ -39,9 +32,9 @@
                         <mat-option [value]="faculty">{{ facultyLabels[faculty] }}</mat-option>
                         }
                     </mat-select>
-                    @if (onboardingForm.get('facultyId')?.touched && onboardingForm.get('facultyId')?.invalid) {
-                    <mat-error>Please select your faculty.</mat-error>
-                    }
+                    <mat-error>
+                        {{ onboardingForm.get('facultyId')?.errors | formError:{ required: 'Please select your faculty.' } }}
+                    </mat-error>
                 </mat-form-field>
             </div>
 
@@ -53,9 +46,7 @@
                         <mat-option [value]="type">{{ userTypeLabels[type] }}</mat-option>
                         }
                     </mat-select>
-                    @if (onboardingForm.get('userType')?.touched && onboardingForm.get('userType')?.invalid) {
-                    <mat-error>Please select your institutional role.</mat-error>
-                    }
+                    <mat-error>{{ onboardingForm.get('userType')?.errors | formError: {required: "Please select your institutional role."} }}</mat-error>
                 </mat-form-field>
             </div>
 
@@ -63,9 +54,7 @@
                 <mat-form-field appearance="outline" class="w-100">
                     <mat-label>ID Code (Student / Staff ID)</mat-label>
                     <input matInput formControlName="userCode" placeholder="Enter your unique ID">
-                    @if (onboardingForm.get('userCode')?.touched && onboardingForm.get('userCode')?.invalid) {
-                    <mat-error>Identification code is required.</mat-error>
-                    }
+                    <mat-error>{{ onboardingForm.get('userCode')?.errors | formError: {required: "Identification code is required."} }}</mat-error>
                 </mat-form-field>
             </div>
 
@@ -75,9 +64,7 @@
                     <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" placeholder="Choose a date">
                     <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                     <mat-datepicker #picker></mat-datepicker>
-                    @if (onboardingForm.get('dateOfBirth')?.touched && onboardingForm.get('dateOfBirth')?.invalid) {
-                    <mat-error>Please select a valid date of birth.</mat-error>
-                    }
+                    <mat-error>{{ onboardingForm.get("dateOfBirth")?.errors | formError: {required: "Please select a valid date of birth."} }}</mat-error>
                 </mat-form-field>
             </div>
 

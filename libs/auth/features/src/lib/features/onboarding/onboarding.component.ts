@@ -12,7 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
-import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
+import { ErrorModalService, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 
 @Component({
@@ -26,7 +26,8 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
     MatDatepickerModule,
     MatNativeDateModule,
     MatProgressSpinnerModule,
-    MatProgressSpinner
+    MatProgressSpinner,
+    FormErrorPipe
   ],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',

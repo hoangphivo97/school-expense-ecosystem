@@ -8,3 +8,4 @@ export * from './lib/ui/components/react-wrapper/react-wrapper.component';
 export * from './lib/ui/modal/error-modal/error-modal.service';
 export * from './lib/ui/modal/settings-modal/settings-service.service';
 export * from './lib/ui/modal/confirm-dialog/confirm-dialog.component';
+export * from './lib/ui/pipes/form-error/form-error-pipe';
