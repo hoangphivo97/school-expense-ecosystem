@@ -10,3 +10,4 @@ export * from './lib/ui/modal/settings-modal/settings-service.service';
 export * from './lib/ui/modal/confirm-dialog/confirm-dialog.component';
 export * from './lib/ui/pipes/form-error/form-error-pipe';
 export * from './lib/ui/pipes/form-error-signal/form-error-signal-pipe';
+export * from './lib/ui/components/language-switcher/language-switcher.component';

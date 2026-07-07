@@ -20,6 +20,7 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';
 import { MatInputModule } from '@angular/material/input';
 import { email, form, FormField, required, submit } from '@angular/forms/signals';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-login',
@@ -36,10 +37,15 @@ import { email, form, FormField, required, submit } from '@angular/forms/signals
     MatFormFieldModule,
     MatInputModule,
     FormField,
-    FormErrorSignalPipe
+    FormErrorSignalPipe,
+    TranslocoModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
+  providers: [
+    // Isolate this specific layer to lazy-load the dedicated 'auth' translation scope bundles
+    { provide: TRANSLOCO_SCOPE, useValue: 'auth' }
+  ],
 })
 export class LoginComponent {
   // Utilizing standard inject token patterns instead of bloated constructors
@@ -60,6 +66,18 @@ export class LoginComponent {
   readonly selectedAccount = signal<DemoAccount | null>(null);
 
   readonly demoAccounts: DemoAccount[] = DemoAccountArr;
+
+  protected readonly roleTranslationMap: Record<string, string> = {
+    'DEAN': 'dean',
+    'Student': 'student',
+    'System Administrator': 'sysadmin'
+  };
+
+  protected readonly descriptionTranslationMap: Record<string, string> = {
+    'DEAN': 'dean',
+    'Student': 'student',
+    'System Administrator': 'sysadmin'
+  };
 
   // Dedicated Form configuration for the hidden Admin Console fallback
   protected readonly adminModel = signal({

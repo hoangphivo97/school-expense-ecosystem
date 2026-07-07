@@ -1,0 +1,57 @@
+.lang-switcher-trigger {
+  margin-top: 15px;
+  width: 100%;
+  padding: 8px 16px;
+  text-align: left;
+  border-radius: 8px;
+  color: #616161; // Matches the default material sidebar icon colors
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  .trigger-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+
+    .label-text {
+      font-weight: 500;
+      font-size: 14px;
+      flex-grow: 1;
+    }
+
+    .icon-align, .arrow-align {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+// Styling constraints for the items inside the active dropdown portal list
+::ng-deep .custom-lang-menu {
+  border-radius: 8px !important;
+  margin-top: 4px;
+
+  .active-lang {
+    background-color: rgba(103, 58, 183, 0.08); // Tinted with primary background highlight
+    color: #673ab7;
+    font-weight: 600;
+  }
+
+  .menu-item-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 160px;
+    gap: 16px;
+
+    .check-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}

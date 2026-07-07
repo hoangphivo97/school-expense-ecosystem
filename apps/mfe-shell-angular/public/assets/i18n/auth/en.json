@@ -1,0 +1,30 @@
+{
+  "loginTitle": "University Portal",
+  "loginDesc": "Please sign in with your university-provided Google account to access the financial system.",
+  "continueGoogle": "Continue with Google",
+  "authenticating": "Authenticating Core Stream...",
+  "domainSupport": "Supports @ntust.edu.tw domain only",
+  "toggleAdmin": "Are you an admin or professor? Sign-in here",
+  "authorizedAccess": "Authorized Access",
+  "selectPreset": "Select a Preset Demo Role",
+  "manualInput": "-- Standard Manual Input --",
+  "sandboxNotice": "* Account operates under Read-Only Sandbox Restrictions for evaluation safety.",
+  "sandboxScopeSuffix": " Scope:",
+  "emailLabel": "Email Address",
+  "passwordLabel": "Password",
+  "signInRole": "Sign In As Selected Role",
+  "backPortal": "Back to main portal",
+  "roles": {
+    "dean": "DEAN",
+    "student": "Student",
+    "sysadmin": "System Administrator"
+  },
+  "descriptions": {
+    "dean": "Authorized to review, approve, or reject departmental expense claims, grant allocations, and academic research requests.",
+    "student": "Submits educational expense reimbursement requests and tracks individual research laboratory budget allocations.",
+    "sysadmin": "Granted full global access to monitor system audit logs, manage configuration parameters, and orchestrate workspace security rules."
+  },
+  "emailRequired": "Email Address is required.",
+  "emailInvalid": "Please enter a valid email address.",
+  "passwordRequired": "Password is required."
+}
