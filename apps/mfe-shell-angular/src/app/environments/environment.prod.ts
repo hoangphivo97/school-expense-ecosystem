@@ -22,5 +22,6 @@ export const environment = {
   authEmulatorHost: 'http://localhost:9099',
   apiUrl: 'https://api-4hzf737xua-de.a.run.app',
   reactRemoteURL: 'https://expense-tracker-remote-react.firebaseapp.com/remoteEntry.js',
-  recaptchaSiteKey: "6LfVCSotAAAAADbtB1Eq7U63KNXsModgHFuu74bl"
+  recaptchaSiteKey: "6LfVCSotAAAAADbtB1Eq7U63KNXsModgHFuu74bl",
+  productionUrl: "https://expense-tracker-web-app-7c1d1.web.app/",
 };
