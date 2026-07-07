@@ -111,6 +111,7 @@
     "@nestjs/swagger": "^11.4.4",
     "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^11.1.26",
+    "@ngneat/transloco": "^6.0.4",
     "@ngrx/effects": "20.0.0",
     "@ngrx/entity": "20.0.0",
     "@ngrx/router-store": "20.0.0",

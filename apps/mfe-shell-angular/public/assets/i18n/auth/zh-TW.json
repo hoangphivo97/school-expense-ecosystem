@@ -1,0 +1,30 @@
+{
+  "loginTitle": "大學入口網站",
+  "loginDesc": "請使用學校提供的 Google 帳戶登入以存取財務系統。",
+  "continueGoogle": "使用 Google 帳戶繼續",
+  "authenticating": "正在驗證核心串流...",
+  "domainSupport": "僅支援 @ntust.edu.tw 網域",
+  "toggleAdmin": "您是管理員 or 教授嗎？由此登入",
+  "authorizedAccess": "授權存取",
+  "selectPreset": "選擇預設測試角色",
+  "manualInput": "-- 標準手動輸入 --",
+  "sandboxNotice": "* 帳戶在唯讀沙盒限制下執行，以維護評估安全。",
+  "sandboxScopeSuffix": " 權限範圍:",
+  "emailLabel": "電子郵件地址",
+  "passwordLabel": "密碼",
+  "signInRole": "以所選角色登入",
+  "backPortal": "返回主入口網站",
+  "roles": {
+    "dean": "系主任 / 院長",
+    "student": "學生",
+    "sysadmin": "系統管理員"
+  },
+  "descriptions": {
+    "dean": "有權審查、核准或拒絕科系費用申請、補助款分配以及學術研究請求。",
+    "student": "提交教育費用報銷申請並追蹤個人研究實驗室的預算分配。",
+    "sysadmin": "獲得全域存取權限，以監控系統稽核記錄、管理組態參數並編排工作空間安全規則。"
+  },
+  "emailRequired": "請輸入電子郵件地址。",
+  "emailInvalid": "請輸入有效的電子郵件地址。",
+  "passwordRequired": "請輸入密碼。"
+}
