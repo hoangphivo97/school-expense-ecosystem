@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse } from '@school-expense-ecosystem/auth/types';
 import { DemoAccount, UserBase } from '@school-expense-ecosystem/shared/types';
-import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
+import { ErrorModalService, FormErrorSignalPipe } from '@school-expense-ecosystem/shared/ui';
 import { MatCardModule } from '@angular/material/card';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
 import { MatError, MatFormFieldModule } from '@angular/material/form-field';
@@ -19,6 +19,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';
 import { MatInputModule } from '@angular/material/input';
+import { email, form, FormField, required, submit } from '@angular/forms/signals';
 
 @Component({
   selector: 'lib-login',
@@ -33,7 +34,9 @@ import { MatInputModule } from '@angular/material/input';
     MatSelectModule,
     MatCardModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    FormField,
+    FormErrorSignalPipe
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
@@ -59,19 +62,16 @@ export class LoginComponent {
   readonly demoAccounts: DemoAccount[] = DemoAccountArr;
 
   // Dedicated Form configuration for the hidden Admin Console fallback
-  readonly adminLoginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required], // Fixed casing typo from 'passWord'
+  protected readonly adminModel = signal({
+    email: '',
+    password: ''
   });
 
-  // Clean Code Getters mapping directly to the template validation blocks
-  get emailControl() {
-    return this.adminLoginForm.get('email');
-  }
-
-  get passwordControl() {
-    return this.adminLoginForm.get('password');
-  }
+  protected readonly adminLoginForm = form(this.adminModel, (s) => {
+    required(s.email);
+    email(s.email);
+    required(s.password);
+  });
 
   /**
    * Toggles the view context between Public Google OAuth and Admin Form
@@ -79,7 +79,7 @@ export class LoginComponent {
   toggleAdminMode(status: boolean): void {
     this.isAdminMode.set(status);
     if (!status) {
-      this.adminLoginForm.reset(); // Purges typed admin credentials when swapping views
+      this.adminLoginForm().reset(); // Purges typed admin credentials when swapping views
     }
   }
 
@@ -87,12 +87,12 @@ export class LoginComponent {
     this.selectedAccount.set(account);
 
     if (account) {
-      this.adminLoginForm.patchValue({
+      this.adminModel.set({
         email: account.email,
         password: account.password
       });
     } else {
-      this.adminLoginForm.reset();
+      this.adminLoginForm().reset();
     }
   }
 
@@ -120,25 +120,21 @@ export class LoginComponent {
   /**
    * Domain Action: Validates and processes explicitly created Admin accounts
    */
-  async onAdminLoginSubmitted(): Promise<void> {
-    if (this.adminLoginForm.invalid) {
-      this.adminLoginForm.markAllAsTouched();
-      return;
-    }
+  onAdminLoginSubmitted(): void {
     if (this.authService.isSystemLoading()) return;
 
-    const { email, password } = this.adminLoginForm.getRawValue();
+    submit(this.adminLoginForm, async () => {
+      const { email, password } = this.adminModel();
 
-    try {
-      const res = await this.authService.signInWithUserAccount(email, password);
-      this.updateTokenAndReRoute(res.token, res.user);
-    } catch (err: any) {
-      console.warn('Admin credential authentication flow intercepted:', err);
-
-      if (err.status === 401 || err.status === 403) return;
-
-      this.errorModalService.openErrorModal(err);
-    }
+      try {
+        const res = await this.authService.signInWithUserAccount(email, password);
+        this.updateTokenAndReRoute(res.token, res.user);
+      } catch (err: any) {
+        console.warn('Admin credential authentication flow intercepted:', err);
+        if (err.status === 401 || err.status === 403) return;
+        this.errorModalService.openErrorModal(err);
+      }
+    });
   }
 
   /**
