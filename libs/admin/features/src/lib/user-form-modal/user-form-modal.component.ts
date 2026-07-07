@@ -14,18 +14,22 @@ import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/cor
 import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 
 @Component({
   selector: 'lib-user-form-modal',
   standalone: true,
   imports: [
     ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule,
-    MatInputModule, MatSelectModule, MatDatepickerModule, MatSnackBarModule, MatIconModule
+    MatInputModule, MatSelectModule, MatDatepickerModule, MatSnackBarModule, MatIconModule, TranslocoModule,
+    FormErrorPipe
   ],
   templateUrl: './user-form-modal.component.html',
   providers: [
     provideNativeDateAdapter(),
-    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+    { provide: TRANSLOCO_SCOPE, useValue: 'admin' }
   ],
 })
 export class UserFormModalComponent implements OnInit {
@@ -35,6 +39,7 @@ export class UserFormModalComponent implements OnInit {
   protected readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true });
   private readonly snackBar = inject(MatSnackBar);
   private readonly authStore = inject(AuthSignalStore);
+  private readonly translocoService = inject(TranslocoService);
 
   // Unify Component State into Modern Angular Signals
   protected readonly mode = signal<'create' | 'edit' | 'detail'>('create');
@@ -50,6 +55,14 @@ export class UserFormModalComponent implements OnInit {
 
   protected readonly currentAdminId = computed(() => this.authStore.user()?.uid ?? '');
   protected readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
+
+  protected readonly canEditProfile = computed(() =>
+    this.isDetailMode() &&
+    !this.isSelf() &&
+    !this.isOnboarding() &&
+    this.isAdmin() &&
+    !this.targetIsAdmin()
+  );
 
   // Static Metadata Dropdowns
   protected readonly roleOptions = [
@@ -121,7 +134,7 @@ export class UserFormModalComponent implements OnInit {
     const isLocalAdminProv = selectedRole === Role.LEVEL_0_ADMIN && !this.isEditMode();
 
     // Reset default behaviors
-    this.authMethodDisplay.set(isLocalAdminProv ? 'System Email/Password' : 'Google OAuth');
+    this.authMethodDisplay.set(isLocalAdminProv ? 'system' : 'google');
     this.toggleControlState(password, isLocalAdminProv, [Validators.required, Validators.minLength(6)]);
     this.toggleControlState(confirmPassword, isLocalAdminProv, [Validators.required]);
 
@@ -221,7 +234,8 @@ export class UserFormModalComponent implements OnInit {
 
     mutation$.subscribe({
       next: () => {
-        const msg = this.isEditMode() ? 'User profile updated successfully!' : 'Account provisioned successfully!';
+        const successKey = this.isEditMode() ? 'admin.userForm.notifications.updateSuccess' : 'admin.userForm.notifications.provisionSuccess';
+        const msg = this.translocoService.translate(successKey);
         this.showNotification(msg, 'success');
         this.dialogRef.close({ isSuccess: true, payload: basePayload });
       },
@@ -231,9 +245,8 @@ export class UserFormModalComponent implements OnInit {
         }
         console.error('User mutation pipeline failed:', err);
 
-        const fallbackMsg = this.isEditMode()
-          ? 'Failed to update user profile due to a system boundary error.'
-          : 'Failed to provision user account due to an identity conflict.';
+        const fallbackKey = this.isEditMode() ? 'admin.userForm.notifications.updateError' : 'admin.userForm.notifications.provisionError';
+        const fallbackMsg = this.translocoService.translate(fallbackKey);
 
         const apiErrorMsg = err.error?.errorMsg || fallbackMsg;
 

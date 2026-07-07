@@ -1,0 +1,69 @@
+{
+  "userForm": {
+    "titleDetail": "User Profile Details",
+    "titleEdit": "Update User Profile",
+    "titleCreate": "Provision New Account",
+    "systemRole": "System Role",
+    "correspondingAuth": "Corresponding Auth Stream",
+    "authMethod": {
+      "google": "Google OAuth",
+      "system": "System Email/Password"
+    },
+    "email": "Institutional Email",
+    "fullName": "Full Legal Name",
+    "dob": "Date of Birth",
+    "userCode": "Institutional ID (User Code)",
+    "userType": "User Type",
+    "initialPassword": "Initial Password",
+    "confirmPassword": "Confirm Initial Password",
+    "facultyScope": "Assigned Faculty Scope",
+    "accountStatus": "Account Operational Status",
+    "errors": {
+      "roleRequired": "Role configuration is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email framework layout",
+      "nameRequired": "Full legal name is required",
+      "dobRequired": "Date of birth validation is required",
+      "codeRequired": "User verification code is required",
+      "typeRequired": "Personnel classification type is required",
+      "passwordRequired": "Initial password is required",
+      "passwordLength": "Password fails security length constraints (Min 6)",
+      "confirmRequired": "Please confirm the security credential",
+      "passwordMismatch": "Credential mismatch. Verification failed",
+      "facultyRequired": "Faculty isolation scope assignment is required"
+    },
+    "roles": {
+      "admin": "System Admin (Backdoor)",
+      "finance_officer": "Finance Officer (Institutional)",
+      "faculty_dean": "Faculty Dean (Isolated Scope)",
+      "end_user": "Teacher / Student"
+    },
+    "types": {
+      "staff": "Staff Member",
+      "teacher": "Teacher",
+      "student": "Student"
+    },
+    "faculties": {
+      "fit": "Faculty of Information Technology (FIT)",
+      "fbe": "Faculty of Business and Economics (FBE)",
+      "fll": "Faculty of Foreign Languages (FLL)"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "onboarding": "Onboarding"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "editProfile": "Edit Profile",
+      "update": "Update",
+      "provision": "Provision"
+    },
+    "notifications": {
+      "updateSuccess": "User profile updated successfully!",
+      "provisionSuccess": "Account provisioned successfully!",
+      "updateError": "Failed to update user profile due to a system boundary error.",
+      "provisionError": "Failed to provision user account due to an identity conflict."
+    }
+  }
+}
