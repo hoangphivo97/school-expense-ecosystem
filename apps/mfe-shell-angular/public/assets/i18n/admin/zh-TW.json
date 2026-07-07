@@ -1,0 +1,69 @@
+{
+  "userForm": {
+    "titleDetail": "使用者詳細資料",
+    "titleEdit": "更新使用者資料",
+    "titleCreate": "配置新帳戶",
+    "systemRole": "系統角色",
+    "correspondingAuth": "對應的驗證串流",
+    "authMethod": {
+      "google": "Google 聯邦驗證",
+      "system": "系統電子郵件/密碼"
+    },
+    "email": "學校電子郵件",
+    "fullName": "法定完整姓名",
+    "dob": "出生日期",
+    "userCode": "教職員/學生代號 (學號)",
+    "userType": "使用者類型",
+    "initialPassword": "初始密碼",
+    "confirmPassword": "確認初始密碼",
+    "facultyScope": "分配的院系權限範圍",
+    "accountStatus": "帳戶營運狀態",
+    "errors": {
+      "roleRequired": "必須配置系統角色",
+      "emailRequired": "電子郵件為必填項",
+      "emailInvalid": "電子郵件格式架構無效",
+      "nameRequired": "必須填寫法定完整姓名",
+      "dobRequired": "必須驗證出生日期",
+      "codeRequired": "必須填寫認證代號",
+      "typeRequired": "必須選擇人員分類類型",
+      "passwordRequired": "必須填寫初始密碼",
+      "passwordLength": "密碼未達安全長度限制 (至少6個字元)",
+      "confirmRequired": "請確認您的安全憑證",
+      "passwordMismatch": "認證憑證不符，驗證失敗",
+      "facultyRequired": "必須分配院系隔離範疇"
+    },
+    "roles": {
+      "admin": "系統管理員 (後門)",
+      "finance_officer": "財務主管 (機構全域)",
+      "faculty_dean": "院長/系主任 (隔離範疇)",
+      "end_user": "教職員 / 學生"
+    },
+    "types": {
+      "staff": "行政職員",
+      "teacher": "專任教師",
+      "student": "在校學生"
+    },
+    "faculties": {
+      "fit": "資訊工程學院 (FIT)",
+      "fbe": "商業與經濟學院 (FBE)",
+      "fll": "外國語言學院 (FLL)"
+    },
+    "status": {
+      "active": "啟用",
+      "pending": "審核中",
+      "onboarding": "資料初始化中"
+    },
+    "actions": {
+      "cancel": "取消",
+      "editProfile": "編輯檔案",
+      "update": "更新資料",
+      "provision": "配置帳戶"
+    },
+    "notifications": {
+      "updateSuccess": "使用者檔案更新成功！",
+      "provisionSuccess": "帳戶帳號配置成功！",
+      "updateError": "由於系統邊界錯誤，無法更新使用者檔案。",
+      "provisionError": "由於身分衝突，無法配置使用者帳戶。"
+    }
+  }
+}
