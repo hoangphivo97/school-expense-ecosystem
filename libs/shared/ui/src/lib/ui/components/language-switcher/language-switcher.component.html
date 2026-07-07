@@ -1,0 +1,22 @@
+<button mat-button [matMenuTriggerFor]="langMenu" class="lang-switcher-trigger">
+  <div class="trigger-content">
+    <mat-icon class="icon-align">translate</mat-icon>
+    <span class="label-text">{{ currentLanguageLabel }}</span>
+    <mat-icon class="arrow-align">arrow_drop_down</mat-icon>
+  </div>
+</button>
+
+<mat-menu #langMenu="matMenu" xPosition="after" class="custom-lang-menu">
+  @for (lang of languages; track lang.code) {
+    <button mat-menu-item 
+            (click)="onLanguageSelected(lang.code)"
+            [class.active-lang]="currentLang() === lang.code">
+      <div class="menu-item-layout">
+        <span>{{ lang.label }}</span>
+        @if (currentLang() === lang.code) {
+          <mat-icon color="primary" class="check-icon">check</mat-icon>
+        }
+      </div>
+    </button>
+  }
+</mat-menu>

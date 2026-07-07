@@ -16,6 +16,7 @@ import { API_BASE_URL, HTTP_ERROR_DELEGATE } from '@school-expense-ecosystem/sha
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { DialogError } from '@school-expense-ecosystem/shared/types';
 import { provideAppCheck, initializeAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check';
+import { provideTranslocoConfig } from './transloco.provider';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -49,5 +50,6 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([authInterceptor, appCheckInterceptor])),
     provideStore(),
     provideRouter(routes, withEnabledBlockingInitialNavigation()),
+    provideTranslocoConfig()
   ],
 };

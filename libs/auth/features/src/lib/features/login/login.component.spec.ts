@@ -6,12 +6,12 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
+import { TranslocoTestingModule } from '@ngneat/transloco';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
 
-  // Strict Mock definitions for all injected core dependencies
   const mockRouter = {
     navigate: jest.fn()
   };
@@ -34,7 +34,14 @@ describe('LoginComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LoginComponent],
+      imports: [
+        LoginComponent,
+        // Configures a minimal runtime inline isolation dictionary context for testing
+        TranslocoTestingModule.forRoot({
+          langs: { en: {}, 'zh-TW': {} },
+          translocoConfig: { defaultLang: 'en', availableLangs: ['en', 'zh-TW'] }
+        })
+      ],
       providers: [
         { provide: Router, useValue: mockRouter },
         { provide: AuthService, useValue: mockAuthService },
@@ -47,7 +54,6 @@ describe('LoginComponent', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    // Reset all mock invocation trackers before individual test runs
     jest.clearAllMocks();
   });
 
@@ -56,10 +62,7 @@ describe('LoginComponent', () => {
   });
 
   it('should structuralize form fields matching schema configuration definition', () => {
-    // Accessing protected member via type casting wrapper for evaluation safety
     const formInstance = (component as any).adminLoginForm;
-    
-    // Verifying properties exist natively on the Signal Form model tree
     expect(formInstance.email).toBeDefined();
     expect(formInstance.password).toBeDefined();
   });
@@ -71,7 +74,6 @@ describe('LoginComponent', () => {
     };
     mockAuthService.signInWithUserAccount.mockResolvedValue(mockLoginResponse);
 
-    // Mutating the reactive model source-of-truth directly
     (component as any).adminModel.set({
       email: 'admin@ntust.edu.tw',
       password: 'secure_password'
@@ -96,7 +98,6 @@ describe('LoginComponent', () => {
     component.onAdminLoginSubmitted();
     await fixture.whenStable();
 
-    // Application state must halt routing mechanics upon bad authorization requests
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
 });

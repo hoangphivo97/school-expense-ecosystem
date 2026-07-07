@@ -1,0 +1,19 @@
+.auth-layout-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+
+  .auth-layout-header {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 1000; // Ensures the dropdown lists overlay neatly above cards and spinners
+    min-width: 160px;
+  }
+
+  .auth-layout-content {
+    width: 100%;
+    height: 100%;
+  }
+}
