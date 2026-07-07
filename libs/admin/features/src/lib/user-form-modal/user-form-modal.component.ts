@@ -1,5 +1,5 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidatorFn } from '@angular/forms';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Validators, ReactiveFormsModule, AbstractControl, ValidatorFn } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { Role, UserType, UserStatus, FacultyId, UserBase } from '@school-expense-ecosystem/shared/types';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
@@ -15,7 +15,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
-import { FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
+import { FormErrorSignalPipe } from '@school-expense-ecosystem/shared/ui';
+import { email, form, FormField, required, submit, disabled, validate } from '@angular/forms/signals';
 
 @Component({
   selector: 'lib-user-form-modal',
@@ -23,7 +24,7 @@ import { FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
   imports: [
     ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatDatepickerModule, MatSnackBarModule, MatIconModule, TranslocoModule,
-    FormErrorPipe
+    FormErrorSignalPipe, FormField
   ],
   templateUrl: './user-form-modal.component.html',
   providers: [
@@ -33,7 +34,6 @@ import { FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
   ],
 })
 export class UserFormModalComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
   private readonly userListService = inject(UserListService);
   private readonly dialogRef = inject(MatDialogRef<UserFormModalComponent>);
   protected readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true });
@@ -51,7 +51,6 @@ export class UserFormModalComponent implements OnInit {
 
   protected readonly authMethodDisplay = signal<string>('Google OAuth');
   protected readonly filteredUserTypeOptions = signal<any[]>([]);
-  protected userForm!: FormGroup;
 
   protected readonly currentAdminId = computed(() => this.authStore.user()?.uid ?? '');
   protected readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
@@ -63,6 +62,9 @@ export class UserFormModalComponent implements OnInit {
     this.isAdmin() &&
     !this.targetIsAdmin()
   );
+
+  private readonly selectedRole = computed(() => this.userModel().role);
+  private readonly selectedUserType = computed(() => this.userModel().userType);
 
   // Static Metadata Dropdowns
   protected readonly roleOptions = [
@@ -90,14 +92,174 @@ export class UserFormModalComponent implements OnInit {
     { value: UserStatus.ONBOARDING, label: 'Onboarding' }
   ];
 
+  protected readonly userModel = signal({
+    email: '',
+    role: '' as Role,
+    userType: '' as UserType,
+    fullName: '',
+    dateOfBirth: '' as string,
+    userCode: '',
+    facultyId: null as FacultyId | null,
+    password: '',
+    confirmPassword: '',
+    status: UserStatus.ACTIVE
+  });
+
+  protected readonly userForm = form(this.userModel, (s) => {
+    required(s.email);
+    email(s.email);
+    required(s.role);
+    required(s.fullName);
+    required(s.dateOfBirth);
+    required(s.userCode);
+
+    /**
+     * 🌟 REFACTOR: Reactive conditional validation rules driven by validate() hooks 
+     * to prevent one-time static initialization execution bugs.
+     */
+    validate(s.password, ({ value }) => {
+      if (this.selectedRole() === Role.LEVEL_0_ADMIN && !this.isEditMode() && !value()) {
+        return { kind: 'required' };
+      }
+      return undefined;
+    });
+
+    validate(s.confirmPassword, ({ value }) => {
+      if (this.selectedRole() === Role.LEVEL_0_ADMIN && !this.isEditMode()) {
+        if (!value()) return { kind: 'required' };
+        if (value() !== this.userModel().password) return { kind: 'passwordMismatch' };
+      }
+      return undefined;
+    });
+
+    validate(s.facultyId, ({ value }) => {
+      const role = this.selectedRole();
+      const type = this.selectedUserType();
+
+      if (role === Role.LEVEL_2_DEAN && !value()) {
+        return { kind: 'required' };
+      }
+      if (role === Role.LEVEL_3_USER && [UserType.STUDENT, UserType.TEACHER].includes(type) && !value()) {
+        return { kind: 'required' };
+      }
+      return undefined;
+    });
+
+    disabled(s.email, { when: () => this.isDetailMode() || this.isEditMode() });
+    disabled(s.userCode, { when: () => this.isDetailMode() || this.isEditMode() });
+    disabled(s.role, { when: () => this.isDetailMode() });
+
+    disabled(s.userType, {
+      when: () =>
+        this.isDetailMode() ||
+        this.selectedRole() === Role.LEVEL_0_ADMIN ||
+        this.selectedRole() === Role.LEVEL_1_FINANCE
+    });
+
+    disabled(s.facultyId, {
+      when: () => {
+        if (this.isDetailMode()) return true;
+        const role = this.selectedRole();
+        if (role === Role.LEVEL_0_ADMIN || role === Role.LEVEL_1_FINANCE) return true;
+        if (role === Role.LEVEL_3_USER) {
+          return ![UserType.STUDENT, UserType.TEACHER].includes(this.selectedUserType());
+        }
+        return false;
+      }
+    });
+
+    disabled(s.password, {
+      when: () =>
+        this.isDetailMode() ||
+        this.isEditMode() ||
+        this.selectedRole() !== Role.LEVEL_0_ADMIN
+    });
+
+    disabled(s.confirmPassword, {
+      when: () =>
+        this.isDetailMode() ||
+        this.isEditMode() ||
+        this.selectedRole() !== Role.LEVEL_0_ADMIN
+    });
+
+    disabled(s.dateOfBirth, {
+      when: () => this.isDetailMode()
+    })
+
+    disabled(s.fullName, {
+      when: () => this.isDetailMode()
+    })
+
+    disabled(s.status, { when: () => this.isDetailMode() || this.isEditMode() });
+
+  });
+
+  constructor() {
+    /**
+     * 🌟 REFACTOR: Reactive context manager handling structural form side-effects cleanly
+     * without maintaining tedious manual RxJS valueChanges streams subscription trackers.
+     */
+    effect(() => {
+      const role = this.selectedRole();
+
+      if (role === Role.LEVEL_0_ADMIN || role === Role.LEVEL_1_FINANCE) {
+        this.userModel.update(m => ({ ...m, userType: UserType.STAFF, facultyId: null }));
+      } else if (role === Role.LEVEL_2_DEAN) {
+        this.filteredUserTypeOptions.set(this.userTypeOptions.filter(o => o.value !== UserType.STUDENT));
+      } else if (role === Role.LEVEL_3_USER) {
+        this.filteredUserTypeOptions.set(this.userTypeOptions);
+      }
+    });
+
+    effect(() => {
+      const role = this.selectedRole();
+      const isLocalAdminProv = role === Role.LEVEL_0_ADMIN && !this.isEditMode();
+      this.authMethodDisplay.set(isLocalAdminProv ? 'system' : 'google');
+    });
+
+    effect(() => {
+      const selectedType = this.selectedUserType();
+      const role = this.selectedRole();
+
+      if (role === Role.LEVEL_3_USER) {
+        const isAcademic = [UserType.STUDENT, UserType.TEACHER].includes(selectedType);
+        if (!isAcademic) {
+          this.userModel.update(m => ({ ...m, facultyId: null }));
+        }
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.mapIncomingDialogAction();
-    this.initFormStructure();
-    this.registerReactiveEngines();
-
+    // 🌟 REFACTOR: Stripped out old imperative form structure builders and control registers
     if (this.isEditMode() || this.isDetailMode()) {
       this.hydrateFormTree();
     }
+  }
+
+  private hydrateFormTree(): void {
+    const user = this.dialogData.user as UserBase;
+
+    /**
+     * 🌟 REFACTOR: Inject data into the reactive model directly instead of calling patchValue()
+     */
+    this.userModel.set({
+      email: user.email ?? '',
+      role: user.role,
+      userType: user.userType ?? '' as UserType,
+      fullName: user.fullName ?? '',
+      dateOfBirth: user.dateOfBirth ?? '',
+      userCode: (user as any).userCode ?? '',
+      facultyId: user.facultyId ?? null,
+      password: '',
+      confirmPassword: '',
+      status: user.status ?? UserStatus.ACTIVE
+    });
+
+    this.isOnboarding.set(user.status === UserStatus.ONBOARDING);
+    this.isSelf.set(user.uid === this.currentAdminId());
+    this.targetIsAdmin.set(user.role === Role.LEVEL_0_ADMIN);
   }
 
   private mapIncomingDialogAction(): void {
@@ -109,150 +271,56 @@ export class UserFormModalComponent implements OnInit {
     this.mode.set(actionMap[this.dialogData?.action as DialogActionEnum] ?? 'create');
   }
 
-  private initFormStructure(): void {
-    this.userForm = this.fb.group({
-      email: [{ value: '', disabled: this.isEditMode() }, [Validators.required, Validators.email]],
-      role: ['', [Validators.required]],
-      userType: ['', [Validators.required]],
-      fullName: ['', [Validators.required, Validators.minLength(2)]],
-      dateOfBirth: ['', [Validators.required]],
-      userCode: [{ value: '', disabled: this.isEditMode() }, [Validators.required]],
-      facultyId: [{ value: null, disabled: true }],
-      password: [{ value: '', disabled: true }],
-      confirmPassword: [{ value: '', disabled: true }],
-      status: [{ value: UserStatus.ACTIVE, disabled: true }]
-    }, { validators: [this.passwordMatchValidator] });
-  }
-
-  private registerReactiveEngines(): void {
-    this.userForm.get('role')?.valueChanges.subscribe(role => this.evaluateRoleConditionalState(role));
-    this.userForm.get('userType')?.valueChanges.subscribe(type => this.evaluateUserTypeConditionalState(type));
-  }
-
-  private evaluateRoleConditionalState(selectedRole: Role): void {
-    const { facultyId, password, confirmPassword, userType } = this.userForm.controls;
-    const isLocalAdminProv = selectedRole === Role.LEVEL_0_ADMIN && !this.isEditMode();
-
-    // Reset default behaviors
-    this.authMethodDisplay.set(isLocalAdminProv ? 'system' : 'google');
-    this.toggleControlState(password, isLocalAdminProv, [Validators.required, Validators.minLength(6)]);
-    this.toggleControlState(confirmPassword, isLocalAdminProv, [Validators.required]);
-
-    switch (selectedRole) {
-      case Role.LEVEL_0_ADMIN:
-      case Role.LEVEL_1_FINANCE:
-        userType.setValue(UserType.STAFF);
-        userType.disable();
-        this.toggleControlState(facultyId, false);
-        break;
-
-      case Role.LEVEL_2_DEAN:
-        this.filteredUserTypeOptions.set(this.userTypeOptions.filter(o => o.value !== UserType.STUDENT));
-        userType.enable();
-        this.toggleControlState(facultyId, true, [Validators.required]);
-        break;
-
-      case Role.LEVEL_3_USER:
-        this.filteredUserTypeOptions.set(this.userTypeOptions);
-        userType.enable();
-        this.toggleControlState(facultyId, false);
-        break;
-    }
-    this.refreshFormTreeValidity();
-  }
-
-  private evaluateUserTypeConditionalState(selectedType: UserType): void {
-    if (this.userForm.get('role')?.value === Role.LEVEL_3_USER) {
-      const isAcademic = [UserType.STUDENT, UserType.TEACHER].includes(selectedType);
-      this.toggleControlState(this.userForm.get('facultyId')!, isAcademic, [Validators.required]);
-    }
-  }
-
-  private passwordMatchValidator: ValidatorFn = (control: AbstractControl) => {
-    const password = control.get('password')?.value;
-    const confirmPassword = control.get('confirmPassword')?.value;
-    const isSystemAdmin = control.get('role')?.value === Role.LEVEL_0_ADMIN;
-
-    if (isSystemAdmin && password !== confirmPassword) {
-      control.get('confirmPassword')?.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
-    }
-    return null;
-  };
-
-  private toggleControlState(ctrl: AbstractControl, enable: boolean, validators: ValidatorFn[] = []): void {
-    if (enable) {
-      ctrl.enable();
-    } else {
-      ctrl.disable();
-    }
-    ctrl.setValidators(enable ? validators : []);
-    if (!enable) ctrl.setValue(ctrl === this.userForm.get('facultyId') ? null : '');
-  }
-
-  private refreshFormTreeValidity(): void {
-    Object.keys(this.userForm.controls).forEach(key => {
-      this.userForm.get(key)?.updateValueAndValidity({ emitEvent: false });
-    });
-  }
-
-  private hydrateFormTree(): void {
-    const user = this.dialogData.user as UserBase;
-    this.userForm.patchValue({ ...user, dateOfBirth: user.dateOfBirth ?? '' });
-
-    this.isOnboarding.set(user.status === UserStatus.ONBOARDING);
-    this.isSelf.set(user.uid === this.currentAdminId());
-    this.targetIsAdmin.set(user.role === Role.LEVEL_0_ADMIN);
-
-    if (this.isDetailMode()) this.userForm.disable();
-  }
-
   protected onSubmit(): void {
-    if (this.userForm.invalid) return;
+    if (this.userForm().invalid()) return;
 
-    const rawForm = this.userForm.getRawValue();
-    const targetUid = this.dialogData?.user?.uid;
-    const isScopedRole = [Role.LEVEL_2_DEAN, Role.LEVEL_3_USER].includes(rawForm.role);
+    /**
+     * 🌟 REFACTOR: Execute stream mutations safely mapped into Signal Form submit triggers
+     */
+    submit(this.userForm, async () => {
+      const rawForm = this.userModel();
+      const targetUid = this.dialogData?.user?.uid;
+      const isScopedRole = [Role.LEVEL_2_DEAN, Role.LEVEL_3_USER].includes(rawForm.role);
 
-    // Streamlined Base Payload Construction
-    const basePayload = {
-      fullName: rawForm.fullName,
-      role: rawForm.role,
-      userType: rawForm.userType,
-      dateOfBirth: rawForm.dateOfBirth,
-      facultyId: isScopedRole ? rawForm.facultyId : null
-    };
+      const basePayload = {
+        fullName: rawForm.fullName,
+        role: rawForm.role,
+        userType: rawForm.userType as UserType,
+        dateOfBirth: rawForm.dateOfBirth,
+        facultyId: isScopedRole ? (rawForm.facultyId ?? undefined) : undefined
+      };
 
-    const mutation$ = this.isEditMode()
-      ? this.userListService.updateUser(targetUid, basePayload)
-      : this.userListService.provisionUser({
-        ...basePayload,
-        email: rawForm.email,
-        userCode: rawForm.userCode,
-        ...(rawForm.role === Role.LEVEL_0_ADMIN ? { password: rawForm.password } : {})
-      } as CreateUserInput);
+      const mutation$ = this.isEditMode()
+        ? this.userListService.updateUser(targetUid, basePayload)
+        : this.userListService.provisionUser({
+          ...basePayload,
+          email: rawForm.email,
+          userCode: rawForm.userCode,
+          ...(rawForm.role === Role.LEVEL_0_ADMIN ? { password: rawForm.password } : {})
+        } as CreateUserInput);
 
-    mutation$.subscribe({
-      next: () => {
-        const successKey = this.isEditMode() ? 'admin.userForm.notifications.updateSuccess' : 'admin.userForm.notifications.provisionSuccess';
-        const msg = this.translocoService.translate(successKey);
-        this.showNotification(msg, 'success');
-        this.dialogRef.close({ isSuccess: true, payload: basePayload });
-      },
-      error: (err) => {
-        if (err.status === 403 && err.error?.errorCode === 'AUTH_DEMO_READ_ONLY') {
-          return;
+      mutation$.subscribe({
+        next: () => {
+          const successKey = this.isEditMode() ? 'admin.userForm.notifications.updateSuccess' : 'admin.userForm.notifications.provisionSuccess';
+          const msg = this.translocoService.translate(successKey);
+          this.showNotification(msg, 'success');
+          this.dialogRef.close({ isSuccess: true, payload: basePayload });
+        },
+        error: (err) => {
+          if (err.status === 403 && err.error?.errorCode === 'AUTH_DEMO_READ_ONLY') {
+            return;
+          }
+          console.error('User mutation pipeline failed:', err);
+
+          const fallbackKey = this.isEditMode() ? 'admin.userForm.notifications.updateError' : 'admin.userForm.notifications.provisionError';
+          const fallbackMsg = this.translocoService.translate(fallbackKey);
+
+          const apiErrorMsg = err.error?.errorMsg || fallbackMsg;
+
+          this.showNotification(apiErrorMsg, 'error');
         }
-        console.error('User mutation pipeline failed:', err);
-
-        const fallbackKey = this.isEditMode() ? 'admin.userForm.notifications.updateError' : 'admin.userForm.notifications.provisionError';
-        const fallbackMsg = this.translocoService.translate(fallbackKey);
-
-        const apiErrorMsg = err.error?.errorMsg || fallbackMsg;
-
-        this.showNotification(apiErrorMsg, 'error');
-      }
-    });
+      });
+    })
   }
 
   private showNotification(message: string, type: 'success' | 'error'): void {
@@ -265,11 +333,10 @@ export class UserFormModalComponent implements OnInit {
   }
 
   protected switchToEditMode(): void {
+    /**
+     * 🌟 REFACTOR: Toggling the view mode signal automatically propagates interactive 
+     * property changes down to template inputs via native declarative bindings.
+     */
     this.mode.set('edit');
-    this.userForm.enable();
-
-    // Maintain immutable field constraints
-    ['email', 'userCode', 'status'].forEach(k => this.userForm.get(k)?.disable());
-    this.evaluateRoleConditionalState(this.userForm.get('role')?.value);
   }
 }
