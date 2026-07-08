@@ -32,7 +32,7 @@
     </mat-card-content>
 
     <mat-card-footer class="footer-center">
-      <button type="button" mat-button class="toggle-mode-btn" (click)="toggleAdminMode(true)">
+      <button type="button" mat-button class="toggle-mode-btn" [disabled]="authService.isLoggingInWithGoogle()" (click)="toggleAdminMode(true)">
         {{ 'auth.toggleAdmin' | transloco }}
         <fa-icon [icon]="faArrowRight" size="xs"></fa-icon>
       </button>
@@ -108,7 +108,7 @@
     </mat-card-content>
 
     <mat-card-footer class="footer-center">
-      <button type="button" mat-button color="primary" class="back-portal-btn" (click)="toggleAdminMode(false)">
+      <button type="button" mat-button color="primary" class="back-portal-btn" [disabled]="authService.isLoggingInWithEmail()" (click)="toggleAdminMode(false)">
         <fa-icon [icon]="faArrowLeft" size="xs"></fa-icon>
         {{ 'auth.backPortal' | transloco }}
       </button>

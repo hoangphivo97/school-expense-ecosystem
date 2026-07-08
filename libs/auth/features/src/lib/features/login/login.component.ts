@@ -1,5 +1,4 @@
-import { Component, inject, NgZone, signal } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse } from '@school-expense-ecosystem/auth/types';
@@ -26,7 +25,6 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
   selector: 'lib-login',
   standalone: true,
   imports: [
-    ReactiveFormsModule,
     MatError,
     MatProgressSpinner,
     MatCardModule,
@@ -49,12 +47,10 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 })
 export class LoginComponent {
   // Utilizing standard inject token patterns instead of bloated constructors
-  private readonly fb = inject(NonNullableFormBuilder); // Upgraded to NonNullable for strict typing
   private readonly router = inject(Router);
   protected readonly authService = inject(AuthService);
   private readonly authStore = inject(AuthSignalStore);
   private readonly errorModalService = inject(ErrorModalService);
-  private readonly zone = inject(NgZone);
 
   readonly faGoogle = faGoogle;
   readonly faArrowLeft = faArrowLeft

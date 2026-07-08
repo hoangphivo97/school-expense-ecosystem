@@ -1,5 +1,5 @@
 <lib-header></lib-header>
-<div class="expense-list">
+<div class="expense-list" [loading]="isGridDataLoading()">
   <lib-filter [mode]="filterModeEnum.EXPENSE" [yearsList]="availableYearsSignal()" [value]="filterParams()"
     (filterChange)="onExpenseFiltersChanged($event)">
 
@@ -91,6 +91,7 @@
     <tr class="mat-mdc-no-data-row" *matNoDataRow>
       <td [attr.colspan]="displayedColumns.length">
 
+        @if(!isGridDataLoading()){
         <div class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
           <div class="empty-icon-box mb-3">
             <mat-icon class="material-icons-outlined text-muted">receipt_long</mat-icon>
@@ -100,6 +101,7 @@
             There are no transactions recorded for the selected period or criteria.
           </p>
         </div>
+        }
 
       </td>
     </tr>

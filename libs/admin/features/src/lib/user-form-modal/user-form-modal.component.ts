@@ -15,8 +15,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
-import { FormErrorSignalPipe } from '@school-expense-ecosystem/shared/ui';
+import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
 import { email, form, FormField, required, submit, disabled, validate } from '@angular/forms/signals';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils';
 
 @Component({
   selector: 'lib-user-form-modal',
@@ -24,7 +25,7 @@ import { email, form, FormField, required, submit, disabled, validate } from '@a
   imports: [
     ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatDatepickerModule, MatSnackBarModule, MatIconModule, TranslocoModule,
-    FormErrorSignalPipe, FormField
+    FormErrorSignalPipe, FormField, LoadingDirective
   ],
   templateUrl: './user-form-modal.component.html',
   providers: [
@@ -48,12 +49,18 @@ export class UserFormModalComponent implements OnInit {
   protected readonly isSelf = signal(false);
   protected readonly isOnboarding = signal(false);
   protected readonly targetIsAdmin = signal(false);
+  readonly isLoading = signal<boolean>(false);
 
   protected readonly authMethodDisplay = signal<string>('Google OAuth');
-  protected readonly filteredUserTypeOptions = signal<any[]>([]);
+  protected readonly filteredUserTypeOptions = signal<UserType[]>([]);
 
   protected readonly currentAdminId = computed(() => this.authStore.user()?.uid ?? '');
   protected readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
+
+  protected readonly roleOptions = [Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER];
+  protected readonly userTypeOptions = [UserType.STAFF, UserType.TEACHER, UserType.STUDENT];
+  protected readonly facultyOptions = [FacultyId.FIT, FacultyId.FBE, FacultyId.FLL];
+  protected readonly statusOptions = [UserStatus.ACTIVE, UserStatus.PENDING, UserStatus.ONBOARDING];
 
   protected readonly canEditProfile = computed(() =>
     this.isDetailMode() &&
@@ -65,32 +72,6 @@ export class UserFormModalComponent implements OnInit {
 
   private readonly selectedRole = computed(() => this.userModel().role);
   private readonly selectedUserType = computed(() => this.userModel().userType);
-
-  // Static Metadata Dropdowns
-  protected readonly roleOptions = [
-    { value: Role.LEVEL_0_ADMIN, label: 'System Admin (Backdoor)' },
-    { value: Role.LEVEL_1_FINANCE, label: 'Finance Officer (Institutional)' },
-    { value: Role.LEVEL_2_DEAN, label: 'Faculty Dean (Isolated Scope)' },
-    { value: Role.LEVEL_3_USER, label: 'Teacher / Student' }
-  ];
-
-  protected readonly userTypeOptions = [
-    { value: UserType.STAFF, label: 'Staff Member' },
-    { value: UserType.TEACHER, label: 'Teacher' },
-    { value: UserType.STUDENT, label: 'Student' }
-  ];
-
-  protected readonly facultyOptions = [
-    { value: FacultyId.FIT, label: 'Faculty of Information Technology (FIT)' },
-    { value: FacultyId.FBE, label: 'Faculty of Business and Economics (FBE)' },
-    { value: FacultyId.FLL, label: 'Faculty of Foreign Languages (FLL)' }
-  ];
-
-  protected readonly statusOptions = [
-    { value: UserStatus.ACTIVE, label: 'Active' },
-    { value: UserStatus.PENDING, label: 'Pending' },
-    { value: UserStatus.ONBOARDING, label: 'Onboarding' }
-  ];
 
   protected readonly userModel = signal({
     email: '',
@@ -128,6 +109,14 @@ export class UserFormModalComponent implements OnInit {
       if (this.selectedRole() === Role.LEVEL_0_ADMIN && !this.isEditMode()) {
         if (!value()) return { kind: 'required' };
         if (value() !== this.userModel().password) return { kind: 'passwordMismatch' };
+      }
+      return undefined;
+    });
+
+    validate(s.userType, ({ value }) => {
+      const role = this.selectedRole();
+      if ((role === Role.LEVEL_2_DEAN || role === Role.LEVEL_3_USER) && !value()) {
+        return { kind: 'required' };
       }
       return undefined;
     });
@@ -205,7 +194,7 @@ export class UserFormModalComponent implements OnInit {
       if (role === Role.LEVEL_0_ADMIN || role === Role.LEVEL_1_FINANCE) {
         this.userModel.update(m => ({ ...m, userType: UserType.STAFF, facultyId: null }));
       } else if (role === Role.LEVEL_2_DEAN) {
-        this.filteredUserTypeOptions.set(this.userTypeOptions.filter(o => o.value !== UserType.STUDENT));
+        this.filteredUserTypeOptions.set(this.userTypeOptions.filter(type => type !== UserType.STUDENT));
       } else if (role === Role.LEVEL_3_USER) {
         this.filteredUserTypeOptions.set(this.userTypeOptions);
       }
@@ -299,7 +288,7 @@ export class UserFormModalComponent implements OnInit {
           ...(rawForm.role === Role.LEVEL_0_ADMIN ? { password: rawForm.password } : {})
         } as CreateUserInput);
 
-      mutation$.subscribe({
+      mutation$.pipe(trackLoading(this.isLoading)).subscribe({
         next: () => {
           const successKey = this.isEditMode() ? 'admin.userForm.notifications.updateSuccess' : 'admin.userForm.notifications.provisionSuccess';
           const msg = this.translocoService.translate(successKey);
