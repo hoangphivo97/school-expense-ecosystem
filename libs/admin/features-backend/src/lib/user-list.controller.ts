@@ -3,7 +3,7 @@ import { UserListService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/shared/types';
 import { JwtAuthGuard, RolesGuard, Roles } from '@school-expense-ecosystem/shared/guards-backend';
 import { ChangeUserStatusDto, CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
-import { IAdminExecutor } from '@school-expense-ecosystem/admin/types';
+import { IAdminExecutor, UserQueryPayload } from '@school-expense-ecosystem/admin/types';
 import { ActiveAdmin } from './decorators/admin-executor.decorator';
 
 
@@ -16,12 +16,11 @@ export class UserListController {
   @Get()
   async getManagedUsers(
     @Req() req: { user: UserBase },
-    @Query('limit') limit = 10,
-    @Query('pageToken') pageToken?: string
+    @Query() query: UserQueryPayload
   ) {
-    const requester = req.user as UserBase;
+    const requester: UserBase = req.user;
 
-    return this.userListService.getUsersForManagement(requester, Number(limit), pageToken);
+    return this.userListService.getUsersForManagement(requester, query);
   }
 
   @Post('provision')

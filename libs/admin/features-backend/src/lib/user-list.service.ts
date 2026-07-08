@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserBase, } from '@school-expense-ecosystem/shared/types';
 import { UserRepository } from './repository/user.repository';
 import { AdminIdentityConflictException, AdminInvalidDeletionStatusException, AdminPeerProtectionException, AdminSecurityThreatException, AdminSelfMutationException, AdminUserNotFoundException, CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
-import { AdminActionType, CreateUserInput, CreateUserResult, DeleteReasonType, IAdminExecutor, IAuditLogChanges } from '@school-expense-ecosystem/admin/types';
+import { AdminActionType, CreateUserInput, CreateUserResult, DeleteReasonType, IAdminExecutor, IAuditLogChanges, UserQueryPayload } from '@school-expense-ecosystem/admin/types';
 import { IAdminAuditLogRepository } from './repository/audit-log.repository';
 import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
 
@@ -13,13 +13,14 @@ export class UserListService {
         private readonly auditLogRepository: IAdminAuditLogRepository
     ) { }
 
-    async getUsersForManagement(requester: UserBase, limit: number, pageToken?: string) {
+    async getUsersForManagement(requester: UserBase, query: UserQueryPayload) {
         const facultyIdFilter = requester.role === Role.LEVEL_2_DEAN ? requester.facultyId : undefined;
+        const limit = query.limit ? Number(query.limit) : 10;
 
         return this.userRepository.findPaginated({
-            facultyId: facultyIdFilter,
+            ...query,
             limit,
-            pageToken
+            facultyId: facultyIdFilter,
         });
     }
 
