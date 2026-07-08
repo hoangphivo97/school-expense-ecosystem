@@ -48,14 +48,8 @@ export class FilterComponent<T = unknown> implements OnInit {
 
   readonly paginator = viewChild(MatPaginator);
 
-  // ==========================================================================
-  // Contextual Layout Variants (Single Entry Configuration Gate)
-  // ==========================================================================
   mode = input<FilterMode>(FilterMode.EXPENSE);
 
-  // ==========================================================================
-  // Reactive Structural Guards (Automated 2-Row Condition Appraisers)
-  // ==========================================================================
   readonly showSearch = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.USER);
   readonly showMonth = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
   readonly showYear = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
@@ -72,9 +66,6 @@ export class FilterComponent<T = unknown> implements OnInit {
 
   filterChange = output<FilterParams>();
 
-  // ==========================================================================
-  // Isolated UI Options Matrix (Enforces strict token domain contracts)
-  // ==========================================================================
   readonly systemRolesOptions = [
     { value: 'ALL', label: 'All Roles' },
     { value: Role.LEVEL_0_ADMIN, label: 'Admin' },
@@ -155,7 +146,6 @@ export class FilterComponent<T = unknown> implements OnInit {
   });
 
   constructor() {
-    // Inbound Synchronization Effect: Maps clean domain states to local 'ALL' dropdown markers safely
     effect(() => {
       const incomingState = this.value();
       if (incomingState) {
@@ -167,7 +157,7 @@ export class FilterComponent<T = unknown> implements OnInit {
           userType: incomingState.userType ?? 'ALL',
           status: incomingState.status ?? 'ALL',
           facultyId: incomingState.facultyId ?? 'ALL'
-        }, { emitEvent: false }); // Block cyclic event loop notifications during hydration loops
+        }, { emitEvent: false }); 
       }
     });
   }
@@ -176,29 +166,22 @@ export class FilterComponent<T = unknown> implements OnInit {
     this.registerFilterValueStreams();
   }
 
-  /**
-   * Listens reactively to layout changes, strips 'ALL' sentinel strings down to pristine 
-   * 'undefined' parameters, executes client-side filtering bounds, and dispatches data outwards.
-   */
   private registerFilterValueStreams(): void {
     this.filterForm.valueChanges
       .pipe(
-        debounceTime(250),
+        debounceTime(300),
         distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((formValues) => {
-        // Core Internal Sanitizer Utility: Eradicates presentation rác values before exposure
 
         const getValidRole = (val: unknown): Role | undefined => {
           if (val === 'ALL' || val === null || val === '') return undefined;
-          // Kiểm tra xem giá trị từ Form có thực sự nằm trong danh mục Enum Role hay không
           return Object.values(Role).includes(val as Role) ? (val as Role) : undefined;
         };
 
         const getValidUserType = (val: unknown): UserType | undefined => {
           if (val === 'ALL' || val === null || val === '') return undefined;
-          // Thực hiện validation hoặc gán ép kiểu có chốt chặn kiểm soát boundary
           return val as UserType;
         };
 
@@ -209,7 +192,7 @@ export class FilterComponent<T = unknown> implements OnInit {
 
         const getValidStatus = (val: unknown): UserStatus | undefined => {
           if (val === 'ALL' || val === null || val === '') return undefined;
-          return val as UserStatus; // Hấp thụ giá trị dropdown chuyển vùng an toàn cho form
+          return val as UserStatus; 
         };
 
         const payload: FilterParams = {

@@ -109,70 +109,45 @@ export class UserListComponent {
   readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
   readonly isFinance = computed(() => this.authStore.user()?.role === Role.LEVEL_1_FINANCE);
 
-  private readonly remoteParams$ = toObservable(
-    computed(() => {
-      const index = this.currentPageIndex();
-      const limit = this.pageSize();
+  protected readonly userResource = this.userListService.getUsersResource(() => {
+    this.refreshTrigger();
 
-      const tokens = untracked(this.pageTokens);
-      const currentToken = tokens[index] || '';
-
-      return { limit, pageToken: currentToken, refresh: this.refreshTrigger() };
-    })
-  );
-
-  private readonly apiResponse$ = this.remoteParams$.pipe(
-    switchMap(({ limit, pageToken }) => {
-      this.errorMessage.set(null);
-
-      return this.userListService.getPaginatedUsers(limit, pageToken).pipe(
-        trackLoading(this.isLoading),
-        catchError((err) => {
-          console.error('Fetch paginated users failed:', err);
-          this.errorMessage.set('Failed to load user directory. Please verify server connectivity.');
-          return of({ users: [] as UserBase[], nextPageToken: null as string | null, totalItems: 0 });
-        })
-      );
-    }),
-    map((response) => {
-
-      if (response.nextPageToken) {
-        const nextIndex = this.currentPageIndex() + 1;
-        this.pageTokens.update(tokens => ({
-          ...tokens,
-          [nextIndex]: response.nextPageToken as string
-        }));
-      }
-      return response;
-    })
-  );
-
-  readonly apiResponseSignal = toSignal(this.apiResponse$, {
-    initialValue: { users: [] as UserBase[], nextPageToken: null as string | null, totalItems: 0 }
-  });
-
-  readonly totalItems = computed(() => this.apiResponseSignal().totalItems);
-
-  readonly dataSource = computed(() => {
-    const rawList = this.apiResponseSignal().users;
+    const index = this.currentPageIndex();
+    const tokens = this.pageTokens();
+    const currentToken = tokens[index] || '';
     const filters = this.activeFilters();
 
-    const query = (filters.searchTerm || '').toLowerCase().trim();
+    return {
+      limit: this.pageSize(),
+      pageToken: currentToken,
+      searchTerm: filters.searchTerm,
+      role: filters.role,
+      status: filters.status,
+      userType: filters.userType,
+      facultyId: filters.facultyId
+    };
+  });
 
-    const filteredList = rawList.filter((user: UserBase) => {
-      const matchesQuery = !query ||
-        user.fullName?.toLowerCase().includes(query) ||
-        user.email?.toLowerCase().includes(query) ||
-        user.userCode?.toLowerCase().includes(query);
+  private readonly pageTokenTrackerEffect = effect(() => {
+    const response = this.userResource.value();
+    if (response?.nextPageToken) {
+      const nextIndex = untracked(this.currentPageIndex) + 1;
+      untracked(() => {
+        this.pageTokens.update(tokens => {
+          if (tokens[nextIndex] === response.nextPageToken) return tokens;
+          return { ...tokens, [nextIndex]: response.nextPageToken! };
+        });
+      });
+    }
+  });
 
-      const matchesRole = !filters.role || user.role === filters.role;
-      const matchesStatus = !filters.status || user.status?.toUpperCase() === (filters.status as string).toUpperCase();
-      const matchesUserType = !filters.userType || user.userType?.toLowerCase() === (filters.userType as string).toLowerCase();
+  readonly totalItems = computed(() => this.userResource.value()?.totalItems ?? 0);
 
-      return matchesQuery && matchesRole && matchesStatus && matchesUserType;
-    });
+  readonly dataSource = computed(() => {
+    // Server handles filtering natively; frontend array filtering boilerplate is completely stripped out
+    const rawList = this.userResource.value()?.users ?? [];
 
-    return filteredList.map((user: UserBase) => {
+    return rawList.map((user: UserBase) => {
       const isPending = user.status === UserStatus.PENDING;
       const isActive = user.status === UserStatus.ACTIVE;
       const isSuspended = user.status === UserStatus.SUSPENDED;
@@ -198,7 +173,7 @@ export class UserListComponent {
         isOnboarding: user.status === UserStatus.ONBOARDING,
         targetIsAdmin: user.role === Role.LEVEL_0_ADMIN,
         isRejected: user.status === UserStatus.REJECTED
-      }
+      };
     });
   });
 
@@ -219,7 +194,7 @@ export class UserListComponent {
   }
 
   triggerRefresh(): void {
-    this.refreshTrigger.update((n) => n + 1);
+    this.userResource.reload();
   }
 
   onUserFiltersChanged(cleanParams: FilterParams): void {

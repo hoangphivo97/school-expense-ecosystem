@@ -11,7 +11,7 @@
 
   </lib-filter>
 
-  <div class="card shadow-sm border-0 rounded-4 overflow-hidden" [loading]="isLoading()">
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden" [loading]="userResource.isLoading()">
     <div class="card-body p-0">
 
       <div class="table-responsive">
@@ -163,7 +163,7 @@
                 </button>
               </div>
               }
-              @else if(!isLoading()){
+              @else if(!userResource.isLoading()){
               <div
                 class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
                 <div class="empty-icon-box mb-3">
