@@ -13,8 +13,8 @@
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'admin.userForm.systemRole' | transloco }}</mat-label>
           <mat-select [formField]="userForm.role">
-            @for (opt of roleOptions; track opt.value) {
-            <mat-option [value]="opt.value">{{ 'admin.userForm.roles.' + opt.value | transloco }}</mat-option>
+            @for (role of roleOptions; track role) {
+            <mat-option [value]="role">{{ 'admin.userForm.roles.' + role | transloco }}</mat-option>
             }
           </mat-select>
           <mat-error>
@@ -91,8 +91,8 @@
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'admin.userForm.userType' | transloco }}</mat-label>
           <mat-select [formField]="userForm.userType">
-            @for (opt of filteredUserTypeOptions(); track opt.value) {
-            <mat-option [value]="opt.value">{{ 'admin.userForm.types.' + opt.value | transloco }}</mat-option>
+            @for (type of filteredUserTypeOptions(); track type) {
+            <mat-option [value]="type">{{ 'admin.userForm.types.' + type | transloco }}</mat-option>
             }
           </mat-select>
           <mat-error>
@@ -136,8 +136,8 @@
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'admin.userForm.facultyScope' | transloco }}</mat-label>
           <mat-select [formField]="userForm.facultyId">
-            @for (opt of facultyOptions; track opt.value) {
-            <mat-option [value]="opt.value">{{ 'admin.userForm.faculties.' + opt.value | transloco }}</mat-option>
+            @for (fac of facultyOptions; track fac) {
+            <mat-option [value]="fac">{{ 'admin.userForm.faculties.' + fac | transloco }}</mat-option>
             }
           </mat-select>
           <mat-error>
@@ -153,8 +153,8 @@
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'admin.userForm.accountStatus' | transloco }}</mat-label>
           <mat-select [formField]="userForm.status">
-            @for (opt of statusOptions; track opt.value) {
-            <mat-option [value]="opt.value">{{ 'admin.userForm.status.' + opt.value | transloco }}</mat-option>
+            @for (status of statusOptions; track status) {
+            <mat-option [value]="status">{{ 'admin.userForm.status.' + status | transloco }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
