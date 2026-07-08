@@ -65,5 +65,65 @@
       "updateError": "Failed to update user profile due to a system boundary error.",
       "provisionError": "Failed to provision user account due to an identity conflict."
     }
+  },
+  "userList": {
+    "title": "User Account Directory",
+    "headers": {
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "identityId": "Student/Staff ID",
+      "role": "System Role",
+      "userType": "User Type",
+      "status": "Account Status",
+      "createdAt": "Created At"
+    },
+    "roles": {
+      "admin": "System Administrator",
+      "finance_officer": "Finance Specialist",
+      "faculty_dean": "Faculty Dean",
+      "end_user": "Standard User"
+    },
+    "types": {
+      "staff": "Staff",
+      "teacher": "Teacher",
+      "student": "Student"
+    },
+    "states": {
+      "onboardingPending": "Onboarding Pending",
+      "pending": "Pending",
+      "unassigned": "Unassigned",
+      "protected": "Protected",
+      "you": "You"
+    },
+    "tooltips": {
+      "onboarding": "This user has authenticated via Google but has not yet filled out their onboarding profile info.",
+      "pendingId": "Organizational ID code will be established upon onboarding completion.",
+      "unassignedOps": "System management or financial operations accounts do not require an institutional classification type.",
+      "unassignedUser": "This profile is incomplete. User classification selection is currently pending onboarding completion.",
+      "protectedRule": "Self-modification is restricted, and other admins cannot be changed for security reasons.",
+      "editLocked": "Account profile is incomplete. Editing is locked during onboarding."
+    },
+    "feedback": {
+      "loading": "Synchronizing secure directories...",
+      "emptyTitle": "No Users Found",
+      "emptySubtitle": "There are no system directory accounts recorded for the selected filtering criteria."
+    },
+    "actions": {
+      "retry": "Retry Connection",
+      "paginatorAria": "Select page of database users",
+      "activate": "Activate Account",
+      "reject": "Reject Account",
+      "deactivate": "Deactivate Account",
+      "liftRestriction": "Lift Restriction (Re-activate)",
+      "edit": "Edit User",
+      "delete": "Delete User"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "suspended": "Suspended",
+      "rejected": "Rejected",
+      "onboarding": "Onboarding"
+    }
   }
 }

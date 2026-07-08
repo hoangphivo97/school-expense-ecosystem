@@ -29,6 +29,7 @@ import { faUserXmark } from '@fortawesome/free-solid-svg-icons/faUserXmark';
 import { faCirclePause } from '@fortawesome/free-solid-svg-icons/faCirclePause';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-user-list',
@@ -50,12 +51,16 @@ import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal
     HeaderComponent,
     MatDialogModule,
     FontAwesomeModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslocoModule
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'admin' }
+  ]
 })
 export class UserListComponent {
   private readonly userListService = inject(UserListService);
@@ -101,20 +106,6 @@ export class UserListComponent {
 
   readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
   readonly isFinance = computed(() => this.authStore.user()?.role === Role.LEVEL_1_FINANCE);
-
-  // Commercial English translation registry mapping raw system roles into presentation texts
-  readonly roleLabels: Record<Role, string> = {
-    [Role.LEVEL_0_ADMIN]: 'System Administrator',
-    [Role.LEVEL_1_FINANCE]: 'Finance Specialist',
-    [Role.LEVEL_2_DEAN]: 'Faculty Dean',
-    [Role.LEVEL_3_USER]: 'Standard User'
-  };
-
-  readonly userTypeLabels: Record<UserType, string> = {
-    [UserType.STAFF]: 'Staff',
-    [UserType.STUDENT]: 'Student',
-    [UserType.TEACHER]: 'Teacher'
-  };
 
   private readonly remoteParams$ = toObservable(
     computed(() => {
@@ -181,18 +172,34 @@ export class UserListComponent {
       return matchesQuery && matchesRole && matchesStatus && matchesUserType;
     });
 
-    return filteredList.map((user: UserBase) => ({
-      ...user,
-      roleLabel: this.roleLabels[user.role as Role] || String(user.role),
-      isPending: user.status === UserStatus.PENDING,
-      isNotCurrentAdmin: user.uid !== this.currentAdminId(),
-      isProcessing: user.uid === this.processingUserId(),
-      isActive: user.status === UserStatus.ACTIVE,
-      isSuspended: user.status === UserStatus.SUSPENDED,
-      isOnboarding: user.status === UserStatus.ONBOARDING,
-      targetIsAdmin: user.role === Role.LEVEL_0_ADMIN,
-      isRejected: user.status === UserStatus.REJECTED
-    }));
+    return filteredList.map((user: UserBase) => {
+      const isPending = user.status === UserStatus.PENDING;
+      const isActive = user.status === UserStatus.ACTIVE;
+      const isSuspended = user.status === UserStatus.SUSPENDED;
+
+      const toggles = [];
+      if (isPending) {
+        toggles.push({ status: UserStatus.ACTIVE, icon: this.faCircleCheck, color: 'primary', tooltip: 'admin.userList.actions.activate', cssClass: 'text-success' });
+        toggles.push({ status: UserStatus.REJECTED, icon: this.faUserXMark, color: 'warn', tooltip: 'admin.userList.actions.reject', cssClass: 'text-danger' });
+      } else if (isActive) {
+        toggles.push({ status: UserStatus.SUSPENDED, icon: this.faLock, color: 'warn', tooltip: 'admin.userList.actions.deactivate', cssClass: 'text-danger' });
+      } else if (isSuspended) {
+        toggles.push({ status: UserStatus.ACTIVE, icon: this.faLockOpen, color: 'primary', tooltip: 'admin.userList.actions.liftRestriction', cssClass: 'text-primary' });
+      }
+
+      return {
+        ...user,
+        isPending,
+        isActive,
+        isSuspended,
+        availableToggles: toggles,
+        isNotCurrentAdmin: user.uid !== this.currentAdminId(),
+        isProcessing: user.uid === this.processingUserId(),
+        isOnboarding: user.status === UserStatus.ONBOARDING,
+        targetIsAdmin: user.role === Role.LEVEL_0_ADMIN,
+        isRejected: user.status === UserStatus.REJECTED
+      }
+    });
   });
 
   constructor() {
@@ -334,7 +341,7 @@ export class UserListComponent {
       if (!result) return;
 
       if (result.isDeleted && result.targetUid) {
-        // this.handlePostDeletion(result.targetUid);
+        this.triggerRefresh();
       }
 
       if (result.action === 'SECURITY_LOCKED') {

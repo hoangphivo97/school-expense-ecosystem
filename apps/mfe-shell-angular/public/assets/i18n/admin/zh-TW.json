@@ -65,5 +65,64 @@
       "updateError": "由於系統邊界錯誤，無法更新使用者檔案。",
       "provisionError": "由於身分衝突，無法配置使用者帳戶。"
     }
+  },
+  "userList": {
+    "headers": {
+      "fullName": "完整姓名",
+      "email": "電子郵件地址",
+      "identityId": "教職員/學生代號",
+      "role": "系統角色",
+      "userType": "使用者類型",
+      "status": "帳戶狀態",
+      "createdAt": "建立日期"
+    },
+    "roles": {
+      "admin": "系統管理員",
+      "finance_officer": "財務專員",
+      "faculty_dean": "學院院長",
+      "end_user": "一般使用者"
+    },
+    "types": {
+      "staff": "行政職員",
+      "teacher": "專任教師",
+      "student": "在校學生"
+    },
+    "status": {
+      "active": "啟用",
+      "pending": "審核中",
+      "suspended": "停用",
+      "rejected": "拒絕",
+      "onboarding": "資料初始化"
+    },
+    "states": {
+      "onboardingPending": "等待初始化資料",
+      "pending": "審核中",
+      "unassigned": "未分配",
+      "protected": "受系統保護",
+      "you": "您"
+    },
+    "tooltips": {
+      "onboarding": "此使用者已通過 Google 驗證，但尚未填寫初始化帳戶資料。",
+      "pendingId": "認證編號代碼將在完成初始化程序後自動建立。",
+      "unassignedOps": "系統核心管理或財務專員帳戶不需要分配院系人員分類類型。",
+      "unassignedUser": "此檔案不完整。使用者人員分類目前正等待完成初始化程序。",
+      "protectedRule": "基於安全限制，無法修改自身帳戶狀態，且無法變更其他管理員的設定。",
+      "editLocked": "帳戶資料尚未填寫完整。初始化期間禁止編輯檔案。"
+    },
+    "feedback": {
+      "loading": "正在同步安全目錄數據...",
+      "emptyTitle": "查無使用者資料",
+      "emptySubtitle": "目前沒有任何符合篩選條件的系統目錄帳戶紀錄。"
+    },
+    "actions": {
+      "retry": "重試連線",
+      "paginatorAria": "選擇使用者資料分頁",
+      "activate": "啟用帳戶",
+      "reject": "拒絕申請",
+      "deactivate": "停用此帳戶",
+      "liftRestriction": "解除限制 (重新啟用)",
+      "edit": "編輯使用者",
+      "delete": "刪除使用者"
+    }
   }
 }
