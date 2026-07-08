@@ -6,13 +6,13 @@
 
 <mat-dialog-content class="pt-3">
   <!-- CRITICAL ARCHITECTURAL WORKAROUND & DO NOT REMOVE -->
-  <form  *transloco="let t; scope: 'admin'" class="container-fluid p-0">
+  <form *transloco="let t; scope: 'admin'" class="container-fluid p-0" [loading]="isLoading()">
     <div class="row g-3">
 
       <div class="col-12">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'admin.userForm.systemRole' | transloco }}</mat-label>
-          <mat-select [formField]="userForm.role" >
+          <mat-select [formField]="userForm.role">
             @for (opt of roleOptions; track opt.value) {
             <mat-option [value]="opt.value">{{ 'admin.userForm.roles.' + opt.value | transloco }}</mat-option>
             }
@@ -41,8 +41,7 @@
       <div class="col-md-6 animate-fade-in">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'admin.userForm.email' | transloco }}</mat-label>
-          <input matInput type="email" [formField]="userForm.email"
-            placeholder="username@university.edu.tw" />
+          <input matInput type="email" [formField]="userForm.email" placeholder="username@university.edu.tw" />
           <mat-error>
             {{ userForm.email().errors() | formErrorSignal:{
             required: ('admin.userForm.errors.emailRequired' | transloco),
@@ -57,7 +56,8 @@
           <mat-label>{{ 'admin.userForm.fullName' | transloco }}</mat-label>
           <input matInput type="text" [formField]="userForm.fullName" placeholder="John Doe" />
           <mat-error>
-            {{ userForm.fullName().errors() | formErrorSignal:{ required: ('admin.userForm.errors.nameRequired' | transloco) } }}
+            {{ userForm.fullName().errors() | formErrorSignal:{ required: ('admin.userForm.errors.nameRequired' |
+            transloco) } }}
           </mat-error>
         </mat-form-field>
       </div>
@@ -176,7 +176,8 @@
     <mat-icon>edit</mat-icon> {{ 'admin.userForm.actions.editProfile' | transloco }}
   </button>
   } @else if(!isDetailMode()) {
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm().invalid()"
+    
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm().invalid() || isLoading()"
     class="px-4 py-2 fw-semibold shadow-sm">
     {{ (isEditMode() ? 'admin.userForm.actions.update' : 'admin.userForm.actions.provision') | transloco }}
   </button>

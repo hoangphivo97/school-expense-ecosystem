@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
-import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
+import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
@@ -30,6 +30,7 @@ import { faCirclePause } from '@fortawesome/free-solid-svg-icons/faCirclePause';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils';
 
 @Component({
   selector: 'lib-user-list',
@@ -52,7 +53,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     MatDialogModule,
     FontAwesomeModule,
     MatTooltipModule,
-    TranslocoModule
+    TranslocoModule,
+    LoadingDirective
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
@@ -121,20 +123,18 @@ export class UserListComponent {
 
   private readonly apiResponse$ = this.remoteParams$.pipe(
     switchMap(({ limit, pageToken }) => {
-      this.isLoading.set(true);
       this.errorMessage.set(null);
 
       return this.userListService.getPaginatedUsers(limit, pageToken).pipe(
+        trackLoading(this.isLoading),
         catchError((err) => {
           console.error('Fetch paginated users failed:', err);
-          this.isLoading.set(false);
           this.errorMessage.set('Failed to load user directory. Please verify server connectivity.');
           return of({ users: [] as UserBase[], nextPageToken: null as string | null, totalItems: 0 });
         })
       );
     }),
     map((response) => {
-      this.isLoading.set(false);
 
       if (response.nextPageToken) {
         const nextIndex = this.currentPageIndex() + 1;
@@ -309,16 +309,13 @@ export class UserListComponent {
 
   private executeStatusMutation(uid: string, newStatus: UserStatus, reason?: string): void {
     this.processingUserId.set(uid);
-    this.isLoading.set(true);
 
-    this.userListService.updateUserStatus(uid, newStatus, reason).subscribe({
+    this.userListService.updateUserStatus(uid, newStatus, reason).pipe(trackLoading(this.isLoading)).subscribe({
       next: () => {
-        this.isLoading.set(false);
         this.processingUserId.set(null);
         this.triggerRefresh();
       },
       error: (err) => {
-        this.isLoading.set(false);
         this.processingUserId.set(null);
 
         console.error('Administrative status mutation failed:', err);

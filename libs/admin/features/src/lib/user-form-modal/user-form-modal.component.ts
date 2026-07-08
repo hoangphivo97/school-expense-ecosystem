@@ -15,8 +15,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
-import { FormErrorSignalPipe } from '@school-expense-ecosystem/shared/ui';
+import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
 import { email, form, FormField, required, submit, disabled, validate } from '@angular/forms/signals';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils';
 
 @Component({
   selector: 'lib-user-form-modal',
@@ -24,7 +25,7 @@ import { email, form, FormField, required, submit, disabled, validate } from '@a
   imports: [
     ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatDatepickerModule, MatSnackBarModule, MatIconModule, TranslocoModule,
-    FormErrorSignalPipe, FormField
+    FormErrorSignalPipe, FormField, LoadingDirective
   ],
   templateUrl: './user-form-modal.component.html',
   providers: [
@@ -48,6 +49,7 @@ export class UserFormModalComponent implements OnInit {
   protected readonly isSelf = signal(false);
   protected readonly isOnboarding = signal(false);
   protected readonly targetIsAdmin = signal(false);
+  readonly isLoading = signal<boolean>(false);
 
   protected readonly authMethodDisplay = signal<string>('Google OAuth');
   protected readonly filteredUserTypeOptions = signal<any[]>([]);
@@ -299,7 +301,7 @@ export class UserFormModalComponent implements OnInit {
           ...(rawForm.role === Role.LEVEL_0_ADMIN ? { password: rawForm.password } : {})
         } as CreateUserInput);
 
-      mutation$.subscribe({
+      mutation$.pipe(trackLoading(this.isLoading)).subscribe({
         next: () => {
           const successKey = this.isEditMode() ? 'admin.userForm.notifications.updateSuccess' : 'admin.userForm.notifications.provisionSuccess';
           const msg = this.translocoService.translate(successKey);
