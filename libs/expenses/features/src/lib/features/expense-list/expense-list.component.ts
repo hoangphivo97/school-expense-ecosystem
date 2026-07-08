@@ -9,9 +9,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter} from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 
-import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
+import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
 import { FilterParams, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
 import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
@@ -27,7 +27,8 @@ import { FilterMode } from '@school-expense-ecosystem/shared/types'
   imports: [
     HeaderComponent, FooterComponent, FormsModule, DecimalPipe, CommonModule,
     MatButtonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatInputModule,
-    EnumToStringPipe, FilterComponent
+    EnumToStringPipe, FilterComponent,
+    LoadingDirective
   ],
   templateUrl: './expense-list.component.html',
   styleUrl: './expense-list.component.scss',
@@ -84,7 +85,9 @@ export class ExpenseListComponent implements OnInit {
     };
   });
 
-  readonly isLoading = this.expenseResource.isLoading;
+  protected readonly isGridDataLoading = computed(() =>
+    this.expenseResource.isLoading() || this.availableYearsResource.isLoading()
+  );
   readonly errorMessage = computed(() => this.expenseResource.error() ? 'Failed to resolve database entries.' : null);
 
   readonly totalItems = computed(() => this.expenseResource.value()?.totalItems ?? 0);
