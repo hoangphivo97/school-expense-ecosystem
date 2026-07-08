@@ -1,30 +1,27 @@
 <h2 mat-dialog-title class="fw-bold text-danger m-0 pb-2 border-bottom border-light d-flex align-items-center gap-2">
-  <mat-icon color="warn">warning</mat-icon> Dangerous Action: Destructive Account Deletion
+  <mat-icon color="warn">warning</mat-icon> {{ 'admin.deleteModal.title' | transloco }}
 </h2>
 
-<mat-dialog-content class="pt-3" style="min-width: 420px;">
+<mat-dialog-content class="pt-3" style="min-width: 420px;" [loading]="isLoading()">
   <div class="alert alert-warning py-2 px-3 rounded mb-3 small-text">
     <strong>Target Profile:</strong> {{ targetUser.fullName }} ({{ targetUser.email }})
   </div>
 
   <div class="d-flex flex-column gap-3">
-    <!-- Dropdown Chọn Lý Do - Bind trực tiếp thuộc tính bằng Signal Forms -->
     <mat-form-field appearance="outline" class="w-100">
-      <mat-label>Select Deletion Matrix Option</mat-label>
+      <mat-label>{{ 'admin.deleteModal.selectReason' | transloco }}</mat-label>
       <mat-select [formField]="deleteForm.reasonType">
         @for (opt of reasonOptions; track opt.value) {
-        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        <mat-option [value]="opt.value">{{ 'admin.deleteModal.options.' + opt.value | transloco }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
 
-    <!-- Đọc trực tiếp trị số từ Signal Model để render UI động -->
     @if (deleteModel().reasonType === DeleteReasonType.SECURITY_THREAT) {
     <div class="p-3 rounded border border-dashed border-warning bg-light-warning">
       <p class="m-0 text-muted small-text lh-base">
         <mat-icon class="align-middle fs-6 w-auto h-auto me-1 text-warning">shield</mat-icon>
-        <strong>Retention Policy:</strong> The user will remain in the database under the <code>Rejected</code> pool
-        indefinitely. <strong>No remote API mutations will be dispatched.</strong>
+        <strong>{{ 'admin.deleteModal.policyTitle' | transloco }}</strong> {{ 'admin.deleteModal.policyDesc' | transloco }}
       </p>
     </div>
     }
@@ -33,18 +30,19 @@
     <div class="d-flex flex-column gap-2">
       <div class="p-3 rounded border border-dashed border-danger bg-light-danger mb-1">
         <p class="m-0 text-danger small-text fw-medium">
-          Warning: This action will permanently wipe out the Firestore profile record and delete the credentials from
-          Firebase Auth.
+          <strong>{{ 'admin.deleteModal.warningTitle' | transloco }}</strong> {{ 'admin.deleteModal.warningDesc' | transloco }}
         </p>
       </div>
 
-      <!-- Ô Nhập Chữ Xác Nhận - Bind trực tiếp thuộc tính bằng Signal Forms -->
       <mat-form-field appearance="outline" class="w-100">
-        <mat-label>Type "DELETE" to confirm dynamic purge</mat-label>
+        <mat-label>{{ 'admin.deleteModal.confirmLabel' | transloco }}</mat-label>
         <input matInput type="text" [formField]="deleteForm.confirmationText" placeholder="DELETE" autocomplete="off" />
-        @for (error of deleteForm.confirmationText().errors(); track error) {
-        <mat-error>{{ error.message }}</mat-error>
-        }
+        <mat-error>
+          {{ deleteForm.confirmationText().errors() | formErrorSignal:{
+              required: ('admin.deleteModal.errors.required' | transloco),
+              pattern: ('admin.deleteModal.errors.pattern' | transloco)
+          } }}
+        </mat-error>
       </mat-form-field>
     </div>
     }
@@ -52,11 +50,12 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="px-3 pb-3 pt-0 border-top border-light gap-2">
-  <button mat-button mat-dialog-close class="px-4 py-2 text-secondary fw-semibold">Cancel</button>
+  <button mat-button mat-dialog-close class="px-4 py-2 text-secondary fw-semibold">{{
+    'admin.deleteModal.actions.cancel' | transloco }}</button>
 
   <button mat-flat-button [color]="deleteModel().reasonType === DeleteReasonType.SECURITY_THREAT ? 'accent' : 'warn'"
-    [disabled]="isSubmitDisabled()" (click)="onSubmit()" class="px-4 py-2 fw-semibold shadow-sm">
-    {{ deleteModel().reasonType === DeleteReasonType.SECURITY_THREAT ? 'Acknowledge & Close' : 'Execute Permanent Purge'
-    }}
+    [disabled]="isSubmitDisabled() || isLoading()" (click)="onSubmit()" class="px-4 py-2 fw-semibold shadow-sm">
+    {{ (deleteModel().reasonType === DeleteReasonType.SECURITY_THREAT ? 'admin.deleteModal.actions.acknowledge'
+    : 'admin.deleteModal.actions.purge') | transloco }}
   </button>
 </mat-dialog-actions>

@@ -124,5 +124,32 @@
       "edit": "編輯使用者",
       "delete": "刪除使用者"
     }
+  },
+  "deleteModal": {
+    "title": "危險操作：破壞性帳戶刪除",
+    "targetProfile": "目標檔案資料",
+    "selectReason": "選擇刪除基準矩陣安全選項",
+    "policyTitle": "保留政策：",
+    "policyDesc": "該使用者將永久保留在資料庫的「已拒絕（Rejected）」儲存池中。不會發送任何遠端 API 變更。",
+    "warningTitle": "警告：",
+    "warningDesc": "此操作將永久抹除 Firestore 描述檔紀錄，並從 Firebase Auth 中刪除認證憑證。",
+    "confirmLabel": "請輸入 \"DELETE\" 以確認執行安全清除",
+    "actions": {
+      "cancel": "取消變更",
+      "acknowledge": "確認安全鎖定並關閉",
+      "purge": "執行永久破壞性清除"
+    },
+    "errors": {
+      "required": "必須輸入安全驗證比對字串。",
+      "pattern": "驗證比對字串不符（必須完全相符大寫 'DELETE'）。"
+    },
+    "options": {
+      "INPUT_ERROR": "選項 A：輸入資料錯誤（可完全移除紀錄）",
+      "SECURITY_THREAT": "選項 B：安全威脅邊界違規（帳戶永久鎖定）"
+    },
+    "notifications": {
+      "securityActive": "安全協定已啟動：使用者狀態已被系統鎖定。",
+      "purgeSuccess": "帳戶核心數據已成功完全清除。"
+    }
   }
 }
