@@ -1,185 +1,189 @@
-<h2 mat-dialog-title class="fw-bold text-dark m-0 pb-2 border-bottom border-light">
-  @if (isDetailMode()) { {{ 'admin.userForm.titleDetail' | transloco }} }
-  @else if (isEditMode()) { {{ 'admin.userForm.titleEdit' | transloco }} }
-  @else { {{ 'admin.userForm.titleCreate' | transloco }} }
-</h2>
+<ng-container *transloco="let t; scope: 'admin'">
+  <h2 mat-dialog-title class="fw-bold text-dark m-0 pb-2 border-bottom border-light">
+    @if (isDetailMode()) { {{ 'admin.userForm.titleDetail' | transloco }} }
+    @else if (isEditMode()) { {{ 'admin.userForm.titleEdit' | transloco }} }
+    @else { {{ 'admin.userForm.titleCreate' | transloco }} }
+  </h2>
 
-<mat-dialog-content class="pt-3">
-  <!-- CRITICAL ARCHITECTURAL WORKAROUND & DO NOT REMOVE -->
-  <form *transloco="let t; scope: 'admin'" class="container-fluid p-0" [loading]="isLoading()">
-    <div class="row g-3">
+  <mat-dialog-content class="pt-3">
+    <!-- CRITICAL ARCHITECTURAL WORKAROUND & DO NOT REMOVE -->
+    <form *transloco="let t; scope: 'admin'" class="container-fluid p-0" [loading]="isLoading()">
+      <div class="row g-3">
 
-      <div class="col-12">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.systemRole' | transloco }}</mat-label>
-          <mat-select [formField]="userForm.role">
-            @for (role of roleOptions; track role) {
-            <mat-option [value]="role">{{ 'admin.userForm.roles.' + role | transloco }}</mat-option>
-            }
-          </mat-select>
-          <mat-error>
-            {{ userForm.role().errors() | formErrorSignal:{ required: ('admin.userForm.errors.roleRequired' | transloco)
-            } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      @if (userForm.role().value()) {
-      <div class="col-12 animate-fade-in">
-        <div
-          class="auth-stream-badge p-3 rounded border border-dashed d-flex flex-column justify-content-center bg-light">
-          <span class="text-muted small-text text-uppercase fw-semibold tracking-wider">{{
-            'admin.userForm.correspondingAuth' | transloco }}</span>
-          <span class="fw-bold text-primary fs-6 mt-1 d-flex align-items-center">
-            <span class="indicator-dot" [class.bg-success]="authMethodDisplay() === 'google'"
-              [class.bg-warning]="authMethodDisplay() !== 'google'"></span>
-            {{ 'admin.userForm.authMethod.' + authMethodDisplay() | transloco }}
-          </span>
+        <div class="col-12">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.systemRole' | transloco }}</mat-label>
+            <mat-select [formField]="userForm.role">
+              @for (role of roleOptions; track role) {
+              <mat-option [value]="role">{{ 'admin.userForm.roles.' + role | transloco }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>
+              {{ userForm.role().errors() | formErrorSignal:{ required: ('admin.userForm.errors.roleRequired' |
+              transloco)
+              } }}
+            </mat-error>
+          </mat-form-field>
         </div>
+
+        @if (userForm.role().value()) {
+        <div class="col-12 animate-fade-in">
+          <div
+            class="auth-stream-badge p-3 rounded border border-dashed d-flex flex-column justify-content-center bg-light">
+            <span class="text-muted small-text text-uppercase fw-semibold tracking-wider">{{
+              'admin.userForm.correspondingAuth' | transloco }}</span>
+            <span class="fw-bold text-primary fs-6 mt-1 d-flex align-items-center">
+              <span class="indicator-dot" [class.bg-success]="authMethodDisplay() === 'google'"
+                [class.bg-warning]="authMethodDisplay() !== 'google'"></span>
+              {{ 'admin.userForm.authMethod.' + authMethodDisplay() | transloco }}
+            </span>
+          </div>
+        </div>
+
+        <div class="col-md-6 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.email' | transloco }}</mat-label>
+            <input matInput type="email" [formField]="userForm.email" placeholder="username@university.edu.tw" />
+            <mat-error>
+              {{ userForm.email().errors() | formErrorSignal:{
+              required: ('admin.userForm.errors.emailRequired' | transloco),
+              email: ('admin.userForm.errors.emailInvalid' | transloco)
+              } }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.fullName' | transloco }}</mat-label>
+            <input matInput type="text" [formField]="userForm.fullName" placeholder="John Doe" />
+            <mat-error>
+              {{ userForm.fullName().errors() | formErrorSignal:{ required: ('admin.userForm.errors.nameRequired' |
+              transloco) } }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.dob' | transloco }}</mat-label>
+            <input matInput [matDatepicker]="dobPicker" [formField]="userForm.dateOfBirth"
+              placeholder="Choose a date" />
+            <mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+            <mat-error>
+              {{ userForm.dateOfBirth().errors() | formErrorSignal:{ required: ('admin.userForm.errors.dobRequired' |
+              transloco) } }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.userCode' | transloco }}</mat-label>
+            <input matInput type="text" [formField]="userForm.userCode" placeholder="T151586" />
+            <mat-error>
+              {{ userForm.userCode().errors() | formErrorSignal:{ required: ('admin.userForm.errors.codeRequired' |
+              transloco) } }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        @if (!userForm.userType().disabled()) {
+        <div class="col-md-6 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.userType' | transloco }}</mat-label>
+            <mat-select [formField]="userForm.userType">
+              @for (type of filteredUserTypeOptions(); track type) {
+              <mat-option [value]="type">{{ 'admin.userForm.types.' + type | transloco }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>
+              {{ userForm.userType().errors() | formErrorSignal:{ required: ('admin.userForm.errors.typeRequired' |
+              transloco) } }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+        }
+
+        @if (!userForm.password().disabled() && !isEditMode()) {
+        <div class="col-md-6 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.initialPassword' | transloco }}</mat-label>
+            <input matInput type="password" [formField]="userForm.password" placeholder="Min 6 characters" />
+            <mat-error>
+              {{ userForm.password().errors() | formErrorSignal:{
+              required: ('admin.userForm.errors.passwordRequired' | transloco),
+              minlength: ('admin.userForm.errors.passwordLength' | transloco)
+              } }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.confirmPassword' | transloco }}</mat-label>
+            <input matInput type="password" [formField]="userForm.confirmPassword" placeholder="Retype password" />
+            <mat-error>
+              {{ userForm.confirmPassword().errors() | formErrorSignal:{
+              required: ('admin.userForm.errors.confirmRequired' | transloco),
+              passwordMismatch: ('admin.userForm.errors.passwordMismatch' | transloco)
+              } }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+        }
+
+        @if (!userForm.facultyId().disabled()) {
+        <div class="col-md-12 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.facultyScope' | transloco }}</mat-label>
+            <mat-select [formField]="userForm.facultyId">
+              @for (fac of facultyOptions; track fac) {
+              <mat-option [value]="fac">{{ 'admin.userForm.faculties.' + fac | transloco }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>
+              {{ userForm.facultyId().errors() | formErrorSignal:{ required: ('admin.userForm.errors.facultyRequired' |
+              transloco) } }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+        }
+
+        @if (isEditMode()) {
+        <div class="col-12 animate-fade-in">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'admin.userForm.accountStatus' | transloco }}</mat-label>
+            <mat-select [formField]="userForm.status">
+              @for (status of statusOptions; track status) {
+              <mat-option [value]="status">{{ 'admin.userForm.status.' + status | transloco }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        }
+        }
+
       </div>
+    </form>
+  </mat-dialog-content>
 
-      <div class="col-md-6 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.email' | transloco }}</mat-label>
-          <input matInput type="email" [formField]="userForm.email" placeholder="username@university.edu.tw" />
-          <mat-error>
-            {{ userForm.email().errors() | formErrorSignal:{
-            required: ('admin.userForm.errors.emailRequired' | transloco),
-            email: ('admin.userForm.errors.emailInvalid' | transloco)
-            } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
+  <mat-dialog-actions align="end" class="px-3 pb-3 pt-0 border-top border-light gap-2">
+    <button mat-button mat-dialog-close class="px-4 py-2 text-secondary fw-semibold">
+      {{ 'admin.userForm.actions.cancel' | transloco }}
+    </button>
 
-      <div class="col-md-6 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.fullName' | transloco }}</mat-label>
-          <input matInput type="text" [formField]="userForm.fullName" placeholder="John Doe" />
-          <mat-error>
-            {{ userForm.fullName().errors() | formErrorSignal:{ required: ('admin.userForm.errors.nameRequired' |
-            transloco) } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
+    @if (canEditProfile()) {
+    <button mat-flat-button color="accent" (click)="switchToEditMode()" class="px-4 py-2 fw-semibold shadow-sm">
+      <mat-icon>edit</mat-icon> {{ 'admin.userForm.actions.editProfile' | transloco }}
+    </button>
+    } @else if(!isDetailMode()) {
 
-      <div class="col-md-6 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.dob' | transloco }}</mat-label>
-          <input matInput [matDatepicker]="dobPicker" [formField]="userForm.dateOfBirth" placeholder="Choose a date" />
-          <mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
-          <mat-datepicker #dobPicker></mat-datepicker>
-          <mat-error>
-            {{ userForm.dateOfBirth().errors() | formErrorSignal:{ required: ('admin.userForm.errors.dobRequired' |
-            transloco) } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="col-md-6 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.userCode' | transloco }}</mat-label>
-          <input matInput type="text" [formField]="userForm.userCode" placeholder="T151586" />
-          <mat-error>
-            {{ userForm.userCode().errors() | formErrorSignal:{ required: ('admin.userForm.errors.codeRequired' |
-            transloco) } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      @if (!userForm.userType().disabled()) {
-      <div class="col-md-6 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.userType' | transloco }}</mat-label>
-          <mat-select [formField]="userForm.userType">
-            @for (type of filteredUserTypeOptions(); track type) {
-            <mat-option [value]="type">{{ 'admin.userForm.types.' + type | transloco }}</mat-option>
-            }
-          </mat-select>
-          <mat-error>
-            {{ userForm.userType().errors() | formErrorSignal:{ required: ('admin.userForm.errors.typeRequired' |
-            transloco) } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-      }
-
-      @if (!userForm.password().disabled() && !isEditMode()) {
-      <div class="col-md-6 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.initialPassword' | transloco }}</mat-label>
-          <input matInput type="password" [formField]="userForm.password" placeholder="Min 6 characters" />
-          <mat-error>
-            {{ userForm.password().errors() | formErrorSignal:{
-            required: ('admin.userForm.errors.passwordRequired' | transloco),
-            minlength: ('admin.userForm.errors.passwordLength' | transloco)
-            } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="col-md-6 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.confirmPassword' | transloco }}</mat-label>
-          <input matInput type="password" [formField]="userForm.confirmPassword" placeholder="Retype password" />
-          <mat-error>
-            {{ userForm.confirmPassword().errors() | formErrorSignal:{
-            required: ('admin.userForm.errors.confirmRequired' | transloco),
-            passwordMismatch: ('admin.userForm.errors.passwordMismatch' | transloco)
-            } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-      }
-
-      @if (!userForm.facultyId().disabled()) {
-      <div class="col-md-12 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.facultyScope' | transloco }}</mat-label>
-          <mat-select [formField]="userForm.facultyId">
-            @for (fac of facultyOptions; track fac) {
-            <mat-option [value]="fac">{{ 'admin.userForm.faculties.' + fac | transloco }}</mat-option>
-            }
-          </mat-select>
-          <mat-error>
-            {{ userForm.facultyId().errors() | formErrorSignal:{ required: ('admin.userForm.errors.facultyRequired' |
-            transloco) } }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-      }
-
-      @if (isEditMode()) {
-      <div class="col-12 animate-fade-in">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'admin.userForm.accountStatus' | transloco }}</mat-label>
-          <mat-select [formField]="userForm.status">
-            @for (status of statusOptions; track status) {
-            <mat-option [value]="status">{{ 'admin.userForm.status.' + status | transloco }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-      }
-      }
-
-    </div>
-  </form>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end" class="px-3 pb-3 pt-0 border-top border-light gap-2">
-  <button mat-button mat-dialog-close class="px-4 py-2 text-secondary fw-semibold">
-    {{ 'admin.userForm.actions.cancel' | transloco }}
-  </button>
-
-  @if (canEditProfile()) {
-  <button mat-flat-button color="accent" (click)="switchToEditMode()" class="px-4 py-2 fw-semibold shadow-sm">
-    <mat-icon>edit</mat-icon> {{ 'admin.userForm.actions.editProfile' | transloco }}
-  </button>
-  } @else if(!isDetailMode()) {
-    
-  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm().invalid() || isLoading()"
-    class="px-4 py-2 fw-semibold shadow-sm">
-    {{ (isEditMode() ? 'admin.userForm.actions.update' : 'admin.userForm.actions.provision') | transloco }}
-  </button>
-  }
-</mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm().invalid() || isLoading()"
+      class="px-4 py-2 fw-semibold shadow-sm">
+      {{ (isEditMode() ? 'admin.userForm.actions.update' : 'admin.userForm.actions.provision') | transloco }}
+    </button>
+    }
+  </mat-dialog-actions>
+</ng-container>
