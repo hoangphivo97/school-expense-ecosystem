@@ -7,7 +7,8 @@ import { ConflictReason, OnboardingData } from '@school-expense-ecosystem/auth/t
 import { AuthUserRepository } from './auth-user.repository';
 import { IdentityProvider } from './interface/identify-provider.interface';
 import { UserStatus, Role, UserBase } from '@school-expense-ecosystem/shared/types';
-import { AccountRestrictedException, IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
+import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
+import { AccountRestrictedException } from '@school-expense-ecosystem/shared/guards-backend';
 
 @Injectable()
 export class AuthService {
