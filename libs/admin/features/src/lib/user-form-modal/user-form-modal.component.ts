@@ -1,5 +1,4 @@
 import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
-import { Validators, ReactiveFormsModule, AbstractControl, ValidatorFn } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { Role, UserType, UserStatus, FacultyId, UserBase } from '@school-expense-ecosystem/shared/types';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
@@ -23,7 +22,7 @@ import { trackLoading } from '@school-expense-ecosystem/shared/utils';
   selector: 'lib-user-form-modal',
   standalone: true,
   imports: [
-    ReactiveFormsModule, MatButtonModule, MatDialogModule, MatFormFieldModule,
+    MatButtonModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatDatepickerModule, MatSnackBarModule, MatIconModule, TranslocoModule,
     FormErrorSignalPipe, FormField, LoadingDirective
   ],

@@ -13,8 +13,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
-import { toSignal, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, map, of, switchMap } from 'rxjs';
 import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
