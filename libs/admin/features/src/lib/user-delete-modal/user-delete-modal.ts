@@ -11,7 +11,7 @@ import { DeleteReasonType, DeleteUserPayload } from '@school-expense-ecosystem/a
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { form, FormField, required, validate, } from '@angular/forms/signals';
 import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
-import { trackLoading } from '@school-expense-ecosystem/shared/utils';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 
 @Component({

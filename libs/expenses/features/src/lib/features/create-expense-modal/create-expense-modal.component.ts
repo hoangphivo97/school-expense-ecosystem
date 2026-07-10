@@ -11,7 +11,7 @@ import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
-import { compressImage, CustomDateAdapter } from '@school-expense-ecosystem/shared/utils';
+import { compressImage, CustomDateAdapter } from '@school-expense-ecosystem/shared/utils-frontend';
 import { ConfirmDialogData, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
 import {
   ExpenseList,

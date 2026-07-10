@@ -1,5 +1,5 @@
 <lib-header></lib-header>
-<div class="expense-list" [loading]="isGridDataLoading()">
+<div class="expense-list" [seLoading]="isGridDataLoading()">
   <lib-filter [mode]="filterModeEnum.EXPENSE" [yearsList]="availableYearsSignal()" [value]="filterParams()"
     (filterChange)="onExpenseFiltersChanged($event)">
 

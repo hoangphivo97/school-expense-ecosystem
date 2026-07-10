@@ -28,7 +28,7 @@ import { faCirclePause } from '@fortawesome/free-solid-svg-icons/faCirclePause';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
-import { trackLoading } from '@school-expense-ecosystem/shared/utils';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 
 @Component({
   selector: 'lib-user-list',

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { FirebaseError } from 'firebase/app';
 import { ErrorModalComponent } from '../../modal/error-modal/error-modal.component';
 import { MatDialog } from '@angular/material/dialog';
-import { getFriendlyErrorMessage } from '@school-expense-ecosystem/shared/utils';
+import { getFriendlyErrorMessage } from '@school-expense-ecosystem/shared/utils-frontend';
 import { DialogError } from '@school-expense-ecosystem/shared/types';
 
 @Injectable({

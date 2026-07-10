@@ -8,7 +8,7 @@ import { AuthUserRepository } from './auth-user.repository';
 import { IdentityProvider } from './interface/identify-provider.interface';
 import { UserStatus, Role, UserBase } from '@school-expense-ecosystem/shared/types';
 import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
-import { AccountRestrictedException } from '@school-expense-ecosystem/shared/utils';
+import { AccountRestrictedException } from '@school-expense-ecosystem/shared/utils-backend';
 import { FirebaseError } from 'firebase/app';
 
 @Injectable()

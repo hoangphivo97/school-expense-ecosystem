@@ -16,7 +16,7 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
 import { email, form, FormField, required, submit, disabled, validate } from '@angular/forms/signals';
-import { trackLoading } from '@school-expense-ecosystem/shared/utils';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 
 @Component({
   selector: 'lib-user-form-modal',

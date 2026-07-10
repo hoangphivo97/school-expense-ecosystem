@@ -1,4 +1,4 @@
-import { BaseAuthException } from "@school-expense-ecosystem/shared/utils";
+import { BaseAuthException } from "@school-expense-ecosystem/shared/utils-backend";
 
 export class InvalidTokenException extends BaseAuthException {
   constructor() {
