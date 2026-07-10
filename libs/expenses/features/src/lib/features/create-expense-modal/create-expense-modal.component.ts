@@ -1,6 +1,5 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -9,7 +8,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { compressImage, CustomDateAdapter } from '@school-expense-ecosystem/shared/utils-frontend';
 import { ConfirmDialogData, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
@@ -20,7 +18,8 @@ import {
   PaidMethod
 } from '@school-expense-ecosystem/expenses/types';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
+import { ConfirmDialogComponent, FormErrorSignalPipe } from '@school-expense-ecosystem/shared/ui';
+import { form, required, submit, validate, FormField } from '@angular/forms/signals';
 
 export const MY_DATE_FORMATS = {
   parse: { dateInput: 'DD/MM/YYYY' },
@@ -37,15 +36,16 @@ export const MY_DATE_FORMATS = {
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
     MatDialogModule,
     MatInputModule,
     MatButtonModule,
     MatDatepickerModule,
     MatSelectModule,
     MatIconModule,
-    MatProgressBarModule
-  ],
+    MatProgressBarModule,
+    FormField,
+    FormErrorSignalPipe
+],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },
     { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
@@ -58,7 +58,6 @@ export class CreateExpenseModalComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<CreateExpenseModalComponent>);
   private readonly dialog = inject(MatDialog);
   readonly dialogData = inject<DialogData>(MAT_DIALOG_DATA);
-  private readonly fb = inject(FormBuilder);
   private readonly expenseService = inject(ExpenseService);
   private readonly decimalPipe = inject(DecimalPipe);
   private readonly destroyRef = inject(DestroyRef);
@@ -75,53 +74,78 @@ export class CreateExpenseModalComponent implements OnInit {
     { label: 'Cash', value: PaidMethod.CASH }
   ];
 
-  readonly formattedValue = 0;
+  readonly formattedAmount = signal<string>('');
 
   // Form definition với Strong Typing
-  readonly expenseForm = this.fb.nonNullable.group({
-    date: [new Date(), [Validators.required]],
-    description: ['', [Validators.required, Validators.minLength(5)]],
-    purpose: ['', [Validators.required]],
-    paidoutMethod: [PaidMethod.CASH, [Validators.required]],
-    amount: [0 as number, [Validators.required, Validators.min(1000), Validators.max(2000)]],
-    proofUrls: [[] as string[], Validators.required]
+  protected readonly expenseModel = signal({
+    date: new Date(),
+    description: '',
+    purpose: '',
+    paidoutMethod: PaidMethod.CASH,
+    amount: 0,
+    proofUrls: [] as string[]
+  });
+
+  protected readonly expenseForm = form(this.expenseModel, (s) => {
+    required(s.date);
+    required(s.description);
+    required(s.purpose);
+    required(s.paidoutMethod);
+    required(s.amount);
+
+    validate(s.description, ({ value }) => {
+      return value().trim().length < 5 ? { kind: 'minLength' } : undefined;
+    });
+
+    validate(s.amount, ({ value }) => {
+      if (value() < 1000) return { kind: 'min' };
+      if (value() > 2000) return { kind: 'max' };
+      return undefined;
+    });
+
+    validate(s.proofUrls, ({ value }) => {
+      return !value() || value().length === 0 ? { kind: 'required' } : undefined;
+    });
   });
 
   ngOnInit(): void {
     if (this.dialogData.action === this.Action.Edit) {
-      this.patchFormValue();
+      this.patchFormValue()
     }
   }
 
   private patchFormValue() {
     const data = this.dialogData.data as ExpenseList;
-    this.expenseForm.patchValue({
+    // Directly hydrate the unified signal state object bypassing old control patches
+    this.expenseModel.set({
       description: data.description,
       purpose: data.purpose,
       paidoutMethod: data.paidMethod,
       amount: data.amount,
       date: new Date(data.date),
+      proofUrls: data.proofUrls || []
     });
   }
 
+
   onSave() {
-    if (this.expenseForm.invalid) return;
+    if (this.expenseForm().invalid()) return;
 
-    const formValue = this.expenseForm.getRawValue();
-    // Map DTO chuẩn theo Interface CreateExpenseInput
-    const payload: CreateExpenseInput = {
-      amount: formValue.amount,
-      purpose: formValue.purpose,
-      description: formValue.description,
-      proofUrls: formValue.proofUrls || []
-    };
+    submit(this.expenseForm, async () => {
+      const formValue = this.expenseModel();
+      const payload: CreateExpenseInput = {
+        amount: formValue.amount,
+        purpose: formValue.purpose,
+        description: formValue.description,
+        proofUrls: formValue.proofUrls || []
+      };
 
-    // if (this.dialogData.action === this.Action.Create) {
-    //   this.executeCreate(payload);
-    // } else {
-    //   this.executeEdit((this.dialogData.data as ExpenseList).id, payload);
-    // }
-    console.log(payload)
+      if (this.dialogData.action === this.Action.Create) {
+        this.executeCreate(payload);
+      } else {
+        this.executeEdit((this.dialogData.data as ExpenseList).id, payload);
+      }
+    });
   }
 
   private executeCreate(payload: CreateExpenseInput) {
@@ -139,23 +163,13 @@ export class CreateExpenseModalComponent implements OnInit {
   onInputAmount(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     const rawValue = inputElement.value.replace(/,/g, '');
-    const numericValue = parseFloat(rawValue); 
+    const numericValue = parseFloat(rawValue);
 
     // Update the form control with raw numeric value
-    if (!isNaN(numericValue)) {
-      this.expenseForm
-        .get('amount')
-        ?.setValue(numericValue, { emitEvent: false });
-    } else {
-      this.expenseForm
-        .get('amount')
-        ?.setValue(0, { emitEvent: false });
-    }
+    this.expenseModel.update(m => ({ ...m, amount: numericValue }));
 
     // Format the display value
-    const formattedValue =
-      this.decimalPipe.transform(numericValue, '1.0-2') || '';
-    inputElement.value = formattedValue;
+    inputElement.value = this.formattedAmount();
   }
 
   closeDialog(isSuccess: boolean) {
@@ -205,9 +219,11 @@ export class CreateExpenseModalComponent implements OnInit {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (response) => {
-            const currentUrls = this.expenseForm.controls.proofUrls.value;
-            this.expenseForm.controls.proofUrls.setValue([...currentUrls, response.url]);
-            this.expenseForm.controls.proofUrls.markAsDirty();
+            // Immutable list append driven dynamically within the object mutation wrapper
+            this.expenseModel.update(m => ({
+              ...m,
+              proofUrls: [...m.proofUrls, response.url]
+            }));
             this.isUploading.set(false);
           },
           error: () => {
@@ -225,15 +241,15 @@ export class CreateExpenseModalComponent implements OnInit {
   }
 
   removeFile(indexToRemove: number): void {
-    const currentUrls = this.expenseForm.controls.proofUrls.value;
-    this.expenseForm.controls.proofUrls.setValue(
-      currentUrls.filter((_, index) => index !== indexToRemove)
-    );
-    this.expenseForm.controls.proofUrls.markAsDirty();
+    // Safely pipe state updates down via standard array filter routines
+    this.expenseModel.update(m => ({
+      ...m,
+      proofUrls: m.proofUrls.filter((_, index) => index !== indexToRemove)
+    }));
   }
 
   onCancel(): void {
-    if (this.expenseForm.dirty) {
+    if (this.expenseForm().dirty()) {
       // Configure tailored parameters specifically for discarding expense data
       const dialogConfig: ConfirmDialogData = {
         title: 'Unsaved Expense Details',
