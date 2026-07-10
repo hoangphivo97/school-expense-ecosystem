@@ -76,22 +76,22 @@ export class FirebaseAuthRepository implements AuthUserRepository {
         const existingUser = codeSnap.docs[0].data();
 
         // Scenario 2: Idempotent operation - The duplicate code belongs to the current user (Re-submission)
-        if (existingUser['firebaseUid'] === check.uid) {
+        if (existingUser['uid'] === check.uid) {
             return { isConflict: false, reason: ConflictReason.NONE, shouldLinkPreCreatedAccount: false };
         }
 
         // Scenario 3: Pre-allocated match - The record was pre-created by Admin via Excel and email matches exactly
-        if (!existingUser['firebaseUid'] && existingUser['email'] === check.email) {
+        if (!existingUser['uid'] && existingUser['email'] === check.email) {
             return { isConflict: false, reason: ConflictReason.NONE, shouldLinkPreCreatedAccount: true };
         }
 
         // Scenario 4: Identity Collision - The code is already explicitly claimed and linked to a different Firebase UID
-        if (existingUser['firebaseUid'] && existingUser['firebaseUid'] !== check.uid) {
+        if (existingUser['uid'] && existingUser['uid'] !== check.uid) {
             return { isConflict: true, reason: ConflictReason.CAD, shouldLinkPreCreatedAccount: false };
         }
 
         // Scenario 5: Security Anomaly - The code is pre-created but the registering email does not match the Admin record
-        if (!existingUser['firebaseUid'] && existingUser['email'] !== check.email) {
+        if (!existingUser['uid'] && existingUser['email'] !== check.email) {
             return { isConflict: true, reason: ConflictReason.EMWP, shouldLinkPreCreatedAccount: false };
         }
 
@@ -113,7 +113,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
 
                 // Link the active Firebase identity into the pre-created slot
                 transaction.update(targetDocRef, {
-                    firebaseUid: uid,
+                    uid: uid,
                     status: UserStatus.PENDING, // Transition state to await ultimate approval clearance
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
@@ -126,7 +126,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
                 const userRef = this.db.collection('users').doc(uid);
                 transaction.set(userRef, {
                     ...data,
-                    firebaseUid: uid,
+                    uid: uid,
                     status: UserStatus.PENDING, // Commit state into the standard verification queue
                     createdAt: admin.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
