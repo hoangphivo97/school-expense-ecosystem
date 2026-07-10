@@ -2,7 +2,7 @@
   <mat-icon color="warn">warning</mat-icon> {{ 'admin.deleteModal.title' | transloco }}
 </h2>
 
-<mat-dialog-content class="pt-3" style="min-width: 420px;" [loading]="isLoading()">
+<mat-dialog-content class="pt-3" style="min-width: 420px;" [seLoading]="isLoading()">
   <div class="alert alert-warning py-2 px-3 rounded mb-3 small-text">
     <strong>Target Profile:</strong> {{ targetUser.fullName }} ({{ targetUser.email }})
   </div>

@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { InvalidAppCheckTokenException, MissingAppCheckTokenException } from '@school-expense-ecosystem/auth/data-access-backend';
+import { InvalidAppCheckTokenException, MissingAppCheckTokenException } from '@school-expense-ecosystem/shared/utils-backend';
 import * as admin from 'firebase-admin';
 
 export const SKIP_APP_CHECK_KEY = 'skipAppCheck';

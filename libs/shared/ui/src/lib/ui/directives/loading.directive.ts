@@ -2,7 +2,7 @@ import { Directive, ElementRef, Renderer2, ViewContainerRef, ComponentRef, effec
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Directive({
-  selector: '[loading]',
+  selector: '[seLoading]',
   standalone: true,
 })
 export class LoadingDirective {
@@ -12,7 +12,7 @@ export class LoadingDirective {
   private spinnerRef?: ComponentRef<MatProgressSpinner>;
 
   // Reactive input signal accepting the loading state value
-  loading = input<boolean>(false);
+  loading = input<boolean>(false, { alias: 'seLoading' });
 
   constructor() {
     /**
@@ -47,9 +47,9 @@ export class LoadingDirective {
 
   private disableLoadingState(): void {
     const targetElement = this.elementRef.nativeElement;
-    
+
     this.renderer.removeClass(targetElement, 'loading-container-blurred');
-    
+
     if (this.spinnerRef) {
       this.spinnerRef.destroy();
       this.spinnerRef = undefined;

@@ -1,12 +1,8 @@
-import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
+import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput, UserQueryPayload } from '@school-expense-ecosystem/admin/types';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 export abstract class UserRepository {
-  abstract findPaginated(filters: {
-    facultyId?: string;
-    limit: number;
-    pageToken?: string;
-  }): Promise<PaginatedUserResult>;
+  abstract findPaginated(filters: UserQueryPayload): Promise<PaginatedUserResult>;
   abstract checkIdentityConflict(email: string, userCode: string): Promise<boolean>;
   abstract createUserRecord(uid: string, userData: CreateUserInput): Promise<CreateUserResult>;
   abstract updateUserFields(uid: string, updateData: UpdateUserInput): Promise<void>;
