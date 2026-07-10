@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@school-expense-ecosystem/shared/types';
 import { ROLES_KEY } from './decorators/roles.decorator';
-import { InsufficientPermissionsException, UserContextNotFoundException } from './exceptions/guard.exception';
+import { InsufficientPermissionsException, UserContextNotFoundException } from '@school-expense-ecosystem/shared/utils';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
