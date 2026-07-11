@@ -75,8 +75,6 @@ export class CreateExpenseModalComponent implements OnInit {
     { label: 'Cash', value: PaidMethod.CASH }
   ];
 
-  readonly formattedValue = 0;
-
   // Form definition với Strong Typing
   readonly expenseForm = this.fb.nonNullable.group({
     date: [new Date(), [Validators.required]],
