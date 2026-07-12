@@ -102,7 +102,7 @@ export class ExpenseController {
   @Post('upload-proof')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 5 * 1024 * 1024 }, // Ngắt kết nối sớm nếu file > 5MB
+      limits: { fileSize: 5 * 1024 * 1024 }, 
     }),
   )
   async uploadProof(
@@ -122,10 +122,8 @@ export class ExpenseController {
     @Req() req: any
   ) {
     const fileUrl = await this.storageProvider.uploadTemp(file);
-    const host = req.get('host');
-    const protocol = req.protocol;
 
-    // Trả về URL tuyệt đối để phía client (Angular) có thể hiển thị/download
-    return { url: `${protocol}://${host}${fileUrl}` };
+
+    return { url: fileUrl };
   }
 }
