@@ -46,7 +46,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       query = query
         .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfMonth))
         .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfMonth));
-    }
+    } 
 
     if (filters.searchTerm) {
       const term = filters.searchTerm.trim();
@@ -55,7 +55,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
         .where('description', '<=', term + '\uf8ff')
         .orderBy('description');
     } else {
-      query = query.orderBy('createdAt', 'desc');
+      query = query.orderBy('date', 'desc');
     }
 
     if (filters.pageToken) {
