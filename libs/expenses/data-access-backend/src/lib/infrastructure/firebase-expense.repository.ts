@@ -104,6 +104,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
 
     const firestorePayload = {
       ...data,
+      date: admin.firestore.Timestamp.fromDate(new Date(data.date)),
       createdAt: admin.firestore.Timestamp.now(),
       updatedAt: admin.firestore.Timestamp.now()
     };
@@ -152,7 +153,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       }
     });
 
-    return Array.from(yearsSet).sort((a, b) => b - a); // Trả về danh sách năm giảm dần
+    return Array.from(yearsSet).sort((a, b) => b - a);
   }
 
   async getAnalytics(filters: AnalyticsFilters): Promise<ExpenseAnalyticsDto> {

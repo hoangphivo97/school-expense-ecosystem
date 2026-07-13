@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
-import { IsNotEmpty, IsNumber, IsString, IsArray, IsUrl, MaxLength, Min } from 'class-validator';
+import { CreateExpenseInput, PaidMethod, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsUrl, MaxLength, Min, IsEnum } from 'class-validator';
 
 export class CreateExpenseDto implements CreateExpenseInput {
   @IsNotEmpty()
@@ -21,6 +21,10 @@ export class CreateExpenseDto implements CreateExpenseInput {
   @IsArray()
   @IsUrl({}, { each: true })
   proofUrls!: string[];
+
+  @IsNotEmpty()
+  @IsEnum(PaidMethod)
+  paidMethod!: PaidMethod;
 }
 
 export class UpdateExpenseDto extends PartialType(CreateExpenseDto) implements UpdateExpenseInput {}

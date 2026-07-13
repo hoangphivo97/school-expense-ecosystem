@@ -24,7 +24,7 @@ export interface ExpenseList {
 
 export type CreateExpenseInput = Pick<
   ExpenseList,
-  'amount' | 'purpose' | 'description' | 'proofUrls'
+  'amount' | 'purpose' | 'description' | 'proofUrls' | 'paidMethod'
 >;
 
 export type UpdateExpenseInput = Partial<CreateExpenseInput>;
@@ -54,6 +54,7 @@ export interface AuditLogEntry {
   actorType: UserType;
   actorCode: string;
   facultyId: FacultyId;
+  paidMethod: PaidMethod
   action: AuditAction;
   status: ExpenseStatus;
   rejectReason?: string;

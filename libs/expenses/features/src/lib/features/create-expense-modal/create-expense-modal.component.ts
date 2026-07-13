@@ -106,12 +106,13 @@ export class CreateExpenseModalComponent implements OnInit {
     if (this.expenseForm.invalid) return;
 
     const formValue = this.expenseForm.getRawValue();
-    // Map DTO chuẩn theo Interface CreateExpenseInput
+
     const payload: CreateExpenseInput = {
       amount: formValue.amount,
       purpose: formValue.purpose,
       description: formValue.description,
-      proofUrls: formValue.proofUrls || []
+      proofUrls: formValue.proofUrls || [],
+      paidMethod: formValue.paidoutMethod
     };
 
     // if (this.dialogData.action === this.Action.Create) {
@@ -119,7 +120,7 @@ export class CreateExpenseModalComponent implements OnInit {
     // } else {
     //   this.executeEdit((this.dialogData.data as ExpenseList).id, payload);
     // }
-    console.log(payload)
+    this.executeCreate(payload);
   }
 
   private executeCreate(payload: CreateExpenseInput) {
@@ -137,7 +138,7 @@ export class CreateExpenseModalComponent implements OnInit {
   onInputAmount(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     const rawValue = inputElement.value.replace(/,/g, '');
-    const numericValue = parseFloat(rawValue); 
+    const numericValue = parseFloat(rawValue);
 
     // Update the form control with raw numeric value
     if (!isNaN(numericValue)) {

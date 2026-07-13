@@ -43,7 +43,8 @@ export class ExpenseBackendService {
       actorRole: user.role,
       actorCode: user.userCode,
       proofUrls: dto.proofUrls,
-      facultyId: user.facultyId
+      facultyId: user.facultyId,
+      paidMethod: dto.paidMethod
     };
 
     const fullExpenseData: Omit<ExpenseList, 'id'> = {
@@ -57,7 +58,7 @@ export class ExpenseBackendService {
       requesterType: user.userType,
       facultyId: user.facultyId,
       status: initialStatus,
-      paidMethod: PaidMethod.CASH,
+      paidMethod: dto.paidMethod,
       date: new Date().toISOString(),
       createdAt: '',
       updatedAt: '',
@@ -133,6 +134,7 @@ export class ExpenseBackendService {
       actorRole: user.role,
       actorCode: user.userCode,
       actorType: user.userType,
+      paidMethod: expense.paidMethod,
       action,
       status: nextStatus,
       createdAt: new Date().toISOString(),
