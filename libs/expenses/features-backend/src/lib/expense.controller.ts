@@ -7,6 +7,7 @@ import { Request } from 'express';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/data-access-backend';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ExpenseCapGuard, ExpenseReviewGuard } from '@school-expense-ecosystem/expense/guards-backend';
 
 
 interface AuthenticatedRequest extends Request {
@@ -67,31 +68,26 @@ export class ExpenseController {
   }
 
   @Post()
+  @UseGuards(ExpenseCapGuard)
   async createExpense(@Req() req: AuthenticatedRequest, @Body() dto: CreateExpenseDto) {
-    if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT && dto.amount > 2000) {
-      throw new BadRequestException('Security Breach: Student expense claims are strictly capped at 2,000 TWD.');
-    }
     return this.expenseBackendService.createExpense(req.user, dto);
   }
 
-  @Put(':id')
-  async updateExpense(@Req() req: AuthenticatedRequest, @Param('id') id: string, @Body() dto: UpdateExpenseDto) {
-    if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT && dto.amount && dto.amount > 2000) {
-      throw new BadRequestException('Security Breach: Student expense claims are strictly capped at 2,000 TWD.');
-    }
-    return this.expenseBackendService.updateExpense(id, req.user.uid, req.user, dto);
-  }
+  // @Put(':id')
+  // async updateExpense(@Req() req: AuthenticatedRequest, @Param('id') id: string, @Body() dto: UpdateExpenseDto) {
+  //   if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT && dto.amount && dto.amount > 2000) {
+  //     throw new BadRequestException('Security Breach: Student expense claims are strictly capped at 2,000 TWD.');
+  //   }
+  //   return this.expenseBackendService.updateExpense(id, req.user.uid, req.user, dto);
+  // }
 
   @Post(':id/review')
+  @UseGuards(ExpenseReviewGuard)
   async reviewExpense(
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() body: { action: AuditAction; reason?: string }
   ) {
-    if (req.user.role === Role.LEVEL_3_USER || req.user.userType === UserType.STUDENT) {
-      throw new ForbiddenException('Access Denied: Students are not authorized to review expense claims.');
-    }
-
     if (!body.action || !Object.values(AuditAction).includes(body.action)) {
       throw new BadRequestException('Invalid workflow action');
     }
@@ -102,7 +98,7 @@ export class ExpenseController {
   @Post('upload-proof')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 5 * 1024 * 1024 }, 
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   async uploadProof(

@@ -67,37 +67,37 @@ export class ExpenseBackendService {
     return this.expenseRepo.create(fullExpenseData);
   }
 
-  async updateExpense(id: string, userId: string, user: AuthenticatedUser, dto: UpdateExpenseInput): Promise<ExpenseList> {
-    const existing = await this.expenseRepo.findById(id);
-    if (!existing || existing.userId !== userId) {
-      throw new ExpenseNotFoundException(id);
-    }
+  // async updateExpense(id: string, userId: string, user: AuthenticatedUser, dto: UpdateExpenseInput): Promise<ExpenseList> {
+  //   const existing = await this.expenseRepo.findById(id);
+  //   if (!existing || existing.userId !== userId) {
+  //     throw new ExpenseNotFoundException(id);
+  //   }
 
-    if (existing.status !== ExpenseStatus.REJECTED) {
-      throw new ExpenseModificationLockedException();
-    }
+  //   if (existing.status !== ExpenseStatus.REJECTED) {
+  //     throw new ExpenseModificationLockedException();
+  //   }
 
-    const nextStatus = ExpenseStatus.PENDING_TEACHER_REVIEW;
-    const finalProofUrls = dto.proofUrls || existing.proofUrls;
+  //   const nextStatus = ExpenseStatus.PENDING_TEACHER_REVIEW;
+  //   const finalProofUrls = dto.proofUrls || existing.proofUrls;
 
-    const resubmitLog = {
-      actorId: user.uid,
-      actorName: user.fullName,
-      actorType: user.userType,
-      action: AuditAction.RESUBMIT,
-      status: nextStatus,
-      createdAt: new Date().toISOString(),
-      actorRole: user.role,
-      actorCode: user.userCode,
-      proofUrls: finalProofUrls
-    };
+  //   const resubmitLog = {
+  //     actorId: user.uid,
+  //     actorName: user.fullName,
+  //     actorType: user.userType,
+  //     action: AuditAction.RESUBMIT,
+  //     status: nextStatus,
+  //     createdAt: new Date().toISOString(),
+  //     actorRole: user.role,
+  //     actorCode: user.userCode,
+  //     proofUrls: finalProofUrls
+  //   };
 
-    return this.expenseRepo.update(id, {
-      ...dto,
-      status: nextStatus,
-      logEntry: resubmitLog
-    });
-  }
+  //   return this.expenseRepo.update(id, {
+  //     ...dto,
+  //     status: nextStatus,
+  //     logEntry: resubmitLog
+  //   });
+  // }
 
   async reviewExpense(id: string, user: AuthenticatedUser, action: AuditAction, reason?: string): Promise<ExpenseList> {
     const expense = await this.expenseRepo.findById(id);
