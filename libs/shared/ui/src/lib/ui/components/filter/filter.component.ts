@@ -114,8 +114,8 @@ export class FilterComponent<T = unknown> implements OnInit {
 
   readonly filterForm = new FormGroup({
     searchTerm: new FormControl(this.defaultFilterState.searchTerm),
-    month: new FormControl<number | undefined>(this.defaultFilterState.month),
-    year: new FormControl<number | undefined>(this.defaultFilterState.year),
+    month: new FormControl<number | null>(this.defaultFilterState.month),
+    year: new FormControl<number | null>(this.defaultFilterState.year),
     role: new FormControl(this.defaultFilterState.role),
     userType: new FormControl(this.defaultFilterState.userType),
     status: new FormControl(this.defaultFilterState.status),
@@ -150,14 +150,14 @@ export class FilterComponent<T = unknown> implements OnInit {
       const incomingState = this.value();
       if (incomingState) {
         this.filterForm.patchValue({
-          month: incomingState.month ?? this.currentMonth,
-          year: incomingState.year ?? this.currentYear,
+          month: incomingState.month !== undefined ? incomingState.month : this.currentMonth,
+          year: incomingState.year !== undefined ? incomingState.year : this.currentYear,
           searchTerm: incomingState.searchTerm ?? '',
           role: incomingState.role ?? 'ALL',
           userType: incomingState.userType ?? 'ALL',
           status: incomingState.status ?? 'ALL',
           facultyId: incomingState.facultyId ?? 'ALL'
-        }, { emitEvent: false }); 
+        }, { emitEvent: false });
       }
     });
   }
@@ -192,13 +192,13 @@ export class FilterComponent<T = unknown> implements OnInit {
 
         const getValidStatus = (val: unknown): UserStatus | undefined => {
           if (val === 'ALL' || val === null || val === '') return undefined;
-          return val as UserStatus; 
+          return val as UserStatus;
         };
 
         const payload: FilterParams = {
           searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
-          month: this.showMonth() ? (formValues.month ?? undefined) : undefined,
-          year: this.showYear() ? (formValues.year ?? undefined) : undefined,
+          month: this.showMonth() ? (formValues.month !== undefined ? formValues.month : null) : null,
+          year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
           role: this.showRole() ? getValidRole(formValues.role) : undefined,
           userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
           status: this.showStatus() ? getValidStatus(formValues.status) : undefined,

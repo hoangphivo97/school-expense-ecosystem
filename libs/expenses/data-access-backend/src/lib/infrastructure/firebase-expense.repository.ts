@@ -40,11 +40,16 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     let query: admin.firestore.Query = this.db.collection('expenses').where('userId', '==', filters.userId);
 
     if (filters.year && filters.month) {
-      const startOfMonth = new Date(`${filters.year}-${String(filters.month).padStart(2, '0')}-01T00:00:00.000Z`);
-      const endOfMonth = new Date(filters.year, filters.month, 0, 23, 59, 59, 999);
+      // Scenario A: Exact Month Selected -> Utilize high-performance equality token to unlock flexible sorting
+      const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
+      query = query.where('filterYearMonth', '==', targetQueryStr);
+    } else if (filters.year) {
+      // Scenario B: All Months Selected -> Fall back to date-range inequality constraints covering the full calendar year
+      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
+      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
       query = query
-        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfMonth))
-        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfMonth));
+        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
+        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
     }
 
     if (filters.searchTerm) {
@@ -54,7 +59,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
         .where('description', '<=', term + '\uf8ff')
         .orderBy('description');
     } else {
-      if (filters.year && filters.month) {
+      if (!filters.month && filters.year) {
         query = query.orderBy('date', 'desc');
       } else {
         query = query.orderBy('updatedAt', 'desc');
@@ -76,11 +81,14 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
 
     let countQuery = this.db.collection('expenses').where('userId', '==', filters.userId);
     if (filters.year && filters.month) {
-      const startOfMonth = new Date(`${filters.year}-${String(filters.month).padStart(2, '0')}-01T00:00:00.000Z`);
-      const endOfMonth = new Date(filters.year, filters.month, 0, 23, 59, 59, 999);
+      const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
+      countQuery = countQuery.where('filterYearMonth', '==', targetQueryStr);
+    } else if (filters.year) {
+      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
+      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
       countQuery = countQuery
-        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfMonth))
-        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfMonth));
+        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
+        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
     }
 
     if (filters.searchTerm) {
@@ -105,9 +113,15 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
   async create(data: Omit<ExpenseList, 'id'>): Promise<ExpenseList> {
     const docRef = this.db.collection('expenses').doc();
 
+    // Dynamically compute the equality tracking token string based on the provided target expense date
+    const expenseDate = new Date(data.date);
+    const mm = String(expenseDate.getUTCMonth() + 1).padStart(2, '0');
+    const yyyy = expenseDate.getUTCFullYear();
+
     const firestorePayload = {
       ...data,
-      date: admin.firestore.Timestamp.fromDate(new Date(data.date)),
+      date: admin.firestore.Timestamp.fromDate(expenseDate),
+      filterYearMonth: `${yyyy}-${mm}`,
       createdAt: admin.firestore.Timestamp.now(),
       updatedAt: admin.firestore.Timestamp.now()
     };

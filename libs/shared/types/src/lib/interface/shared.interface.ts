@@ -12,8 +12,8 @@ export interface DarkModeToggleProps {
 
 export interface FilterParams {
   searchTerm?: string;
-  month?: number;
-  year?: number;
+  month?: number | null;
+  year?: number | null;
   role?: Role;
   userType?: UserType;
   status?: UserStatus;
