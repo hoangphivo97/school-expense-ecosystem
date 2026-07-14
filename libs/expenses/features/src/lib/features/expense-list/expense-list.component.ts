@@ -64,7 +64,7 @@ export class ExpenseListComponent implements OnInit {
 
   readonly filterParams = signal<FilterParams>({
     searchTerm: '',
-    month: new Date().getMonth() + 1,
+    month: null,
     year: new Date().getFullYear(),
     status: undefined
   });
@@ -140,15 +140,6 @@ export class ExpenseListComponent implements OnInit {
     const dialogRef = this.dialog.open(CreateExpenseModalComponent, {
       width: '600px',
       data: { title: 'Create new Request', action: this.dialogActionEnum.Create, isSuccess: false },
-      disableClose: true,
-    });
-    this.getListAfterSuccessCallApi(dialogRef);
-  }
-
-  openEditExpenseModal(data: ExpenseList) {
-    const dialogRef = this.dialog.open(CreateExpenseModalComponent, {
-      width: '600px',
-      data: { title: 'Edit Expense', action: this.dialogActionEnum.Edit, isSuccess: false, data } as DialogData,
       disableClose: true,
     });
     this.getListAfterSuccessCallApi(dialogRef);

@@ -1,6 +1,7 @@
 import { NavItem } from '@school-expense-ecosystem/shared/types';
 
 export const months = [
+  { value: null, label: 'All Month' },
   { value: 1, label: 'January' },
   { value: 2, label: 'February' },
   { value: 3, label: 'March' },
@@ -24,8 +25,8 @@ export const navItems = [
     route: '/report',
     key: NavItem.REPORT,
   },
-  { icon: 'account_balance', label: 'Budget Manager', key: NavItem.BUDGET_MANAGER},
-  { icon: 'dashboard', label: 'Dashboard', key: NavItem.DASHBOARD}
+  { icon: 'account_balance', label: 'Budget Manager', key: NavItem.BUDGET_MANAGER },
+  { icon: 'dashboard', label: 'Dashboard', key: NavItem.DASHBOARD }
 ];
 
 export const mainColorPieChart: string[] = [
