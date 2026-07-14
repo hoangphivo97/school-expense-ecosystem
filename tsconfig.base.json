@@ -112,8 +112,11 @@
       "@school-expense-ecosystem/shared/guards-backend": [
         "./libs/shared/guards-backend/src/index.ts"
       ],
-      "@school-expense-ecosystem/auth/guards": [
-        "./libs/auth/guards/src/index.ts"
+      "@school-expense-ecosystem/auth/guards-frontend": [
+        "./libs/auth/guards-frontend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/expense/guards-backend": [
+        "./libs/expenses/guards-backend/src/index.ts"
       ]
     }
   },

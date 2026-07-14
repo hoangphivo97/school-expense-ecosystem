@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { activeUserGuard, authGuard, rolesGuard } from '@school-expense-ecosystem/auth/guards';
+import { activeUserGuard, authGuard, rolesGuard } from '@school-expense-ecosystem/auth/guards-frontend';
 import { Role } from '@school-expense-ecosystem/shared/types';
 
 export const routes: Routes = [

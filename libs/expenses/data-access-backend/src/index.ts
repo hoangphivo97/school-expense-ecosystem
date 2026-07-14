@@ -6,3 +6,4 @@ export * from './lib/infrastructure/file-storage.service';
 export * from './lib/storage-provider';
 export * from './lib/local-storage.service';
 export * from './lib/exceptions/expense.exception';
+export * from './lib/infrastructure/firebase-storage.service';

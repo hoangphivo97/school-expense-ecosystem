@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ExpenseRepository } from '../expense.repository';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, ExpenseFilters } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, ExpenseFilters, ExpenseAuditLogDocument } from '@school-expense-ecosystem/expenses/types';
 import { Role } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
@@ -33,7 +33,6 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       createdAt: createdAtStr,
       updatedAt: updatedAtStr,
       paidMethod: data['paidMethod'] || 'CASH',
-      history: data['history'] || []
     } as unknown as ExpenseList;
   }
 
@@ -55,7 +54,11 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
         .where('description', '<=', term + '\uf8ff')
         .orderBy('description');
     } else {
-      query = query.orderBy('createdAt', 'desc');
+      if (filters.year && filters.month) {
+        query = query.orderBy('date', 'desc');
+      } else {
+        query = query.orderBy('updatedAt', 'desc');
+      }
     }
 
     if (filters.pageToken) {
@@ -104,6 +107,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
 
     const firestorePayload = {
       ...data,
+      date: admin.firestore.Timestamp.fromDate(new Date(data.date)),
       createdAt: admin.firestore.Timestamp.now(),
       updatedAt: admin.firestore.Timestamp.now()
     };
@@ -113,20 +117,19 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     return this.mapDocToExpense(freshDoc);
   }
 
-  async update(id: string, data: Partial<ExpenseList> & { logEntry?: unknown }): Promise<ExpenseList> {
+  async update(id: string, data: Partial<ExpenseList>): Promise<ExpenseList> {
     const docRef = this.db.collection('expenses').doc(id);
-    const { logEntry, ...cleanData } = data;
 
     const updatePayload: Record<string, unknown> = {
-      ...cleanData,
+      ...data,
       updatedAt: admin.firestore.Timestamp.now()
     };
 
-    if (logEntry) {
-      updatePayload['history'] = admin.firestore.FieldValue.arrayUnion(logEntry);
+    if (data.date) {
+      updatePayload['date'] = admin.firestore.Timestamp.fromDate(new Date(data.date));
     }
 
-    if (cleanData.status && cleanData.status !== 'REJECTED') {
+    if (data.status && data.status !== 'REJECTED') {
       updatePayload['rejectReason'] = admin.firestore.FieldValue.delete();
     }
 
@@ -152,7 +155,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       }
     });
 
-    return Array.from(yearsSet).sort((a, b) => b - a); // Trả về danh sách năm giảm dần
+    return Array.from(yearsSet).sort((a, b) => b - a);
   }
 
   async getAnalytics(filters: AnalyticsFilters): Promise<ExpenseAnalyticsDto> {
@@ -222,5 +225,13 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       lineData,
       barData
     };
+  }
+
+  async createAuditLog(log: Omit<ExpenseAuditLogDocument, 'id'>): Promise<void> {
+    const docRef = this.db.collection('expense_audit_logs').doc();
+    await docRef.set({
+      ...log,
+      createdAt: admin.firestore.Timestamp.fromDate(new Date(log.createdAt))
+    });
   }
 }

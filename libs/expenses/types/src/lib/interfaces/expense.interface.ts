@@ -1,10 +1,11 @@
 import { FacultyId, Role, UserType } from "@school-expense-ecosystem/shared/types";
-import { AuditAction, PaidMethod } from "../enums/expense.enum";
-import { FilterParams, PaginationParams, ExpenseStatus} from "@school-expense-ecosystem/shared/types";
+import { PaidMethod } from "../enums/expense.enum";
+import { FilterParams, PaginationParams, ExpenseStatus } from "@school-expense-ecosystem/shared/types";
 
 export interface ExpenseList {
   id: string;
   userId: string;
+  expenseCode: string;
   requesterCode: string;
   requesterName: string;
   facultyId: FacultyId;
@@ -16,7 +17,6 @@ export interface ExpenseList {
   createdAt: string;
   updatedAt: string;
   rejectReason?: string;
-  history: AuditLogEntry[]
   requesterType: UserType;
   paidMethod: PaidMethod;
   date: string;
@@ -24,7 +24,7 @@ export interface ExpenseList {
 
 export type CreateExpenseInput = Pick<
   ExpenseList,
-  'amount' | 'purpose' | 'description' | 'proofUrls'
+  'amount' | 'purpose' | 'description' | 'proofUrls' | 'paidMethod'
 >;
 
 export type UpdateExpenseInput = Partial<CreateExpenseInput>;
@@ -47,19 +47,6 @@ export interface ExpenseAnalyticsDto {
   barData: { label: string; amount: number }[];
 }
 
-export interface AuditLogEntry {
-  actorId: string;
-  actorName: string;
-  actorRole: Role;
-  actorType: UserType;
-  actorCode: string;
-  facultyId: FacultyId;
-  action: AuditAction;
-  status: ExpenseStatus;
-  rejectReason?: string;
-  createdAt: string;
-  proofUrls: string[]
-}
 export interface AnalyticsFilters extends Pick<FilterParams, "year" | "month" | "facultyId"> {
   role: Role;
 }

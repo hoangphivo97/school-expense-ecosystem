@@ -9,7 +9,7 @@ export const firebaseConfig = {
   apiKey: 'AIzaSyAyrNDio8Uc7kzQsR5fkenWlaECrhar3IQ',
   authDomain: 'expense-tracker-web-app-7c1d1.firebaseapp.com',
   projectId: 'expense-tracker-web-app-7c1d1',
-  storageBucket: 'expense-tracker-web-app-7c1d1.appspot.com',
+  storageBucket: 'expense-tracker-web-app-7c1d1.firebasestorage.app',
   messagingSenderId: '924319318341',
   appId: '1:924319318341:web:f5b94b3a5d89b4b7d3fe2c',
   measurementId: 'G-T8HZWEXF29',
