@@ -73,7 +73,7 @@ export class ExpenseListComponent implements OnInit {
     const index = this.currentPageIndex();
     const limit = this.pageSize();
     const filter = this.filterParams();
-    const tokens = this.pageTokens();
+    const tokens = untracked(() => this.pageTokens());
     const currentToken = tokens[index] || '';
 
     return {
