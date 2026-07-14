@@ -80,8 +80,8 @@ export class CreateExpenseModalComponent implements OnInit {
     date: [new Date(), [Validators.required]],
     description: ['', [Validators.required, Validators.minLength(5)]],
     purpose: ['', [Validators.required]],
-    paidoutMethod: [PaidMethod.CASH, [Validators.required]],
-    amount: [0 as number, [Validators.required, Validators.min(1000), Validators.max(2000)]],
+    paidMethod: [PaidMethod.CASH, [Validators.required]],
+    amount: [0 as number, [Validators.required, Validators.min(1), Validators.max(10000)]],
     proofUrls: [[] as string[], Validators.required]
   });
 
@@ -96,7 +96,7 @@ export class CreateExpenseModalComponent implements OnInit {
     this.expenseForm.patchValue({
       description: data.description,
       purpose: data.purpose,
-      paidoutMethod: data.paidMethod,
+      paidMethod: data.paidMethod,
       amount: data.amount,
       date: new Date(data.date),
     });
@@ -112,7 +112,7 @@ export class CreateExpenseModalComponent implements OnInit {
       purpose: formValue.purpose,
       description: formValue.description,
       proofUrls: formValue.proofUrls || [],
-      paidMethod: formValue.paidoutMethod
+      paidMethod: formValue.paidMethod
     };
 
     // if (this.dialogData.action === this.Action.Create) {
@@ -129,11 +129,11 @@ export class CreateExpenseModalComponent implements OnInit {
       .subscribe(() => this.closeDialog(true));
   }
 
-  private executeEdit(id: string, payload: UpdateExpenseInput) {
-    this.expenseService.editExpense(id, payload)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.closeDialog(true));
-  }
+  // private executeEdit(id: string, payload: UpdateExpenseInput) {
+  //   this.expenseService.editExpense(id, payload)
+  //     .pipe(takeUntilDestroyed(this.destroyRef))
+  //     .subscribe(() => this.closeDialog(true));
+  // }
 
   onInputAmount(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
