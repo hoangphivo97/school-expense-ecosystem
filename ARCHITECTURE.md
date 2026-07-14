@@ -418,7 +418,7 @@ erDiagram
 
     EXPENSES {
         string id PK "Auto-generated Document UUID"
-        string expenseCode UK "[FACULTY]-[MMYY]-[CRYPTO]"
+        string expenseCode UK "EXP-[FACULTY]-[MMYY]-[CRYPTO]"
         string userId FK "Links to USERS.id"
         string requesterCode "userCode at submission"
         string requesterName "fullName at submission"
@@ -428,14 +428,29 @@ erDiagram
         string description "Detailed Field Notes"
         string status "ExpenseStatus Enum"
         string paidMethod "PaidMethod Enum"
-        string date "Target Appointment / Expense Date"
+        string date "Target Appointment / Expense Date (Timestamp)"
         string appointmentStatus "AppointmentStatus Enum"
         array_string proofUrls "Cloud Storage References"
-        array_object history "Embedded Array of AuditLogEntry objects"
         string requesterType "UserType Enum"
         string rejectReason "Optional"
         string createdAt "ISO String Timestamp"
         string updatedAt "ISO String Timestamp"
+    }
+
+    EXPENSE_AUDIT_LOGS {
+        string id PK "Auto-generated Log UUID"
+        string expenseId FK "Links to EXPENSES.id"
+        string expenseCode "Cached for fast global lookup"
+        string actorId FK "Links to USERS.id"
+        string actorCode "Actor employee/student code"
+        string actorName "Actor full name"
+        string actorRole "Role Enum at time of action"
+        string actorType "UserType Enum at time of action"
+        string action "AuditAction: SUBMIT | RESUBMIT | APPROVE | REJECT | DISBURSE"
+        string status "Resulting ExpenseStatus Enum"
+        string rejectReason "Mandatory on REJECT operations"
+        string createdAt "ISO String Timestamp"
+        string facultyId "FacultyId Enum"
     }
 
     PAYOUTS {
@@ -467,11 +482,13 @@ erDiagram
         string actorName "Admin full name"
         string action "AdminAction: USER_APPROVE | USER_REJECT | USER_STATUS_CHANGE"
         string targetUserId "UID of the affected user being managed"
-        string description "Semantic detail (e.g., Activated Student Account)"
+        string description "Semantic detail"
         string createdAt "ISO String Timestamp"
     }
 
     USERS ||--o{ EXPENSES : "submits"
+    EXPENSES ||--o{ EXPENSE_AUDIT_LOGS : "generates"
+    USERS ||--o{ EXPENSE_AUDIT_LOGS : "performs"
     BUDGET_CAPS ||--o{ EXPENSES : "allocates_funds_for"
     PAYOUTS ||--o{ EXPENSES : "reconciles_and_disburses"
     USERS ||--o{ ADMIN_LOGS : "executes_user_administrative_action"
