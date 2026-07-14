@@ -29,11 +29,11 @@
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field">
             <mat-label>Payout Method</mat-label>
-            <mat-select formControlName="paidoutMethod">
+            <mat-select formControlName="paidMethod">
               <mat-select-trigger>
                 <div class="d-flex align-items-center gap-2">
                   <mat-icon class="fs-6 h-auto w-auto field-icon">account_balance_wallet</mat-icon>
-                  <span class="selected-value">{{ expenseForm.controls.paidoutMethod.value }}</span>
+                  <span class="selected-value">{{ expenseForm.controls.paidMethod.value }}</span>
                 </div>
               </mat-select-trigger>
               @for (method of PaidMethods; track method.value) {
