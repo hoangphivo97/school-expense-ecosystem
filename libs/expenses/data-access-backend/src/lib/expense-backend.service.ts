@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, ExpenseAuditLogDocument, ExpenseFilters, AnalyticsFilters, CreateExpenseInput } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, ExpenseAuditLogDocument, ExpenseRequestFilters, AnalyticsFilters, CreateExpenseInput } from '@school-expense-ecosystem/expenses/types';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { ExpenseAmountLimitExceededException, ExpenseInvalidDisbursementActionException, ExpenseMissingRejectionReasonException, ExpenseNotFoundException, ExpenseWorkflowLockedException } from './exceptions/expense.exception';
@@ -12,7 +12,7 @@ export class ExpenseBackendService {
 
   async getPaginatedExpenses(
     userId: string,
-    filters: Omit<ExpenseFilters, 'userId'>
+    filters: Omit<ExpenseRequestFilters, 'userId'>
   ): Promise<PaginatedExpensesResponse> {
     return this.expenseRepo.findPaginated({ userId, ...filters });
   }

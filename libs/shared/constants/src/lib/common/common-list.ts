@@ -16,25 +16,21 @@ export const months = [
   { value: 12, label: 'December' },
 ];
 
-export const navItems: NavItemConfig[] = [
-  { icon: 'local_atm', label: 'My Expenses', key: NavItem.EXPENSE },
+export const APP_NAVIGATION: NavItemConfig[] = [
+  { key: NavItem.DASHBOARD, label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+  { key: NavItem.EXPENSE, label: 'My Expenses', icon: 'local_atm', route: '/expense' },
   {
     key: NavItem.APPROVAL_CENTER,
     label: 'Approval Center',
     icon: 'assignment_turned_in',
     children: [
-      { label: 'Pending Queue', route: '/expense/pending', icon: 'hourglass_empty' }, // FIFO Queue
-      { label: 'Faculty History', route: '/expense/history', icon: 'history' } // LIFO Archive
+      { label: 'Pending Queue', route: '/expense/pending', icon: 'hourglass_empty' },
+      { label: 'Faculty History', route: '/expense/history', icon: 'history' }
     ]
   },
-  { icon: 'accessibility_new', label: 'User', key: NavItem.USER_LIST },
-  {
-    icon: 'insert_chart_outlined',
-    label: 'Report',
-    key: NavItem.REPORT,
-  },
-  { icon: 'account_balance', label: 'Budget Manager', key: NavItem.BUDGET_MANAGER },
-  { icon: 'dashboard', label: 'Dashboard', key: NavItem.DASHBOARD }
+  { key: NavItem.USER_LIST, label: 'User', icon: 'accessibility_new', route: '/user-list' },
+  { key: NavItem.REPORT, label: 'Report', icon: 'insert_chart_outlined', route: '/report' },
+  { key: NavItem.BUDGET_MANAGER, label: 'Budget Manager', icon: 'account_balance', route: '/budget-manager' }
 ];
 
 export const mainColorPieChart: string[] = [
@@ -43,3 +39,23 @@ export const mainColorPieChart: string[] = [
   '#4666D4',
   '#35B4C0',
 ];
+
+export const ROUTE_HEADER_TITLE_REGISTRY: Record<string, string> = {
+  '/expense/pending': 'Review Inbox Queue',
+  '/expense/history': 'Faculty Expense History',
+  '/dashboard': 'Dashboard Overview',
+  '/user-list': 'System User Directory',
+  '/expense': 'My Personal Claims',
+  '/report': 'Financial Reports',
+  '/budget-manager': 'Budget Management'
+};
+
+export const URL_ROUTE_LINKER: Record<string, NavItem> = {
+  '/expense/pending': NavItem.APPROVAL_CENTER,
+  '/expense/history': NavItem.APPROVAL_CENTER,
+  '/dashboard': NavItem.DASHBOARD,
+  '/user-list': NavItem.USER_LIST,
+  '/expense': NavItem.EXPENSE,
+  '/report': NavItem.REPORT,
+  '/budget-manager': NavItem.BUDGET_MANAGER
+};

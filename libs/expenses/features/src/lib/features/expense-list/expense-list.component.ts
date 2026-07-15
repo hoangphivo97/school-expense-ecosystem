@@ -12,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 
 import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
-import { FilterParams, DialogActionEnum, DialogData, UserStatus } from '@school-expense-ecosystem/shared/types';
+import { DialogActionEnum, DialogData, ExpenseStatus, SharedFilterParams, UserStatus } from '@school-expense-ecosystem/shared/types';
 import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
@@ -20,6 +20,7 @@ import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
 import { FilterMode } from '@school-expense-ecosystem/shared/types'
+import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 
 @Component({
   selector: 'lib-expense-list',
@@ -62,11 +63,11 @@ export class ExpenseListComponent implements OnInit {
   readonly currentPageIndex = signal<number>(0);
   private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
 
-  readonly filterParams = signal<FilterParams>({
+  readonly filterParams = signal<FilterExpenseParams>({
     searchTerm: '',
     month: null,
     year: new Date().getFullYear(),
-    status: undefined
+    status: undefined,
   });
 
   readonly expenseResource = this.expenseService.getExpenseListResource(() => {
@@ -128,7 +129,7 @@ export class ExpenseListComponent implements OnInit {
 
       if (mode === 'PENDING_QUEUE') {
         // Enforce pristine filterless view states optimized for resolving task backlogs quickly
-        this.filterParams.set({ searchTerm: '', month: null, year: null, status: UserStatus.PENDING });
+        this.filterParams.set({ searchTerm: '', month: null, year: null, status: ExpenseStatus.PENDING_TEACHER_REVIEW });
       } else if (mode === 'FACULTY_HISTORY') {
         // Initialize history views safely targeting the wider annual perimeter boundary defaults
         this.filterParams.set({ searchTerm: '', month: null, year: new Date().getFullYear(), status: undefined });
@@ -169,8 +170,8 @@ export class ExpenseListComponent implements OnInit {
     }
   }
 
-  onExpenseFiltersChanged(params: FilterParams): void {
-    this.filterParams.set(params);
+  onExpenseFiltersChanged(params: SharedFilterParams): void {
+    this.filterParams.set(params as FilterExpenseParams);
   }
 
   get GlobalDateFormat(): string {

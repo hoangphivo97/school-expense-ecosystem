@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ExpenseRepository } from '../expense.repository';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, ExpenseFilters, ExpenseAuditLogDocument } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, ExpenseRequestFilters, ExpenseAuditLogDocument } from '@school-expense-ecosystem/expenses/types';
 import { Role } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
@@ -36,7 +36,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     } as unknown as ExpenseList;
   }
 
-  async findPaginated(filters: ExpenseFilters): Promise<PaginatedExpensesResponse> {
+  async findPaginated(filters: ExpenseRequestFilters): Promise<PaginatedExpensesResponse> {
     let query: admin.firestore.Query = this.db.collection('expenses').where('userId', '==', filters.userId);
 
     if (filters.year && filters.month) {

@@ -1,6 +1,6 @@
-import { FacultyId, Role, UserType } from "@school-expense-ecosystem/shared/types";
+import { BaseFilterParams, FacultyId, Role, UserType } from "@school-expense-ecosystem/shared/types";
 import { PaidMethod } from "../enums/expense.enum";
-import { FilterParams, PaginationParams, ExpenseStatus } from "@school-expense-ecosystem/shared/types";
+import { PaginationParams, ExpenseStatus } from "@school-expense-ecosystem/shared/types";
 
 export interface ExpenseList {
   id: string;
@@ -47,10 +47,18 @@ export interface ExpenseAnalyticsDto {
   barData: { label: string; amount: number }[];
 }
 
-export interface AnalyticsFilters extends Pick<FilterParams, "year" | "month" | "facultyId"> {
+export interface AnalyticsFilters extends Pick<FilterExpenseParams, "year" | "month" | "facultyId"> {
   role: Role;
 }
 
-export interface ExpenseFilters extends FilterParams, PaginationParams {
+export interface FilterExpenseParams extends BaseFilterParams {
+  month?: number | null;
+  year?: number | null;
+  status?: ExpenseStatus | 'ALL' | null; // Typed accurately to represent business approval stages
+  facultyId?: FacultyId;
+  userType?: UserType;
+}
+
+export interface ExpenseRequestFilters extends FilterExpenseParams, PaginationParams {
   userId: string;
 }

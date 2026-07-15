@@ -1,10 +1,11 @@
 import { NavItem } from "../enums/nav.enum";
 
-export interface NavItemConfig{
+export interface NavItemConfig {
   key: NavItem;
   label: string;
   icon: string;
   children?: SubNavItemConfig[];
+  route?: string;
 }
 
 export interface SubNavItemConfig {

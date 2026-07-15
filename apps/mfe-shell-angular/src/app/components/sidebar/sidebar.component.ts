@@ -16,7 +16,7 @@ import { NavItem, UserType } from '@school-expense-ecosystem/shared/types';
 import { MatDialog } from '@angular/material/dialog';
 import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons/faArrowRightFromBracket';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { navItems } from '@school-expense-ecosystem/shared/constants';
+import { APP_NAVIGATION, URL_ROUTE_LINKER } from '@school-expense-ecosystem/shared/constants';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ReactWrapperComponent } from '@school-expense-ecosystem/shared/ui';
@@ -81,19 +81,11 @@ export class SidebarComponent implements OnInit {
     ]
   };
 
+  private readonly urlRouteMapping = URL_ROUTE_LINKER;
+
   private readonly userTypePermissions: Partial<Record<UserType, NavItem[]>> = {
     [UserType.TEACHER]: [NavItem.APPROVAL_CENTER], // Grant teachers permission to access the student review desk
     [UserType.STAFF]: [NavItem.APPROVAL_CENTER]    // Configure staff permissions safely inside this functional block
-  };
-
-  private readonly urlRouteMapping: Record<string, NavItem> = {
-    '/expense/pending': NavItem.APPROVAL_CENTER, // Route target child views back to the parent inbox dashboard context
-    '/expense/history': NavItem.APPROVAL_CENTER,
-    '/report': NavItem.REPORT,
-    '/budget-manager': NavItem.BUDGET_MANAGER,
-    '/user-list': NavItem.USER_LIST,
-    '/expense': NavItem.EXPENSE, // Baseline fallback for the default personal claims view
-    '/dashboard': NavItem.DASHBOARD,
   };
 
   readonly filteredNavItems = computed(() => {
@@ -109,7 +101,7 @@ export class SidebarComponent implements OnInit {
       }
     }
 
-    return navItems.filter((item: any) => allowedItems.has(item.key));
+    return APP_NAVIGATION.filter((item: any) => allowedItems.has(item.key));
   });
 
   ngOnInit(): void {
@@ -139,7 +131,7 @@ export class SidebarComponent implements OnInit {
 
   setActive(itemKey: NavItem) {
     const currentQueryParams = this.router.parseUrl(this.router.url).queryParams;
-    const targetItem = navItems.find(item => item.key === itemKey);
+    const targetItem = APP_NAVIGATION.find(item => item.key === itemKey);
 
     // If the parent menu houses sub-items, immediately auto-route to the primary leaf node entry
     if (targetItem && targetItem.children && targetItem.children.length > 0) {
@@ -157,6 +149,6 @@ export class SidebarComponent implements OnInit {
   }
 
   get navItems() {
-    return navItems;
+    return APP_NAVIGATION;
   }
 }
