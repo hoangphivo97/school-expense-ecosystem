@@ -535,5 +535,19 @@ graph TD
     class M3 phase3;
     class M4 phase4;
 ```
+</details>
+<details>
+  
+<summary><b>6.  Functional Access Control Matrix (RBAC) (Click to expand)</b></summary>
+
+| Menu Item | Student | Staff (Requester) | Teacher (Reviewer) | Faculty Dean | Architectural Responsibility & Business Rules |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Dashboard** | ✅ | ✅ | ✅ | ✅ | General landing workspace for tracking personal claim timelines and operational metrics. |
+| **My Expenses** | ✅ | ✅ | ✅ | ✅ | Personal reimbursement management. Students are capped at 2,000 TWD, while Staff/Teachers are capped at 10,000 TWD per claim. |
+| **Approval Center** | ❌ | ❌ | ✅ | ✅ | **Teachers:** Review initial student submissions (`PENDING_TEACHER_REVIEW`).<br>**Deans:** Review faculty-wide logs (`PENDING_DEAN_APPROVAL`). |
+| **Budget Manager** | ❌ | ❌ | ❌ | ✅ | Departmental annual fiscal allocation tracking. Excluded from Teachers and Staff to prevent ledger manipulation. |
+| **Financial Reports** | ❌ | ❌ | ❌ | ✅ | Strategic expense analytics and data visualization across the faculty domain for institutional audits. |
+| **User Directory** | ❌ | ❌ | ❌ | ❌ | Identity management view. Strictly isolated to the System Administrator. |
+
 
 </details>
