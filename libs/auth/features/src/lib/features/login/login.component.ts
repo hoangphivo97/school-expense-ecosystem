@@ -66,13 +66,15 @@ export class LoginComponent {
   protected readonly roleTranslationMap: Record<string, string> = {
     'DEAN': 'dean',
     'Student': 'student',
-    'System Administrator': 'sysadmin'
+    'System Administrator': 'sysadmin',
+    'Teacher': 'teacher'
   };
 
   protected readonly descriptionTranslationMap: Record<string, string> = {
     'DEAN': 'dean',
     'Student': 'student',
-    'System Administrator': 'sysadmin'
+    'System Administrator': 'sysadmin',
+    'Teacher': 'teacher'
   };
 
   // Dedicated Form configuration for the hidden Admin Console fallback

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, httpResource, HttpResourceRef } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, PersonalExpenseRequestFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, PersonalExpenseRequestFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput, ReviewerExpenseRequestFilters } from '@school-expense-ecosystem/expenses/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
 @Injectable({
@@ -16,15 +16,36 @@ export class ExpenseService {
    * Fetches the expense list based on active routing filter parameters
    */
 
-  getPersonalExpenseListResource(filterFn: () => Omit<PersonalExpenseRequestFilters, 'userId'>) {
+  getPersonalExpenseListResource(filterFn: () => Omit<PersonalExpenseRequestFilters, 'userId'> | undefined) {
     return httpResource<PaginatedExpensesResponse>(() => {
       const filters = filterFn();
+      if(!filters) return undefined;
+
       let url = `${this.apiUrl}/?limit=${filters.limit}`;
 
       if (filters.pageToken) url += `&pageToken=${encodeURIComponent(filters.pageToken)}`;
       if (filters.year) url += `&year=${filters.year}`;
       if (filters.month) url += `&month=${filters.month}`;
       if (filters.searchTerm) url += `&searchTerm=${encodeURIComponent(filters.searchTerm)}`;
+
+      return url;
+    });
+  }
+
+  getReviewerExpenseListResource(filterFn: () => ReviewerExpenseRequestFilters | undefined) {
+    return httpResource<PaginatedExpensesResponse>(() => {
+      const filters = filterFn();
+      if (!filters) return undefined;
+      let url = `${this.apiUrl}/reviewer?limit=${filters.limit}`;
+
+      // Dynamically compound query limits matching backend validation decorators perfectly
+      if (filters.pageToken) url += `&pageToken=${encodeURIComponent(filters.pageToken)}`;
+      if (filters.year) url += `&year=${filters.year}`;
+      if (filters.month) url += `&month=${filters.month}`;
+      if (filters.status) url += `&status=${encodeURIComponent(filters.status)}`;
+      if (filters.searchTerm) url += `&searchTerm=${encodeURIComponent(filters.searchTerm)}`;
+      if (filters.facultyId) url += `&facultyId=${encodeURIComponent(filters.facultyId)}`;
+      if (filters.userType) url += `&userType=${encodeURIComponent(filters.userType)}`;
 
       return url;
     });

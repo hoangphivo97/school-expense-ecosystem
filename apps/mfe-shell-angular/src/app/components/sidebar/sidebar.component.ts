@@ -56,7 +56,7 @@ export class SidebarComponent implements OnInit {
 
   activeItem = signal<NavItem>(NavItem.DASHBOARD)
 
-  private readonly rolePermissions: Record<Role, NavItem[]> = {
+  private readonly ROLES_PERMISSION: Record<Role, NavItem[]> = {
     [Role.LEVEL_0_ADMIN]: [
       NavItem.DASHBOARD,
       NavItem.USER_LIST
@@ -81,21 +81,20 @@ export class SidebarComponent implements OnInit {
     ]
   };
 
-  private readonly urlRouteMapping = URL_ROUTE_LINKER;
+  private readonly URL_ROUTE_MAPPING = URL_ROUTE_LINKER;
 
-  private readonly userTypePermissions: Partial<Record<UserType, NavItem[]>> = {
+  private readonly USER_TYPE_PERMISSIONS: Partial<Record<UserType, NavItem[]>> = {
     [UserType.TEACHER]: [NavItem.APPROVAL_CENTER], // Grant teachers permission to access the student review desk
-    [UserType.STAFF]: [NavItem.APPROVAL_CENTER]    // Configure staff permissions safely inside this functional block
   };
 
   readonly filteredNavItems = computed(() => {
     const currentUser = this.user();
     if (!currentUser) return [];
 
-    const allowedItems = new Set<NavItem>(this.rolePermissions[currentUser.role] || []);
+    const allowedItems = new Set<NavItem>(this.ROLES_PERMISSION[currentUser.role] || []);
 
     if (currentUser.userType) {
-      const typeItems = this.userTypePermissions[currentUser.userType];
+      const typeItems = this.USER_TYPE_PERMISSIONS[currentUser.userType];
       if (typeItems) {
         typeItems.forEach(item => allowedItems.add(item));
       }
@@ -119,7 +118,7 @@ export class SidebarComponent implements OnInit {
   }
 
   setActiveItemByUrl(url: string): void {
-    const match = Object.entries(this.urlRouteMapping)
+    const match = Object.entries(this.URL_ROUTE_MAPPING)
       .sort((a, b) => b[0].length - a[0].length)
       .find(([routeKey]) => url.includes(routeKey));
 

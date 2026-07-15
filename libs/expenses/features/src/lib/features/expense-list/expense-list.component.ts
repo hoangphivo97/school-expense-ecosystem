@@ -12,8 +12,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 
 import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
-import { DialogActionEnum, DialogData, ExpenseStatus, SharedFilterParams, UserStatus } from '@school-expense-ecosystem/shared/types';
-import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
+import { DialogActionEnum, DialogData, ExpenseStatus, Role, SharedFilterParams, UserStatus } from '@school-expense-ecosystem/shared/types';
+import { AuthSignalStore, LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
@@ -40,6 +40,11 @@ export class ExpenseListComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   readonly expenseService = inject(ExpenseService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly authStore = inject(AuthSignalStore);
+
+  readonly activeResource = computed(() =>
+    this.viewMode() === 'PERSONAL' ? this.expensePersonalResource : this.expenseReviewerResource
+  );
 
   paidMethodToString = EnumToStringPipe
   filterModeEnum = FilterMode
@@ -62,6 +67,13 @@ export class ExpenseListComponent implements OnInit {
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(0);
   private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
+  readonly viewMode = signal<'PERSONAL' | 'PENDING_QUEUE' | 'FACULTY_HISTORY'>('PERSONAL');
+
+  private readonly roleQueueMapping: Partial<Record<Role, ExpenseStatus>> = {
+    [Role.LEVEL_3_USER]: ExpenseStatus.PENDING_TEACHER_REVIEW,
+    [Role.LEVEL_2_DEAN]: ExpenseStatus.PENDING_DEAN_APPROVAL,
+    [Role.LEVEL_1_FINANCE]: ExpenseStatus.PENDING_DISBURSEMENT
+  };
 
   readonly filterParams = signal<FilterExpenseParams>({
     searchTerm: '',
@@ -71,6 +83,7 @@ export class ExpenseListComponent implements OnInit {
   });
 
   readonly expensePersonalResource = this.expenseService.getPersonalExpenseListResource(() => {
+    if (this.viewMode() !== 'PERSONAL') return undefined;
     const index = this.currentPageIndex();
     const limit = this.pageSize();
     const filter = this.filterParams();
@@ -86,16 +99,36 @@ export class ExpenseListComponent implements OnInit {
     };
   });
 
+  readonly expenseReviewerResource = this.expenseService.getReviewerExpenseListResource(() => {
+    if (this.viewMode() === 'PERSONAL') return undefined;
+    const index = this.currentPageIndex();
+    const limit = this.pageSize();
+    const filter = this.filterParams();
+    const tokens = untracked(() => this.pageTokens());
+    const currentToken = tokens[index] || '';
+
+    return {
+      limit,
+      pageToken: currentToken,
+      year: filter.year ? Number(filter.year) : undefined,
+      month: filter.month ? Number(filter.month) : undefined,
+      status: filter.status || undefined,
+      facultyId: filter.facultyId || undefined,
+      userType: filter.userType || undefined,
+      searchTerm: filter.searchTerm || undefined
+    };
+  });
+
   protected readonly isGridDataLoading = computed(() =>
     this.expensePersonalResource.isLoading() || this.availableYearsResource.isLoading()
   );
-  readonly errorMessage = computed(() => this.expensePersonalResource.error() ? 'Failed to resolve database entries.' : null);
+  readonly errorMessage = computed(() => this.activeResource().error() ? 'Failed to resolve database entries.' : null);
 
-  readonly totalItems = computed(() => this.expensePersonalResource.value()?.totalItems ?? 0);
+  readonly totalItems = computed(() => this.activeResource().value()?.totalItems ?? 0);
   readonly dataSource = computed(() => {
-    const list = this.expensePersonalResource.value()?.expenses ?? [];
+    const list = this.activeResource().value()?.expenses ?? [];
 
-    const nextToken = this.expensePersonalResource.value()?.nextPageToken;
+    const nextToken = this.activeResource().value()?.nextPageToken;
     if (nextToken) {
       const nextIndex = this.currentPageIndex() + 1;
       untracked(() => {
@@ -125,11 +158,20 @@ export class ExpenseListComponent implements OnInit {
 
   toggleExpenseMode() {
     this.activatedRoute.data.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
-      const mode = data['viewMode'];
+      const mode = data['viewMode'] || 'PERSONAL';
+      this.viewMode.set(mode);
 
       if (mode === 'PENDING_QUEUE') {
-        // Enforce pristine filterless view states optimized for resolving task backlogs quickly
-        this.filterParams.set({ searchTerm: '', month: null, year: null, status: ExpenseStatus.PENDING_TEACHER_REVIEW });
+        const currentUser = this.authStore.user();
+        // Resolve the precise entry status token dynamically based on the reviewer's authorization tier
+        const resolvedStatus = currentUser ? this.roleQueueMapping[currentUser.role] : undefined;
+
+        this.filterParams.set({
+          searchTerm: '',
+          month: null,
+          year: null,
+          status: resolvedStatus
+        });
       } else if (mode === 'FACULTY_HISTORY') {
         // Initialize history views safely targeting the wider annual perimeter boundary defaults
         this.filterParams.set({ searchTerm: '', month: null, year: new Date().getFullYear(), status: undefined });
@@ -150,7 +192,7 @@ export class ExpenseListComponent implements OnInit {
       filter((res: DialogData | undefined): res is DialogData => !!res && res.isSuccess),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((res) => {
-      this.expensePersonalResource.reload();
+      this.activeResource().reload();
       this.availableYearsResource.reload();
     })
   }
