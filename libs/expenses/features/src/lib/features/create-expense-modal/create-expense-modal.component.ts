@@ -12,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { compressImage, CustomDateAdapter } from '@school-expense-ecosystem/shared/utils-frontend';
-import { ConfirmDialogData, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
+import { ConfirmDialogData, DialogActionEnum, DialogData, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import {
   ExpenseList,
   CreateExpenseInput,
@@ -21,6 +21,7 @@ import {
 } from '@school-expense-ecosystem/expenses/types';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 
 export const MY_DATE_FORMATS = {
   parse: { dateInput: 'DD/MM/YYYY' },
@@ -62,12 +63,15 @@ export class CreateExpenseModalComponent implements OnInit {
   private readonly expenseService = inject(ExpenseService);
   private readonly decimalPipe = inject(DecimalPipe);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly authStore = inject(AuthSignalStore);
 
   //Upload Feature
   readonly MAX_FILE_SIZE_BYTE = 5 * 1024 * 1024; // 5MB per file
   readonly uploadErrors = signal<string[]>([]);
   readonly isUploading = signal<boolean>(false);
   readonly ALLOWED_EXTENSIONS = ['application/pdf', 'image/png', 'image/jpeg'];
+  readonly minLimit = signal<number>(1000); // Base institutional floor constraint
+  readonly maxLimit = signal<number>(10000);
 
   // Constants & Enums
   readonly Action = DialogActionEnum;
@@ -81,14 +85,43 @@ export class CreateExpenseModalComponent implements OnInit {
     description: ['', [Validators.required, Validators.minLength(5)]],
     purpose: ['', [Validators.required]],
     paidMethod: [PaidMethod.CASH, [Validators.required]],
-    amount: [0 as number, [Validators.required, Validators.min(1), Validators.max(10000)]],
+    amount: [0 as number, [Validators.required]],
     proofUrls: [[] as string[], Validators.required]
   });
 
   ngOnInit(): void {
+    this.resolveDynamicValidationLimits();
     if (this.dialogData.action === this.Action.Edit) {
       this.patchFormValue();
     }
+  }
+
+  private resolveDynamicValidationLimits(): void {
+    const user = this.authStore.user();
+    let max = 100000; // Standard high ceiling boundary for administrative levels (Dean/Finance)
+
+    if (user) {
+      if (user.role === Role.LEVEL_3_USER) {
+        if (user.userType === UserType.STUDENT) {
+          max = 2000; // Secure student cap matching backend perimeter guards
+        } else if (user.userType === UserType.TEACHER || user.userType === UserType.STAFF) {
+          max = 10000; // Enforce standard academic employee caps
+        }
+      } else if (user.role === Role.LEVEL_2_DEAN) {
+        max = 50000; // Enforce intermediate faculty executive caps
+      }
+    }
+
+    this.maxLimit.set(max);
+
+    // Inject runtime validation rules directly into the target form control node
+    const amountControl = this.expenseForm.controls.amount;
+    amountControl.setValidators([
+      Validators.required,
+      Validators.min(this.minLimit()),
+      Validators.max(this.maxLimit())
+    ]);
+    amountControl.updateValueAndValidity();
   }
 
   private patchFormValue() {

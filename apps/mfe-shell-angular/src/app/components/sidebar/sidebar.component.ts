@@ -84,7 +84,7 @@ export class SidebarComponent implements OnInit {
   private readonly URL_ROUTE_MAPPING = URL_ROUTE_LINKER;
 
   private readonly USER_TYPE_PERMISSIONS: Partial<Record<UserType, NavItem[]>> = {
-    [UserType.TEACHER]: [NavItem.APPROVAL_CENTER], // Grant teachers permission to access the student review desk
+    [UserType.TEACHER]: [NavItem.APPROVAL_CENTER],
   };
 
   readonly filteredNavItems = computed(() => {
