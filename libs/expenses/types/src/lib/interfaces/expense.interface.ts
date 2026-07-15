@@ -59,6 +59,8 @@ export interface FilterExpenseParams extends BaseFilterParams {
   userType?: UserType;
 }
 
-export interface ExpenseRequestFilters extends FilterExpenseParams, PaginationParams {
+export interface ReviewerExpenseRequestFilters extends FilterExpenseParams, PaginationParams {}
+
+export interface PersonalExpenseRequestFilters extends FilterExpenseParams, PaginationParams {
   userId: string;
 }

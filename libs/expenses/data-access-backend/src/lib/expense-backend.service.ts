@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, ExpenseAuditLogDocument, ExpenseRequestFilters, AnalyticsFilters, CreateExpenseInput } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, ExpenseAuditLogDocument, PersonalExpenseRequestFilters, AnalyticsFilters, CreateExpenseInput, ReviewerExpenseRequestFilters } from '@school-expense-ecosystem/expenses/types';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { ExpenseAmountLimitExceededException, ExpenseInvalidDisbursementActionException, ExpenseMissingRejectionReasonException, ExpenseNotFoundException, ExpenseWorkflowLockedException } from './exceptions/expense.exception';
@@ -10,11 +10,19 @@ import { randomBytes } from 'crypto';
 export class ExpenseBackendService {
   constructor(private readonly expenseRepo: ExpenseRepository) { }
 
-  async getPaginatedExpenses(
+  async getPersonalPaginatedExpenses(
     userId: string,
-    filters: Omit<ExpenseRequestFilters, 'userId'>
+    filters: Omit<PersonalExpenseRequestFilters, 'userId'>
   ): Promise<PaginatedExpensesResponse> {
-    return this.expenseRepo.findPaginated({ userId, ...filters });
+    return this.expenseRepo.findPersonalExpensePaginated({ userId, ...filters });
+  }
+
+  async getReviewerExpenses(
+    user: AuthenticatedUser,
+    filters: ReviewerExpenseRequestFilters
+  ): Promise<PaginatedExpensesResponse> {
+    // Route processing directly into the specialized reviewer repository pipeline
+    return this.expenseRepo.findReviewerExpensesPaginated(user, filters);
   }
 
   async createExpense(user: AuthenticatedUser, dto: CreateExpenseInput): Promise<ExpenseList> {

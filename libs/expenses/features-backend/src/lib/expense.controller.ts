@@ -1,6 +1,6 @@
 /// <reference types="multer" />
 import { Controller, Get, Post, Put, Body, Param, Query, Req, UseGuards, BadRequestException, ForbiddenException, UseInterceptors, ParseFilePipe, UploadedFile, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
-import { ExpenseBackendService, StorageProvider } from '@school-expense-ecosystem/expenses/data-access-backend';
+import { ExpenseBackendService, PersonalExpenseQueryDto, ReviewerExpenseQueryDto, StorageProvider } from '@school-expense-ecosystem/expenses/data-access-backend';
 import { JwtAuthGuard, RolesGuard } from '@school-expense-ecosystem/shared/guards-backend';
 import { AuditAction } from '@school-expense-ecosystem/expenses/types';
 import { Request } from 'express';
@@ -21,26 +21,13 @@ export class ExpenseController {
   ) { }
 
   @Get()
-  async getExpenses(
+  async getPersonalExpenses(
     @Req() req: AuthenticatedRequest,
-    @Query('limit') limit?: string,
-    @Query('pageToken') pageToken?: string,
-    @Query('year') year?: string,
-    @Query('month') month?: string,
-    @Query('searchTerm') searchTerm?: string
+    @Query() query: PersonalExpenseQueryDto
   ) {
-    const userId = req.user.uid;
-    const parsedLimit = limit ? parseInt(limit, 10) : 10;
-    const filterYear = year ? parseInt(year, 10) : undefined;
-    const filterMonth = month ? parseInt(month, 10) : undefined;
 
-    return this.expenseBackendService.getPaginatedExpenses(userId, {
-      limit: parsedLimit,
-      pageToken,
-      year: filterYear,
-      month: filterMonth,
-      searchTerm: searchTerm || undefined
-    });
+    const userId = req.user.uid;
+    return this.expenseBackendService.getPersonalPaginatedExpenses(userId, query);
   }
 
   @Get('analytics')
@@ -121,5 +108,18 @@ export class ExpenseController {
 
 
     return { url: fileUrl };
+  }
+
+  @Get('reviewer')
+  async getReviewerExpenses(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: ReviewerExpenseQueryDto
+  ) {
+    // Zero-Trust Enforcement: Explicitly reject students from accessing reviewer workflows
+    if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT) {
+      throw new ForbiddenException('Access Denied: Students are excluded from reviewer queues.');
+    }
+
+    return this.expenseBackendService.getReviewerExpenses(req.user, query);
   }
 }

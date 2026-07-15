@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, httpResource, HttpResourceRef } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, ExpenseRequestFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, PersonalExpenseRequestFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
 @Injectable({
@@ -16,7 +16,7 @@ export class ExpenseService {
    * Fetches the expense list based on active routing filter parameters
    */
 
-  getExpenseListResource(filterFn: () => Omit<ExpenseRequestFilters, 'userId'>) {
+  getPersonalExpenseListResource(filterFn: () => Omit<PersonalExpenseRequestFilters, 'userId'>) {
     return httpResource<PaginatedExpensesResponse>(() => {
       const filters = filterFn();
       let url = `${this.apiUrl}/?limit=${filters.limit}`;

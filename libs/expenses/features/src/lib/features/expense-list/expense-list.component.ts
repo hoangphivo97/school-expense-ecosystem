@@ -70,7 +70,7 @@ export class ExpenseListComponent implements OnInit {
     status: undefined,
   });
 
-  readonly expenseResource = this.expenseService.getExpenseListResource(() => {
+  readonly expensePersonalResource = this.expenseService.getPersonalExpenseListResource(() => {
     const index = this.currentPageIndex();
     const limit = this.pageSize();
     const filter = this.filterParams();
@@ -87,15 +87,15 @@ export class ExpenseListComponent implements OnInit {
   });
 
   protected readonly isGridDataLoading = computed(() =>
-    this.expenseResource.isLoading() || this.availableYearsResource.isLoading()
+    this.expensePersonalResource.isLoading() || this.availableYearsResource.isLoading()
   );
-  readonly errorMessage = computed(() => this.expenseResource.error() ? 'Failed to resolve database entries.' : null);
+  readonly errorMessage = computed(() => this.expensePersonalResource.error() ? 'Failed to resolve database entries.' : null);
 
-  readonly totalItems = computed(() => this.expenseResource.value()?.totalItems ?? 0);
+  readonly totalItems = computed(() => this.expensePersonalResource.value()?.totalItems ?? 0);
   readonly dataSource = computed(() => {
-    const list = this.expenseResource.value()?.expenses ?? [];
+    const list = this.expensePersonalResource.value()?.expenses ?? [];
 
-    const nextToken = this.expenseResource.value()?.nextPageToken;
+    const nextToken = this.expensePersonalResource.value()?.nextPageToken;
     if (nextToken) {
       const nextIndex = this.currentPageIndex() + 1;
       untracked(() => {
@@ -150,7 +150,7 @@ export class ExpenseListComponent implements OnInit {
       filter((res: DialogData | undefined): res is DialogData => !!res && res.isSuccess),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((res) => {
-      this.expenseResource.reload();
+      this.expensePersonalResource.reload();
       this.availableYearsResource.reload();
     })
   }
