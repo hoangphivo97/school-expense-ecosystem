@@ -1,7 +1,14 @@
-export enum NavItem {
-  REPORT = 'report',
-  EXPENSE = 'expense',
-  USER_LIST = 'user-list',
-  BUDGET_MANAGER = 'budget-manager',
-  DASHBOARD = 'dashboard'
+import { NavItem } from "../enums/nav.enum";
+
+export interface NavItemConfig{
+  key: NavItem;
+  label: string;
+  icon: string;
+  children?: SubNavItemConfig[];
+}
+
+export interface SubNavItemConfig {
+  label: string;
+  route: string;
+  icon: string;
 }

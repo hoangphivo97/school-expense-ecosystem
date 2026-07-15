@@ -17,10 +17,27 @@
   <!-- Centralized Navigation Menu Links -->
   <nav class="navigation-menu">
     @for (item of filteredNavItems(); track item.key) {
+    @if (item.children && item.children.length > 0) {
+    <div class="nav-item-group">
+      <a class="nav-item-link" [class.active]="item.key === activeItem()" (click)="setActive(item.key)">
+        <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+        <span class="label" [class.hide]="collapsed">{{ item.label }}</span>
+      </a>
+      <div class="sub-menu-container" [class.expanded]="item.key === activeItem() && !collapsed">
+        @for (sub of item.children; track sub.route) {
+        <a class="sub-nav-item-link" [routerLink]="[sub.route]" routerLinkActive="sub-active">
+          <mat-icon class="sub-nav-icon">{{ sub.icon }}</mat-icon>
+          <span class="label" [class.hide]="collapsed">{{ sub.label }}</span>
+        </a>
+        }
+      </div>
+    </div>
+    } @else {
     <a class="nav-item-link" [class.active]="item.key === activeItem()" (click)="setActive(item.key)">
       <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
       <span class="label" [class.hide]="collapsed">{{ item.label }}</span>
     </a>
+    }
     }
   </nav>
 

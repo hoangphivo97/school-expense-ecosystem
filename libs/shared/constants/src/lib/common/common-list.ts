@@ -1,4 +1,4 @@
-import { NavItem } from '@school-expense-ecosystem/shared/types';
+import { NavItem, NavItemConfig } from '@school-expense-ecosystem/shared/types';
 
 export const months = [
   { value: null, label: 'All Month' },
@@ -16,13 +16,21 @@ export const months = [
   { value: 12, label: 'December' },
 ];
 
-export const navItems = [
-  { icon: 'local_atm', label: 'Expenses', key: NavItem.EXPENSE },
+export const navItems: NavItemConfig[] = [
+  { icon: 'local_atm', label: 'My Expenses', key: NavItem.EXPENSE },
+  {
+    key: NavItem.APPROVAL_CENTER,
+    label: 'Approval Center',
+    icon: 'assignment_turned_in',
+    children: [
+      { label: 'Pending Queue', route: '/expense/pending', icon: 'hourglass_empty' }, // FIFO Queue
+      { label: 'Faculty History', route: '/expense/history', icon: 'history' } // LIFO Archive
+    ]
+  },
   { icon: 'accessibility_new', label: 'User', key: NavItem.USER_LIST },
   {
     icon: 'insert_chart_outlined',
     label: 'Report',
-    route: '/report',
     key: NavItem.REPORT,
   },
   { icon: 'account_balance', label: 'Budget Manager', key: NavItem.BUDGET_MANAGER },

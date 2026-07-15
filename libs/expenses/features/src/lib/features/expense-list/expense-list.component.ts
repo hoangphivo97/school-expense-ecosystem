@@ -1,5 +1,5 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal, effect, untracked } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 
 import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
-import { FilterParams, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
+import { FilterParams, DialogActionEnum, DialogData, UserStatus } from '@school-expense-ecosystem/shared/types';
 import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
@@ -38,7 +38,7 @@ export class ExpenseListComponent implements OnInit {
   readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
   readonly expenseService = inject(ExpenseService);
-  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
 
   paidMethodToString = EnumToStringPipe
   filterModeEnum = FilterMode
@@ -119,6 +119,24 @@ export class ExpenseListComponent implements OnInit {
 
   ngOnInit() {
     this.initDateFormat();
+    this.toggleExpenseMode()
+  }
+
+  toggleExpenseMode() {
+    this.activatedRoute.data.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
+      const mode = data['viewMode'];
+
+      if (mode === 'PENDING_QUEUE') {
+        // Enforce pristine filterless view states optimized for resolving task backlogs quickly
+        this.filterParams.set({ searchTerm: '', month: null, year: null, status: UserStatus.PENDING });
+      } else if (mode === 'FACULTY_HISTORY') {
+        // Initialize history views safely targeting the wider annual perimeter boundary defaults
+        this.filterParams.set({ searchTerm: '', month: null, year: new Date().getFullYear(), status: undefined });
+      } else {
+        // Standard personalization baseline fallback track for requesters
+        this.filterParams.set({ searchTerm: '', month: null, year: new Date().getFullYear(), status: undefined });
+      }
+    });
   }
 
   onPageChange(event: PageEvent): void {

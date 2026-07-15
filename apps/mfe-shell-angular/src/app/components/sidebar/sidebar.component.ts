@@ -12,7 +12,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
-import { NavItem } from '@school-expense-ecosystem/shared/types';
+import { NavItem, UserType } from '@school-expense-ecosystem/shared/types';
 import { MatDialog } from '@angular/material/dialog';
 import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons/faArrowRightFromBracket';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -65,13 +65,15 @@ export class SidebarComponent implements OnInit {
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
-      NavItem.BUDGET_MANAGER
+      NavItem.BUDGET_MANAGER,
+      NavItem.APPROVAL_CENTER
     ],
     [Role.LEVEL_2_DEAN]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
-      NavItem.USER_LIST
+      NavItem.USER_LIST,
+      NavItem.APPROVAL_CENTER
     ],
     [Role.LEVEL_3_USER]: [
       NavItem.DASHBOARD,
@@ -79,11 +81,18 @@ export class SidebarComponent implements OnInit {
     ]
   };
 
+  private readonly userTypePermissions: Partial<Record<UserType, NavItem[]>> = {
+    [UserType.TEACHER]: [NavItem.APPROVAL_CENTER], // Grant teachers permission to access the student review desk
+    [UserType.STAFF]: [NavItem.APPROVAL_CENTER]    // Configure staff permissions safely inside this functional block
+  };
+
   private readonly urlRouteMapping: Record<string, NavItem> = {
+    '/expense/pending': NavItem.APPROVAL_CENTER, // Route target child views back to the parent inbox dashboard context
+    '/expense/history': NavItem.APPROVAL_CENTER,
     '/report': NavItem.REPORT,
     '/budget-manager': NavItem.BUDGET_MANAGER,
     '/user-list': NavItem.USER_LIST,
-    '/expense': NavItem.EXPENSE,
+    '/expense': NavItem.EXPENSE, // Baseline fallback for the default personal claims view
     '/dashboard': NavItem.DASHBOARD,
   };
 
@@ -91,8 +100,16 @@ export class SidebarComponent implements OnInit {
     const currentUser = this.user();
     if (!currentUser) return [];
 
-    const allowedItems = this.rolePermissions[currentUser.role] || [];
-    return navItems.filter((item: any) => allowedItems.includes(item.key));
+    const allowedItems = new Set<NavItem>(this.rolePermissions[currentUser.role] || []);
+
+    if (currentUser.userType) {
+      const typeItems = this.userTypePermissions[currentUser.userType];
+      if (typeItems) {
+        typeItems.forEach(item => allowedItems.add(item));
+      }
+    }
+
+    return navItems.filter((item: any) => allowedItems.has(item.key));
   });
 
   ngOnInit(): void {
@@ -110,7 +127,9 @@ export class SidebarComponent implements OnInit {
   }
 
   setActiveItemByUrl(url: string): void {
-    const match = Object.entries(this.urlRouteMapping).find(([routeKey]) => url.includes(routeKey));
+    const match = Object.entries(this.urlRouteMapping)
+      .sort((a, b) => b[0].length - a[0].length)
+      .find(([routeKey]) => url.includes(routeKey));
 
     if (match) {
       const [_, navItem] = match;
@@ -120,6 +139,16 @@ export class SidebarComponent implements OnInit {
 
   setActive(itemKey: NavItem) {
     const currentQueryParams = this.router.parseUrl(this.router.url).queryParams;
+    const targetItem = navItems.find(item => item.key === itemKey);
+
+    // If the parent menu houses sub-items, immediately auto-route to the primary leaf node entry
+    if (targetItem && targetItem.children && targetItem.children.length > 0) {
+      this.router.navigate([targetItem.children[0].route], {
+        queryParams: currentQueryParams,
+        queryParamsHandling: 'merge',
+      });
+      return;
+    }
 
     this.router.navigate([itemKey], {
       queryParams: currentQueryParams,
