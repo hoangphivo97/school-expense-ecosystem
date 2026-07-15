@@ -10,23 +10,31 @@ import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { DeleteReasonType, DeleteUserPayload } from '@school-expense-ecosystem/admin/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { form, FormField, required, validate, } from '@angular/forms/signals';
+import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-user-delete-modal',
   imports: [MatButtonModule, MatDialogModule, MatFormFieldModule,
-    MatInputModule, MatSelectModule, MatSnackBarModule, MatIconModule, FormField],
+    MatInputModule, MatSelectModule, MatSnackBarModule, MatIconModule, FormField, LoadingDirective, TranslocoModule, FormErrorSignalPipe],
   templateUrl: './user-delete-modal.html',
   styleUrl: './user-delete-modal.scss',
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'admin' }
+  ]
 })
 export class UserDeleteModalComponent {
   private readonly userListService = inject(UserListService);
   private readonly dialogRef = inject(MatDialogRef<UserDeleteModalComponent>);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly translocoService = inject(TranslocoService);
 
   protected readonly dialogData = inject(MAT_DIALOG_DATA);
   protected readonly targetUser = this.dialogData.user as UserBase;
   protected readonly DeleteReasonType = DeleteReasonType;
 
+  readonly isLoading = signal<boolean>(false);
   protected readonly deleteModel = signal<DeleteUserPayload>({
     reasonType: DeleteReasonType.INPUT_ERROR,
     confirmationText: ''
@@ -41,17 +49,17 @@ export class UserDeleteModalComponent {
 
       if (currentReason === DeleteReasonType.INPUT_ERROR) {
         if (!text) {
-          return { kind: 'required', message: "This field is required" };
+          return { kind: 'required' };
         }
         if (text !== 'DELETE') {
-          return { kind: 'pattern', message: "Verification match string failure (Must be exactly 'DELETE')" };
+          return { kind: 'pattern' };
         }
       }
       return undefined;
     });
   });
 
-  protected readonly isSubmitDisabled = computed(() => this.deleteForm().invalid());
+  protected readonly isSubmitDisabled = computed(() => this.deleteForm().invalid() || this.isLoading());
 
   protected readonly reasonOptions = [
     { value: DeleteReasonType.INPUT_ERROR, label: 'Option A: Input Data Error (Removable)' },
@@ -69,9 +77,10 @@ export class UserDeleteModalComponent {
       return;
     }
 
-    this.userListService.deleteUser(this.targetUser.uid, payload).subscribe({
+    this.userListService.deleteUser(this.targetUser.uid, payload).pipe(trackLoading(this.isLoading)).subscribe({
       next: () => {
-        this.snackBar.open('Account purged successfully.', 'Close', { duration: 4000 });
+        const successMsg = this.translocoService.translate('admin.userList.deleteModal.notifications.purgeSuccess');
+        this.snackBar.open(successMsg, 'Close', { duration: 4000 });
         this.dialogRef.close({ isDeleted: true, targetUid: this.targetUser.uid });
       },
       error: (err) => {

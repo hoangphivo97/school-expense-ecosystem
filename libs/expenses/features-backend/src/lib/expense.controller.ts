@@ -1,12 +1,13 @@
 /// <reference types="multer" />
 import { Controller, Get, Post, Put, Body, Param, Query, Req, UseGuards, BadRequestException, ForbiddenException, UseInterceptors, ParseFilePipe, UploadedFile, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
-import { ExpenseBackendService, StorageProvider } from '@school-expense-ecosystem/expenses/data-access-backend';
+import { ExpenseBackendService, PersonalExpenseQueryDto, ReviewerExpenseQueryDto, StorageProvider } from '@school-expense-ecosystem/expenses/data-access-backend';
 import { JwtAuthGuard, RolesGuard } from '@school-expense-ecosystem/shared/guards-backend';
 import { AuditAction } from '@school-expense-ecosystem/expenses/types';
 import { Request } from 'express';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/data-access-backend';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ExpenseCapGuard, ExpenseReviewGuard } from '@school-expense-ecosystem/expense/guards-backend';
 
 
 interface AuthenticatedRequest extends Request {
@@ -20,26 +21,13 @@ export class ExpenseController {
   ) { }
 
   @Get()
-  async getExpenses(
+  async getPersonalExpenses(
     @Req() req: AuthenticatedRequest,
-    @Query('limit') limit?: string,
-    @Query('pageToken') pageToken?: string,
-    @Query('year') year?: string,
-    @Query('month') month?: string,
-    @Query('searchTerm') searchTerm?: string
+    @Query() query: PersonalExpenseQueryDto
   ) {
-    const userId = req.user.uid;
-    const parsedLimit = limit ? parseInt(limit, 10) : 10;
-    const filterYear = year ? parseInt(year, 10) : undefined;
-    const filterMonth = month ? parseInt(month, 10) : undefined;
 
-    return this.expenseBackendService.getPaginatedExpenses(userId, {
-      limit: parsedLimit,
-      pageToken,
-      year: filterYear,
-      month: filterMonth,
-      searchTerm: searchTerm || undefined
-    });
+    const userId = req.user.uid;
+    return this.expenseBackendService.getPersonalPaginatedExpenses(userId, query);
   }
 
   @Get('analytics')
@@ -67,31 +55,26 @@ export class ExpenseController {
   }
 
   @Post()
+  @UseGuards(ExpenseCapGuard)
   async createExpense(@Req() req: AuthenticatedRequest, @Body() dto: CreateExpenseDto) {
-    if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT && dto.amount > 2000) {
-      throw new BadRequestException('Security Breach: Student expense claims are strictly capped at 2,000 TWD.');
-    }
     return this.expenseBackendService.createExpense(req.user, dto);
   }
 
-  @Put(':id')
-  async updateExpense(@Req() req: AuthenticatedRequest, @Param('id') id: string, @Body() dto: UpdateExpenseDto) {
-    if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT && dto.amount && dto.amount > 2000) {
-      throw new BadRequestException('Security Breach: Student expense claims are strictly capped at 2,000 TWD.');
-    }
-    return this.expenseBackendService.updateExpense(id, req.user.uid, req.user, dto);
-  }
+  // @Put(':id')
+  // async updateExpense(@Req() req: AuthenticatedRequest, @Param('id') id: string, @Body() dto: UpdateExpenseDto) {
+  //   if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT && dto.amount && dto.amount > 2000) {
+  //     throw new BadRequestException('Security Breach: Student expense claims are strictly capped at 2,000 TWD.');
+  //   }
+  //   return this.expenseBackendService.updateExpense(id, req.user.uid, req.user, dto);
+  // }
 
   @Post(':id/review')
+  @UseGuards(ExpenseReviewGuard)
   async reviewExpense(
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() body: { action: AuditAction; reason?: string }
   ) {
-    if (req.user.role === Role.LEVEL_3_USER || req.user.userType === UserType.STUDENT) {
-      throw new ForbiddenException('Access Denied: Students are not authorized to review expense claims.');
-    }
-
     if (!body.action || !Object.values(AuditAction).includes(body.action)) {
       throw new BadRequestException('Invalid workflow action');
     }
@@ -102,7 +85,7 @@ export class ExpenseController {
   @Post('upload-proof')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 5 * 1024 * 1024 }, // Ngắt kết nối sớm nếu file > 5MB
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   async uploadProof(
@@ -122,10 +105,21 @@ export class ExpenseController {
     @Req() req: any
   ) {
     const fileUrl = await this.storageProvider.uploadTemp(file);
-    const host = req.get('host');
-    const protocol = req.protocol;
 
-    // Trả về URL tuyệt đối để phía client (Angular) có thể hiển thị/download
-    return { url: `${protocol}://${host}${fileUrl}` };
+
+    return { url: fileUrl };
+  }
+
+  @Get('reviewer')
+  async getReviewerExpenses(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: ReviewerExpenseQueryDto
+  ) {
+    // Zero-Trust Enforcement: Explicitly reject students from accessing reviewer workflows
+    if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT) {
+      throw new ForbiddenException('Access Denied: Students are excluded from reviewer queues.');
+    }
+
+    return this.expenseBackendService.getReviewerExpenses(req.user, query);
   }
 }

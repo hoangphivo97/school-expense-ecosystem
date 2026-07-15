@@ -17,12 +17,14 @@
   "roles": {
     "dean": "DEAN",
     "student": "Student",
-    "sysadmin": "System Administrator"
+    "sysadmin": "System Administrator",
+    "teacher": "Teacher"
   },
   "descriptions": {
     "dean": "Authorized to review, approve, or reject departmental expense claims, grant allocations, and academic research requests.",
     "student": "Submits educational expense reimbursement requests and tracks individual research laboratory budget allocations.",
-    "sysadmin": "Granted full global access to monitor system audit logs, manage configuration parameters, and orchestrate workspace security rules."
+    "sysadmin": "Granted full global access to monitor system audit logs, manage configuration parameters, and orchestrate workspace security rules.",
+    "teacher": "Submits educational expense reimbursement requests and tracks individual research laboratory budget allocations. Authorizes initial student reimbursement claims within their specific faculty perimeter."
   },
   "emailRequired": "Email Address is required.",
   "emailInvalid": "Please enter a valid email address.",

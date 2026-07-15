@@ -7,7 +7,9 @@ import { ConflictReason, OnboardingData } from '@school-expense-ecosystem/auth/t
 import { AuthUserRepository } from './auth-user.repository';
 import { IdentityProvider } from './interface/identify-provider.interface';
 import { UserStatus, Role, UserBase } from '@school-expense-ecosystem/shared/types';
-import { AccountRestrictedException, IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
+import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
+import { AccountRestrictedException } from '@school-expense-ecosystem/shared/utils-backend';
+import { FirebaseError } from 'firebase/app';
 
 @Injectable()
 export class AuthService {
@@ -66,12 +68,12 @@ export class AuthService {
 
       const authToken = this.generateJWT(user);
       return { token: authToken, user };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AccountRestrictedException) {
         throw error; // Forward the structured restriction error object
       }
 
-      const isFirebaseDisabled = error?.code === 'auth/user-disabled' || error?.message?.includes('disabled');
+      const isFirebaseDisabled = (error as FirebaseError)?.code === 'auth/user-disabled' || (error as FirebaseError)?.message?.includes('disabled');
       if (isFirebaseDisabled) {
         throw new AccountRestrictedException(
           UserStatus.SUSPENDED,

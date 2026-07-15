@@ -1,5 +1,5 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal, effect, untracked } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,17 +9,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter} from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 
-import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
-import { FilterParams, DialogActionEnum, DialogData } from '@school-expense-ecosystem/shared/types';
-import { LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
+import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { DialogActionEnum, DialogData, ExpenseStatus, Role, SharedFilterParams, UserStatus } from '@school-expense-ecosystem/shared/types';
+import { AuthSignalStore, LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
 import { FilterMode } from '@school-expense-ecosystem/shared/types'
+import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 
 @Component({
   selector: 'lib-expense-list',
@@ -27,7 +28,8 @@ import { FilterMode } from '@school-expense-ecosystem/shared/types'
   imports: [
     HeaderComponent, FooterComponent, FormsModule, DecimalPipe, CommonModule,
     MatButtonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatInputModule,
-    EnumToStringPipe, FilterComponent
+    EnumToStringPipe, FilterComponent,
+    LoadingDirective
   ],
   templateUrl: './expense-list.component.html',
   styleUrl: './expense-list.component.scss',
@@ -37,7 +39,12 @@ export class ExpenseListComponent implements OnInit {
   readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
   readonly expenseService = inject(ExpenseService);
-  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly authStore = inject(AuthSignalStore);
+
+  readonly activeResource = computed(() =>
+    this.viewMode() === 'PERSONAL' ? this.expensePersonalResource : this.expenseReviewerResource
+  );
 
   paidMethodToString = EnumToStringPipe
   filterModeEnum = FilterMode
@@ -60,19 +67,27 @@ export class ExpenseListComponent implements OnInit {
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(0);
   private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
+  readonly viewMode = signal<'PERSONAL' | 'PENDING_QUEUE' | 'FACULTY_HISTORY'>('PERSONAL');
 
-  readonly filterParams = signal<FilterParams>({
+  private readonly roleQueueMapping: Partial<Record<Role, ExpenseStatus>> = {
+    [Role.LEVEL_3_USER]: ExpenseStatus.PENDING_TEACHER_REVIEW,
+    [Role.LEVEL_2_DEAN]: ExpenseStatus.PENDING_DEAN_APPROVAL,
+    [Role.LEVEL_1_FINANCE]: ExpenseStatus.PENDING_DISBURSEMENT
+  };
+
+  readonly filterParams = signal<FilterExpenseParams>({
     searchTerm: '',
-    month: new Date().getMonth() + 1,
+    month: null,
     year: new Date().getFullYear(),
-    status: undefined
+    status: undefined,
   });
 
-  readonly expenseResource = this.expenseService.getExpenseListResource(() => {
+  readonly expensePersonalResource = this.expenseService.getPersonalExpenseListResource(() => {
+    if (this.viewMode() !== 'PERSONAL') return undefined;
     const index = this.currentPageIndex();
     const limit = this.pageSize();
     const filter = this.filterParams();
-    const tokens = this.pageTokens();
+    const tokens = untracked(() => this.pageTokens());
     const currentToken = tokens[index] || '';
 
     return {
@@ -84,14 +99,36 @@ export class ExpenseListComponent implements OnInit {
     };
   });
 
-  readonly isLoading = this.expenseResource.isLoading;
-  readonly errorMessage = computed(() => this.expenseResource.error() ? 'Failed to resolve database entries.' : null);
+  readonly expenseReviewerResource = this.expenseService.getReviewerExpenseListResource(() => {
+    if (this.viewMode() === 'PERSONAL') return undefined;
+    const index = this.currentPageIndex();
+    const limit = this.pageSize();
+    const filter = this.filterParams();
+    const tokens = untracked(() => this.pageTokens());
+    const currentToken = tokens[index] || '';
 
-  readonly totalItems = computed(() => this.expenseResource.value()?.totalItems ?? 0);
+    return {
+      limit,
+      pageToken: currentToken,
+      year: filter.year ? Number(filter.year) : undefined,
+      month: filter.month ? Number(filter.month) : undefined,
+      status: filter.status || undefined,
+      facultyId: filter.facultyId || undefined,
+      userType: filter.userType || undefined,
+      searchTerm: filter.searchTerm || undefined
+    };
+  });
+
+  protected readonly isGridDataLoading = computed(() =>
+    this.expensePersonalResource.isLoading() || this.availableYearsResource.isLoading()
+  );
+  readonly errorMessage = computed(() => this.activeResource().error() ? 'Failed to resolve database entries.' : null);
+
+  readonly totalItems = computed(() => this.activeResource().value()?.totalItems ?? 0);
   readonly dataSource = computed(() => {
-    const list = this.expenseResource.value()?.expenses ?? [];
+    const list = this.activeResource().value()?.expenses ?? [];
 
-    const nextToken = this.expenseResource.value()?.nextPageToken;
+    const nextToken = this.activeResource().value()?.nextPageToken;
     if (nextToken) {
       const nextIndex = this.currentPageIndex() + 1;
       untracked(() => {
@@ -116,6 +153,33 @@ export class ExpenseListComponent implements OnInit {
 
   ngOnInit() {
     this.initDateFormat();
+    this.toggleExpenseMode()
+  }
+
+  toggleExpenseMode() {
+    this.activatedRoute.data.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
+      const mode = data['viewMode'] || 'PERSONAL';
+      this.viewMode.set(mode);
+
+      if (mode === 'PENDING_QUEUE') {
+        const currentUser = this.authStore.user();
+        // Resolve the precise entry status token dynamically based on the reviewer's authorization tier
+        const resolvedStatus = currentUser ? this.roleQueueMapping[currentUser.role] : undefined;
+
+        this.filterParams.set({
+          searchTerm: '',
+          month: null,
+          year: null,
+          status: resolvedStatus
+        });
+      } else if (mode === 'FACULTY_HISTORY') {
+        // Initialize history views safely targeting the wider annual perimeter boundary defaults
+        this.filterParams.set({ searchTerm: '', month: null, year: new Date().getFullYear(), status: undefined });
+      } else {
+        // Standard personalization baseline fallback track for requesters
+        this.filterParams.set({ searchTerm: '', month: null, year: new Date().getFullYear(), status: undefined });
+      }
+    });
   }
 
   onPageChange(event: PageEvent): void {
@@ -128,7 +192,7 @@ export class ExpenseListComponent implements OnInit {
       filter((res: DialogData | undefined): res is DialogData => !!res && res.isSuccess),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((res) => {
-      this.expenseResource.reload();
+      this.activeResource().reload();
       this.availableYearsResource.reload();
     })
   }
@@ -142,23 +206,14 @@ export class ExpenseListComponent implements OnInit {
     this.getListAfterSuccessCallApi(dialogRef);
   }
 
-  openEditExpenseModal(data: ExpenseList) {
-    const dialogRef = this.dialog.open(CreateExpenseModalComponent, {
-      width: '600px',
-      data: { title: 'Edit Expense', action: this.dialogActionEnum.Edit, isSuccess: false, data } as DialogData,
-      disableClose: true,
-    });
-    this.getListAfterSuccessCallApi(dialogRef);
-  }
-
   initDateFormat() {
     if (!this.localStorageService.getItem(LocalStorageKey.dateFormat)) {
       this.localStorageService.setItem(LocalStorageKey.dateFormat, DateFormatValue.DMY);
     }
   }
 
-  onExpenseFiltersChanged(params: FilterParams): void {
-    this.filterParams.set(params);
+  onExpenseFiltersChanged(params: SharedFilterParams): void {
+    this.filterParams.set(params as FilterExpenseParams);
   }
 
   get GlobalDateFormat(): string {

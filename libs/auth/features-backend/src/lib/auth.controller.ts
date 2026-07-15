@@ -30,10 +30,10 @@ export class AuthController {
 
   @Post('onboarding')
   async completeOnboarding(@Req() req: any, @Body() dto: OnboardingDto): Promise<OnboardingResponse> {
-    const firebaseUid = req.user.uid; 
+    const uid = req.user.uid; 
     const email = req.user.email;
 
-    const result = await this.authService.completeOnboarding(firebaseUid, email, dto);
+    const result = await this.authService.completeOnboarding(uid, email, dto);
 
     return {
     message: 'Onboarding completed successfully. Registration is now pending approval.',

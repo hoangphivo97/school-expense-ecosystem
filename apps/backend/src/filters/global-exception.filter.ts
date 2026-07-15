@@ -1,6 +1,6 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
-import { BaseAuthException } from '@school-expense-ecosystem/auth/data-access-backend';
+import { BaseAuthException } from '@school-expense-ecosystem/shared/utils-backend';
 import { ErrorResponse, RestrictedAccountError } from '@school-expense-ecosystem/shared/types';
 import { BaseAdminException } from '@school-expense-ecosystem/admin/data-access-backend';
 import { BaseExpenseException } from '@school-expense-ecosystem/expenses/data-access-backend';

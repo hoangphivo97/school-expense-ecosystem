@@ -22,8 +22,11 @@
       "@school-expense-ecosystem/shared/types": [
         "./libs/shared/types/src/index.ts"
       ],
-      "@school-expense-ecosystem/shared/utils": [
-        "./libs/shared/utils/src/index.ts"
+      "@school-expense-ecosystem/shared/utils-backend": [
+        "./libs/shared/utils/src/backend.ts"
+      ],
+      "@school-expense-ecosystem/shared/utils-frontend": [
+        "./libs/shared/utils/src/frontend.ts"
       ],
       "@school-expense-ecosystem/shared/data-access": [
         "./libs/shared/data-access/src/index.ts"
@@ -109,8 +112,11 @@
       "@school-expense-ecosystem/shared/guards-backend": [
         "./libs/shared/guards-backend/src/index.ts"
       ],
-      "@school-expense-ecosystem/auth/guards": [
-        "./libs/auth/guards/src/index.ts"
+      "@school-expense-ecosystem/auth/guards-frontend": [
+        "./libs/auth/guards-frontend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/expense/guards-backend": [
+        "./libs/expenses/guards-backend/src/index.ts"
       ]
     }
   },

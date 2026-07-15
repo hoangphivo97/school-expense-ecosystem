@@ -8,106 +8,115 @@
     </button>
   </lib-filter>
 
-  <table mat-table [dataSource]="dataSource()">
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden" [seLoading]="isGridDataLoading()">
+    <div class="card-body p-0">
 
-    <ng-container matColumnDef="date">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Date</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.date | date: 'dd/MM/yyyy' }}
-      </td>
-    </ng-container>
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource()">
 
-    <ng-container matColumnDef="requesterCode">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Code</th>
-      <td mat-cell *matCellDef="let element">
-        <span class="code-badge">{{ element.requesterCode }}</span>
-      </td>
-    </ng-container>
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Date</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.date | date: 'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
 
-    <ng-container matColumnDef="requesterName">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Requester</th>
-      <td mat-cell *matCellDef="let element">{{ element.requesterName }}</td>
-    </ng-container>
+          <ng-container matColumnDef="requesterCode">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Code</th>
+            <td mat-cell *matCellDef="let element">
+              <span class="code-badge">{{ element.requesterCode }}</span>
+            </td>
+          </ng-container>
 
-    <ng-container matColumnDef="requesterType">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Type</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.requesterType | titlecase }}
-      </td>
-    </ng-container>
+          <ng-container matColumnDef="requesterName">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Requester</th>
+            <td mat-cell *matCellDef="let element">{{ element.requesterName }}</td>
+          </ng-container>
 
-    <ng-container matColumnDef="facultyId">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Faculty</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.facultyId | uppercase }}
-      </td>
-    </ng-container>
+          <ng-container matColumnDef="requesterType">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Type</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.requesterType | titlecase }}
+            </td>
+          </ng-container>
 
-    <ng-container matColumnDef="description">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Description</th>
-      <td mat-cell *matCellDef="let element">{{ element.description }}</td>
-    </ng-container>
+          <ng-container matColumnDef="facultyId">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Faculty</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.facultyId | uppercase }}
+            </td>
+          </ng-container>
 
-    <ng-container matColumnDef="purpose">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Purpose</th>
-      <td mat-cell *matCellDef="let element">{{ element.purpose }}</td>
-    </ng-container>
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Description</th>
+            <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+          </ng-container>
 
-    <ng-container matColumnDef="paidMethod">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Paid Method</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.paidMethod | enumToString }}
-      </td>
-    </ng-container>
+          <ng-container matColumnDef="purpose">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Purpose</th>
+            <td mat-cell *matCellDef="let element">{{ element.purpose }}</td>
+          </ng-container>
 
-    <ng-container matColumnDef="amount">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Amount</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.amount | number: '3.0-0' }}
-      </td>
-    </ng-container>
+          <ng-container matColumnDef="paidMethod">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Paid Method</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.paidMethod | enumToString }}
+            </td>
+          </ng-container>
 
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Status</th>
-      <td mat-cell *matCellDef="let element">
-        <span class="status-badge" [ngClass]="element.status.toLowerCase()">
-          {{ element.status }}
-        </span>
-      </td>
-    </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Amount</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.amount | number: '3.0-0' }}
+            </td>
+          </ng-container>
 
-    <ng-container matColumnDef="action">
-      <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
-      <td mat-cell *matCellDef="let element">
-        <button mat-icon-button color="accent" (click)="openEditExpenseModal(element)" aria-label="Edit expense">
-          <mat-icon>edit</mat-icon>
-        </button>
-      </td>
-    </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Status</th>
+            <td mat-cell *matCellDef="let element">
+              <span class="status-badge" [ngClass]="element.status.toLowerCase()">
+                {{ element.status }}
+              </span>
+            </td>
+          </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
+            <td mat-cell *matCellDef="let element">
+            </td>
+          </ng-container>
 
-    <tr class="mat-mdc-no-data-row" *matNoDataRow>
-      <td [attr.colspan]="displayedColumns.length">
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-        <div class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
-          <div class="empty-icon-box mb-3">
-            <mat-icon class="material-icons-outlined text-muted">receipt_long</mat-icon>
-          </div>
-          <h3 class="empty-title m-0">No Expenses Found</h3>
-          <p class="empty-subtitle text-muted px-3">
-            There are no transactions recorded for the selected period or criteria.
-          </p>
-        </div>
+          <tr class="mat-mdc-no-data-row" *matNoDataRow>
+            <td [attr.colspan]="displayedColumns.length">
 
-      </td>
-    </tr>
-  </table>
+              @if(!isGridDataLoading()){
+              <div
+                class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
+                <div class="empty-icon-box mb-3">
+                  <mat-icon class="material-icons-outlined text-muted">receipt_long</mat-icon>
+                </div>
+                <h3 class="empty-title m-0">No Expenses Found</h3>
+                <p class="empty-subtitle text-muted px-3">
+                  There are no transactions recorded for the selected period or criteria.
+                </p>
+              </div>
+              }
 
-  <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
-    [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" aria-label="Select page of database users">
-  </mat-paginator>
+            </td>
+          </tr>
+        </table>
+
+        <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
+          [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" aria-label="Select page of database users">
+        </mat-paginator>
+
+      </div>
+    </div>
+  </div>
+
 
 </div>
 <lib-footer></lib-footer>

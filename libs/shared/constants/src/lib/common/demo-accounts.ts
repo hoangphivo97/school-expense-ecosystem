@@ -18,5 +18,11 @@ export const DemoAccountArr: DemoAccount[] = [
         email: 'sysadmin.demo@ntust.edu.tw',
         password: 'DemoPassword123',
         description: 'Granted full global access to monitor system audit logs, manage configuration parameters, and orchestrate workspace security rules.'
+    },
+    {
+        role: 'Teacher',
+        email: 'teacher.demo@ntust.edu.tw',
+        password: 'DemoPassword123',
+        description: 'Submits educational expense reimbursement requests and tracks individual research laboratory budget allocations. Authorizes initial student reimbursement claims within their specific faculty perimeter.'
     }
 ];

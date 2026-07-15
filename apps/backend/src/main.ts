@@ -10,7 +10,8 @@ let cachedServer: any;
 function configureNestApp(app: any) {
   app.enableCors({
     origin: true,
-    credentials: true
+    credentials: true,
+    maxAge: 86400,
   });
 
   const globalPrefix = 'api';

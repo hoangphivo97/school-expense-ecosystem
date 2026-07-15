@@ -1,9 +1,9 @@
-import { FilterParams } from '@school-expense-ecosystem/shared/types';
+import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import { Params } from '@angular/router';
 
 
-export function getPrevMonth(p: Partial<FilterParams>): FilterParams {
+export function getPrevMonth(p: Partial<FilterExpenseParams>): Partial<FilterExpenseParams> {
   const currentMonth = p.month ?? new Date().getMonth() + 1;
   const currentYear = p.year ?? new Date().getFullYear();
 
@@ -29,7 +29,7 @@ export function calcChangePct(currTotal: number, prevTotal: number) {
 }
 
 
-export function parseRouterFilterParams(params: Params | undefined): FilterParams {
+export function parseRouterFilterParams(params: Params | undefined): Partial<FilterExpenseParams> {
   const yearParsed = Number(params?.['year']);
   const monthParsed = Number(params?.['month']);
 

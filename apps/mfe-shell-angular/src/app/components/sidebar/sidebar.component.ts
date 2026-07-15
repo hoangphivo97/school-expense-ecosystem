@@ -12,11 +12,11 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
-import { NavItem } from '@school-expense-ecosystem/shared/types';
+import { NavItem, UserType } from '@school-expense-ecosystem/shared/types';
 import { MatDialog } from '@angular/material/dialog';
 import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons/faArrowRightFromBracket';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { navItems } from '@school-expense-ecosystem/shared/constants';
+import { APP_NAVIGATION, URL_ROUTE_LINKER } from '@school-expense-ecosystem/shared/constants';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ReactWrapperComponent } from '@school-expense-ecosystem/shared/ui';
@@ -56,7 +56,7 @@ export class SidebarComponent implements OnInit {
 
   activeItem = signal<NavItem>(NavItem.DASHBOARD)
 
-  private readonly rolePermissions: Record<Role, NavItem[]> = {
+  private readonly ROLES_PERMISSION: Record<Role, NavItem[]> = {
     [Role.LEVEL_0_ADMIN]: [
       NavItem.DASHBOARD,
       NavItem.USER_LIST
@@ -65,13 +65,15 @@ export class SidebarComponent implements OnInit {
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
-      NavItem.BUDGET_MANAGER
+      NavItem.BUDGET_MANAGER,
+      NavItem.APPROVAL_CENTER
     ],
     [Role.LEVEL_2_DEAN]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
-      NavItem.USER_LIST
+      NavItem.USER_LIST,
+      NavItem.APPROVAL_CENTER
     ],
     [Role.LEVEL_3_USER]: [
       NavItem.DASHBOARD,
@@ -79,20 +81,26 @@ export class SidebarComponent implements OnInit {
     ]
   };
 
-  private readonly urlRouteMapping: Record<string, NavItem> = {
-    '/report': NavItem.REPORT,
-    '/budget-manager': NavItem.BUDGET_MANAGER,
-    '/user-list': NavItem.USER_LIST,
-    '/expense': NavItem.EXPENSE,
-    '/dashboard': NavItem.DASHBOARD,
+  private readonly URL_ROUTE_MAPPING = URL_ROUTE_LINKER;
+
+  private readonly USER_TYPE_PERMISSIONS: Partial<Record<UserType, NavItem[]>> = {
+    [UserType.TEACHER]: [NavItem.APPROVAL_CENTER],
   };
 
   readonly filteredNavItems = computed(() => {
     const currentUser = this.user();
     if (!currentUser) return [];
 
-    const allowedItems = this.rolePermissions[currentUser.role] || [];
-    return navItems.filter((item: any) => allowedItems.includes(item.key));
+    const allowedItems = new Set<NavItem>(this.ROLES_PERMISSION[currentUser.role] || []);
+
+    if (currentUser.userType) {
+      const typeItems = this.USER_TYPE_PERMISSIONS[currentUser.userType];
+      if (typeItems) {
+        typeItems.forEach(item => allowedItems.add(item));
+      }
+    }
+
+    return APP_NAVIGATION.filter((item: any) => allowedItems.has(item.key));
   });
 
   ngOnInit(): void {
@@ -110,7 +118,9 @@ export class SidebarComponent implements OnInit {
   }
 
   setActiveItemByUrl(url: string): void {
-    const match = Object.entries(this.urlRouteMapping).find(([routeKey]) => url.includes(routeKey));
+    const match = Object.entries(this.URL_ROUTE_MAPPING)
+      .sort((a, b) => b[0].length - a[0].length)
+      .find(([routeKey]) => url.includes(routeKey));
 
     if (match) {
       const [_, navItem] = match;
@@ -120,6 +130,16 @@ export class SidebarComponent implements OnInit {
 
   setActive(itemKey: NavItem) {
     const currentQueryParams = this.router.parseUrl(this.router.url).queryParams;
+    const targetItem = APP_NAVIGATION.find(item => item.key === itemKey);
+
+    // If the parent menu houses sub-items, immediately auto-route to the primary leaf node entry
+    if (targetItem && targetItem.children && targetItem.children.length > 0) {
+      this.router.navigate([targetItem.children[0].route], {
+        queryParams: currentQueryParams,
+        queryParamsHandling: 'merge',
+      });
+      return;
+    }
 
     this.router.navigate([itemKey], {
       queryParams: currentQueryParams,
@@ -128,6 +148,6 @@ export class SidebarComponent implements OnInit {
   }
 
   get navItems() {
-    return navItems;
+    return APP_NAVIGATION;
   }
 }

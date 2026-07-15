@@ -335,6 +335,21 @@ body.dark-mode {
       container-shape: var(--mat-sys-corner-extra-small)))
 }
 
+.loading-container-blurred {
+  pointer-events: none !important; // Freeze user interaction clicks safely
+  user-select: none;
+  opacity: 0.65;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.absolute-center-spinner {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1050; // Ensure it stays floating on top of container elements
+}
+
 
 /* ==========================================================================
    6. ARCHITECTURAL LAYOUT FIX HACKS

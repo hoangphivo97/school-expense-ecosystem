@@ -11,11 +11,9 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
-import { UserBase } from '@school-expense-ecosystem/shared/types';
-import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent } from '@school-expense-ecosystem/shared/ui';
-import { toSignal, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, map, of, switchMap } from 'rxjs';
-import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
+import { SharedFilterParams, UserBase } from '@school-expense-ecosystem/shared/types';
+import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { DialogActionEnum, FilterMode, FilterUserParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
@@ -29,6 +27,8 @@ import { faUserXmark } from '@fortawesome/free-solid-svg-icons/faUserXmark';
 import { faCirclePause } from '@fortawesome/free-solid-svg-icons/faCirclePause';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 
 @Component({
   selector: 'lib-user-list',
@@ -50,12 +50,17 @@ import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal
     HeaderComponent,
     MatDialogModule,
     FontAwesomeModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslocoModule,
+    LoadingDirective
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'admin' }
+  ]
 })
 export class UserListComponent {
   private readonly userListService = inject(UserListService);
@@ -81,7 +86,7 @@ export class UserListComponent {
 
   protected readonly currentAdminId = computed(() => this.authStore.user()?.uid ?? '');
 
-  readonly activeFilters = signal<FilterParams>({
+  readonly activeFilters = signal<FilterUserParams>({
     searchTerm: '',
     role: undefined,
     status: undefined,
@@ -102,97 +107,72 @@ export class UserListComponent {
   readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
   readonly isFinance = computed(() => this.authStore.user()?.role === Role.LEVEL_1_FINANCE);
 
-  // Commercial English translation registry mapping raw system roles into presentation texts
-  readonly roleLabels: Record<Role, string> = {
-    [Role.LEVEL_0_ADMIN]: 'System Administrator',
-    [Role.LEVEL_1_FINANCE]: 'Finance Specialist',
-    [Role.LEVEL_2_DEAN]: 'Faculty Dean',
-    [Role.LEVEL_3_USER]: 'Standard User'
-  };
+  protected readonly userResource = this.userListService.getUsersResource(() => {
+    this.refreshTrigger();
 
-  readonly userTypeLabels: Record<UserType, string> = {
-    [UserType.STAFF]: 'Staff',
-    [UserType.STUDENT]: 'Student',
-    [UserType.TEACHER]: 'Teacher'
-  };
-
-  private readonly remoteParams$ = toObservable(
-    computed(() => {
-      const index = this.currentPageIndex();
-      const limit = this.pageSize();
-
-      const tokens = untracked(this.pageTokens);
-      const currentToken = tokens[index] || '';
-
-      return { limit, pageToken: currentToken, refresh: this.refreshTrigger() };
-    })
-  );
-
-  private readonly apiResponse$ = this.remoteParams$.pipe(
-    switchMap(({ limit, pageToken }) => {
-      this.isLoading.set(true);
-      this.errorMessage.set(null);
-
-      return this.userListService.getPaginatedUsers(limit, pageToken).pipe(
-        catchError((err) => {
-          console.error('Fetch paginated users failed:', err);
-          this.isLoading.set(false);
-          this.errorMessage.set('Failed to load user directory. Please verify server connectivity.');
-          return of({ users: [] as UserBase[], nextPageToken: null as string | null, totalItems: 0 });
-        })
-      );
-    }),
-    map((response) => {
-      this.isLoading.set(false);
-
-      if (response.nextPageToken) {
-        const nextIndex = this.currentPageIndex() + 1;
-        this.pageTokens.update(tokens => ({
-          ...tokens,
-          [nextIndex]: response.nextPageToken as string
-        }));
-      }
-      return response;
-    })
-  );
-
-  readonly apiResponseSignal = toSignal(this.apiResponse$, {
-    initialValue: { users: [] as UserBase[], nextPageToken: null as string | null, totalItems: 0 }
-  });
-
-  readonly totalItems = computed(() => this.apiResponseSignal().totalItems);
-
-  readonly dataSource = computed(() => {
-    const rawList = this.apiResponseSignal().users;
+    const index = this.currentPageIndex();
+    const tokens = this.pageTokens();
+    const currentToken = tokens[index] || '';
     const filters = this.activeFilters();
 
-    const query = (filters.searchTerm || '').toLowerCase().trim();
+    return {
+      limit: this.pageSize(),
+      pageToken: currentToken,
+      searchTerm: filters.searchTerm,
+      role: filters.role,
+      status: filters.status,
+      userType: filters.userType,
+      facultyId: filters.facultyId
+    };
+  });
 
-    const filteredList = rawList.filter((user: UserBase) => {
-      const matchesQuery = !query ||
-        user.fullName?.toLowerCase().includes(query) ||
-        user.email?.toLowerCase().includes(query) ||
-        user.userCode?.toLowerCase().includes(query);
+  private readonly pageTokenTrackerEffect = effect(() => {
+    const response = this.userResource.value();
+    if (response?.nextPageToken) {
+      const nextIndex = untracked(this.currentPageIndex) + 1;
+      untracked(() => {
+        this.pageTokens.update(tokens => {
+          if (tokens[nextIndex] === response.nextPageToken) return tokens;
+          return { ...tokens, [nextIndex]: response.nextPageToken! };
+        });
+      });
+    }
+  });
 
-      const matchesRole = !filters.role || user.role === filters.role;
-      const matchesStatus = !filters.status || user.status?.toUpperCase() === (filters.status as string).toUpperCase();
-      const matchesUserType = !filters.userType || user.userType?.toLowerCase() === (filters.userType as string).toLowerCase();
+  readonly totalItems = computed(() => this.userResource.value()?.totalItems ?? 0);
 
-      return matchesQuery && matchesRole && matchesStatus && matchesUserType;
+  readonly dataSource = computed(() => {
+    // Server handles filtering natively; frontend array filtering boilerplate is completely stripped out
+    const rawList = this.userResource.value()?.users ?? [];
+
+    return rawList.map((user: UserBase) => {
+      const isPending = user.status === UserStatus.PENDING;
+      const isActive = user.status === UserStatus.ACTIVE;
+      const isSuspended = user.status === UserStatus.SUSPENDED;
+
+      const toggles = [];
+      if (isPending) {
+        toggles.push({ status: UserStatus.ACTIVE, icon: this.faCircleCheck, color: 'primary', tooltip: 'admin.userList.actions.activate', cssClass: 'text-success' });
+        toggles.push({ status: UserStatus.REJECTED, icon: this.faUserXMark, color: 'warn', tooltip: 'admin.userList.actions.reject', cssClass: 'text-danger' });
+      } else if (isActive) {
+        toggles.push({ status: UserStatus.SUSPENDED, icon: this.faLock, color: 'warn', tooltip: 'admin.userList.actions.deactivate', cssClass: 'text-danger' });
+      } else if (isSuspended) {
+        toggles.push({ status: UserStatus.ACTIVE, icon: this.faLockOpen, color: 'primary', tooltip: 'admin.userList.actions.liftRestriction', cssClass: 'text-primary' });
+      }
+
+      return {
+        ...user,
+        isPending,
+        isActive,
+        isSuspended,
+        availableToggles: toggles,
+        isNotCurrentAdmin: user.uid !== this.currentAdminId(),
+        isProcessing: user.uid === this.processingUserId(),
+        isOnboarding: user.status === UserStatus.ONBOARDING,
+        targetIsAdmin: user.role === Role.LEVEL_0_ADMIN,
+        isRejected: user.status === UserStatus.REJECTED
+      };
     });
-
-    return filteredList.map((user: UserBase) => ({
-      ...user,
-      roleLabel: this.roleLabels[user.role as Role] || String(user.role),
-      isPending: user.status === UserStatus.PENDING,
-      isNotCurrentAdmin: user.uid !== this.currentAdminId(),
-      isProcessing: user.uid === this.processingUserId(),
-      isActive: user.status === UserStatus.ACTIVE,
-      isSuspended: user.status === UserStatus.SUSPENDED,
-      isOnboarding: user.status === UserStatus.ONBOARDING,
-      targetIsAdmin: user.role === Role.LEVEL_0_ADMIN,
-      isRejected: user.status === UserStatus.REJECTED
-    }));
   });
 
   constructor() {
@@ -212,11 +192,11 @@ export class UserListComponent {
   }
 
   triggerRefresh(): void {
-    this.refreshTrigger.update((n) => n + 1);
+    this.userResource.reload();
   }
 
-  onUserFiltersChanged(cleanParams: FilterParams): void {
-    this.activeFilters.set(cleanParams);
+  onUserFiltersChanged(cleanParams: SharedFilterParams): void {
+    this.activeFilters.set(cleanParams as FilterUserParams);
   }
 
   openProvisionModal(): void {
@@ -302,16 +282,13 @@ export class UserListComponent {
 
   private executeStatusMutation(uid: string, newStatus: UserStatus, reason?: string): void {
     this.processingUserId.set(uid);
-    this.isLoading.set(true);
 
-    this.userListService.updateUserStatus(uid, newStatus, reason).subscribe({
+    this.userListService.updateUserStatus(uid, newStatus, reason).pipe(trackLoading(this.isLoading)).subscribe({
       next: () => {
-        this.isLoading.set(false);
         this.processingUserId.set(null);
         this.triggerRefresh();
       },
       error: (err) => {
-        this.isLoading.set(false);
         this.processingUserId.set(null);
 
         console.error('Administrative status mutation failed:', err);
@@ -334,7 +311,7 @@ export class UserListComponent {
       if (!result) return;
 
       if (result.isDeleted && result.targetUid) {
-        // this.handlePostDeletion(result.targetUid);
+        this.triggerRefresh();
       }
 
       if (result.action === 'SECURITY_LOCKED') {

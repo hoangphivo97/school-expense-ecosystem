@@ -1,19 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, AuditLogEntry, PaidMethod, ExpenseFilters, AnalyticsFilters, CreateExpenseInput, UpdateExpenseInput } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, ExpenseAuditLogDocument, PersonalExpenseRequestFilters, AnalyticsFilters, CreateExpenseInput, ReviewerExpenseRequestFilters } from '@school-expense-ecosystem/expenses/types';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
-import { ExpenseAmountLimitExceededException, ExpenseInvalidDisbursementActionException, ExpenseMissingRejectionReasonException, ExpenseModificationLockedException, ExpenseNotFoundException, ExpenseWorkflowLockedException } from './exceptions/expense.exception';
+import { ExpenseAmountLimitExceededException, ExpenseInvalidDisbursementActionException, ExpenseMissingRejectionReasonException, ExpenseNotFoundException, ExpenseWorkflowLockedException } from './exceptions/expense.exception';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class ExpenseBackendService {
   constructor(private readonly expenseRepo: ExpenseRepository) { }
 
-  async getPaginatedExpenses(
+  async getPersonalPaginatedExpenses(
     userId: string,
-    filters: Omit<ExpenseFilters, 'userId'>
+    filters: Omit<PersonalExpenseRequestFilters, 'userId'>
   ): Promise<PaginatedExpensesResponse> {
-    return this.expenseRepo.findPaginated({ userId, ...filters });
+    return this.expenseRepo.findPersonalExpensePaginated({ userId, ...filters });
+  }
+
+  async getReviewerExpenses(
+    user: AuthenticatedUser,
+    filters: ReviewerExpenseRequestFilters
+  ): Promise<PaginatedExpensesResponse> {
+    // Route processing directly into the specialized reviewer repository pipeline
+    return this.expenseRepo.findReviewerExpensesPaginated(user, filters);
   }
 
   async createExpense(user: AuthenticatedUser, dto: CreateExpenseInput): Promise<ExpenseList> {
@@ -21,6 +30,13 @@ export class ExpenseBackendService {
     const amount = dto.amount;
     const userType = user.userType;
     const userRole = user.role;
+
+    // Generate cryptographically secure expense code matching template: EXP-[FACULTY]-[MMYY]-[CRYPTO]
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yy = String(now.getFullYear()).slice(-2);
+    const cryptoToken = randomBytes(3).toString('hex').toUpperCase(); // Generates 6 secure hex characters for collision avoidance
+    const expenseCode = `EXP-${user.facultyId || 'GEN'}-${mm}${yy}-${cryptoToken}`;
 
     if (userRole === Role.LEVEL_3_USER) {
       if (userType === UserType.STUDENT && amount > 2000) {
@@ -32,21 +48,8 @@ export class ExpenseBackendService {
       }
     }
 
-
-    const submitLog: AuditLogEntry = {
-      actorId: user.uid,
-      actorName: user.fullName,
-      actorType: user.userType,
-      action: AuditAction.SUBMIT,
-      status: initialStatus,
-      createdAt: new Date().toISOString(),
-      actorRole: user.role,
-      actorCode: user.userCode,
-      proofUrls: dto.proofUrls,
-      facultyId: user.facultyId
-    };
-
     const fullExpenseData: Omit<ExpenseList, 'id'> = {
+      expenseCode: expenseCode,
       amount: dto.amount,
       purpose: dto.purpose,
       description: dto.description,
@@ -57,47 +60,64 @@ export class ExpenseBackendService {
       requesterType: user.userType,
       facultyId: user.facultyId,
       status: initialStatus,
-      paidMethod: PaidMethod.CASH,
+      paidMethod: dto.paidMethod,
       date: new Date().toISOString(),
-      createdAt: '',
-      updatedAt: '',
-      history: [submitLog]
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    return this.expenseRepo.create(fullExpenseData);
-  }
+    const freshExpense = await this.expenseRepo.create(fullExpenseData);
 
-  async updateExpense(id: string, userId: string, user: AuthenticatedUser, dto: UpdateExpenseInput): Promise<ExpenseList> {
-    const existing = await this.expenseRepo.findById(id);
-    if (!existing || existing.userId !== userId) {
-      throw new ExpenseNotFoundException(id);
-    }
-
-    if (existing.status !== ExpenseStatus.REJECTED) {
-      throw new ExpenseModificationLockedException();
-    }
-
-    const nextStatus = ExpenseStatus.PENDING_TEACHER_REVIEW;
-    const finalProofUrls = dto.proofUrls || existing.proofUrls;
-
-    const resubmitLog = {
+    const submitLog: Omit<ExpenseAuditLogDocument, 'id'> = {
+      expenseId: freshExpense.id,
+      expenseCode,
       actorId: user.uid,
       actorName: user.fullName,
-      actorType: user.userType,
-      action: AuditAction.RESUBMIT,
-      status: nextStatus,
-      createdAt: new Date().toISOString(),
       actorRole: user.role,
+      actorType: user.userType,
       actorCode: user.userCode,
-      proofUrls: finalProofUrls
+      facultyId: user.facultyId,
+      action: AuditAction.SUBMIT,
+      status: initialStatus,
+      createdAt: new Date().toISOString()
     };
 
-    return this.expenseRepo.update(id, {
-      ...dto,
-      status: nextStatus,
-      logEntry: resubmitLog
-    });
+    await this.expenseRepo.createAuditLog(submitLog);
+
+    return freshExpense;
   }
+
+  // async updateExpense(id: string, userId: string, user: AuthenticatedUser, dto: UpdateExpenseInput): Promise<ExpenseList> {
+  //   const existing = await this.expenseRepo.findById(id);
+  //   if (!existing || existing.userId !== userId) {
+  //     throw new ExpenseNotFoundException(id);
+  //   }
+
+  //   if (existing.status !== ExpenseStatus.REJECTED) {
+  //     throw new ExpenseModificationLockedException();
+  //   }
+
+  //   const nextStatus = ExpenseStatus.PENDING_TEACHER_REVIEW;
+  //   const finalProofUrls = dto.proofUrls || existing.proofUrls;
+
+  //   const resubmitLog = {
+  //     actorId: user.uid,
+  //     actorName: user.fullName,
+  //     actorType: user.userType,
+  //     action: AuditAction.RESUBMIT,
+  //     status: nextStatus,
+  //     createdAt: new Date().toISOString(),
+  //     actorRole: user.role,
+  //     actorCode: user.userCode,
+  //     proofUrls: finalProofUrls
+  //   };
+
+  //   return this.expenseRepo.update(id, {
+  //     ...dto,
+  //     status: nextStatus,
+  //     logEntry: resubmitLog
+  //   });
+  // }
 
   async reviewExpense(id: string, user: AuthenticatedUser, action: AuditAction, reason?: string): Promise<ExpenseList> {
     const expense = await this.expenseRepo.findById(id);
@@ -127,23 +147,26 @@ export class ExpenseBackendService {
       }
     }
 
-    const reviewLog: AuditLogEntry = {
+    const reviewLog: Omit<ExpenseAuditLogDocument, 'id'> = {
+      expenseId: expense.id,
+      expenseCode: expense.expenseCode,
       actorId: user.uid,
       actorName: user.fullName,
       actorRole: user.role,
       actorCode: user.userCode,
       actorType: user.userType,
+      facultyId: user.facultyId,
       action,
       status: nextStatus,
       createdAt: new Date().toISOString(),
-      proofUrls: expense.proofUrls,
-      facultyId: user.facultyId,
       ...(action === AuditAction.REJECT && { rejectReason: reason })
     };
 
+    await this.expenseRepo.createAuditLog(reviewLog);
+
     return this.expenseRepo.update(id, {
       status: nextStatus,
-      logEntry: reviewLog,
+      updatedAt: new Date().toISOString(),
       ...(action === AuditAction.REJECT && { rejectReason: reason })
     });
   }

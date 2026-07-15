@@ -14,4 +14,7 @@
         "**/.nx": true,
         "**/.angular": true
     },
+    "i18n-ally.localesPaths": [
+        "apps/mfe-shell-angular/public/assets/i18n"
+    ],
 }

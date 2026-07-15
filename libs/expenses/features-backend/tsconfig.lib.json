@@ -7,7 +7,7 @@
     "inlineSources": true,
     "types": ["node","multer"],
     "module":"node16",
-    "moduleResolution": "node16",
+    "moduleResolution": "Node16",
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]

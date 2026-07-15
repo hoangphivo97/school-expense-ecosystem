@@ -5,11 +5,12 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { MatIcon } from '@angular/material/icon';
 
 import { HeaderComponent, FooterComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
-import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
+import { FilterMode, SharedFilterParams } from '@school-expense-ecosystem/shared/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { makeLineChart, makeMonthlyColumnChart, makePieChart } from './utils/multiple-charts-helper';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
+import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 
 @Component({
   selector: 'lib-report',
@@ -33,7 +34,7 @@ export class ReportComponent {
 
   readonly filterModeEnum = FilterMode;
 
-  readonly filterParams = signal<FilterParams>({
+  readonly filterParams = signal<FilterExpenseParams>({
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear()
   });
@@ -71,7 +72,7 @@ export class ReportComponent {
   readonly availableYearsResource = this.expenseService.getAllYearsResource();
   readonly availableYears = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
 
-  onFilterChanged(params: FilterParams): void {
-    this.filterParams.set(params);
+  onFilterChanged(params: SharedFilterParams): void {
+    this.filterParams.set(params as FilterExpenseParams);
   }
 }

@@ -2,18 +2,35 @@ import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import * as admin from 'firebase-admin';
-import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput } from '@school-expense-ecosystem/admin/types';
+import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput, UserQueryPayload } from '@school-expense-ecosystem/admin/types';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class FirebaseUserRepository implements UserRepository {
   constructor(@Inject('FIRESTORE_INSTANCE') private readonly db: admin.firestore.Firestore) { }
 
-  async findPaginated(filters: { facultyId?: string; limit: number; pageToken?: string }): Promise<PaginatedUserResult> {
+  async findPaginated(filters: UserQueryPayload): Promise<PaginatedUserResult> {
     let query: admin.firestore.Query = this.db.collection('users').orderBy('createdAt', 'desc');
 
     if (filters.facultyId) {
       query = query.where('facultyId', '==', filters.facultyId);
+    }
+
+    if (filters.role) {
+      query = query.where('role', '==', filters.role);
+    }
+
+    if (filters.userType) {
+      query = query.where('userType', '==', filters.userType);
+    }
+
+    if (filters.status) {
+      query = query.where('status', '==', filters.status);
+    }
+
+    if (filters.searchTerm) {
+      const term = filters.searchTerm.trim();
+      query = query.where('fullName', '>=', term).where('fullName', '<=', term + '\uf8ff');
     }
 
     const countQuery = query;
