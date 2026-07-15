@@ -60,19 +60,19 @@
             <mat-label>Amount</mat-label>
             <span matTextSuffix class="currency-suffix">TWD</span>
             <input matInput formControlName="amount" (input)="onInputAmount($event)" placeholder="0">
-            @if(expenseForm.controls.amount.hasError('required')){
-            <mat-error>Amount is required</mat-error>
+            @if (expenseForm.controls.amount.hasError('required')) {
+              <mat-error>Amount is required</mat-error>
             }
 
-            @if(expenseForm.controls.amount.hasError('min')){
-            <mat-error>Min amount is 1,000 TWD </mat-error>
+            @if (expenseForm.controls.amount.hasError('min')) {
+              <mat-error>Min amount is {{ minLimit() | number }} TWD</mat-error>
             }
 
-            @if(expenseForm.controls.amount.hasError('max')){
-            <mat-error>Max amount is 2,000 TWD</mat-error>
+            @if (expenseForm.controls.amount.hasError('max')) {
+              <mat-error>Max amount is {{ maxLimit() | number }} TWD</mat-error>
             }
 
-            <mat-hint align="end" class="fw-medium">Min: 1,000 TWD, Max: 2,000 TWD</mat-hint>
+            <mat-hint align="end" class="fw-medium">Min: {{ minLimit() | number }} TWD, Max: {{ maxLimit() | number }} TWD</mat-hint>
           </mat-form-field>
         </div>
 

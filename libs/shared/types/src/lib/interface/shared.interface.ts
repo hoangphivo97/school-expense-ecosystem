@@ -1,3 +1,4 @@
+import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 import { FacultyId, Role, UserStatus, UserType } from '../enums/user.enum';
 import * as React from 'react';
 
@@ -10,15 +11,18 @@ export interface DarkModeToggleProps {
   isDark?: boolean;
 }
 
-export interface FilterParams {
-  searchTerm?: string;
-  month?: number | null;
-  year?: number | null;
+export interface BaseFilterParams {
+  searchTerm?: string | null;
+}
+
+export interface FilterUserParams extends BaseFilterParams {
   role?: Role;
   userType?: UserType;
-  status?: UserStatus;
+  status?: UserStatus; // Strongly typed to represent active/inactive user accounts
   facultyId?: FacultyId;
 }
+
+export interface UserRequestFilters extends FilterUserParams, PaginationParams {}
 
 export interface PaginationParams {
   limit: number;
@@ -50,3 +54,5 @@ export interface DemoAccount {
   password: string;
   description: string;
 }
+
+export type SharedFilterParams = FilterUserParams | FilterExpenseParams;

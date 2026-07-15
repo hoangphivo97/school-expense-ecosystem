@@ -11,9 +11,9 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
-import { UserBase } from '@school-expense-ecosystem/shared/types';
+import { SharedFilterParams, UserBase } from '@school-expense-ecosystem/shared/types';
 import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
-import { DialogActionEnum, FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
+import { DialogActionEnum, FilterMode, FilterUserParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
@@ -86,7 +86,7 @@ export class UserListComponent {
 
   protected readonly currentAdminId = computed(() => this.authStore.user()?.uid ?? '');
 
-  readonly activeFilters = signal<FilterParams>({
+  readonly activeFilters = signal<FilterUserParams>({
     searchTerm: '',
     role: undefined,
     status: undefined,
@@ -195,8 +195,8 @@ export class UserListComponent {
     this.userResource.reload();
   }
 
-  onUserFiltersChanged(cleanParams: FilterParams): void {
-    this.activeFilters.set(cleanParams);
+  onUserFiltersChanged(cleanParams: SharedFilterParams): void {
+    this.activeFilters.set(cleanParams as FilterUserParams);
   }
 
   openProvisionModal(): void {

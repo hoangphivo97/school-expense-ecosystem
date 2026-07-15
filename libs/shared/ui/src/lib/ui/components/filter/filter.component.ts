@@ -20,11 +20,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableDataSource } from '@angular/material/table';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { FilterMode, FilterParams } from '@school-expense-ecosystem/shared/types';
+import { FilterMode, FilterUserParams, SharedFilterParams, } from '@school-expense-ecosystem/shared/types';
 import { months } from '@school-expense-ecosystem/shared/constants';
 import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 
 @Component({
   selector: 'lib-filter',
@@ -60,11 +61,11 @@ export class FilterComponent<T = unknown> implements OnInit {
 
   // Multi-dimensional dynamic model mapping streams
   inputDataSource = input<MatTableDataSource<T> | null>(null);
-  value = input<FilterParams | null>(null);
+  value = input<SharedFilterParams | null>(null);
   yearsList = input<number[]>([]);
   facultiesList = input<{ facultyId: string; facultyName: string }[]>([]);
 
-  filterChange = output<FilterParams>();
+  filterChange = output<SharedFilterParams>();
 
   readonly systemRolesOptions = [
     { value: 'ALL', label: 'All Roles' },
@@ -148,15 +149,27 @@ export class FilterComponent<T = unknown> implements OnInit {
   constructor() {
     effect(() => {
       const incomingState = this.value();
-      if (incomingState) {
+      if (!incomingState) return;
+
+      // Reactively branch on the component mode signal to cleanly narrow union type boundaries
+      if (this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT) {
+        const expenseState = incomingState as FilterExpenseParams;
         this.filterForm.patchValue({
-          month: incomingState.month !== undefined ? incomingState.month : this.currentMonth,
-          year: incomingState.year !== undefined ? incomingState.year : this.currentYear,
-          searchTerm: incomingState.searchTerm ?? '',
-          role: incomingState.role ?? 'ALL',
-          userType: incomingState.userType ?? 'ALL',
-          status: incomingState.status ?? 'ALL',
-          facultyId: incomingState.facultyId ?? 'ALL'
+          month: expenseState.month !== undefined ? expenseState.month : this.currentMonth,
+          year: expenseState.year !== undefined ? expenseState.year : this.currentYear,
+          searchTerm: expenseState.searchTerm ?? '',
+          status: expenseState.status ?? 'ALL',
+          facultyId: expenseState.facultyId ?? 'ALL',
+          userType: expenseState.userType ?? 'ALL'
+        }, { emitEvent: false });
+      } else {
+        const userState = incomingState as FilterUserParams;
+        this.filterForm.patchValue({
+          searchTerm: userState.searchTerm ?? '',
+          role: userState.role ?? 'ALL',
+          userType: userState.userType ?? 'ALL',
+          status: userState.status ?? 'ALL',
+          facultyId: userState.facultyId ?? 'ALL'
         }, { emitEvent: false });
       }
     });
@@ -190,20 +203,31 @@ export class FilterComponent<T = unknown> implements OnInit {
           return val as FacultyId;
         };
 
-        const getValidStatus = (val: unknown): UserStatus | undefined => {
+        const extractRawStatus = (val: unknown): any => {
           if (val === 'ALL' || val === null || val === '') return undefined;
-          return val as UserStatus;
+          return val;
         };
 
-        const payload: FilterParams = {
-          searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
-          month: this.showMonth() ? (formValues.month !== undefined ? formValues.month : null) : null,
-          year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
-          role: this.showRole() ? getValidRole(formValues.role) : undefined,
-          userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
-          status: this.showStatus() ? getValidStatus(formValues.status) : undefined,
-          facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
-        };
+        let payload: SharedFilterParams;
+
+        if (this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT) {
+          payload = {
+            searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
+            month: this.showMonth() ? (formValues.month !== undefined ? formValues.month : null) : null,
+            year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
+            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to ExpenseStatus implicitly
+            facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
+            userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
+          } as FilterExpenseParams;
+        } else {
+          payload = {
+            searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
+            role: this.showRole() ? getValidRole(formValues.role) : undefined,
+            userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
+            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to UserStatus implicitly
+            facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
+          } as FilterUserParams;
+        }
 
         const dataSource = this.inputDataSource();
         if (dataSource && this.showSearch()) {

@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
+import { ROUTE_HEADER_TITLE_REGISTRY } from '@school-expense-ecosystem/shared/constants';
 
 @Component({
   selector: 'lib-header',
@@ -15,13 +16,7 @@ import { filter, map } from 'rxjs';
 export class HeaderComponent {
   private readonly router = inject(Router);
 
-  private readonly routeTitleMapping: Record<string, string> = {
-    '/dashboard': 'Dashboard Overview',
-    '/user-list': 'System User Directory',
-    '/expense': 'Expense Tracker',
-    '/report': 'Financial Reports',
-    '/budget-manager': 'Budget Management'
-  };
+  private readonly routeTitleMapping = ROUTE_HEADER_TITLE_REGISTRY;
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -33,7 +28,9 @@ export class HeaderComponent {
 
   readonly pageTitle = computed(() => {
     const url = this.currentUrl();
+    // Sort entries by key length descending to guarantee specific sub-routes take precedence over short root segments
     const matchedTitle = Object.entries(this.routeTitleMapping)
+      .sort((a, b) => b[0].length - a[0].length)
       .find(([routeKey]) => url.includes(routeKey));
 
     return matchedTitle ? matchedTitle[1] : 'System Management';

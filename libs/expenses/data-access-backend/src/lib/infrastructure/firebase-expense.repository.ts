@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ExpenseRepository } from '../expense.repository';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, ExpenseFilters, ExpenseAuditLogDocument } from '@school-expense-ecosystem/expenses/types';
-import { Role } from '@school-expense-ecosystem/shared/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, PersonalExpenseRequestFilters, ExpenseAuditLogDocument, ReviewerExpenseRequestFilters } from '@school-expense-ecosystem/expenses/types';
+import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class FirebaseExpenseRepository implements ExpenseRepository {
@@ -36,7 +36,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     } as unknown as ExpenseList;
   }
 
-  async findPaginated(filters: ExpenseFilters): Promise<PaginatedExpensesResponse> {
+  async findPersonalExpensePaginated(filters: PersonalExpenseRequestFilters): Promise<PaginatedExpensesResponse> {
     let query: admin.firestore.Query = this.db.collection('expenses').where('userId', '==', filters.userId);
 
     if (filters.year && filters.month) {
@@ -80,6 +80,100 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     const nextPageToken = lastDoc ? lastDoc.id : null;
 
     let countQuery = this.db.collection('expenses').where('userId', '==', filters.userId);
+    if (filters.year && filters.month) {
+      const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
+      countQuery = countQuery.where('filterYearMonth', '==', targetQueryStr);
+    } else if (filters.year) {
+      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
+      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
+      countQuery = countQuery
+        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
+        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
+    }
+
+    if (filters.searchTerm) {
+      const term = filters.searchTerm.trim();
+      countQuery = countQuery
+        .where('description', '>=', term)
+        .where('description', '<=', term + '\uf8ff');
+    }
+
+    const countSnapshot = await countQuery.count().get();
+    const totalItems = countSnapshot.data().count;
+
+    return { expenses, nextPageToken, totalItems };
+  }
+
+  async findReviewerExpensesPaginated(
+    user: AuthenticatedUser,
+    filters: ReviewerExpenseRequestFilters
+  ): Promise<PaginatedExpensesResponse> {
+    let query: admin.firestore.Query = this.db.collection('expenses');
+
+    // Secure operational sandbox routing based on reviewer role & hierarchy perimeter
+    if (user.role === Role.LEVEL_3_USER && user.userType === UserType.TEACHER) {
+      // Teachers operate strictly within their own department perimeter
+      query = query.where('facultyId', '==', user.facultyId);
+    } else if (user.role === Role.LEVEL_2_DEAN) {
+      // Deans are strictly locked to their specific faculty boundary
+      query = query.where('facultyId', '==', user.facultyId);
+    } // Finance officers (Role.LEVEL_1_FINANCE) bypass faculty filters to audit the entire ecosystem
+
+    // Apply specific business workflow status filters if provided
+    if (filters.status && filters.status !== 'ALL') {
+      query = query.where('status', '==', filters.status);
+    }
+
+    if (filters.year && filters.month) {
+      const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
+      query = query.where('filterYearMonth', '==', targetQueryStr);
+    } else if (filters.year) {
+      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
+      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
+      query = query
+        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
+        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
+    }
+
+    if (filters.searchTerm) {
+      const term = filters.searchTerm.trim();
+      query = query
+        .where('description', '>=', term)
+        .where('description', '<=', term + '\uf8ff')
+        .orderBy('description');
+    } else {
+      if (!filters.month && filters.year) {
+        query = query.orderBy('date', 'desc');
+      } else {
+        query = query.orderBy('updatedAt', 'desc');
+      }
+    }
+
+    if (filters.pageToken) {
+      const startDoc = await this.db.collection('expenses').doc(filters.pageToken).get();
+      if (startDoc.exists) {
+        query = query.startAfter(startDoc);
+      }
+    }
+
+    const snapshot = await query.limit(filters.limit).get();
+    const expenses = snapshot.docs.map(doc => this.mapDocToExpense(doc));
+
+    const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    const nextPageToken = lastDoc ? lastDoc.id : null;
+
+    // Build matching metrics count pipeline mirroring the operational security track exactly
+    let countQuery: admin.firestore.Query = this.db.collection('expenses');
+    if (user.role === Role.LEVEL_3_USER && user.userType === UserType.TEACHER) {
+      countQuery = countQuery.where('facultyId', '==', user.facultyId);
+    } else if (user.role === Role.LEVEL_2_DEAN) {
+      countQuery = countQuery.where('facultyId', '==', user.facultyId);
+    }
+
+    if (filters.status && filters.status !== 'ALL') {
+      countQuery = countQuery.where('status', '==', filters.status);
+    }
+
     if (filters.year && filters.month) {
       const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
       countQuery = countQuery.where('filterYearMonth', '==', targetQueryStr);
