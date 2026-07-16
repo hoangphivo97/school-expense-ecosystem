@@ -78,15 +78,15 @@
       "createdAt": "Created At"
     },
     "roles": {
-      "admin": "System Administrator",
-      "finance_officer": "Finance Specialist",
-      "faculty_dean": "Faculty Dean",
-      "end_user": "Standard User"
+      "ADMIN": "System Administrator",
+      "FINANCE_OFFICER": "Finance Specialist",
+      "FACULTY_DEAN": "Faculty Dean",
+      "END_USER": "Standard User"
     },
     "types": {
-      "staff": "Staff",
-      "teacher": "Teacher",
-      "student": "Student"
+      "STAFF": "Staff",
+      "TEACHER": "Teacher",
+      "STUDENT": "Student"
     },
     "states": {
       "onboardingPending": "Onboarding Pending",
@@ -119,11 +119,11 @@
       "delete": "Delete User"
     },
     "status": {
-      "active": "Active",
-      "pending": "Pending",
-      "suspended": "Suspended",
-      "rejected": "Rejected",
-      "onboarding": "Onboarding"
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "SUSPENDED": "Suspended",
+      "REJECTED": "Rejected",
+      "ONBOARDING": "Onboarding"
     }
   },
   "deleteModal": {

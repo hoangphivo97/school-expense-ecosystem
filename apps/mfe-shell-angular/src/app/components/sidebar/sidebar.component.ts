@@ -140,8 +140,9 @@ export class SidebarComponent implements OnInit {
       });
       return;
     }
-
-    this.router.navigate([itemKey], {
+    
+    const urlSlug = itemKey.toLowerCase().replace(/_/g, '-');
+    this.router.navigate([urlSlug], {
       queryParams: currentQueryParams,
       queryParamsHandling: 'merge',
     });
