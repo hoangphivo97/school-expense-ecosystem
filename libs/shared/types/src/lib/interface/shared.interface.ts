@@ -54,7 +54,7 @@ export interface DemoAccount {
   description: string;
 }
 
-export type SharedFilterParams = FilterUserParams & Record<string, unknown>;
+export type SharedFilterParams = SharedFilterFields;
 
 export interface SharedFilterFields {
   month?: number | null;
