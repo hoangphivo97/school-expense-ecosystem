@@ -3,7 +3,7 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/expenses/guards-backend/src",
   "projectType": "library",
-  "tags": [],
+  "tags": ["scope:expenses", "type:guard"],
   "// targets": "to see all targets run: nx show project expense-guards-backend --web",
   "targets": {}
 }

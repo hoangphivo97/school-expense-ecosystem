@@ -20,12 +20,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableDataSource } from '@angular/material/table';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { FilterMode, FilterUserParams, SharedFilterParams, } from '@school-expense-ecosystem/shared/types';
+import { FilterMode, SharedFilterFields, SharedFilterParams, } from '@school-expense-ecosystem/shared/types';
 import { months } from '@school-expense-ecosystem/shared/constants';
 import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 
 @Component({
   selector: 'lib-filter',
@@ -153,7 +152,7 @@ export class FilterComponent<T = unknown> implements OnInit {
 
       // Reactively branch on the component mode signal to cleanly narrow union type boundaries
       if (this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT) {
-        const expenseState = incomingState as FilterExpenseParams;
+        const expenseState = incomingState as unknown as SharedFilterFields;
         this.filterForm.patchValue({
           month: expenseState.month !== undefined ? expenseState.month : this.currentMonth,
           year: expenseState.year !== undefined ? expenseState.year : this.currentYear,
@@ -163,7 +162,7 @@ export class FilterComponent<T = unknown> implements OnInit {
           userType: expenseState.userType ?? 'ALL'
         }, { emitEvent: false });
       } else {
-        const userState = incomingState as FilterUserParams;
+        const userState = incomingState as unknown as SharedFilterFields;
         this.filterForm.patchValue({
           searchTerm: userState.searchTerm ?? '',
           role: userState.role ?? 'ALL',
@@ -208,7 +207,7 @@ export class FilterComponent<T = unknown> implements OnInit {
           return val;
         };
 
-        let payload: SharedFilterParams;
+        let payload;
 
         if (this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT) {
           payload = {
@@ -218,7 +217,7 @@ export class FilterComponent<T = unknown> implements OnInit {
             status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to ExpenseStatus implicitly
             facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
             userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
-          } as FilterExpenseParams;
+          };
         } else {
           payload = {
             searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
@@ -226,7 +225,7 @@ export class FilterComponent<T = unknown> implements OnInit {
             userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
             status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to UserStatus implicitly
             facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
-          } as FilterUserParams;
+          };
         }
 
         const dataSource = this.inputDataSource();
