@@ -33,25 +33,25 @@
       "facultyRequired": "Faculty isolation scope assignment is required"
     },
     "roles": {
-      "admin": "System Admin (Backdoor)",
-      "finance_officer": "Finance Officer (Institutional)",
-      "faculty_dean": "Faculty Dean (Isolated Scope)",
-      "end_user": "Teacher / Student"
+      "ADMIN": "System Admin (Backdoor)",
+      "FINANCE_OFFICER": "Finance Officer (Institutional)",
+      "FACULTY_DEAN": "Faculty Dean (Isolated Scope)",
+      "END_USER": "Teacher / Student"
     },
     "types": {
-      "staff": "Staff Member",
-      "teacher": "Teacher",
-      "student": "Student"
+      "STAFF": "Staff Member",
+      "TEACHER": "Teacher",
+      "STUDENT": "Student"
     },
     "faculties": {
-      "fit": "Faculty of Information Technology (FIT)",
-      "fbe": "Faculty of Business and Economics (FBE)",
-      "fll": "Faculty of Foreign Languages (FLL)"
+      "FIT": "Faculty of Information Technology (FIT)",
+      "FBE": "Faculty of Business and Economics (FBE)",
+      "FLL": "Faculty of Foreign Languages (FLL)"
     },
     "status": {
-      "active": "Active",
-      "pending": "Pending",
-      "onboarding": "Onboarding"
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "ONBOARDING": "Onboarding"
     },
     "actions": {
       "cancel": "Cancel",

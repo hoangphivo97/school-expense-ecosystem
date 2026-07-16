@@ -1,8 +1,8 @@
 export enum NavItem {
-  REPORT = 'report',
-  EXPENSE = 'expense',
-  USER_LIST = 'user-list',
-  BUDGET_MANAGER = 'budget-manager',
-  DASHBOARD = 'dashboard',
-  APPROVAL_CENTER ='approval-center'
+  REPORT = 'REPORT',
+  EXPENSE = 'EXPENSE',
+  USER_LIST = 'USER_LIST',
+  BUDGET_MANAGER = 'BUDGET_MANAGER',
+  DASHBOARD = 'DASHBOARD',
+  APPROVAL_CENTER ='APPROVAL_CENTER'
 }

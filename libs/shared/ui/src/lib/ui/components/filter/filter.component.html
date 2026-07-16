@@ -17,7 +17,7 @@
   <div class="toolbar-secondary-row d-flex flex-wrap align-items-center gap-2" 
        [ngClass]="{ 'mt-3': showSearch() }">
     
-    @if (mode() === 'user') {
+    @if (mode() === 'USER') {
       <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
         <mat-label>System Role</mat-label>
         <mat-select formControlName="role" panelClass="enterprise-dropdown-panel">
@@ -39,9 +39,9 @@
 
     @if (showStatus()) {
       <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
-        <mat-label>{{ mode() === 'user' ? 'Account Status' : 'Request Status' }}</mat-label>
+        <mat-label>{{ mode() === 'USER' ? 'Account Status' : 'Request Status' }}</mat-label>
         <mat-select formControlName="status" panelClass="enterprise-dropdown-panel">
-          @if (mode() === 'user') {
+          @if (mode() === 'USER') {
             @for (option of accountStatusOptions; track option.value) {
               <mat-option [value]="option.value">{{ option.label }}</mat-option>
             }
