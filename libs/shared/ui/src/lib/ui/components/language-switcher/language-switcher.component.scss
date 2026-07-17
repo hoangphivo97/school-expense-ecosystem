@@ -1,7 +1,21 @@
+:host {
+  ::ng-deep {
+
+    .mdc-button {
+      &.collapsed {
+        min-width: 0 !important; // Evict Material's default min-width restriction to allow shrinking
+        padding: 0 !important; // Strip horizontal paddings to prevent ripple elongation
+        width: 48px; // Force an exact corporate icon-button bounding box width
+        height: 48px;
+      }
+
+    }
+  }
+}
+
 .lang-switcher-trigger {
   margin-top: 15px;
   width: 100%;
-  padding: 8px 16px;
   text-align: left;
   border-radius: 8px;
   color: #616161; // Matches the default material sidebar icon colors
@@ -10,6 +24,7 @@
     background-color: rgba(0, 0, 0, 0.04);
   }
 
+  // 1. STANDARD EXPANDED STATE (Mặc định khi mở rộng)
   .trigger-content {
     display: flex;
     align-items: center;
@@ -22,10 +37,31 @@
       flex-grow: 1;
     }
 
-    .icon-align, .arrow-align {
+    .icon-align,
+    .arrow-align {
       font-size: 20px;
       width: 20px;
       height: 20px;
+    }
+
+    .abbrev-text {
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      color: #616161;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  // 2. CLEAN COLLAPSED STATE (Điểm tập trung duy nhất khi thu nhỏ)
+  &.collapsed {
+    padding: 6px 12px;
+    text-align: center;
+
+    // Reflow the child layout cleanly via parent-driven state
+    .trigger-content {
+      flex-direction: column;
+      gap: 4px;
     }
   }
 }

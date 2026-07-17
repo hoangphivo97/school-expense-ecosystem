@@ -1,8 +1,12 @@
-<button mat-button [matMenuTriggerFor]="langMenu" class="lang-switcher-trigger">
+<button mat-button [matMenuTriggerFor]="langMenu" class="lang-switcher-trigger" [class.collapsed]="collapsed()">
   <div class="trigger-content">
     <mat-icon class="icon-align">translate</mat-icon>
-    <span class="label-text">{{ currentLanguageLabel }}</span>
-    <mat-icon class="arrow-align">arrow_drop_down</mat-icon>
+    @if (!collapsed()) {
+      <span class="label-text">{{ currentLanguageLabel }}</span>
+      <mat-icon class="arrow-align">arrow_drop_down</mat-icon>
+    } @else {
+      <span class="abbrev-text">{{ currentLanguageAbbreviation }}</span>
+    }
   </div>
 </button>
 

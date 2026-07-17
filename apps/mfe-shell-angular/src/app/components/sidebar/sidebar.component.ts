@@ -24,6 +24,7 @@ import { A11yModule } from "@angular/cdk/a11y";
 import { Role } from '@school-expense-ecosystem/shared/types';
 import { MatTooltip } from "@angular/material/tooltip";
 import { LanguageSwitcherComponent } from "@school-expense-ecosystem/shared/ui";
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-sidebar',
@@ -37,10 +38,14 @@ import { LanguageSwitcherComponent } from "@school-expense-ecosystem/shared/ui";
     ReactWrapperComponent,
     A11yModule,
     MatTooltip,
-    LanguageSwitcherComponent
+    LanguageSwitcherComponent,
+    TranslocoModule
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
+  providers:[
+    { provide: TRANSLOCO_SCOPE, useValue: 'shared' }
+  ]
 })
 export class SidebarComponent implements OnInit {
   readonly dialog = inject(MatDialog);

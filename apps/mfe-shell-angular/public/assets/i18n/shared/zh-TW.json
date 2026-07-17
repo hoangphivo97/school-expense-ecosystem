@@ -1,0 +1,18 @@
+{
+  "sidebar": {
+    "welcome": "歡迎",
+    "logout": "登出帳戶",
+    "menu": {
+      "DASHBOARD": "儀表板",
+      "EXPENSE": "我的費用申請",
+      "APPROVAL_CENTER": "審批簽核中心",
+      "USER_LIST": "使用者管理",
+      "REPORT": "統計分析報表",
+      "BUDGET_MANAGER": "預算額度管理",
+      "routes": {
+        "/expense/pending": "待審批隊列",
+        "/expense/history": "院系審批歷史"
+      }
+    }
+  }
+}

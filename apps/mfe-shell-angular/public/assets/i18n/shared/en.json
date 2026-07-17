@@ -1,0 +1,18 @@
+{
+  "sidebar": {
+    "welcome": "Welcome",
+    "logout": "Log Out",
+    "menu": {
+      "DASHBOARD": "Dashboard",
+      "EXPENSE": "My Expenses",
+      "APPROVAL_CENTER": "Approval Center",
+      "USER_LIST": "User Management",
+      "REPORT": "Analytics Report",
+      "BUDGET_MANAGER": "Budget Allocation",
+      "routes": {
+        "/expense/pending": "Pending Queue",
+        "/expense/history": "Faculty History"
+      }
+    }
+  }
+}
