@@ -20,7 +20,7 @@ interface LanguageOption {
 })
 export class LanguageSwitcherComponent {
   private readonly translocoService = inject(TranslocoService);
-  collapsed = input(false);
+  readonly collapsed = input(false);
 
   /**
    * Centralized data-driven array. 

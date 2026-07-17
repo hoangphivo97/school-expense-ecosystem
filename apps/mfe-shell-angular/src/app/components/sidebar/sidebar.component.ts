@@ -1,11 +1,10 @@
 import {
   Component,
   computed,
-  EventEmitter,
   inject,
-  Input,
+  input,
   OnInit,
-  Output,
+  output,
   signal,
 } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -43,7 +42,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
-  providers:[
+  providers: [
     { provide: TRANSLOCO_SCOPE, useValue: 'shared' }
   ]
 })
@@ -52,9 +51,9 @@ export class SidebarComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly authStore = inject(AuthSignalStore)
 
-  @Output() toggle = new EventEmitter<void>();
-  @Output() logout = new EventEmitter<void>();
-  @Input() collapsed = false;
+  readonly toggle = output<void>();
+  readonly logout = output<void>();
+  readonly collapsed = input(false);
 
   readonly user = this.authStore.user;
   faArrowRightFromBracket = faArrowRightFromBracket;
@@ -145,7 +144,7 @@ export class SidebarComponent implements OnInit {
       });
       return;
     }
-    
+
     const urlSlug = itemKey.toLowerCase().replace(/_/g, '-');
     this.router.navigate([urlSlug], {
       queryParams: currentQueryParams,
