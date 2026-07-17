@@ -21,6 +21,7 @@ import { CreateExpenseModalComponent } from '../create-expense-modal/create-expe
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
 import { FilterMode } from '@school-expense-ecosystem/shared/types'
 import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-expense-list',
@@ -29,10 +30,13 @@ import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
     HeaderComponent, FooterComponent, FormsModule, DecimalPipe, CommonModule,
     MatButtonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatInputModule,
     EnumToStringPipe, FilterComponent,
-    LoadingDirective
+    LoadingDirective, TranslocoModule
   ],
   templateUrl: './expense-list.component.html',
   styleUrl: './expense-list.component.scss',
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'expense' }
+  ]
 })
 export class ExpenseListComponent implements OnInit {
   readonly localStorageService = inject(LocalStorageService);
@@ -50,6 +54,7 @@ export class ExpenseListComponent implements OnInit {
   filterModeEnum = FilterMode
 
   displayedColumns: string[] = [
+    'expenseCode',
     'date',
     'requesterCode',
     'requesterName',

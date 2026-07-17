@@ -1,10 +1,10 @@
 <lib-header></lib-header>
-<div class="expense-list">
+<div class="expense-list" *transloco="let t; read:'expense.expenseList'">
   <lib-filter [mode]="filterModeEnum.EXPENSE" [yearsList]="availableYearsSignal()" [value]="filterParams()"
     (filterChange)="onExpenseFiltersChanged($event)">
 
     <button primaryAction mat-flat-button color="primary" (click)="openCreateExpenseModal()">
-      <mat-icon>add</mat-icon> Create Request
+      <mat-icon>add</mat-icon> {{ t('actions.createRequest') }}
     </button>
   </lib-filter>
 
@@ -12,77 +12,84 @@
     <div class="card-body p-0">
 
       <div class="table-responsive">
-        <table mat-table [dataSource]="dataSource()">
+        <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
+
+          <ng-container matColumnDef="expenseCode">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.id') }}</th>
+            <td mat-cell *matCellDef="let expense">
+              {{ expense.expenseCode }}
+            </td>
+          </ng-container>
 
           <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Date</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.date | date: 'dd/MM/yyyy' }}
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.date') }}</th>
+            <td mat-cell *matCellDef="let expense">
+              {{ expense.date | date: 'dd/MM/yyyy' }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="requesterCode">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Code</th>
-            <td mat-cell *matCellDef="let element">
-              <span class="code-badge">{{ element.requesterCode }}</span>
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.requesterCode') }}</th>
+            <td mat-cell *matCellDef="let expense">
+              <span class="code-badge">{{ expense.requesterCode }}</span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="requesterName">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Requester</th>
-            <td mat-cell *matCellDef="let element">{{ element.requesterName }}</td>
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.requesterName') }}</th>
+            <td mat-cell *matCellDef="let expense">{{ expense.requesterName }}</td>
           </ng-container>
 
           <ng-container matColumnDef="requesterType">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Type</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.requesterType | titlecase }}
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.requesterType') }}</th>
+            <td mat-cell *matCellDef="let expense">
+              {{ expense.requesterType | titlecase }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="facultyId">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Faculty</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.facultyId | uppercase }}
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.facultyId') }}</th>
+            <td mat-cell *matCellDef="let expense">
+              {{ expense.facultyId | uppercase }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Description</th>
-            <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.description') }}</th>
+            <td mat-cell *matCellDef="let expense">{{ expense.description }}</td>
           </ng-container>
 
           <ng-container matColumnDef="purpose">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Purpose</th>
-            <td mat-cell *matCellDef="let element">{{ element.purpose }}</td>
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.purpose') }}</th>
+            <td mat-cell *matCellDef="let expense">{{ expense.purpose }}</td>
           </ng-container>
 
           <ng-container matColumnDef="paidMethod">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Paid Method</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.paidMethod | enumToString }}
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.paidMethod') }}</th>
+            <td mat-cell *matCellDef="let expense">
+              {{ expense.paidMethod | enumToString }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="amount">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Amount</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.amount | number: '3.0-0' }}
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.amount') }}</th>
+            <td mat-cell *matCellDef="let expense">
+              {{ expense.amount | number: '3.0-0' }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">Status</th>
-            <td mat-cell *matCellDef="let element">
-              <span class="status-badge" [ngClass]="element.status.toLowerCase()">
-                {{ element.status }}
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.status') }}</th>
+            <td mat-cell *matCellDef="let expense">
+              <span class="badge badge-status-variant"  [ngClass]="'status-' + expense.status">
+                {{ expense.status }}
               </span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="action">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
-            <td mat-cell *matCellDef="let element">
+            <td mat-cell *matCellDef="let expense">
             </td>
           </ng-container>
 
@@ -98,9 +105,9 @@
                 <div class="empty-icon-box mb-3">
                   <mat-icon class="material-icons-outlined text-muted">receipt_long</mat-icon>
                 </div>
-                <h3 class="empty-title m-0">No Expenses Found</h3>
+                <h3 class="empty-title m-0">{{ t('empty.title') }}</h3>
                 <p class="empty-subtitle text-muted px-3">
-                  There are no transactions recorded for the selected period or criteria.
+                  {{ t('empty.subtitle') }}
                 </p>
               </div>
               }

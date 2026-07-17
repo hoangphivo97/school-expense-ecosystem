@@ -1,0 +1,24 @@
+{
+  "expenseList": {
+    "actions": {
+      "createRequest": "Create Request"
+    },
+    "columns": {
+      "id": "ID",
+      "date": "Date",
+      "requesterCode": "Requester Code",
+      "requesterName": "Requester",
+      "requesterType": "Type",
+      "facultyId": "Faculty",
+      "description": "Description",
+      "purpose": "Purpose",
+      "paidMethod": "Paid Method",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "empty": {
+      "title": "No Expenses Found",
+      "subtitle": "There are no transactions recorded for the selected period or criteria."
+    }
+  }
+}
