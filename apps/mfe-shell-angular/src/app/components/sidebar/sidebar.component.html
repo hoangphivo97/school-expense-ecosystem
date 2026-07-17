@@ -23,7 +23,7 @@
         <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
         <span class="label" [class.hide]="collapsed()">{{ t('menu.' + item.key) }}</span>
       </a>
-      <div class="sub-menu-container" [class.expanded]="item.key === activeItem() && !collapsed">
+      <div class="sub-menu-container" [class.expanded]="item.key === activeItem() && !collapsed()">
         @for (sub of item.children; track sub.route) {
         <a class="sub-nav-item-link" [routerLink]="[sub.route]" routerLinkActive="sub-active">
           <mat-icon class="sub-nav-icon">{{ sub.icon }}</mat-icon>

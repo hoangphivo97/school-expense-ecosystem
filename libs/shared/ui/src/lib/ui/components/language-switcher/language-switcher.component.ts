@@ -14,7 +14,7 @@ interface LanguageOption {
 
 @Component({
   selector: 'lib-language-switcher',
-  imports: [MatButtonModule, MatMenuModule, MatIconModule, NgClass, MatRipple],
+  imports: [MatButtonModule, MatMenuModule, MatIconModule],
   templateUrl: './language-switcher.component.html',
   styleUrl: './language-switcher.component.scss',
 })
