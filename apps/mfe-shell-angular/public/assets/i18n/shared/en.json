@@ -14,5 +14,17 @@
         "/expense/history": "Faculty History"
       }
     }
+  },
+  "header": {
+    "fallback": "System Management",
+    "titles": {
+      "/expense/pending": "Review Inbox Queue",
+      "/expense/history": "Faculty Expense History",
+      "/dashboard": "Dashboard Overview",
+      "/user-list": "System User Directory",
+      "/expense": "My Personal Claims",
+      "/report": "Financial Reports",
+      "/budget-manager": "Budget Management"
+    }
   }
 }

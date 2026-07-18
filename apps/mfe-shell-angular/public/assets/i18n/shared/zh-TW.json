@@ -14,5 +14,17 @@
         "/expense/history": "院系審批歷史"
       }
     }
+  },
+  "header": {
+    "fallback": "系統管理系統",
+    "titles": {
+      "/expense/pending": "審批收件箱隊列",
+      "/expense/history": "院系費用審批歷史",
+      "/dashboard": "控制台總覽",
+      "/user-list": "系統使用者名錄",
+      "/expense": "我的個人申請單",
+      "/report": "財務報表中心",
+      "/budget-manager": "預算額度管理"
+    }
   }
 }

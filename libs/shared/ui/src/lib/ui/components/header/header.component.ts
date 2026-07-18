@@ -5,13 +5,17 @@ import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { ROUTE_HEADER_TITLE_REGISTRY } from '@school-expense-ecosystem/shared/constants';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-header',
   standalone: true,
-  imports: [MatButtonModule],
+  imports: [MatButtonModule, TranslocoModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'shared' }
+  ]
 })
 export class HeaderComponent {
   private readonly router = inject(Router);
@@ -33,6 +37,8 @@ export class HeaderComponent {
       .sort((a, b) => b[0].length - a[0].length)
       .find(([routeKey]) => url.includes(routeKey));
 
-    return matchedTitle ? matchedTitle[1] : 'System Management';
+    if (!matchedTitle) return 'header.fallback';
+
+    return `header.titles.${matchedTitle[0]}`;
   });
 }
