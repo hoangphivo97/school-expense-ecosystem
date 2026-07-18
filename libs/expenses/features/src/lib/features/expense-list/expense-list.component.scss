@@ -20,7 +20,7 @@ body {
   .expense-list {
     flex: 1 0 auto;
     width: 100%;
-    max-width: 1300px;
+    max-width: 1500px;
     margin: 0 auto;
 
     ::ng-deep {
@@ -77,6 +77,19 @@ body {
       td.action-column {
         display: flex;
       }
+    }
+
+    .description-clamp-wrapper {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      /* Force text bounding limit to exactly 2 lines maximum */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+      /* Prevent the description cell from eating up too much horizontal grid weight */
+      white-space: normal;
+      line-height: 1.4;
     }
 
     .badge-status-variant {

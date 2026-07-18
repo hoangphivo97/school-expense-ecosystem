@@ -21,7 +21,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FilterMode, SharedFilterFields, SharedFilterParams, } from '@school-expense-ecosystem/shared/types';
-import { months } from '@school-expense-ecosystem/shared/constants';
+import { EXPENSE_STATUS_OPTIONS, months } from '@school-expense-ecosystem/shared/constants';
 import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -45,7 +45,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
   templateUrl: './filter.component.html',
   styleUrl: './filter.component.scss',
   providers: [
-    { provide: TRANSLOCO_SCOPE, useValue: 'shared' } 
+    { provide: TRANSLOCO_SCOPE, useValue: 'shared' }
   ]
 })
 export class FilterComponent<T = unknown> implements OnInit {
@@ -53,7 +53,8 @@ export class FilterComponent<T = unknown> implements OnInit {
 
   readonly paginator = viewChild(MatPaginator);
 
-  mode = input<FilterMode>(FilterMode.EXPENSE);
+  readonly mode = input<FilterMode>(FilterMode.EXPENSE);
+  readonly disableStatus = input<boolean>(false);
 
   readonly showSearch = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.USER);
   readonly showMonth = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
@@ -64,12 +65,12 @@ export class FilterComponent<T = unknown> implements OnInit {
   readonly showFaculty = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE);
 
   // Multi-dimensional dynamic model mapping streams
-  inputDataSource = input<MatTableDataSource<T> | null>(null);
-  value = input<SharedFilterParams | null>(null);
-  yearsList = input<number[]>([]);
-  facultiesList = input<{ facultyId: string; facultyName: string }[]>([]);
+  readonly inputDataSource = input<MatTableDataSource<T> | null>(null);
+  readonly value = input<SharedFilterParams | null>(null);
+  readonly yearsList = input<number[]>([]);
+  readonly facultiesList = input<{ facultyId: string; facultyName: string }[]>([]);
 
-  filterChange = output<SharedFilterParams>();
+  readonly filterChange = output<SharedFilterParams>();
 
   readonly systemRolesOptions = [
     { value: 'ALL', label: 'All Roles' },
@@ -94,14 +95,7 @@ export class FilterComponent<T = unknown> implements OnInit {
     // { value: UserStatus.INACTIVE, label: 'Inactive' }
   ];
 
-  readonly expenseStatusOptions = [
-    { value: 'ALL', label: 'All Statuses' },
-    { value: ExpenseStatus.PENDING_TEACHER_REVIEW, label: 'Pending Teacher' },
-    { value: ExpenseStatus.PENDING_DEAN_APPROVAL, label: 'Pending Dean' },
-    { value: ExpenseStatus.PENDING_DISBURSEMENT, label: 'Pending Disbursement' },
-    { value: ExpenseStatus.DISBURSED, label: 'Disbursed' },
-    { value: ExpenseStatus.REJECTED, label: 'Rejected' }
-  ];
+  readonly expenseStatusOptions = EXPENSE_STATUS_OPTIONS;
 
   readonly currentMonth = new Date().getMonth() + 1;
   readonly currentYear = new Date().getFullYear();
@@ -151,6 +145,15 @@ export class FilterComponent<T = unknown> implements OnInit {
   });
 
   constructor() {
+    effect(() => {
+      const statusControl = this.filterForm.get('status');
+      if (this.disableStatus()) {
+        statusControl?.disable({ emitEvent: false });
+      } else {
+        statusControl?.enable({ emitEvent: false });
+      }
+    });
+
     effect(() => {
       const incomingState = this.value();
       if (!incomingState) return;

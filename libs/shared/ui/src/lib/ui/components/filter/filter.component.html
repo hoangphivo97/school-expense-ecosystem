@@ -39,7 +39,7 @@
     @if (showStatus()) {
     <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
       <mat-label>{{ mode() === 'USER' ? t('labels.accountStatus') : t('labels.requestStatus') }}</mat-label>
-      <mat-select formControlName="status" panelClass="enterprise-dropdown-panel">
+      <mat-select formControlName="status" panelClass="enterprise-dropdown-panel" [disabled]="disableStatus()">
         @if (mode() === 'USER') {
         @for (option of accountStatusOptions; track option.value) {
         <mat-option [value]="option.value">{{ t('options.accountStatus.' + option.value) }}</mat-option>

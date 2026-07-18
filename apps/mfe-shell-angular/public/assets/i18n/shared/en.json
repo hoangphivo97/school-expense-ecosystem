@@ -29,7 +29,7 @@
   },
   "filter": {
     "searchLabel": "Search query",
-    "searchPlaceholder": "Type to search...",
+    "searchPlaceholder": "Type to search ID, Request Code, Requester Name",
     "labels": {
       "systemRole": "System Role",
       "userType": "User Type",

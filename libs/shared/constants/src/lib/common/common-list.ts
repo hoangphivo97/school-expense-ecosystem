@@ -1,4 +1,4 @@
-import { NavItem, NavItemConfig } from '@school-expense-ecosystem/shared/types';
+import { ExpenseStatus, NavItem, NavItemConfig } from '@school-expense-ecosystem/shared/types';
 
 export const months = [
   { value: null, label: 'ALL' },
@@ -59,3 +59,12 @@ export const URL_ROUTE_LINKER: Record<string, NavItem> = {
   '/report': NavItem.REPORT,
   '/budget-manager': NavItem.BUDGET_MANAGER
 };
+
+export const EXPENSE_STATUS_OPTIONS = [
+  { value: 'ALL', label: 'All Statuses' },
+  { value: ExpenseStatus.PENDING_TEACHER_REVIEW, label: 'Pending Teacher' },
+  { value: ExpenseStatus.PENDING_DEAN_APPROVAL, label: 'Pending Dean' },
+  { value: ExpenseStatus.PENDING_DISBURSEMENT, label: 'Pending Disbursement' },
+  { value: ExpenseStatus.DISBURSED, label: 'Disbursed' },
+  { value: ExpenseStatus.REJECTED, label: 'Rejected' }
+];

@@ -29,7 +29,7 @@
   },
   "filter": {
     "searchLabel": "關鍵字搜尋",
-    "searchPlaceholder": "請輸入搜尋關鍵字...",
+    "searchPlaceholder": "請輸入 ID、申請單號或申請人姓名進行搜尋...",
     "labels": {
       "systemRole": "系統權限角色",
       "userType": "使用者類型",
