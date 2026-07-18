@@ -26,5 +26,66 @@
       "/report": "財務報表中心",
       "/budget-manager": "預算額度管理"
     }
+  },
+  "filter": {
+    "searchLabel": "關鍵字搜尋",
+    "searchPlaceholder": "請輸入搜尋關鍵字...",
+    "labels": {
+      "systemRole": "系統權限角色",
+      "userType": "使用者類型",
+      "accountStatus": "帳戶狀態",
+      "requestStatus": "申請單狀態",
+      "month": "月份",
+      "year": "年度",
+      "faculty": "學院/科系"
+    },
+    "tooltip": {
+      "reset": "清除目前篩選條件"
+    },
+    "options": {
+      "faculties": { "ALL": "所有學院/科系" },
+      "roles": {
+        "ALL": "所有權限角色",
+        "LEVEL_0_ADMIN": "系統管理員",
+        "LEVEL_1_FINANCE": "財務主辦人員",
+        "LEVEL_2_DEAN": "學院院長/主管",
+        "LEVEL_3_USER": "一般終端使用者"
+      },
+      "userTypes": {
+        "ALL": "所有使用者類型",
+        "STUDENT": "在校學生",
+        "TEACHER": "專 Scanning 教授/教師",
+        "STAFF": "學校行政同仁"
+      },
+      "accountStatus": {
+        "ALL": "所有帳戶狀態",
+        "ACTIVE": "正常啟用",
+        "ONBOARDING": "新進審核中",
+        "REJECTED": "拒絕拒發"
+      },
+      "expenseStatus": {
+        "ALL": "所有審批狀態",
+        "PENDING_TEACHER_REVIEW": "待指導老師審核",
+        "PENDING_DEAN_APPROVAL": "待院長簽核",
+        "PENDING_DISBURSEMENT": "待財務撥款",
+        "DISBURSED": "已成功撥款",
+        "REJECTED": "駁回申請"
+      },
+      "months": {
+        "ALL": "所有月份",
+        "1": "一月",
+        "2": "二月",
+        "3": "三月",
+        "4": "四月",
+        "5": "五月",
+        "6": "六月",
+        "7": "七月",
+        "8": "八月",
+        "9": "九月",
+        "10": "十月",
+        "11": "十一月",
+        "12": "十二月"
+      }
+    }
   }
 }

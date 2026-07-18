@@ -26,5 +26,66 @@
       "/report": "Financial Reports",
       "/budget-manager": "Budget Management"
     }
+  },
+  "filter": {
+    "searchLabel": "Search query",
+    "searchPlaceholder": "Type to search...",
+    "labels": {
+      "systemRole": "System Role",
+      "userType": "User Type",
+      "accountStatus": "Account Status",
+      "requestStatus": "Request Status",
+      "month": "Month",
+      "year": "Year",
+      "faculty": "Faculty"
+    },
+    "tooltip": {
+      "reset": "Clear active layout filters"
+    },
+    "options": {
+      "faculties": { "ALL": "All Faculties" },
+      "roles": {
+        "ALL": "All Roles",
+        "LEVEL_0_ADMIN": "Admin",
+        "LEVEL_1_FINANCE": "Finance Officer",
+        "LEVEL_2_DEAN": "Faculty Dean",
+        "LEVEL_3_USER": "End User"
+      },
+      "userTypes": {
+        "ALL": "All User Types",
+        "STUDENT": "Student",
+        "TEACHER": "Teacher",
+        "STAFF": "Staff"
+      },
+      "accountStatus": {
+        "ALL": "All Statuses",
+        "ACTIVE": "Active",
+        "ONBOARDING": "Onboarding",
+        "REJECTED": "Rejected"
+      },
+      "expenseStatus": {
+        "ALL": "All Statuses",
+        "PENDING_TEACHER_REVIEW": "Pending Teacher",
+        "PENDING_DEAN_APPROVAL": "Pending Dean",
+        "PENDING_DISBURSEMENT": "Pending Disbursement",
+        "DISBURSED": "Disbursed",
+        "REJECTED": "Rejected"
+      },
+      "months": {
+        "ALL": "All Months",
+        "1": "January",
+        "2": "February",
+        "3": "March",
+        "4": "April",
+        "5": "May",
+        "6": "June",
+        "7": "July",
+        "8": "August",
+        "9": "September",
+        "10": "October",
+        "11": "November",
+        "12": "December"
+      }
+    }
   }
 }

@@ -25,6 +25,7 @@ import { months } from '@school-expense-ecosystem/shared/constants';
 import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-filter',
@@ -38,10 +39,14 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
     MatFormFieldModule,
     MatIconModule,
     MatTooltipModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    TranslocoModule
   ],
   templateUrl: './filter.component.html',
   styleUrl: './filter.component.scss',
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'shared' } 
+  ]
 })
 export class FilterComponent<T = unknown> implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
