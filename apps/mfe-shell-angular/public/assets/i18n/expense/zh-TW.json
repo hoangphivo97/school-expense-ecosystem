@@ -1,0 +1,24 @@
+{
+  "expenseList": {
+    "actions": {
+      "createRequest": "建立申請"
+    },
+    "columns": {
+      "id": "編號",
+      "date": "日期",
+      "requesterCode": "代碼",
+      "requesterName": "申請人",
+      "requesterType": "類型",
+      "facultyId": "學院/科系",
+      "description": "費用說明",
+      "purpose": "用途",
+      "paidMethod": "支付方式",
+      "amount": "金額",
+      "status": "狀態"
+    },
+    "empty": {
+      "title": "未找到費用紀錄",
+      "subtitle": "所選期間或條件內無任何交易交易紀錄。"
+    }
+  }
+}

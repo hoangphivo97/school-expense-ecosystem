@@ -33,25 +33,25 @@
       "facultyRequired": "必須分配院系隔離範疇"
     },
     "roles": {
-      "admin": "系統管理員 (後門)",
-      "finance_officer": "財務主管 (機構全域)",
-      "faculty_dean": "院長/系主任 (隔離範疇)",
-      "end_user": "教職員 / 學生"
+      "ADMIN": "系統管理員 (後門)",
+      "FINANCE_OFFICER": "財務主管 (機構全域)",
+      "FACULTY_DEAN": "院長/系主任 (隔離範疇)",
+      "END_USER": "教職員 / 學生"
     },
     "types": {
-      "staff": "行政職員",
-      "teacher": "專任教師",
-      "student": "在校學生"
+      "STAFF": "行政職員",
+      "TEACHER": "專任教師",
+      "STUDENT": "在校學生"
     },
     "faculties": {
-      "fit": "資訊工程學院 (FIT)",
-      "fbe": "商業與經濟學院 (FBE)",
-      "fll": "外國語言學院 (FLL)"
+      "FIT": "資訊工程學院 (FIT)",
+      "FBE": "商業與經濟學院 (FBE)",
+      "FLL": "外國語言學院 (FLL)"
     },
     "status": {
-      "active": "啟用",
-      "pending": "審核中",
-      "onboarding": "資料初始化中"
+      "ACTIVE": "啟用",
+      "PENDING": "審核中",
+      "ONBOARDING": "資料初始化中"
     },
     "actions": {
       "cancel": "取消",
@@ -77,22 +77,22 @@
       "createdAt": "建立日期"
     },
     "roles": {
-      "admin": "系統管理員",
-      "finance_officer": "財務專員",
-      "faculty_dean": "學院院長",
-      "end_user": "一般使用者"
+      "ADMIN": "系統管理員",
+      "FINANCE_OFFICER": "財務專員",
+      "FACULTY_DEAN": "學院院長",
+      "END_USER": "一般使用者"
     },
     "types": {
-      "staff": "行政職員",
-      "teacher": "專任教師",
-      "student": "在校學生"
+      "STAFF": "行政職員",
+      "TEACHER": "專任教師",
+      "STUDENT": "在校學生"
     },
     "status": {
-      "active": "啟用",
-      "pending": "審核中",
-      "suspended": "停用",
-      "rejected": "拒絕",
-      "onboarding": "資料初始化"
+      "ACTIVE": "啟用",
+      "PENDING": "審核中",
+      "SUSPENDED": "停用",
+      "REJECTED": "拒絕",
+      "ONBOARDING": "資料初始化"
     },
     "states": {
       "onboardingPending": "等待初始化資料",

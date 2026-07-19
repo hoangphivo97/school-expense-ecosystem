@@ -1,8 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoService } from '@ngneat/transloco';
 import { MatMenuModule } from '@angular/material/menu';
+import { NgClass } from "../../../../../../../../node_modules/@angular/common/types/_common_module-chunk";
+import { MatRipple } from "@angular/material/core";
 
 interface LanguageOption {
   readonly code: string;
@@ -18,6 +20,7 @@ interface LanguageOption {
 })
 export class LanguageSwitcherComponent {
   private readonly translocoService = inject(TranslocoService);
+  readonly collapsed = input(false);
 
   /**
    * Centralized data-driven array. 
@@ -49,5 +52,10 @@ export class LanguageSwitcherComponent {
 
     this.translocoService.setActiveLang(langCode);
     this.currentLang.set(langCode);
+  }
+
+  protected get currentLanguageAbbreviation(): string {
+    const code = this.currentLang();
+    return code === 'zh-TW' ? 'TW' : code.substring(0, 2).toUpperCase();
   }
 }

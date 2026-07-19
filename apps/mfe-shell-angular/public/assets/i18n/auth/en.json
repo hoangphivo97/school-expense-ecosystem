@@ -28,5 +28,85 @@
   },
   "emailRequired": "Email Address is required.",
   "emailInvalid": "Please enter a valid email address.",
-  "passwordRequired": "Password is required."
+  "passwordRequired": "Password is required.",
+  "onboarding": {
+    "title": "Account Onboarding",
+    "description": "Please complete your profile information below to continue. This information will be reviewed by the administration before your account is activated.",
+    "fields": {
+      "fullName": {
+        "label": "Full Name",
+        "placeholder": "English, Unaccented Vietnamese or Traditional Chinese",
+        "errors": {
+          "required": "Full Name is required.",
+          "pattern": "Only English, unaccented Vietnamese, or Chinese characters are allowed."
+        }
+      },
+      "faculty": {
+        "label": "Faculty",
+        "options": {
+          "FIT": "Faculty of Information Technology (FIT)",
+          "FBE": "Faculty of Business Administration (FBE)",
+          "FLL": "Faculty of Foreign Languages (FLL)"
+        },
+        "errors": {
+          "required": "Please select your faculty."
+        }
+      },
+      "userType": {
+        "label": "Institutional Role",
+        "options": {
+          "STUDENT": "Student",
+          "TEACHER": "Teacher",
+          "STAFF": "School Staff"
+        },
+        "errors": {
+          "required": "Please select your institutional role."
+        }
+      },
+      "userCode": {
+        "label": "ID Code (Student / Staff ID)",
+        "placeholder": "Enter your unique ID",
+        "errors": {
+          "required": "Identification code is required."
+        }
+      },
+      "dateOfBirth": {
+        "label": "Date of Birth",
+        "placeholder": "Choose a date",
+        "errors": {
+          "required": "Please select a valid date of birth."
+        }
+      }
+    },
+    "buttons": {
+      "submit": "Complete Registration",
+      "submitting": "Submitting Profile..."
+    }
+  },
+  "waitingApproval": {
+    "title": "Verifying Your Application",
+    "greeting": "Hello, {{name}}",
+    "message": "Your onboarding profile data linked to <span class='text-primary fw-medium'>{{email}}</span> is currently being reviewed by the administration faculty. You will be granted access to the ecosystem automatically upon confirmation.",
+    "realtimeStatus": "Listening for instant validation changes...",
+    "buttons": {
+      "logout": "Log Out Account"
+    }
+  },
+  "restriction": {
+    "suspended": {
+      "title": "Account Suspended",
+      "description": "Your institutional access privileges have been administratively withdrawn."
+    },
+    "rejected": {
+      "title": "Registration Declined",
+      "description": "Your account creation request does not meet our institutional criteria."
+    },
+    "adminRemarkLabel": "Official Admin Remark:",
+    "defaultReason": "No explicit reason was specified by the authority.",
+    "appealNotice": "If you believe this action is an oversight or wish to dispute this decision, please click the button below to lodge a formal appeal.",
+    "buttons": {
+      "contactAdmin": "Contact Administration",
+      "returnLogin": "Return to Login"
+    }
+  }
 }

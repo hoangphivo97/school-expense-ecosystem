@@ -3,8 +3,6 @@
 /* ==========================================================================
    1. SHARED LIBRARIES & WORKSPACE PATH IMPORTS
    ========================================================================== */
-
-// @import 'bootstrap/scss/bootstrap';
 @use '@angular/material/prebuilt-themes/deeppurple-amber.css';
 @use 'libs/shared/ui/src/lib/ui/styles/variables';
 @use 'libs/shared/ui/src/lib/ui/styles/utilities';
@@ -15,58 +13,48 @@
 
 /* --- SYSTEM LIGHT MODE SETUP (DEFAULT BRAND) --- */
 :root {
-  /* Layout Presentation Surfaces */
   --bg-primary: #f8f9fa;
   --bg-secondary: #ffffff;
   --bg-modal-primary: #ffffff;
   --bg-input: #f3f4f6;
   --border-color: #e5e7eb;
 
-  /* Primary Brand Identity - Core Purple Accent */
   --primary-color: #7d45ff;
   --hover-bg: rgba(125, 69, 255, 0.08);
   --purple-bland-8: color-mix(in srgb, var(--primary-color) 8%, transparent);
 
-  /* Typography Matrix */
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --text-input: #111827;
 
-  /* System UI Status Identifiers */
   --icon-color-inactive: #bdc2c5;
   --text-color-inactive: #7d8388;
   --color-danger: #dc2626;
 
-  /* Form & Button Control Boundaries */
   --btn-disabled-bg: rgba(0, 0, 0, 0.12);
   --btn-disabled-text: rgba(0, 0, 0, 0.26);
 }
 
 /* --- SYSTEM DARK MODE SETUP (DYNAMIC OVERRIDES) --- */
 body.dark-mode {
-  /* Layout Presentation Surfaces */
-  --bg-primary: #0f172a; // Slate 900
-  --bg-secondary: #1e293b; // Slate 800
-  --bg-input: #1e293b; // Slate 800
-  --bg-modal: #2d3748; // Slate 700
+  --bg-primary: #0f172a; 
+  --bg-secondary: #1e293b; 
+  --bg-input: #1e293b; 
+  --bg-modal: #2d3748; 
 
-  /* Typography Matrix */
-  --text-primary: #f1f5f9; // Slate 100
-  --text-secondary: #94a3b8; // Slate 400
-  --text-input: #f9fafb; // Milky White
+  --text-primary: #f1f5f9; 
+  --text-secondary: #94a3b8; 
+  --text-input: #f9fafb; 
 
-  --border-color: #334155; // Slate 700
+  --border-color: #334155; 
 
-  /* Primary Brand Identity - Luminous High-Contrast Purple for Dark Mode */
-  --primary-color: #9d66ff; // Vibrant Light Purple
+  --primary-color: #9d66ff; 
   --hover-bg: rgba(157, 102, 255, 0.12);
   --purple-bland-8: color-mix(in srgb, var(--primary-color) 12%, transparent);
 
-  /* Form & Button Control Boundaries */
   --btn-disabled-bg: rgba(255, 255, 255, 0.12);
   --btn-disabled-text: rgba(255, 255, 255, 0.38);
 
-  /* Material Datepicker Semantic Tokens */
   --mat-datepicker-calendar-container-background-color: var(--bg-primary);
   --mat-datepicker-calendar-container-text-color: var(--text-primary);
   --mat-datepicker-calendar-header-text-color: var(--text-primary);
@@ -100,49 +88,51 @@ body {
 }
 
 /* ==========================================================================
-   4. MATERIAL COMPONENT DARK MODE ENHANCEMENTS
+   4. MATERIAL COMPONENT DARK MODE ENHANCEMENTS (AC 2 REFACTORED)
    ========================================================================== */
-body.dark-mode {
+/* Architect Fix: Anchor cascading chain directly to html element to secure natural out-scoring specificity points */
+html body.dark-mode {
 
-  /* Sidenav Viewport Contexts */
+  // Sidenav Viewport Contexts
   .mat-drawer-content,
   .mat-sidenav-content {
-    background-color: var(--bg-primary) !important;
+    background-color: var(--bg-primary);
     color: var(--text-primary);
   }
 
-  /* Structural Dialog Sheets */
-  .mat-mdc-dialog-container .mdc-dialog__surface {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
+  // Structural Dialog Sheets
+  .mat-mdc-dialog-container {
+    .mdc-dialog__surface {
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    
+    h2.mat-mdc-dialog-title {
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
   }
 
-  h2.mat-mdc-dialog-title {
-    color: var(--text-primary) !important;
-    border-color: var(--border-color) !important;
-  }
-
-  /* Form Fields Configuration Block */
+  // Form Fields Configuration Block
   .mat-mdc-form-field {
     .mat-mdc-text-field-wrapper {
-      background-color: var(--bg-input) !important;
-      border: none !important;
-      box-shadow: none !important;
+      background-color: var(--bg-input);
+      border: none;
+      box-shadow: none;
     }
 
     .mdc-notched-outline__leading,
     .mdc-notched-outline__notch,
     .mdc-notched-outline__trailing {
-      border-color: var(--border-color) !important;
-      border-width: 1px !important;
+      border-color: var(--border-color);
+      border-width: 1px;
     }
 
     &:hover {
-
       .mdc-notched-outline__leading,
       .mdc-notched-outline__notch,
       .mdc-notched-outline__trailing {
-        border-color: var(--primary-color) !important;
+        border-color: var(--primary-color);
       }
     }
 
@@ -150,105 +140,109 @@ body.dark-mode {
     input.mat-mdc-input-element,
     .mat-mdc-select-value,
     .mat-mdc-select-value-text {
-      color: var(--text-input) !important;
+      color: var(--text-input);
     }
 
     .mat-mdc-form-field-label mat-label,
     .mat-mdc-floating-label mat-label {
-      color: var(--text-secondary) !important;
+      color: var(--text-secondary);
     }
 
     .mat-mdc-select-arrow svg {
-      fill: var(--text-primary) !important;
+      fill: var(--text-primary);
     }
   }
 
-  /* Authorization Stream Status Indicator Badge */
+  // Authorization Stream Status Indicator Badge
   .auth-stream-badge {
-    background-color: var(--bg-primary) !important;
-    border: 1px dashed var(--border-color) !important;
+    background-color: var(--bg-primary);
+    border: 1px dashed var(--border-color);
 
     .text-muted {
-      color: var(--text-secondary) !important;
+      color: var(--text-secondary);
     }
 
     .text-primary {
-      color: var(--primary-color) !important;
+      color: var(--primary-color);
     }
   }
 
-  /* Dialog Actions Footer Anchor */
+  // Dialog Actions Footer Anchor
   .mat-mdc-dialog-actions {
-    border-top: 1px solid var(--border-color) !important;
+    border-top: 1px solid var(--border-color);
 
     .text-secondary {
-      color: var(--text-secondary) !important;
+      color: var(--text-secondary);
     }
   }
 
   /* --- APEXCHARTS INTEGRATED MATRIX THEME --- */
-  .apexcharts-text,
-  .apexcharts-title-text,
-  .apexcharts-subtitle-text {
-    fill: var(--text-primary) !important;
-  }
-
-  .apexcharts-gridline {
-    stroke: var(--border-color) !important;
-  }
-
-  .apexcharts-legend-text {
-    color: var(--text-primary) !important;
-    font-family: inherit !important;
-  }
-
-  .apexcharts-tooltip {
-    background: var(--bg-secondary) !important;
-    border-color: var(--border-color) !important;
-    color: var(--text-primary) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5) !important;
-
-    .apexcharts-tooltip-title {
-      background: var(--bg-primary) !important;
-      border-bottom: 1px solid var(--border-color) !important;
-      font-family: inherit !important;
+  // Scope components within internal canvas to lock weight alignment cleanly
+  .apexcharts-canvas {
+    .apexcharts-text,
+    .apexcharts-title-text,
+    .apexcharts-subtitle-text {
+      fill: var(--text-primary);
     }
 
-    .apexcharts-tooltip-text-y-value {
-      color: var(--text-primary) !important;
+    .apexcharts-gridline {
+      stroke: var(--border-color);
     }
-  }
 
-  .apexcharts-menu-icon svg {
-    fill: var(--text-primary) !important;
-  }
-
-  .apexcharts-menu {
-    background: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-    border-color: var(--border-color) !important;
-
-    .apexcharts-menu-item:hover {
-      background: var(--hover-bg) !important;
+    .apexcharts-legend-text {
+      color: var(--text-primary);
+      font-family: inherit;
     }
-  }
 
-  .apexcharts-xaxistooltip {
-    background: var(--bg-secondary) !important;
-    border: 1px solid var(--border-color) !important;
-    color: var(--text-primary) !important;
+    .apexcharts-tooltip {
+      background: var(--bg-secondary);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
 
-    .apexcharts-xaxistooltip-text {
-      color: var(--text-primary) !important;
+      .apexcharts-tooltip-title {
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border-color);
+        font-family: inherit;
+      }
+
+      .apexcharts-tooltip-text-y-value {
+        color: var(--text-primary);
+      }
     }
-  }
 
-  .apexcharts-xaxistooltip-bottom:before {
-    border-bottom-color: var(--border-color) !important;
-  }
+    .apexcharts-menu-icon svg {
+      fill: var(--text-primary);
+    }
 
-  .apexcharts-xaxistooltip-bottom:after {
-    border-bottom-color: var(--bg-secondary) !important;
+    .apexcharts-menu {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+
+      .apexcharts-menu-item:hover {
+        background: var(--hover-bg);
+      }
+    }
+
+    .apexcharts-xaxistooltip {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+
+      .apexcharts-xaxistooltip-text {
+        color: var(--text-primary);
+      }
+    }
+
+    .apexcharts-xaxistooltip-bottom {
+      &:before {
+        border-bottom-color: var(--border-color);
+      }
+      &:after {
+        border-bottom-color: var(--bg-secondary);
+      }
+    }
   }
 }
 
@@ -257,19 +251,22 @@ body.dark-mode {
    ========================================================================== */
 
 /* --- A. Button Controls Custom Interactive States --- */
-.mat-mdc-button:disabled,
-.mat-mdc-raised-button:disabled,
-.mat-mdc-unelevated-button:disabled,
-.mat-mdc-outlined-button:disabled {
-  background-color: var(--btn-disabled-bg) !important;
-  color: var(--btn-disabled-text) !important;
-  cursor: not-allowed !important;
-  box-shadow: none !important;
+/* Architect Fix: Target the structural Material button class chain directly to remove global overrides blockers */
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button {
+  &:disabled {
+    background-color: var(--btn-disabled-bg);
+    color: var(--btn-disabled-text);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 }
 
 .mat-mdc-outlined-button:disabled {
-  background-color: transparent !important;
-  border-color: var(--btn-disabled-bg) !important;
+  background-color: transparent;
+  border-color: var(--btn-disabled-bg);
 }
 
 /* --- B. Dropdown Picker Overrides (.ct-select-dm) --- */
@@ -289,15 +286,15 @@ body.dark-mode {
 
 /* --- C. Fluid Calendar Control Overrides (.ct-datepicker-dm) --- */
 .ct-datepicker-dm {
-
+  // Elevate internal text specificity smoothly
   .mat-calendar-period-button,
   .mat-calendar-previous-button,
   .mat-calendar-next-button {
-    color: var(--text-primary) !important;
+    color: var(--text-primary);
   }
 
   .mat-calendar-arrow {
-    fill: var(--text-primary) !important;
+    fill: var(--text-primary);
   }
 
   .mat-calendar-table-header th {
@@ -309,47 +306,52 @@ body.dark-mode {
   }
 
   .mat-datepicker-content .mat-calendar-header {
-    color: var(--text-primary) !important;
+    color: var(--text-primary);
   }
 }
 
 /* --- D. Notification SnackBars Overrides --- */
 .toast-success {
-  @include mat.snack-bar-overrides((container-color: #198754,
-      button-color: #ffffff,
-      supporting-text-color: #ffffff,
-      container-shape: var(--mat-sys-corner-extra-small)));
+  @include mat.snack-bar-overrides((
+    container-color: #198754,
+    button-color: #ffffff,
+    supporting-text-color: #ffffff,
+    container-shape: var(--mat-sys-corner-extra-small)
+  ));
 }
 
 .toast-error {
-  @include mat.snack-bar-overrides((container-color: #dc3545,
-      button-color: #ffffff,
-      supporting-text-color: #ffffff,
-      container-shape: var(--mat-sys-corner-extra-small)));
+  @include mat.snack-bar-overrides((
+    container-color: #dc3545,
+    button-color: #ffffff,
+    supporting-text-color: #ffffff,
+    container-shape: var(--mat-sys-corner-extra-small)
+  ));
 }
 
 .toast-warning {
-  @include mat.snack-bar-overrides((container-color: #f57c00,
-      button-color: #ffffff,
-      supporting-text-color: #ffffff,
-      container-shape: var(--mat-sys-corner-extra-small)))
+  @include mat.snack-bar-overrides((
+    container-color: #f57c00,
+    button-color: #ffffff,
+    supporting-text-color: #ffffff,
+    container-shape: var(--mat-sys-corner-extra-small)
+  ));
 }
 
 .loading-container-blurred {
-  pointer-events: none !important; // Freeze user interaction clicks safely
+  pointer-events: none; 
   user-select: none;
   opacity: 0.65;
   transition: opacity 0.2s ease-in-out;
 }
 
-.absolute-center-spinner {
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 1050; // Ensure it stays floating on top of container elements
+.absolute-center-spinner.mat-mdc-progress-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1050; 
 }
-
 
 /* ==========================================================================
    6. ARCHITECTURAL LAYOUT FIX HACKS

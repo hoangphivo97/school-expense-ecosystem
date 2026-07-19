@@ -1,24 +1,24 @@
-<div class="vw-100 vh-100 bg-light d-flex align-items-center justify-content-center p-4">
+<div class="vw-100 vh-100 bg-light d-flex align-items-center justify-content-center p-4"
+    *transloco="let t; read: 'auth.onboarding'">
 
     <div class="w-full bg-white rounded-3 shadow border p-5" style="max-width: 450px;">
 
         <div class="text-center mb-4">
-            <h2 class="h4 font-weight-bold text-dark">Account Onboarding</h2>
-            <p class="text-muted small">Please complete your profile information below to continue. This information
-                will be reviewed by the administration before your account is activated.</p>
+            <h2 class="h4 font-weight-bold text-dark">{{ t('title') }}</h2>
+            <p class="text-muted small">{{ t('description') }}</p>
         </div>
 
         <form [formGroup]="onboardingForm" (ngSubmit)="onSubmit()">
 
             <div class="mb-3">
                 <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Full Name</mat-label>
+                    <mat-label>{{ t('fields.fullName.label') }}</mat-label>
                     <input matInput formControlName="fullName"
                         placeholder="English, Unaccented Vietnamese or Traditional Chinese" maxlength="50">
                     <mat-error>
                         {{ onboardingForm.get('fullName')?.errors | formError:{
-                        required: 'Full Name is required.',
-                        pattern: 'Only English, unaccented Vietnamese, or Chinese characters are allowed.'
+                        required: t('fields.fullName.errors.required'),
+                        pattern: t('fields.fullName.errors.pattern')
                         } }}
                     </mat-error>
                 </mat-form-field>
@@ -26,45 +26,50 @@
 
             <div class="mb-3">
                 <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Faculty</mat-label>
+                    <mat-label>{{ t('fields.faculty.label') }}</mat-label>
                     <mat-select formControlName="facultyId">
                         @for (faculty of faculties; track faculty) {
-                        <mat-option [value]="faculty">{{ facultyLabels[faculty] }}</mat-option>
+                        <mat-option [value]="faculty">{{ t('fields.faculty.options.' + faculty) }}</mat-option>
                         }
                     </mat-select>
                     <mat-error>
-                        {{ onboardingForm.get('facultyId')?.errors | formError:{ required: 'Please select your faculty.' } }}
+                        {{ onboardingForm.get('facultyId')?.errors | formError:{ required:
+                        t('fields.faculty.errors.required') } }}
                     </mat-error>
                 </mat-form-field>
             </div>
 
             <div class="mb-3">
                 <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Institutional Role</mat-label>
+                    <mat-label>{{ t('fields.userType.label') }}</mat-label>
                     <mat-select formControlName="userType">
                         @for (type of userTypes; track type) {
-                        <mat-option [value]="type">{{ userTypeLabels[type] }}</mat-option>
+                        <mat-option [value]="type">{{ t('fields.userType.options.' + type) }}</mat-option>
                         }
                     </mat-select>
-                    <mat-error>{{ onboardingForm.get('userType')?.errors | formError: {required: "Please select your institutional role."} }}</mat-error>
+                    <mat-error>{{ onboardingForm.get('userType')?.errors | formError: { required:
+                        t('fields.userType.errors.required') } }}</mat-error>
                 </mat-form-field>
             </div>
 
             <div class="mb-3">
                 <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>ID Code (Student / Staff ID)</mat-label>
-                    <input matInput formControlName="userCode" placeholder="Enter your unique ID">
-                    <mat-error>{{ onboardingForm.get('userCode')?.errors | formError: {required: "Identification code is required."} }}</mat-error>
+                    <mat-label>{{ t('fields.userCode.label') }}</mat-label>
+                    <input matInput formControlName="userCode" [placeholder]="t('fields.userCode.placeholder')">
+                    <mat-error>{{ onboardingForm.get('userCode')?.errors | formError: { required:
+                        t('fields.userCode.errors.required') } }}</mat-error>
                 </mat-form-field>
             </div>
 
             <div class="mb-4">
                 <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Date of Birth</mat-label>
-                    <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" placeholder="Choose a date">
+                    <mat-label>{{ t('fields.dateOfBirth.label') }}</mat-label>
+                    <input matInput [matDatepicker]="picker" formControlName="dateOfBirth"
+                        [placeholder]="t('fields.dateOfBirth.placeholder')">
                     <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                     <mat-datepicker #picker></mat-datepicker>
-                    <mat-error>{{ onboardingForm.get("dateOfBirth")?.errors | formError: {required: "Please select a valid date of birth."} }}</mat-error>
+                    <mat-error>{{ onboardingForm.get("dateOfBirth")?.errors | formError: { required:
+                        t('fields.dateOfBirth.errors.required') } }}</mat-error>
                 </mat-form-field>
             </div>
 
@@ -74,9 +79,9 @@
 
                     @if (authService.isOnboardingSubmitting()) {
                     <mat-spinner diameter="20" class="me-2 d-inline-block align-middle"></mat-spinner>
-                    Submitting Profile...
+                    {{ t('buttons.submitting') }}
                     } @else {
-                    Complete Registration
+                    {{ t('buttons.submit') }}
                     }
                 </button>
             </div>

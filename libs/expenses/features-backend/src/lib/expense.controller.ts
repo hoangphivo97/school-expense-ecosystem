@@ -7,7 +7,7 @@ import { Request } from 'express';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/data-access-backend';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ExpenseCapGuard, ExpenseReviewGuard } from '@school-expense-ecosystem/expense/guards-backend';
+import { ExpenseCapGuard, ExpenseReviewGuard } from '@school-expense-ecosystem/expenses/guards-backend';
 
 
 interface AuthenticatedRequest extends Request {

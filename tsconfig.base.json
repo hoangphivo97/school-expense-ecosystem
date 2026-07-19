@@ -115,7 +115,7 @@
       "@school-expense-ecosystem/auth/guards-frontend": [
         "./libs/auth/guards-frontend/src/index.ts"
       ],
-      "@school-expense-ecosystem/expense/guards-backend": [
+      "@school-expense-ecosystem/expenses/guards-backend": [
         "./libs/expenses/guards-backend/src/index.ts"
       ]
     }

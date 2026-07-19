@@ -1,8 +1,10 @@
+@use 'variables';
+
 .waiting-card {
   max-width: 520px;
   width: 100%;
   border-radius: 12px;
-  background-color: var(--mat-sys-surface, #ffffff);
+  background-color: var(--mat-sys-surface, variables.$common-white-color);
 
   .status-icon {
     font-size: 72px;

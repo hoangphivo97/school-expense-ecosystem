@@ -1,4 +1,3 @@
-import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 import { FacultyId, Role, UserStatus, UserType } from '../enums/user.enum';
 import * as React from 'react';
 
@@ -22,7 +21,7 @@ export interface FilterUserParams extends BaseFilterParams {
   facultyId?: FacultyId;
 }
 
-export interface UserRequestFilters extends FilterUserParams, PaginationParams {}
+export interface UserRequestFilters extends FilterUserParams, PaginationParams { }
 
 export interface PaginationParams {
   limit: number;
@@ -55,4 +54,14 @@ export interface DemoAccount {
   description: string;
 }
 
-export type SharedFilterParams = FilterUserParams | FilterExpenseParams;
+export type SharedFilterParams = SharedFilterFields;
+
+export interface SharedFilterFields {
+  month?: number | null;
+  year?: number | null;
+  searchTerm?: string | null;
+  status?: string | null;
+  facultyId?: string | null;
+  userType?: string | null;
+  role?: string | null;
+}

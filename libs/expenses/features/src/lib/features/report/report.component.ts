@@ -12,6 +12,7 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
 
+
 @Component({
   selector: 'lib-report',
   standalone: true,
@@ -73,6 +74,6 @@ export class ReportComponent {
   readonly availableYears = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
 
   onFilterChanged(params: SharedFilterParams): void {
-    this.filterParams.set(params as FilterExpenseParams);
+    this.filterParams.set(params as unknown as FilterExpenseParams);
   }
 }
