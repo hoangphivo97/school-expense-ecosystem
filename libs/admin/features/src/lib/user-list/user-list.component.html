@@ -116,7 +116,8 @@
                   </button>
                 </span>
                 } @else {
-                <button mat-icon-button color="warn" [matTooltip]="'admin.userList.actions.delete' | transloco" (click)="openDeleteModal(user)" aria-label="Delete account">
+                <button mat-icon-button color="warn" [matTooltip]="'admin.userList.actions.delete' | transloco"
+                  (click)="openDeleteModal(user)" aria-label="Delete account">
                   <mat-icon class="action-edit-icon">delete</mat-icon>
                 </button>
                 }
@@ -181,7 +182,9 @@
           [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" [attr.aria-label]="'admin.userList.actions.paginatorAria' | transloco">
         </mat-paginator> -->
 
-        <lib-pagination [totalItems]="totalItems()" [pageSize]="pageSize()" [currentPage]="currentPageIndex()"></lib-pagination>
+        <lib-pagination [totalItems]="totalItems()" [pageSize]="pageSize()" [currentPage]="currentPageIndex()"
+          [pageSizeOptions]="[10, 20, 50, 100]" (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"></lib-pagination>
       </div>
 
     </div>

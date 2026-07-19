@@ -7,7 +7,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
@@ -41,7 +40,6 @@ import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
     MatOptionModule,
     MatProgressSpinnerModule,
     MatTableModule,
-    MatPaginatorModule,
     MatIconModule,
     MatButtonModule,
     FooterComponent,
@@ -79,9 +77,6 @@ export class UserListComponent {
   protected readonly faCirclePause = faCirclePause;
   protected readonly faLock = faLock;
   protected readonly faUserXMark = faUserXmark
-
-  // DOM viewchild query referencing the active material pagination element
-  readonly paginator = viewChild(MatPaginator);
 
   readonly filterModeEnum = FilterMode;
 
@@ -187,9 +182,15 @@ export class UserListComponent {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageSize.set(event.pageSize);
-    this.currentPageIndex.set(event.pageIndex);
+  onPageChange(pageIndex: number): void {
+    this.currentPageIndex.set(pageIndex);
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize.set(newSize);
+    
+    this.currentPageIndex.set(0);
+    this.pageTokens.set({ 0: '' });
   }
 
   triggerRefresh(): void {
