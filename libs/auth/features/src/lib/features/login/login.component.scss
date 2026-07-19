@@ -1,11 +1,13 @@
+@use 'variables';
+
 :host {
   .clickable-role-card {
-    border: 1px solid #dee2e6;
-    background-color: #fff;
+    border: 1px solid variables.$primary-grey-color;
+    background-color: variables.$primary-white-color;
 
     &:hover {
       border-color: #0d6efd !important;
-      background-color: #f8f9fa;
+      background-color: variables.$primary-grey-color;
     }
   }
 
@@ -13,13 +15,13 @@
     transition: all 0.2s ease-in-out;
   }
 
-  
+
   .login-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background-color: #f8f9fa; 
+    background: variables.$primary-background-color;
     padding: 16px;
   }
 
@@ -27,7 +29,7 @@
     width: 100%;
     max-width: 420px;
     padding: 24px;
-    border-radius: 16px !important; 
+    border-radius: 16px;
     box-sizing: border-box;
   }
 
@@ -38,16 +40,16 @@
   }
 
   .title-main {
-    font-size: 1.75rem;
+    font-size: variables.$h1-font-size;
     font-weight: 700;
-    color: #212529;
+    color: variables.$primary-black-color;
     text-align: center;
   }
 
   .title-admin {
-    font-size: 1.75rem;
+    font-size: variables.$h1-font-size;
     font-weight: 700;
-    color: #6c757d;
+    color: variables.$secondary-black-color;
     text-align: center;
   }
 
@@ -60,19 +62,19 @@
   }
 
   .description-text {
-    color: #6c757d;
-    font-size: 0.95rem;
+    color: variables.$secondary-grey-color;
+    font-size: variables.$text-fonr-size;
     line-height: 1.5;
     margin: 0;
   }
 
-  .google-btn {
+  .google-btn.mat-mdc-raised-button {
     width: 100%;
-    height: 56px !important;
-    border-radius: 8px !important;
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+    height: 56px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    box-shadow: variables.$primary-box-shadow-color;
   }
 
   .btn-inner-content {
@@ -92,17 +94,22 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #495057;
+    color: variables.$secondary-black-color;
     font-size: 0.8rem;
     font-weight: 500;
-    background-color: #fff;
-    border: 1px solid #e9ecef;
+    background-color: variables.$primary-white-color;
+    border: 1px solid variables.$primary-grey-color;
     padding: 6px 16px;
     border-radius: 50px;
   }
 
-  .icon-success { color: #198754; }
-  .icon-warn { color: #ffc107; }
+  .icon-success {
+    color: #198754;
+  }
+
+  .icon-warn {
+    color: #ffc107;
+  }
 
   .form-layout {
     display: flex;
@@ -122,11 +129,11 @@
     margin-top: 8px;
   }
 
-  .submit-btn {
-    height: 48px !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    color: #fff !important;
+  .submit-btn.mat-mdc-raised-button {
+    height: 48px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: variables.$primary-white-color;
   }
 
   .sandbox-banner {
@@ -137,19 +144,21 @@
     margin-bottom: 20px;
     text-align: left;
 
-    p { margin: 0; }
+    p {
+      margin: 0;
+    }
   }
 
   .banner-notice {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: variables.$secondary-grey-color;
     font-style: italic;
-    margin-bottom: 6px !important;
+    margin-bottom: 6px;
   }
 
   .banner-role {
     font-weight: 700;
-    color: #212529;
+    color: variables.$primary-black-color;
     font-size: 0.85rem;
     display: flex;
     align-items: center;
@@ -159,7 +168,7 @@
 
   .banner-desc {
     font-size: 0.85rem;
-    color: #495057;
+    color: variables.$secondary-black-color;
     line-height: 1.4;
   }
 
@@ -168,12 +177,12 @@
     justify-content: center;
     margin-top: 24px;
     padding-top: 16px;
-    border-top: 1px solid #f1f3f5;
+    border-top: 1px solid variables.$primary-grey-color;
   }
 
   .toggle-mode-btn {
-    font-size: 0.8rem !important;
-    color: #6c757d !important;
+    font-size: 0.8rem;
+    color: variables.$secondary-grey-color;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -184,8 +193,8 @@
   }
 
   .back-portal-btn {
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
+    font-size: 0.85rem;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -196,7 +205,14 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
