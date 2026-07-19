@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { SharedFilterParams, UserBase } from '@school-expense-ecosystem/shared/types';
-import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { DialogActionEnum, FilterMode, FilterUserParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
@@ -52,7 +52,8 @@ import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
     FontAwesomeModule,
     MatTooltipModule,
     TranslocoModule,
-    LoadingDirective
+    LoadingDirective,
+    PaginationComponent
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',

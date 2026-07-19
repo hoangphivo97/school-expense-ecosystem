@@ -1,0 +1,131 @@
+// ==========================================================================
+// Enterprise Presentational Pagination Layout Blueprint
+// Designed with semantic dynamic tokens for cross-theme responsiveness
+// ==========================================================================
+@use 'variables';
+
+.enterprise-pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; // Separates page size configuration from navigation controls
+  flex-wrap: wrap; // Secures responsive behavior on medium/small viewports
+  gap: 16px;
+  padding: 16px 24px;
+  width: 100%;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  box-sizing: border-box;
+
+  // --- 1. PAGE SIZE CONFIGURATION CONTROLS ---
+  .page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .size-label {
+      font-size: variables.$text-fonr-size;
+      color: var(--text-secondary);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    // High-end customized native select control matching application brand guidelines
+    select {
+      cursor: pointer;
+      padding: 6px 32px 6px 12px;
+      font-size: variables.$text-fonr-size;
+      font-weight: 600;
+      color: var(--text-primary);
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      
+      // Native dropdown arrow customization reset assets
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 16px;
+
+      &:hover {
+        border-color: var(--primary-color);
+        background-color: var(--bg-secondary);
+        box-shadow: variables.$primary-box-shadow-color;
+      }
+
+      &:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--purple-bland-8);
+      }
+    }
+  }
+
+  // --- 2. NUMERICAL NAVIGATION BLOCK CONTROLS ---
+  .page-navigation-controls {
+    display: flex;
+    align-items: center; // Secures perfect horizontal cross-axis alignment
+    gap: 8px;
+
+    .page-numbers-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      // Reset material flat buttons to match geometric boxed layouts flawlessly
+      button.mat-mdc-flat-button {
+        min-width: 38px;
+        height: 38px;
+        padding: 0;
+        border-radius: 6px;
+        font-size: variables.$text-fonr-size;
+        font-weight: 600;
+        color: var(--text-primary);
+        background-color: var(--bg-input); // Structured fallback background envelope
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+        &.active-page-node {
+          background-color: var(--primary-color);
+          color: #ffffff;
+        }
+      }
+    }
+
+    // Control structural directional chevron operation tokens safely
+    button.mat-mdc-icon-button {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      transition: all 0.2s ease-in-out;
+
+      &:hover:not(:disabled) {
+        background-color: var(--hover-bg);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+
+      &:disabled {
+        color: var(--btn-disabled-text);
+        background-color: var(--btn-disabled-bg);
+        border-color: transparent;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// --- 3. RESPONSIVE BREAKPOINT ADAPTATION ---
+@media (max-width: 600px) {
+  .enterprise-pagination-container {
+    flex-direction: column; // Reflow components vertically under tight viewport limits
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+  }
+}

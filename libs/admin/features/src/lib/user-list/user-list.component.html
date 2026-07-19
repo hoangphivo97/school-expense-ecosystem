@@ -177,9 +177,11 @@
           </tr>
         </table>
 
-        <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
+        <!-- <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
           [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" [attr.aria-label]="'admin.userList.actions.paginatorAria' | transloco">
-        </mat-paginator>
+        </mat-paginator> -->
+
+        <lib-pagination [totalItems]="totalItems()" [pageSize]="pageSize()" [currentPage]="currentPageIndex()"></lib-pagination>
       </div>
 
     </div>

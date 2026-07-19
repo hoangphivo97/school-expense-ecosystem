@@ -1,0 +1,33 @@
+<nav class="enterprise-pagination-container" aria-label="Data grid navigation">
+
+  <!-- Left Side: Page Size Selector Boundary -->
+  <div class="page-size-selector">
+    <span class="size-label">Items per page:</span>
+    <select [value]="pageSize()" (change)="pageSizeChange.emit(+$any($event.target).value)">
+      @for (option of pageSizeOptions(); track option) {
+      <option [value]="option">{{ option }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Right Side: Navigation Control Node Pipeline -->
+  <div class="page-navigation-controls">
+    <button mat-icon-button [disabled]="normalizedCurrentPage() === 0" (click)="selectPage(normalizedCurrentPage() - 1)"
+      aria-label="Go to previous page">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <div class="page-numbers-group">
+      @for (pageIndex of pageIndices(); track pageIndex) {
+      <button mat-flat-button [class.active-page-node]="normalizedCurrentPage() === pageIndex" (click)="selectPage(pageIndex)">
+        {{ pageIndex + 1 }}
+      </button>
+      }
+    </div>
+
+    <button mat-icon-button [disabled]="normalizedCurrentPage() === totalPages() - 1"
+      (click)="selectPage(normalizedCurrentPage() + 1)" aria-label="Go to next page">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+</nav>
