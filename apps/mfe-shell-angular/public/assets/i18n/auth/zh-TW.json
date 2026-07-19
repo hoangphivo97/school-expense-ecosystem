@@ -28,5 +28,59 @@
   },
   "emailRequired": "請輸入電子郵件地址。",
   "emailInvalid": "請輸入有效的電子郵件地址。",
-  "passwordRequired": "請輸入密碼。"
+  "passwordRequired": "請輸入密碼。",
+  "onboarding": {
+    "title": "帳號資料初始化",
+    "description": "請在下方填寫您的個人檔案資料以繼續。此資料將在您的帳號啟用前由管理方進行審核。",
+    "fields": {
+      "fullName": {
+        "label": "完整姓名",
+        "placeholder": "請輸入英文、無聲調越南文或繁體中文",
+        "errors": {
+          "required": "姓名為必填項。",
+          "pattern": "僅允許輸入英文、無聲調越南文或中文字元。"
+        }
+      },
+      "faculty": {
+        "label": "所屬院系",
+        "options": {
+          "FIT": "資訊工程學院 (FIT)",
+          "FBE": "企業管理學院 (FBE)",
+          "FLL": "外國語學院 (FLL)"
+        },
+        "errors": {
+          "required": "請選擇您的所屬院系。"
+        }
+      },
+      "userType": {
+        "label": "校內身分",
+        "options": {
+          "STUDENT": "學生",
+          "TEACHER": "教師",
+          "STAFF": "學校職員"
+        },
+        "errors": {
+          "required": "請選擇您的校內身分。"
+        }
+      },
+      "userCode": {
+        "label": "學號 / 職工編號",
+        "placeholder": "請輸入您的專屬編號",
+        "errors": {
+          "required": "編號為必填項。"
+        }
+      },
+      "dateOfBirth": {
+        "label": "出生日期",
+        "placeholder": "選擇日期",
+        "errors": {
+          "required": "請選擇有效的出生日期。"
+        }
+      }
+    },
+    "buttons": {
+      "submit": "完成註冊",
+      "submitting": "正在提交檔案..."
+    }
+  }
 }

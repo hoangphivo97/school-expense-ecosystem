@@ -14,6 +14,7 @@ import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { ErrorModalService, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-onboarding',
@@ -27,11 +28,15 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
     MatNativeDateModule,
     MatProgressSpinnerModule,
     MatProgressSpinner,
-    FormErrorPipe
+    FormErrorPipe,
+    TranslocoModule
   ],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'auth' }
+  ]
 })
 
 export class OnboardingComponent implements OnInit {
@@ -45,18 +50,6 @@ export class OnboardingComponent implements OnInit {
 
   faculties = Object.values(FacultyId);
   userTypes = Object.values(UserType);
-
-  facultyLabels: Record<FacultyId, string> = {
-    [FacultyId.FIT]: 'Faculty of Information Technology (FIT)',
-    [FacultyId.FBE]: 'Faculty of Business Administration (FBE)',
-    [FacultyId.FLL]: 'Faculty of Foreign Languages (FLL)',
-  };
-
-  userTypeLabels: Record<UserType, string> = {
-    [UserType.STUDENT]: 'Student',
-    [UserType.TEACHER]: 'Teacher',
-    [UserType.STAFF]: 'School Staff',
-  };
 
   ngOnInit(): void {
     this.initForm();
