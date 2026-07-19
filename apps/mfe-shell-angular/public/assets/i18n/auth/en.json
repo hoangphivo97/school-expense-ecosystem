@@ -82,5 +82,14 @@
       "submit": "Complete Registration",
       "submitting": "Submitting Profile..."
     }
+  },
+  "waitingApproval": {
+    "title": "Verifying Your Application",
+    "greeting": "Hello, {{name}}",
+    "message": "Your onboarding profile data linked to <span class='text-primary fw-medium'>{{email}}</span> is currently being reviewed by the administration faculty. You will be granted access to the ecosystem automatically upon confirmation.",
+    "realtimeStatus": "Listening for instant validation changes...",
+    "buttons": {
+      "logout": "Log Out Account"
+    }
   }
 }

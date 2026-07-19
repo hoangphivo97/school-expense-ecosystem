@@ -82,5 +82,14 @@
       "submit": "完成註冊",
       "submitting": "正在提交檔案..."
     }
+  },
+  "waitingApproval": {
+    "title": "審核您的申請資料",
+    "greeting": "您好，{{name}}",
+    "message": "您綁定至 <span class='text-primary fw-medium'>{{email}}</span> 的基本資料目前正由行政部門進行審核。審核確認後，系統將會自動為您開通存取權限。",
+    "realtimeStatus": "正在即時監聽驗證狀態變更...",
+    "buttons": {
+      "logout": "登出帳號"
+    }
   }
 }
