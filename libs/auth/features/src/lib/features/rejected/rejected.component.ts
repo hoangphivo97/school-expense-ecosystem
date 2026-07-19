@@ -6,6 +6,8 @@ import { faFileCircleXmark} from '@fortawesome/free-solid-svg-icons/faFileCircle
 import { faUserSlash } from '@fortawesome/free-solid-svg-icons/faUserSlash';
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons/faRightFromBracket';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { MatButtonModule } from '@angular/material/button';
 
 interface RestrictionNavigationState {
   status?: UserStatus;
@@ -14,10 +16,13 @@ interface RestrictionNavigationState {
 
 @Component({
   selector: 'lib-rejected',
-  imports: [FontAwesomeModule],
+  imports: [FontAwesomeModule, TranslocoModule, MatButtonModule],
   templateUrl: './rejected.component.html',
   styleUrl: './rejected.component.scss',
-  standalone: true
+  standalone: true,
+  providers:[
+    { provide: TRANSLOCO_SCOPE, useValue: 'auth' }
+  ]
 })
 export class RejectedComponent {
   private readonly router = inject(Router);

@@ -91,5 +91,22 @@
     "buttons": {
       "logout": "登出帳號"
     }
+  },
+  "restriction": {
+    "suspended": {
+      "title": "帳號已停用",
+      "description": "您的校內存取權限已被行政管理方撤銷。"
+    },
+    "rejected": {
+      "title": "註冊申請已遭拒絕",
+      "description": "您的帳號建立申請不符合我們的校內審查標準。"
+    },
+    "adminRemarkLabel": "官方管理員評語：",
+    "defaultReason": "審查主官未註明具體原因。",
+    "appealNotice": "如果您認為此處置有誤或希望對此決定提出異議，請點擊下方按鈕提交正式申訴。",
+    "buttons": {
+      "contactAdmin": "聯絡行政部門",
+      "returnLogin": "返回登入頁面"
+    }
   }
 }

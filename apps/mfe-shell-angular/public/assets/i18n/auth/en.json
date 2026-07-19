@@ -91,5 +91,22 @@
     "buttons": {
       "logout": "Log Out Account"
     }
+  },
+  "restriction": {
+    "suspended": {
+      "title": "Account Suspended",
+      "description": "Your institutional access privileges have been administratively withdrawn."
+    },
+    "rejected": {
+      "title": "Registration Declined",
+      "description": "Your account creation request does not meet our institutional criteria."
+    },
+    "adminRemarkLabel": "Official Admin Remark:",
+    "defaultReason": "No explicit reason was specified by the authority.",
+    "appealNotice": "If you believe this action is an oversight or wish to dispute this decision, please click the button below to lodge a formal appeal.",
+    "buttons": {
+      "contactAdmin": "Contact Administration",
+      "returnLogin": "Return to Login"
+    }
   }
 }
