@@ -15,7 +15,6 @@ describe('PaginationComponent', () => {
     component = fixture.componentInstance;
   });
 
-  // 🧪 Test Case 1: Chặn lỗi phát tán sự kiện vượt biên giới (Out-of-Bounds Clicks Interception)
   it('should prevent out-of-bounds event emissions when boundary clicks are intercepted', () => {
     // Setup initial state on the edge boundary (Page 3 of 3)
     fixture.componentRef.setInput('totalItems', 30);
@@ -31,7 +30,6 @@ describe('PaginationComponent', () => {
     expect(emitSpy).not.toHaveBeenCalled();
   });
 
-  // 🧪 Test Case 2: Kiểm thử đột biến Reactive (Reactive Metric Mutation Shift Validation)
   it('should instantly recalculate maximum pages computed metric when input parameters mutate', () => {
     // Setup base limits (100 items / 10 per page = 10 pages calculated)
     fixture.componentRef.setInput('totalItems', 100);
