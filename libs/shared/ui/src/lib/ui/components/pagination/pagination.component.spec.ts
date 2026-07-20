@@ -16,16 +16,16 @@ describe('PaginationComponent', () => {
   });
 
   it('should prevent out-of-bounds event emissions when boundary clicks are intercepted', () => {
-    // Setup initial state on the edge boundary (Page 3 of 3)
+    // Setup initial state on the edge boundary (Page index 2 is the 3rd/last page)
     fixture.componentRef.setInput('totalItems', 30);
     fixture.componentRef.setInput('pageSize', 10);
-    fixture.componentRef.setInput('currentPage', 3);
+    fixture.componentRef.setInput('currentPage', 2);
     fixture.detectChanges();
 
     const emitSpy = jest.spyOn(component.pageChange, 'emit');
 
-    // Action: Attempt out-of-bounds navigation click
-    component.selectPage(4);
+    // Action: Attempt out-of-bounds navigation click (Clicking 'Next' from index 2 leads to index 3)
+    component.selectPage(3);
 
     expect(emitSpy).not.toHaveBeenCalled();
   });
