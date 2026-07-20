@@ -178,10 +178,6 @@
           </tr>
         </table>
 
-        <!-- <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
-          [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" [attr.aria-label]="'admin.userList.actions.paginatorAria' | transloco">
-        </mat-paginator> -->
-
         <lib-pagination [totalItems]="totalItems()" [pageSize]="pageSize()" [currentPage]="currentPageIndex()"
           [pageSizeOptions]="[10, 20, 50, 100]" (pageChange)="onPageChange($event)"
           (pageSizeChange)="onPageSizeChange($event)"></lib-pagination>

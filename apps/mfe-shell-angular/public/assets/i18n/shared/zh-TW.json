@@ -87,5 +87,11 @@
         "12": "十二月"
       }
     }
+  },
+  "pagination": {
+    "ariaLabel": "数据网格导航",
+    "itemsPerPage": "每页条数：",
+    "prevPage": "前往上一页",
+    "nextPage": "前往下一页"
   }
 }

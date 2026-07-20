@@ -1,14 +1,20 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-pagination',
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatIconModule, TranslocoModule, MatSelectModule, MatFormFieldModule],
   templateUrl: './pagination.component.html',
   styleUrl: './pagination.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true
+  standalone: true,
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'shared' }
+  ]
 })
 export class PaginationComponent {
   totalItems = input.required<number>();

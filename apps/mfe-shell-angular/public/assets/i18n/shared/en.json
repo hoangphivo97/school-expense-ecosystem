@@ -87,5 +87,11 @@
         "12": "December"
       }
     }
+  },
+  "pagination": {
+    "ariaLabel": "Data grid navigation",
+    "itemsPerPage": "Items per page:",
+    "prevPage": "Go to previous page",
+    "nextPage": "Go to next page"
   }
 }
