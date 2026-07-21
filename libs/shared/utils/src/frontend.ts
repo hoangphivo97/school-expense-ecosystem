@@ -3,3 +3,4 @@ export * from './lib/frontend/shared-utils/utils/friendly-error.helper';
 export * from './lib/frontend/shared-utils/utils/image-compression.util';
 export * from './lib/frontend/shared-utils/utils/report.utils';
 export * from './lib/frontend/shared-utils/operators/loading-tracker.operator';
+export * from './lib/frontend/shared-utils/utils/transloco-testing.util';

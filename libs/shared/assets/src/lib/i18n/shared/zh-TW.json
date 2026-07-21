@@ -1,0 +1,97 @@
+{
+  "sidebar": {
+    "welcome": "歡迎",
+    "logout": "登出帳戶",
+    "menu": {
+      "DASHBOARD": "儀表板",
+      "EXPENSE": "我的費用申請",
+      "APPROVAL_CENTER": "審批簽核中心",
+      "USER_LIST": "使用者管理",
+      "REPORT": "統計分析報表",
+      "BUDGET_MANAGER": "預算額度管理",
+      "routes": {
+        "/expense/pending": "待審批隊列",
+        "/expense/history": "院系審批歷史"
+      }
+    }
+  },
+  "header": {
+    "fallback": "系統管理系統",
+    "titles": {
+      "/expense/pending": "審批收件箱隊列",
+      "/expense/history": "院系費用審批歷史",
+      "/dashboard": "控制台總覽",
+      "/user-list": "系統使用者名錄",
+      "/expense": "我的個人申請單",
+      "/report": "財務報表中心",
+      "/budget-manager": "預算額度管理"
+    }
+  },
+  "filter": {
+    "searchLabel": "關鍵字搜尋",
+    "searchPlaceholder": "請輸入 ID、申請單號或申請人姓名進行搜尋...",
+    "labels": {
+      "systemRole": "系統權限角色",
+      "userType": "使用者類型",
+      "accountStatus": "帳戶狀態",
+      "requestStatus": "申請單狀態",
+      "month": "月份",
+      "year": "年度",
+      "faculty": "學院/科系"
+    },
+    "tooltip": {
+      "reset": "清除目前篩選條件"
+    },
+    "options": {
+      "faculties": { "ALL": "所有學院/科系" },
+      "roles": {
+        "ALL": "所有權限角色",
+        "ADMIN": "系統管理員",
+        "FINANCE_OFFICER": "財務主辦人員",
+        "FACULTY_DEAN": "學院院長/主管",
+        "END_USER": "一般終端使用者"
+      },
+      "userTypes": {
+        "ALL": "所有使用者類型",
+        "STUDENT": "在校學生",
+        "TEACHER": "專 Scanning 教授/教師",
+        "STAFF": "學校行政同仁"
+      },
+      "accountStatus": {
+        "ALL": "所有帳戶狀態",
+        "ACTIVE": "正常啟用",
+        "ONBOARDING": "新進審核中",
+        "REJECTED": "拒絕拒發"
+      },
+      "expenseStatus": {
+        "ALL": "所有審批狀態",
+        "PENDING_TEACHER_REVIEW": "待指導老師審核",
+        "PENDING_DEAN_APPROVAL": "待院長簽核",
+        "PENDING_DISBURSEMENT": "待財務撥款",
+        "DISBURSED": "已成功撥款",
+        "REJECTED": "駁回申請"
+      },
+      "months": {
+        "ALL": "所有月份",
+        "1": "一月",
+        "2": "二月",
+        "3": "三月",
+        "4": "四月",
+        "5": "五月",
+        "6": "六月",
+        "7": "七月",
+        "8": "八月",
+        "9": "九月",
+        "10": "十月",
+        "11": "十一月",
+        "12": "十二月"
+      }
+    }
+  },
+  "pagination": {
+    "ariaLabel": "数据网格导航",
+    "itemsPerPage": "每页条数：",
+    "prevPage": "前往上一页",
+    "nextPage": "前往下一页"
+  }
+}

@@ -1,6 +1,14 @@
-import 'jest-preset-angular/setup-jest';
+import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
 
-// Polyfill global fetch engine to intercept Firebase Auth platform invocation
+setupZoneTestEnv();
+
 if (!globalThis.fetch) {
-  globalThis.fetch = jest.fn(() => Promise.resolve(new Response()));
+  globalThis.fetch = jest.fn(() => Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+  } as any));
+}
+
+if (!globalThis.Response) {
+  globalThis.Response = class {} as any;
 }
