@@ -1,0 +1,67 @@
+<div class="project-overview-container" *transloco="let t">
+    <!-- Lane 1: System Status Matrix Ledger (AC 2) -->
+    <section class="status-lane">
+        <h2>{{ t('dashboard.projectOverview.statusTitle') }}</h2>
+        <div class="status-grid">
+            @for(status of systemStatuses; track status){
+            <div class="status-card" [ngClass]="status.status">
+                <span class="label">{{ t('dashboard.projectOverview.matrix.' + status.key) }}</span>
+                <strong class="value">{{ status.value }}</strong>
+            </div>
+            }
+
+        </div>
+    </section>
+
+    <div class="timelines-wrapper">
+        <!-- Lane 2: Chronological Historical Timeline (AC 3) -->
+        <section class="timeline-lane history">
+            <h2>{{ t('dashboard.projectOverview.historyTitle') }}</h2>
+            @for(group of historicalTimeline;track group){
+            <div class="year-group">
+                <h3 class="year-header">{{ group.year }}</h3>
+                @for(item of group.items;track item){
+                <div class="timeline-node">
+                    <div class="node-meta"><span>Month {{ item.month }}</span></div>
+                    <div class="node-content">
+                        <h4>{{ t(item.titleKey) }}</h4>
+                        <p>{{ t(item.descKey) }}</p>
+                        <div class="tag-pool">
+                            @for(tag of item.tags;track tag){
+                            <span class="tag">{{ tag }}</span>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+                }
+            </div>
+            }
+        </section>
+
+        <!-- Lane 3: Future Roadmap Backlog (AC 4) -->
+        <section class="timeline-lane roadmap">
+            <h2>{{ t('dashboard.projectOverview.roadmapTitle') }}</h2>
+            @for(group of roadmapTimeline; track group){
+            <div class="year-group">
+                <h3 class="year-header">{{ group.year }}</h3>
+                @for(item of group.items; track item){
+                <div class="timeline-node dashed">
+                    <div class="node-meta"><span>Month {{ item.month }}</span></div>
+                    <div class="node-content">
+                        <h4>{{ t(item.titleKey) }}</h4>
+                        <p>{{ t(item.descKey) }}</p>
+                        <div class="tag-pool">
+                            @for(tag of item.tags;track tag){
+                            <span class="tag">{{ tag }}</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+
+        </section>
+    </div>
+</div>

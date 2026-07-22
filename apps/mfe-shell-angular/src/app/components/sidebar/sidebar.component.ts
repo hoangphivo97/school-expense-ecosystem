@@ -63,25 +63,29 @@ export class SidebarComponent implements OnInit {
   private readonly ROLES_PERMISSION: Record<Role, NavItem[]> = {
     [Role.LEVEL_0_ADMIN]: [
       NavItem.DASHBOARD,
-      NavItem.USER_LIST
+      NavItem.USER_LIST,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_1_FINANCE]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
       NavItem.BUDGET_MANAGER,
-      NavItem.APPROVAL_CENTER
+      NavItem.APPROVAL_CENTER,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_2_DEAN]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
       NavItem.USER_LIST,
-      NavItem.APPROVAL_CENTER
+      NavItem.APPROVAL_CENTER,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_3_USER]: [
       NavItem.DASHBOARD,
-      NavItem.EXPENSE
+      NavItem.EXPENSE,
+      NavItem.PROJECT_OVERVIEW
     ]
   };
 
@@ -133,9 +137,9 @@ export class SidebarComponent implements OnInit {
   }
 
   setActive(itemKey: NavItem) {
+    console.log(itemKey)
     const currentQueryParams = this.router.parseUrl(this.router.url).queryParams;
     const targetItem = APP_NAVIGATION.find(item => item.key === itemKey);
-
     // If the parent menu houses sub-items, immediately auto-route to the primary leaf node entry
     if (targetItem && targetItem.children && targetItem.children.length > 0) {
       this.router.navigate([targetItem.children[0].route], {

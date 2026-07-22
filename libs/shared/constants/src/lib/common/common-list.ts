@@ -17,7 +17,13 @@ export const months = [
 ];
 
 export const APP_NAVIGATION: NavItemConfig[] = [
-  { key: NavItem.DASHBOARD, label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+  {
+    key: NavItem.DASHBOARD, label: 'Dashboard', icon: 'dashboard', 
+    children: [
+      { label: 'Project Overview', route: '/dashboard/project-overview', icon: 'info' },
+      { label: 'Analytics', route: '/dashboard/analytics', icon: 'insert_chart' }
+    ]
+  },
   { key: NavItem.EXPENSE, label: 'My Expenses', icon: 'local_atm', route: '/expense' },
   {
     key: NavItem.APPROVAL_CENTER,
@@ -43,21 +49,23 @@ export const mainColorPieChart: string[] = [
 export const ROUTE_HEADER_TITLE_REGISTRY: Record<string, string> = {
   '/expense/pending': 'Review Inbox Queue',
   '/expense/history': 'Faculty Expense History',
-  '/dashboard': 'Dashboard Overview',
+  '/dashboard/analytics': 'Dashboard Overview',
   '/user-list': 'System User Directory',
   '/expense': 'My Personal Claims',
   '/report': 'Financial Reports',
-  '/budget-manager': 'Budget Management'
+  '/budget-manager': 'Budget Management',
+  '/dashboard/project-overview': 'Project Overview'
 };
 
 export const URL_ROUTE_LINKER: Record<string, NavItem> = {
   '/expense/pending': NavItem.APPROVAL_CENTER,
   '/expense/history': NavItem.APPROVAL_CENTER,
-  '/dashboard': NavItem.DASHBOARD,
   '/user-list': NavItem.USER_LIST,
   '/expense': NavItem.EXPENSE,
   '/report': NavItem.REPORT,
-  '/budget-manager': NavItem.BUDGET_MANAGER
+  '/budget-manager': NavItem.BUDGET_MANAGER,
+  '/dashboard/project-overview': NavItem.DASHBOARD,
+  '/dashboard/analytics': NavItem.DASHBOARD,
 };
 
 export const EXPENSE_STATUS_OPTIONS = [

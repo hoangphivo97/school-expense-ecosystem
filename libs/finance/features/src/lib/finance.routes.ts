@@ -1,4 +1,3 @@
-// libs/finance/features/src/lib/finance.routes.ts
 import { Routes } from '@angular/router';
 import { BudgetManager } from './features/budget-manager/budget-manager';
 
