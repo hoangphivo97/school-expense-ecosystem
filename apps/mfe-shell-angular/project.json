@@ -19,8 +19,8 @@
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/mfe-shell-angular/public",
-            "output": "."
+            "input": "libs/shared/assets/src/lib/i18n",
+            "output": "assets/i18n"
           }
         ],
         "styles": [
@@ -101,7 +101,7 @@
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/mfe-shell-angular/public",
+            "input": "libs/shared/assets/src/lib/i18n",
             "output": "."
           }
         ],
