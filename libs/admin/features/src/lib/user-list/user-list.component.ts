@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild, effect, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, effect, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -7,12 +7,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { SharedFilterParams, UserBase } from '@school-expense-ecosystem/shared/types';
-import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { DialogActionEnum, FilterMode, FilterUserParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
@@ -41,7 +40,6 @@ import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
     MatOptionModule,
     MatProgressSpinnerModule,
     MatTableModule,
-    MatPaginatorModule,
     MatIconModule,
     MatButtonModule,
     FooterComponent,
@@ -52,7 +50,8 @@ import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
     FontAwesomeModule,
     MatTooltipModule,
     TranslocoModule,
-    LoadingDirective
+    LoadingDirective,
+    PaginationComponent
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
@@ -78,9 +77,6 @@ export class UserListComponent {
   protected readonly faCirclePause = faCirclePause;
   protected readonly faLock = faLock;
   protected readonly faUserXMark = faUserXmark
-
-  // DOM viewchild query referencing the active material pagination element
-  readonly paginator = viewChild(MatPaginator);
 
   readonly filterModeEnum = FilterMode;
 
@@ -186,9 +182,15 @@ export class UserListComponent {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageSize.set(event.pageSize);
-    this.currentPageIndex.set(event.pageIndex);
+  onPageChange(pageIndex: number): void {
+    this.currentPageIndex.set(pageIndex);
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize.set(newSize);
+    
+    this.currentPageIndex.set(0);
+    this.pageTokens.set({ 0: '' });
   }
 
   triggerRefresh(): void {

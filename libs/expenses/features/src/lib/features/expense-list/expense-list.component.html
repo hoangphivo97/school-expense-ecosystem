@@ -4,7 +4,7 @@
     (filterChange)="onExpenseFiltersChanged($event)" [disableStatus]="viewMode() === 'PENDING_QUEUE'">
 
     @if(viewMode() === "PERSONAL"){
-      <button primaryAction mat-flat-button color="primary" (click)="openCreateExpenseModal()">
+    <button primaryAction mat-flat-button color="primary" (click)="openCreateExpenseModal()">
       <mat-icon>add</mat-icon> {{ t('actions.createRequest') }}
     </button>
     }
@@ -126,9 +126,9 @@
           </tr>
         </table>
 
-        <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPageIndex()"
-          [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" aria-label="Select page of database users">
-        </mat-paginator>
+        <lib-pagination [totalItems]="totalItems()" [pageSize]="pageSize()" [currentPage]="currentPageIndex()"
+          [pageSizeOptions]="[10, 20, 50, 100]" (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"></lib-pagination>
 
       </div>
     </div>

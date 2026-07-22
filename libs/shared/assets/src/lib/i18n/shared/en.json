@@ -46,10 +46,10 @@
       "faculties": { "ALL": "All Faculties" },
       "roles": {
         "ALL": "All Roles",
-        "LEVEL_0_ADMIN": "Admin",
-        "LEVEL_1_FINANCE": "Finance Officer",
-        "LEVEL_2_DEAN": "Faculty Dean",
-        "LEVEL_3_USER": "End User"
+        "ADMIN": "Admin",
+        "FINANCE_OFFICER": "Finance Officer",
+        "FACULTY_DEAN": "Faculty Dean",
+        "END_USER": "End User"
       },
       "userTypes": {
         "ALL": "All User Types",
@@ -87,5 +87,11 @@
         "12": "December"
       }
     }
+  },
+  "pagination": {
+    "ariaLabel": "Data grid navigation",
+    "itemsPerPage": "Items per page:",
+    "prevPage": "Go to previous page",
+    "nextPage": "Go to next page"
   }
 }

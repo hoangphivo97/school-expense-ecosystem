@@ -46,10 +46,10 @@
       "faculties": { "ALL": "所有學院/科系" },
       "roles": {
         "ALL": "所有權限角色",
-        "LEVEL_0_ADMIN": "系統管理員",
-        "LEVEL_1_FINANCE": "財務主辦人員",
-        "LEVEL_2_DEAN": "學院院長/主管",
-        "LEVEL_3_USER": "一般終端使用者"
+        "ADMIN": "系統管理員",
+        "FINANCE_OFFICER": "財務主辦人員",
+        "FACULTY_DEAN": "學院院長/主管",
+        "END_USER": "一般終端使用者"
       },
       "userTypes": {
         "ALL": "所有使用者類型",
@@ -87,5 +87,11 @@
         "12": "十二月"
       }
     }
+  },
+  "pagination": {
+    "ariaLabel": "数据网格导航",
+    "itemsPerPage": "每页条数：",
+    "prevPage": "前往上一页",
+    "nextPage": "前往下一页"
   }
 }

@@ -11,7 +11,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 
-import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { DialogActionEnum, DialogData, ExpenseStatus, Role, SharedFilterParams, UserStatus } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, EXPENSE_STATUS_OPTIONS, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
@@ -31,7 +31,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     HeaderComponent, FooterComponent, FormsModule, DecimalPipe, CommonModule,
     MatButtonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatInputModule,
     EnumToStringPipe, FilterComponent,
-    LoadingDirective, TranslocoModule, MatTooltipModule
+    LoadingDirective, TranslocoModule, MatTooltipModule,
+    PaginationComponent
   ],
   templateUrl: './expense-list.component.html',
   styleUrl: './expense-list.component.scss',
@@ -195,9 +196,15 @@ export class ExpenseListComponent implements OnInit {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageSize.set(event.pageSize);
-    this.currentPageIndex.set(event.pageIndex);
+  onPageChange(pageIndex: number): void {
+    this.currentPageIndex.set(pageIndex);
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize.set(newSize);
+
+    this.currentPageIndex.set(0);
+    this.pageTokens.set({ 0: '' });
   }
 
   getListAfterSuccessCallApi(dialogRef: MatDialogRef<CreateExpenseModalComponent | BaseModalComponent>) {

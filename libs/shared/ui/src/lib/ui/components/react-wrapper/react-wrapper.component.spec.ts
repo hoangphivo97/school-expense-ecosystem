@@ -1,6 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactWrapperComponent } from './react-wrapper.component';
 
+jest.mock('@module-federation/runtime', () => ({
+  loadRemote: jest.fn().mockResolvedValue({
+    default: () => null 
+  }),
+}));
+
 describe('ReactWrapperComponent', () => {
   let component: ReactWrapperComponent;
   let fixture: ComponentFixture<ReactWrapperComponent>;

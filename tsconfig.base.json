@@ -117,6 +117,9 @@
       ],
       "@school-expense-ecosystem/expenses/guards-backend": [
         "./libs/expenses/guards-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/assets": [
+        "./libs/shared/assets/src/index.ts"
       ]
     }
   },
