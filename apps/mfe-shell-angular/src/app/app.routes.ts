@@ -20,7 +20,7 @@ export const routes: Routes = [
     canActivateChild: [rolesGuard],
     children: [
       {
-        path: 'dashboard',
+        path: '',
         loadChildren: () =>
           import('@school-expense-ecosystem/dashboard/features').then((m) => m.DASHBOARD_ROUTES),
       },
@@ -57,7 +57,7 @@ export const routes: Routes = [
       },
       {
         path: '**',
-        redirectTo: 'dashboard',
+        redirectTo: 'project-overview',
       },
     ],
   },

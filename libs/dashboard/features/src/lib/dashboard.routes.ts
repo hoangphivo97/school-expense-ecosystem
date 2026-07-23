@@ -13,7 +13,7 @@ export const DASHBOARD_ROUTES: Routes = [
         component: ProjectOverview
     },
     {
-        path: 'analytics',
+        path: 'dashboard',
         component: DashboardComponent,
     },
 ]
