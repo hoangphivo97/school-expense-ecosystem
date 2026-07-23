@@ -1,22 +1,24 @@
+<lib-header></lib-header>
 <div class="project-overview-container" *transloco="let t">
     <!-- Lane 1: System Status Matrix Ledger (AC 2) -->
+
     <section class="status-lane">
-        <h2>{{ t('dashboard.projectOverview.statusTitle') }}</h2>
+        <h2>System Status Matrix</h2>
         <div class="status-grid">
             @for(status of systemStatuses; track status){
             <div class="status-card" [ngClass]="status.status">
-                <span class="label">{{ t('dashboard.projectOverview.matrix.' + status.key) }}</span>
+                <!-- Architect Fix: Render status name or key string directly without translation lookup -->
+                <span class="label">{{ status.key }}</span>
                 <strong class="value">{{ status.value }}</strong>
             </div>
             }
-
         </div>
     </section>
 
     <div class="timelines-wrapper">
         <!-- Lane 2: Chronological Historical Timeline (AC 3) -->
         <section class="timeline-lane history">
-            <h2>{{ t('dashboard.projectOverview.historyTitle') }}</h2>
+            <h2>Chronological History</h2>
             @for(group of historicalTimeline;track group){
             <div class="year-group">
                 <h3 class="year-header">{{ group.year }}</h3>
@@ -24,8 +26,8 @@
                 <div class="timeline-node">
                     <div class="node-meta"><span>Month {{ item.month }}</span></div>
                     <div class="node-content">
-                        <h4>{{ t(item.titleKey) }}</h4>
-                        <p>{{ t(item.descKey) }}</p>
+                        <h4>{{ item.titleKey }}</h4>
+                        <p>{{ item.descKey }}</p>
                         <div class="tag-pool">
                             @for(tag of item.tags;track tag){
                             <span class="tag">{{ tag }}</span>
@@ -41,7 +43,7 @@
 
         <!-- Lane 3: Future Roadmap Backlog (AC 4) -->
         <section class="timeline-lane roadmap">
-            <h2>{{ t('dashboard.projectOverview.roadmapTitle') }}</h2>
+            <h2>Future Roadmap Backlog</h2>
             @for(group of roadmapTimeline; track group){
             <div class="year-group">
                 <h3 class="year-header">{{ group.year }}</h3>
@@ -49,8 +51,9 @@
                 <div class="timeline-node dashed">
                     <div class="node-meta"><span>Month {{ item.month }}</span></div>
                     <div class="node-content">
-                        <h4>{{ t(item.titleKey) }}</h4>
-                        <p>{{ t(item.descKey) }}</p>
+                        <!-- Architect Fix: Remove translation pipes to rely entirely on direct string models -->
+                        <h4>{{ item.titleKey }}</h4>
+                        <p>{{ item.descKey }}</p>
                         <div class="tag-pool">
                             @for(tag of item.tags;track tag){
                             <span class="tag">{{ tag }}</span>

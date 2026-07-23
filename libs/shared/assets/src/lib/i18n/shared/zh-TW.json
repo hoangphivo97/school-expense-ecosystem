@@ -9,9 +9,12 @@
       "USER_LIST": "使用者管理",
       "REPORT": "統計分析報表",
       "BUDGET_MANAGER": "預算額度管理",
+      "PROJECT_OVERVIEW": "專案概覽",
       "routes": {
         "/expense/pending": "待審批隊列",
-        "/expense/history": "院系審批歷史"
+        "/expense/history": "院系審批歷史",
+        "/dashboard": "儀表板",
+        "/project-overview": "專案概覽"
       }
     }
   },

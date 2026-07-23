@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { TranslocoModule } from '@ngneat/transloco';
+import { HeaderComponent } from '@school-expense-ecosystem/shared/ui';
 
 interface SystemStatus {
   key: string;
@@ -20,7 +21,7 @@ interface TimelineGroup {
 
 @Component({
   selector: 'lib-project-overview',
-  imports: [CommonModule, TranslocoModule],
+  imports: [CommonModule, TranslocoModule, HeaderComponent],
   templateUrl: './project-overview.html',
   styleUrl: './project-overview.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
