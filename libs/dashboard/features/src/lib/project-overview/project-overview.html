@@ -1,70 +1,187 @@
 <lib-header></lib-header>
-<div class="project-overview-container" *transloco="let t">
-    <!-- Lane 1: System Status Matrix Ledger (AC 2) -->
 
-    <section class="status-lane">
-        <h2>System Status Matrix</h2>
-        <div class="status-grid">
-            @for(status of systemStatuses; track status){
-            <div class="status-card" [ngClass]="status.status">
-                <!-- Architect Fix: Render status name or key string directly without translation lookup -->
-                <span class="label">{{ status.key }}</span>
-                <strong class="value">{{ status.value }}</strong>
-            </div>
-            }
+<div class="project-overview-container">
+  
+  <!-- ==========================================================================
+     Top Section: Architectural Showcase Hero Banner & Diagram Gateway
+     ========================================================================== -->
+  <section class="hero-banner">
+    <div class="banner-content">
+      <span class="brand-badge">Academic Portfolio Gateway</span>
+      <h1 class="banner-title">School Expense Ecosystem</h1>
+      
+      <p class="banner-description">
+        Welcome to the core enterprise administration gateway. This platform is architected as an advanced,
+        high-performance <strong>Nx Monorepo</strong> utilizing <strong>Micro-frontends (Module Federation)</strong> with an Angular Shell
+        application and React Remote modules, orchestrated alongside a secure NestJS backend.
+      </p>
+      
+      <p class="banner-notice">Dark Mode optimization active for all federated views.</p>
+      
+      <!-- Architectural Diagram & Docs Quicklinks Hub -->
+      <div class="architecture-gateways">
+        <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/blob/main/ARCHITECTURE.md" class="architecture-link">
+          <mat-icon>menu_book</mat-icon> View Architecture Documentation &rarr;
+        </a>
+      </div>
+      
+      <hr class="divider">
+      
+      <div class="tech-tags-matrix">
+        <span class="stack-tag">Angular 22</span>
+        <span class="stack-tag">React 19+</span>
+        <span class="stack-tag">NestJS Backend</span>
+        <span class="stack-tag">Nx Monorepo Workspace</span>
+        <span class="stack-tag">Module Federation</span>
+        <span class="stack-tag">Firebase</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+     Lane 1: System Status Matrix Ledger
+     ========================================================================== -->
+  <section class="status-lane">
+    <h2>System Status Matrix</h2>
+    <div class="status-grid">
+      @for(status of systemStatuses; track status){
+      <div class="status-card" [ngClass]="status.status">
+        <span class="label">{{ status.key }}</span>
+        <strong class="value">{{ status.value }}</strong>
+      </div>
+      }
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+     System Components Grid Matrix (With Granular Role & UserType Containment)
+     ========================================================================== -->
+  <section class="components-integration-section">
+    <h2 class="section-title">System Components & Integration Status</h2>
+    <div class="components-grid">
+
+      <!-- Module 1: User Directory -->
+      <article class="integration-card">
+      <div class="card-header">
+        <div class="card-icon-box status-success">
+          <mat-icon>supervised_user_circle</mat-icon>
         </div>
+        <span class="status-badge state-success">Fully Functional</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title">User Directory</h3>
+        <p class="card-text">
+          Manages institutional identities, centralized role provisioning (Admin, Finance, Dean, Student), and
+          onboarding status flows with role-based boundaries.
+        </p>
+      </div>
+      <div class="card-footer">
+        <!-- Architect Fix: Stripped active routing and RBAC condition checks to maintain a purely presentation-focused view -->
+        <button type="button" disabled class="action-btn disabled-btn">
+          Ecosystem Component Mounted
+        </button>
+      </div>
+    </article>
+
+      <!-- Module 2: Expense & Budgeting -->
+      <article class="integration-card">
+      <div class="card-header">
+        <div class="card-icon-box status-warning">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <span class="status-badge state-warning">Staging Validation</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title">Expense & Budgeting</h3>
+        <p class="card-text">
+          Aggregates dynamic expense transaction records, financial invoice proofs, and multi-level department quota
+          tracking metrics.
+        </p>
+      </div>
+      <div class="card-footer">
+        <!-- Architect Fix: Turned the action trigger into a static status indicator for academic evaluation stability -->
+        <button type="button" disabled class="action-btn disabled-btn">
+          Ecosystem Component Mounted
+        </button>
+      </div>
+    </article>
+
+      <!-- Module 3: Federated Gateway Diagnostics -->
+      <article class="integration-card">
+        <div class="card-header">
+          <div class="card-icon-box status-info">
+            <mat-icon>dns</mat-icon>
+          </div>
+          <span class="status-badge state-info">Federated</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Federation Gateway</h3>
+          <p class="card-text">
+            Monitors real-time cross-application asynchronous mount profiles, cross-framework event-bus messaging
+            streams, and shared signal states.
+          </p>
+        </div>
+        <div class="card-footer">
+          <button type="button" disabled class="action-btn disabled-btn">
+            Sub-App Mounted
+          </button>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+     Lanes 2 & 3: Double-Lane Evolutionary & Roadmap Timelines
+     ========================================================================== -->
+  <div class="timelines-wrapper">
+    <!-- Lane 2: Chronological Historical Timeline -->
+    <section class="timeline-lane history">
+      <h2>Chronological History</h2>
+      @for(group of historicalTimeline; track group){
+      <div class="year-group">
+        <h3 class="year-header">{{ group.year }}</h3>
+        @for(item of group.items; track item){
+        <div class="timeline-node">
+          <div class="node-meta"><span>Month {{ item.month }}</span></div>
+          <div class="node-content">
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.description }}</p>
+            <div class="tag-pool">
+              @for(tag of item.tags; track tag){
+              <span class="tag">{{ tag }}</span>
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      }
     </section>
 
-    <div class="timelines-wrapper">
-        <!-- Lane 2: Chronological Historical Timeline (AC 3) -->
-        <section class="timeline-lane history">
-            <h2>Chronological History</h2>
-            @for(group of historicalTimeline;track group){
-            <div class="year-group">
-                <h3 class="year-header">{{ group.year }}</h3>
-                @for(item of group.items;track item){
-                <div class="timeline-node">
-                    <div class="node-meta"><span>Month {{ item.month }}</span></div>
-                    <div class="node-content">
-                        <h4>{{ item.titleKey }}</h4>
-                        <p>{{ item.descKey }}</p>
-                        <div class="tag-pool">
-                            @for(tag of item.tags;track tag){
-                            <span class="tag">{{ tag }}</span>
-                            }
-                        </div>
-                    </div>
-
-                </div>
-                }
+    <!-- Lane 3: Future Roadmap Backlog -->
+    <section class="timeline-lane roadmap">
+      <h2>Future Roadmap Backlog</h2>
+      @for(group of roadmapTimeline; track group){
+      <div class="year-group">
+        <h3 class="year-header">{{ group.year }}</h3>
+        @for(item of group.items; track item){
+        <div class="timeline-node dashed">
+          <div class="node-meta"><span>Month {{ item.month }}</span></div>
+          <div class="node-content">
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.description }}</p>
+            <div class="tag-pool">
+              @for(tag of item.tags; track tag){
+              <span class="tag">{{ tag }}</span>
+              }
             </div>
-            }
-        </section>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </section>
+  </div>
 
-        <!-- Lane 3: Future Roadmap Backlog (AC 4) -->
-        <section class="timeline-lane roadmap">
-            <h2>Future Roadmap Backlog</h2>
-            @for(group of roadmapTimeline; track group){
-            <div class="year-group">
-                <h3 class="year-header">{{ group.year }}</h3>
-                @for(item of group.items; track item){
-                <div class="timeline-node dashed">
-                    <div class="node-meta"><span>Month {{ item.month }}</span></div>
-                    <div class="node-content">
-                        <!-- Architect Fix: Remove translation pipes to rely entirely on direct string models -->
-                        <h4>{{ item.titleKey }}</h4>
-                        <p>{{ item.descKey }}</p>
-                        <div class="tag-pool">
-                            @for(tag of item.tags;track tag){
-                            <span class="tag">{{ tag }}</span>
-                            }
-                        </div>
-                    </div>
-                </div>
-                }
-            </div>
-            }
-
-        </section>
-    </div>
 </div>

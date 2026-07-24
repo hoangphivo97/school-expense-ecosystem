@@ -1,0 +1,9 @@
+{
+  "name": "dashboard-features-backend",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/dashboard/features-backend/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project dashboard-features-backend --web",
+  "targets": {}
+}
