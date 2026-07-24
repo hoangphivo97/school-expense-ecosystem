@@ -138,7 +138,7 @@
     <!-- Lane 2: Chronological Historical Timeline -->
     <section class="timeline-lane history">
       <h2>Chronological History</h2>
-      @for(group of historicalTimeline; track group){
+      @for(group of historicalTimeline(); track group.year){
       <div class="year-group">
         <h3 class="year-header">{{ group.year }}</h3>
         @for(item of group.items; track item){
@@ -162,7 +162,7 @@
     <!-- Lane 3: Future Roadmap Backlog -->
     <section class="timeline-lane roadmap">
       <h2>Future Roadmap Backlog</h2>
-      @for(group of roadmapTimeline; track group){
+      @for(group of roadmapTimeline() ; track group.year){
       <div class="year-group">
         <h3 class="year-header">{{ group.year }}</h3>
         @for(item of group.items; track item){
