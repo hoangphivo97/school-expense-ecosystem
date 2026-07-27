@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoModule } from '@ngneat/transloco';
@@ -19,13 +19,44 @@ import { map } from 'rxjs';
 export class ProjectOverview implements OnInit {
   private ledgerService = inject(ProjectLedgerService);
 
-  systemStatuses = [
-    { key: 'Architecture Version', value: 'v3.2 (Nx Distributed MFE)', status: 'active' },
-    { key: 'Structural Type Safety', value: 'Strict / 100% TypeScript', status: 'success' },
-    { key: 'Security Guard Layers', value: 'Multi-Tier RBAC Firewall', status: 'success' },
-    { key: 'Data Ingestion Target', value: '100k+ Heavy-Duty Streams', status: 'info' },
-    { key: 'Edge Node Deployment', value: 'Cloudflare Tunnel Enabled', status: 'warning' }
-  ];
+  readonly currentYear = new Date().getFullYear();
+  readonly currentMonth = new Date().getMonth() + 1;
+
+  systemStatuses = computed(() => {
+    const historicalGroups = this.historicalTimeline();
+    const roadmapGroups = this.roadmapTimeline();
+
+    const totalShippedFeatures = historicalGroups.reduce((acc, group) => acc + group.items.length, 0);
+    const activeBacklogCount = roadmapGroups.reduce((acc, group) => acc + group.items.length, 0);
+
+    return [
+      {
+        key: 'Federated Remote Nodes',
+        value: 'Angular Host ⇄ React v19 MFE',
+        status: 'active'
+      },
+      {
+        key: 'Defensive Security Tiers',
+        value: '4x Active Guards (AppCheck/JWT)',
+        status: 'success'
+      },
+      {
+        key: 'NoSQL Index Scalability',
+        value: 'O(1) Stateful Cursor Pagination',
+        status: 'info'
+      },
+      {
+        key: 'QA Verification Pipeline',
+        value: 'Jest, Cypress & Storybook Active',
+        status: 'success'
+      },
+      {
+        key: 'Distributed Cloud Topology',
+        value: 'Firebase Hosting & Functions Edge',
+        status: 'warning'
+      }
+    ];
+  });
 
   // Chronological Historical Milestones Ledger (AC 3)
   private ledgerData$ = this.ledgerService.getLedgerTimelines();
@@ -42,5 +73,9 @@ export class ProjectOverview implements OnInit {
 
   constructor() { }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    this.ledgerService.getLedgerTimelines().subscribe(data => console.log(data))
+  }
+
+
 }

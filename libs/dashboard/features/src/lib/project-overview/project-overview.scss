@@ -32,16 +32,6 @@
     position: relative;
     overflow: hidden;
 
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 6px;
-      height: 100%;
-      background: linear-gradient(to bottom, var(--color-primary, #7D45FF), #a27be7);
-    }
-
     .banner-content {
       display: flex;
       flex-direction: column;
@@ -203,21 +193,41 @@
 
         &.active,
         &.success {
-          border-left: 4px solid var(--color-success, #10b981);
+          border: 2px solid #10b981;
+          background: rgba(16, 185, 129, 0.05);
+
+          .label {
+            color: #059669;
+          }
         }
 
         &.pending,
         &.warning {
-          border-left: 4px solid var(--color-warning, #f59e0b);
+          border: 2px solid #f59e0b;
+          background: rgba(245, 158, 11, 0.05);
+
+          .label {
+            color: #d97706;
+          }
         }
 
         &.inactive,
         &.danger {
-          border-left: 4px solid var(--color-danger, #ef4444);
+          border: 2px solid #ef4444;
+          background: rgba(239, 68, 68, 0.05);
+
+          .label {
+            color: #dc2626;
+          }
         }
 
         &.info {
-          border-left: 4px solid var(--color-info, #3b82f6);
+          border: 2px solid #3b82f6;
+          background: rgba(59, 130, 246, 0.05);
+
+          .label {
+            color: #2563eb;
+          }
         }
       }
     }
@@ -335,18 +345,29 @@
           border-top: 1px solid var(--border-color, #f1f5f9);
           padding-top: 16px;
 
+          // Architect Fix: Transform from a dead disabled button into an active, high-fidelity hyperlink node
           .action-btn {
+            display: block;
             width: 100%;
             padding: 10px 16px;
             font-size: 0.85rem;
+            box-sizing: border-box;
             font-weight: 600;
             border-radius: 10px;
             border: 1px solid var(--border-color, #e2e8f0);
             text-align: center;
             background: var(--bg-surface-ground, #f8f9fa);
-            color: var(--text-muted, #94a3b8);
-            cursor: not-allowed;
-            transition: all 0.2s ease;
+            color: var(--text-secondary, #475569);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+            &:hover {
+              background: rgba(125, 69, 255, 0.08);
+              color: var(--color-primary, #7D45FF);
+              border-color: rgba(125, 69, 255, 0.3);
+              transform: translateY(-1px);
+            }
           }
         }
       }
@@ -417,6 +438,49 @@
             display: none;
           }
 
+          .node-header {
+            display: flex;
+            align-items: self-start;
+            justify-content: space-between;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+
+            // Inlined wrapper to hold the headline text next to its traceability trigger
+            .title-container {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+
+              h4 {
+                font-size: 1rem; // Enhanced visual weight for clear identification
+                font-weight: 700;
+                color: var(--text-primary, #0f172a);
+                margin: 0;
+                line-height: 1.4;
+              }
+
+              .issue-external-link {
+                display: inline-flex;
+                align-items: center;
+                color: var(--text-muted, #94a3b8);
+                text-decoration: none;
+                transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+
+                mat-icon {
+                  font-size: 16px;
+                  width: 16px;
+                  height: 16px;
+                }
+
+                &:hover {
+                  color: var(--color-primary, #7D45FF);
+                  transform: translateY(-1px);
+                }
+              }
+            }
+          }
+
           .node-meta {
             width: 70px;
             flex-shrink: 0;
@@ -428,6 +492,21 @@
               font-weight: 600;
               color: var(--text-muted, #94a3b8);
               white-space: nowrap;
+              transition: all 0.2s ease-in-out;
+
+              &.state-past {
+                color: #64748b;
+              }
+
+              &.state-present {
+                color: var(--color-primary, #7D45FF);
+                font-weight: 700;
+                text-shadow: 0 0 8px rgba(125, 69, 255, 0.15);
+              }
+
+              &.state-future {
+                color: #3b82f6;
+              }
             }
           }
 
@@ -451,33 +530,92 @@
             }
 
             h4 {
-              font-size: 0.98rem;
-              font-weight: 600;
-              color: var(--text-primary, #1e293b);
+              font-size: 1rem;
+              font-weight: 700;
+              color: var(--text-primary, #0f172a);
               margin: 0;
               line-height: 1.4;
             }
 
-            p {
-              font-size: 0.875rem;
-              color: var(--text-secondary, #475569);
-              margin: 0;
-              line-height: 1.5;
+            .status-badge {
+              font-size: 0.72rem;
+              font-weight: 700;
+              padding: 4px 10px;
+              border-radius: 6px;
+              letter-spacing: 0.02em;
+              white-space: nowrap;
+
+              &.completed {
+                background: rgba(16, 185, 129, 0.08);
+                color: #10b981;
+              }
+
+              &.in-progress {
+                background: rgba(245, 158, 11, 0.08);
+                color: #d97706;
+              }
+
+              &.todo {
+                background: rgba(148, 163, 184, 0.12);
+                color: #64748b;
+              }
             }
 
-            .tag-pool {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 6px;
-              margin-top: 4px;
-
-              .tag {
-                font-size: 0.7rem;
+            ::ng-deep {
+              h2 {
+                font-size: 0.95rem; // Sub-headline scale subordinate to the main card title
                 font-weight: 600;
-                padding: 2px 8px;
-                background: rgba(125, 69, 255, 0.06);
+                color: var(--text-primary, #1e293b);
+                margin: 16px 0 8px 0;
+                letter-spacing: -0.01em;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              }
+
+              p,
+              li {
+                font-size: 0.875rem; // Uniform standard sizing for readable paragraphs and lists
+                font-weight: 400;
+                color: var(--text-secondary, #475569);
+                line-height: 1.6; // Extended breathing room for dense content blocks
+              }
+
+              p {
+                margin: 0 0 12px 0;
+              }
+
+              p.description-empty {
+                color: var(--text-muted, #94a3b8);
+                font-style: italic;
+                font-size: 0.85rem; // Slightly downscaled to feel like a subtle note
+                margin: 4px 0 12px 0;
+                letter-spacing: 0.01em;
+              }
+
+              ul {
+                margin: 0 0 12px 0;
+                padding-left: 20px;
+                list-style-type: disc;
+              }
+
+              li {
+                margin-bottom: 6px;
+
+                strong {
+                  color: var(--text-primary, #0f172a);
+                  font-weight: 600;
+                }
+              }
+
+              code {
+                font-family: Consolas, Monaco, monospace;
+                font-size: 0.85em;
+                background-color: var(--bg-surface-ground, #f1f5f9); // Clean back-plate for technical parameters
                 color: var(--color-primary, #7D45FF);
-                border-radius: 6px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                border: 1px solid var(--border-color, #e2e8f0);
               }
             }
           }
@@ -507,5 +645,20 @@
         }
       }
     }
+  }
+}
+
+@keyframes architecturalPulse {
+  0% {
+    box-shadow: 0 0 4px rgba(0, 255, 204, 0.15), inset 0 0 4px rgba(0, 255, 204, 0.05);
+  }
+
+  50% {
+    box-shadow: 0 0 14px rgba(0, 255, 204, 0.5), inset 0 0 8px rgba(0, 255, 204, 0.2);
+    border-color: rgba(0, 255, 204, 0.8);
+  }
+
+  100% {
+    box-shadow: 0 0 4px rgba(0, 255, 204, 0.15), inset 0 0 4px rgba(0, 255, 204, 0.05);
   }
 }
