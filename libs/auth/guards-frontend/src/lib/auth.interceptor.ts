@@ -28,7 +28,14 @@ export const authInterceptor: HttpInterceptorFn = (
   const showErrorModal = inject(HTTP_ERROR_DELEGATE, { optional: true }) as ErrorModalDelegate | null;
 
   const nestJsToken = authStore.token();
-  const isGitHubRequest = req.url.startsWith('https://api.github.com');
+  const isGitHubRequest = (() => {
+    try {
+      const parsedUrl = new URL(req.url, window.location.origin);
+      return parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'api.github.com';
+    } catch {
+      return false;
+    }
+  })();
 
   const clonedReq = nestJsToken && !isGitHubRequest
     ? req.clone({ setHeaders: { Authorization: `Bearer ${nestJsToken}` } })
