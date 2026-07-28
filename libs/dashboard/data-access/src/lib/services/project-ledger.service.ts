@@ -12,13 +12,10 @@ export class ProjectLedgerService {
   private http = inject(HttpClient);
   private readonly GITHUB_API_URL = 'https://api.github.com/repos/hoangphivo97/school-expense-ecosystem/issues?state=all&per_page=100';
 
-  /**
-   * Tải toàn bộ danh sách Issues từ GitHub và phân loại theo trạng thái đóng/mở
-   */
   getLedgerTimelines(): Observable<{ history: TimelineGroup[]; roadmap: TimelineGroup[] }> {
     return this.http.get<any[]>(this.GITHUB_API_URL).pipe(
       map(issues => {
-        // Lọc bỏ Pull Request rác để chỉ giữ lại các Issue tính năng thực tế
+        // Only Issue is feature
         const cleanIssues = issues.filter(i => !i.pull_request);
 
         const historyRaw = cleanIssues.filter(i => i.state === 'closed');
@@ -71,7 +68,7 @@ export class ProjectLedgerService {
         timelineState: nodeState,
         issueUrl: issue.html_url,
         issueNumber: issue.number,
-        status: issue.state === 'closed' ? 'completed' : (nodeState === 'present' ? 'in-progress' : 'todo'),
+        status: (issue.state === 'closed' && issue.state_reason === 'completed') ? 'completed' : (nodeState === 'present' ? 'in-progress' : 'todo'),
       });
     });
 
@@ -98,6 +95,7 @@ export class ProjectLedgerService {
       '## 💻 Technical Implementation Tasks',
       '### 🔹 Frontend Layout & Routing',
       '## 🧪 Testing Requirements',
+      '### 📋 Acceptance Criteria'
     ];
 
     let cleanText = rawBody;
