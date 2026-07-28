@@ -120,6 +120,18 @@
       ],
       "@school-expense-ecosystem/shared/assets": [
         "./libs/shared/assets/src/index.ts"
+      ],
+      "@school-expense-ecosystem/dashboard/data-access": [
+        "./libs/dashboard/data-access/src/index.ts"
+      ],
+      "@school-expense-ecosystem/dashboard/data-access-backend": [
+        "./libs/dashboard/data-access-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/dashboard/types": [
+        "./libs/dashboard/types/src/index.ts"
+      ],
+      "@school-expense-ecosystem/dashboard/features-backend": [
+        "./libs/dashboard/features-backend/src/index.ts"
       ]
     }
   },

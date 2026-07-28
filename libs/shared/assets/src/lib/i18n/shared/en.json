@@ -9,9 +9,12 @@
       "USER_LIST": "User Management",
       "REPORT": "Analytics Report",
       "BUDGET_MANAGER": "Budget Allocation",
+      "PROJECT_OVERVIEW":"Info Center",
       "routes": {
         "/expense/pending": "Pending Queue",
-        "/expense/history": "Faculty History"
+        "/expense/history": "Faculty History",
+        "/dashboard": "Dashboard",
+        "/project-overview": "Project Overview"
       }
     }
   },
@@ -24,7 +27,8 @@
       "/user-list": "System User Directory",
       "/expense": "My Personal Claims",
       "/report": "Financial Reports",
-      "/budget-manager": "Budget Management"
+      "/budget-manager": "Budget Management",
+      "/project-overview": "Project Overview"
     }
   },
   "filter": {

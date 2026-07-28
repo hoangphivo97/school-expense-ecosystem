@@ -17,7 +17,13 @@ export const months = [
 ];
 
 export const APP_NAVIGATION: NavItemConfig[] = [
-  { key: NavItem.DASHBOARD, label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+  {
+    key: NavItem.PROJECT_OVERVIEW, label: 'Dashboard', icon: 'dashboard', 
+    children: [
+      { label: 'Project Overview', route: '/project-overview', icon: 'info' },
+      { label: 'Dashboard', route: '/dashboard', icon: 'insert_chart' }
+    ]
+  },
   { key: NavItem.EXPENSE, label: 'My Expenses', icon: 'local_atm', route: '/expense' },
   {
     key: NavItem.APPROVAL_CENTER,
@@ -47,17 +53,8 @@ export const ROUTE_HEADER_TITLE_REGISTRY: Record<string, string> = {
   '/user-list': 'System User Directory',
   '/expense': 'My Personal Claims',
   '/report': 'Financial Reports',
-  '/budget-manager': 'Budget Management'
-};
-
-export const URL_ROUTE_LINKER: Record<string, NavItem> = {
-  '/expense/pending': NavItem.APPROVAL_CENTER,
-  '/expense/history': NavItem.APPROVAL_CENTER,
-  '/dashboard': NavItem.DASHBOARD,
-  '/user-list': NavItem.USER_LIST,
-  '/expense': NavItem.EXPENSE,
-  '/report': NavItem.REPORT,
-  '/budget-manager': NavItem.BUDGET_MANAGER
+  '/budget-manager': 'Budget Management',
+  '/project-overview': 'Project Overview'
 };
 
 export const EXPENSE_STATUS_OPTIONS = [

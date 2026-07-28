@@ -15,7 +15,7 @@ import { NavItem, UserType } from '@school-expense-ecosystem/shared/types';
 import { MatDialog } from '@angular/material/dialog';
 import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons/faArrowRightFromBracket';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { APP_NAVIGATION, URL_ROUTE_LINKER } from '@school-expense-ecosystem/shared/constants';
+import { APP_NAVIGATION } from '@school-expense-ecosystem/shared/constants';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ReactWrapperComponent } from '@school-expense-ecosystem/shared/ui';
@@ -58,34 +58,36 @@ export class SidebarComponent implements OnInit {
   readonly user = this.authStore.user;
   faArrowRightFromBracket = faArrowRightFromBracket;
 
-  activeItem = signal<NavItem>(NavItem.DASHBOARD)
+  activeItem = signal<NavItem>(NavItem.PROJECT_OVERVIEW)
 
   private readonly ROLES_PERMISSION: Record<Role, NavItem[]> = {
     [Role.LEVEL_0_ADMIN]: [
       NavItem.DASHBOARD,
-      NavItem.USER_LIST
+      NavItem.USER_LIST,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_1_FINANCE]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
       NavItem.BUDGET_MANAGER,
-      NavItem.APPROVAL_CENTER
+      NavItem.APPROVAL_CENTER,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_2_DEAN]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
       NavItem.USER_LIST,
-      NavItem.APPROVAL_CENTER
+      NavItem.APPROVAL_CENTER,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_3_USER]: [
       NavItem.DASHBOARD,
-      NavItem.EXPENSE
+      NavItem.EXPENSE,
+      NavItem.PROJECT_OVERVIEW
     ]
   };
-
-  private readonly URL_ROUTE_MAPPING = URL_ROUTE_LINKER;
 
   private readonly USER_TYPE_PERMISSIONS: Partial<Record<UserType, NavItem[]>> = {
     [UserType.TEACHER]: [NavItem.APPROVAL_CENTER],
@@ -122,20 +124,33 @@ export class SidebarComponent implements OnInit {
   }
 
   setActiveItemByUrl(url: string): void {
-    const match = Object.entries(this.URL_ROUTE_MAPPING)
-      .sort((a, b) => b[0].length - a[0].length)
-      .find(([routeKey]) => url.includes(routeKey));
+    let matchedKey: NavItem | null = null;
+    let longestMatchLength = 0;
 
-    if (match) {
-      const [_, navItem] = match;
-      this.activeItem.set(navItem);
+    for (const item of APP_NAVIGATION) {
+      if (item.route && url.includes(item.route) && item.route.length > longestMatchLength) {
+        matchedKey = item.key;
+        longestMatchLength = item.route.length;
+      }
+      if (item.children) {
+        for (const child of item.children) {
+          if (url.includes(child.route) && child.route.length > longestMatchLength) {
+            matchedKey = item.key;
+            longestMatchLength = child.route.length;
+          }
+        }
+      }
+    }
+
+    if (matchedKey) {
+      this.activeItem.set(matchedKey);
     }
   }
 
   setActive(itemKey: NavItem) {
+    console.log(itemKey)
     const currentQueryParams = this.router.parseUrl(this.router.url).queryParams;
     const targetItem = APP_NAVIGATION.find(item => item.key === itemKey);
-
     // If the parent menu houses sub-items, immediately auto-route to the primary leaf node entry
     if (targetItem && targetItem.children && targetItem.children.length > 0) {
       this.router.navigate([targetItem.children[0].route], {
@@ -150,9 +165,5 @@ export class SidebarComponent implements OnInit {
       queryParams: currentQueryParams,
       queryParamsHandling: 'merge',
     });
-  }
-
-  get navItems() {
-    return APP_NAVIGATION;
   }
 }
