@@ -4,7 +4,16 @@ import { AppCheck, getToken } from '@angular/fire/app-check';
 import { from, switchMap, catchError, of } from 'rxjs';
 
 export const appCheckInterceptor: HttpInterceptorFn = (req, next) => {
-  if (req.url.startsWith('https://api.github.com')) {
+  let isGitHubApiRequest = false;
+  try {
+    const parsedUrl = new URL(req.url);
+    isGitHubApiRequest =
+      parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'api.github.com';
+  } catch {
+    isGitHubApiRequest = false;
+  }
+
+  if (isGitHubApiRequest) {
     return next(req);
   }
 
