@@ -132,6 +132,9 @@
       ],
       "@school-expense-ecosystem/dashboard/features-backend": [
         "./libs/dashboard/features-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/types": [
+        "./libs/finance/types/src/index.ts"
       ]
     }
   },
