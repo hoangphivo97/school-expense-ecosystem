@@ -67,9 +67,6 @@
       "@school-expense-ecosystem/finance/features": [
         "./libs/finance/features/src/index.ts"
       ],
-      "@school-expense-ecosystem/finance/backend": [
-        "./libs/finance/backend/src/index.ts"
-      ],
       "@school-expense-ecosystem/auth/types": [
         "./libs/auth/types/src/index.ts"
       ],
@@ -135,6 +132,12 @@
       ],
       "@school-expense-ecosystem/finance/types": [
         "./libs/finance/types/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/data-access-backend": [
+        "./libs/finance/data-access-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/features-backend": [
+        "./libs/finance/features-backend/src/index.ts"
       ]
     }
   },
