@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { BudgetService, FacultyBudgetInit } from '@school-expense-ecosystem/finance/data-access';
 import { form, required, FormField } from '@angular/forms/signals';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
+import { BudgetService } from '@school-expense-ecosystem/finance/data-access-backend';
+import { FacultyBudgetInit } from '@school-expense-ecosystem/finance/types';
 
 @Component({
   selector: 'lib-budget-manager',

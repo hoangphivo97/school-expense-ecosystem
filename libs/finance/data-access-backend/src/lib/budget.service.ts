@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Firestore, collection, addDoc, Timestamp, collectionData } from '@angular/fire/firestore';
 import { Auth, authState } from '@angular/fire/auth';
 import { from, Observable, switchMap, take } from 'rxjs';
-import { FacultyBudgetInit } from './interfaces/budget.interface';
+import { FacultyBudgetInit } from '@school-expense-ecosystem/finance/types';
 
 @Injectable({
   providedIn: 'root',

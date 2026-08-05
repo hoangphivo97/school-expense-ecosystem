@@ -1,7 +1,7 @@
 {
-  "name": "finance-data-access",
+  "name": "finance-features-backend",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/finance/data-access/src",
+  "sourceRoot": "libs/finance/features-backend/src",
   "prefix": "lib",
   "projectType": "library",
   "tags": [],
