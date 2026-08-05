@@ -1,11 +1,11 @@
 import { FacultyId } from "@school-expense-ecosystem/shared/types";
-import { EventScope, EventStatus, ProjectFundingType, ProjectStatus } from "./project.enum";
+import { EventScope, EventStatus, ProjectFundingType, ProjectStatus } from "../enums/project.enum";
 
 export interface ProjectJoinConfig {
     code: string;
     maxUses: number;
     usedCount: number;
-    expiresAt: Date;
+    expiresAt: string;
 }
 
 export interface Project {
@@ -15,14 +15,14 @@ export interface Project {
     currentSpent: number;
     status: ProjectStatus;
     type: ProjectFundingType;
-    mentorIds: string;
+    mentorId: string;
     deanId?: string;
     joinConfig?: ProjectJoinConfig;
     joinedStudentIds: string[];
     createdAt?: string;
     facultyId: FacultyId;
-    startDate: Date;
-    endDate: Date;
+    startDate: string;
+    endDate: string;
 }
 
 export interface Event {
@@ -31,7 +31,7 @@ export interface Event {
     status: EventStatus;
     createdAt?: string;
     scope: EventScope;
-    startDate: Date;
-    endDate: Date;
+    startDate: string;
+    endDate: string;
     facultyId?: FacultyId;
 }

@@ -6,17 +6,18 @@ export enum ProjectFundingType {
 export enum ProjectStatus {
     ACTIVE = 'ACTIVE',
     ARCHIVED = 'ARCHIVED',
-    COMPLETED = 'COMPLETED'
+    COMPLETED = 'COMPLETED',
+    PENDING_DEAN_APPROVAL = 'PENDING_DEAN_APPROVAL'
 }
 
-export enum EventStatus{
+export enum EventStatus {
     UPCOMING = "UPCOMING",
     ONGOING = "ONGOING",
     COMPLETED = "COMPLETED",
     CANCELLED = "CANCELLED"
 }
 
-export enum EventScope{
+export enum EventScope {
     SCHOOL_WIDE = "SCHOOL_WIDE",
     FACULTY = "FACULTY",
     CLUB = "CLUB"
