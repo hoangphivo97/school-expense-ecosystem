@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { ProjectRepository } from './project.repository';
-import { CreateProjectDto, AddStudentsToProjectDto, GenerateProjectJoinCodeDto } from './DTO/project/create-project.dto';
+import { ProjectRepository } from '../project.repository';
+import { CreateProjectDto, AddStudentsToProjectDto, GenerateProjectJoinCodeDto } from '../DTO/project/create-project.dto';
 import { Project, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/finance/types';
 import { randomBytes } from 'node:crypto';
 

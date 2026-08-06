@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BudgetController } from './budget.controller';
+import { BudgetController } from './controllers/budget.controller';
 import { BudgetService } from '@school-expense-ecosystem/finance/data-access-backend';
 
 @Module({
