@@ -1,8 +1,9 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ProjectRepository } from '../project.repository';
 import { CreateProjectDto, AddStudentsToProjectDto, GenerateProjectJoinCodeDto } from '../DTO/project/create-project.dto';
 import { Project, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/finance/types';
 import { randomBytes } from 'node:crypto';
+import { AuthenticatedUser, Role } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class ProjectService {
@@ -75,5 +76,26 @@ export class ProjectService {
 
     await this.projectRepo.updateJoinConfig(projectId, newConfig);
     return newConfig;
+  }
+
+  async findById(projectId: string, user: AuthenticatedUser): Promise<Project> {
+    const project = await this.projectRepo.findById(projectId);
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    const isFinanceOfficer = user.role === Role.LEVEL_1_FINANCE;
+    if (!isFinanceOfficer && project.facultyId !== user.facultyId) {
+      throw new ForbiddenException('You do not have permission to access projects outside your faculty boundary');
+    }
+
+    return project;
+  }
+
+  async findAll(user: AuthenticatedUser): Promise<Project[]> {
+    const isFinanceOfficer = user.role === Role.LEVEL_1_FINANCE;
+    const targetFacultyId = isFinanceOfficer ? undefined : user.facultyId;
+
+    return this.projectRepo.findAll({ facultyId: targetFacultyId });
   }
 }

@@ -4,3 +4,4 @@ export * from './lib/jwt-auth.guard';
 export * from './lib/roles.guard';
 export * from './lib/decorators/roles.decorator';
 export * from './lib/decorators/public.decorator';
+export * from './lib/decorators/current-user.decorator';
