@@ -2,8 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { ProjectRepository } from './project.repository';
 import { CreateProjectDto, AddStudentsToProjectDto, GenerateProjectJoinCodeDto } from './DTO/project/create-project.dto';
 import { Project, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/finance/types';
-import * as crypto from 'crypto';
-import { FacultyId } from '@school-expense-ecosystem/shared/types';
+import { randomBytes } from 'node:crypto';
 
 @Injectable()
 export class ProjectService {
@@ -16,11 +15,11 @@ export class ProjectService {
       : ProjectStatus.ACTIVE;
 
     const facultyPrefix = dto.facultyId.toUpperCase();
-    const shortHash = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const shortHash = randomBytes(3).toString('hex').toUpperCase();
     const projectId = `PRJ-${facultyPrefix}-${shortHash}`;
     
     // Generate an initial safe invitation code block using standard crypto utilities
-    const generatedCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const generatedCode = randomBytes(3).toString('hex').toUpperCase();
 
     const newProject: Project = {
       id: projectId,
@@ -66,7 +65,7 @@ export class ProjectService {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
-    const secureCode = `PRJ-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+    const secureCode = `PRJ-${randomBytes(3).toString('hex').toUpperCase()}`;
     const newConfig: Project['joinConfig'] = {
       code: secureCode,
       maxUses: dto.maxUses,

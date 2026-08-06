@@ -143,6 +143,10 @@
   },
   "exclude": [
     "node_modules",
-    "tmp"
+    "dist",
+    ".angular",
+    ".cache",
+    "tmp",
+    "**/*.spec.ts"
   ]
 }

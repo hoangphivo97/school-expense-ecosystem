@@ -6,7 +6,6 @@ import { ProjectRepository } from '../project.repository';
 
 @Injectable()
 export class FirestoreProjectRepository implements ProjectRepository {
-  // Architect Fix: Injecting Firestore instance via NestJS Dependency Injection for clean testability
   constructor(
     @Inject('FIRESTORE_INSTANCE') private readonly db: admin.firestore.Firestore,
   ) {}
