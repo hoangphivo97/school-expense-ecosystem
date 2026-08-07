@@ -9,11 +9,12 @@ import { AuthenticatedUser, Role } from '@school-expense-ecosystem/shared/types'
 export class ProjectService {
   constructor(private readonly projectRepo: ProjectRepository) {}
 
-  async createProject(dto: CreateProjectDto): Promise<Project> {
+  async createProject(user: AuthenticatedUser ,dto: CreateProjectDto): Promise<Project> {
     // Determine the initial approval workflow status based on funding source
-    const initialStatus: ProjectStatus = dto.type === ProjectFundingType.SCHOOL 
-      ? ProjectStatus.PENDING_DEAN_APPROVAL
-      : ProjectStatus.ACTIVE;
+    const hasApprovalAuthority = user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_2_DEAN;
+    const initialStatus: ProjectStatus = hasApprovalAuthority || dto.type !== ProjectFundingType.SCHOOL 
+      ? ProjectStatus.ACTIVE
+      : ProjectStatus.PENDING_DEAN_APPROVAL;
 
     const facultyPrefix = dto.facultyId.toUpperCase();
     const shortHash = randomBytes(3).toString('hex').toUpperCase();

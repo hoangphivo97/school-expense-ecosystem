@@ -1,22 +1,31 @@
-import { Controller, Post, Body, Param, HttpCode, HttpStatus, Get } from '@nestjs/common';
+import { Controller, Post, Body, Param, HttpCode, HttpStatus, Get, UseGuards } from '@nestjs/common';
 import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, ProjectService } from '@school-expense-ecosystem/finance/data-access-backend';
-import { CurrentUser } from '@school-expense-ecosystem/shared/guards-backend';
-import { AuthenticatedUser } from '@school-expense-ecosystem/shared/types';
+import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
+import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 
 @Controller('finance/projects')
+@UseGuards(RolesGuard)
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(private readonly projectService: ProjectService) { }
 
   @Get()
-  async findAll(@CurrentUser() user: AuthenticatedUser) {
+  @Roles(Role.LEVEL_3_USER, Role.LEVEL_2_DEAN, Role.LEVEL_1_FINANCE)
+  @UserTypes(UserType.TEACHER)
+  async findAll(
+    @CurrentUser() user: AuthenticatedUser
+  ) {
     return this.projectService.findAll(user);
   }
 
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @UserTypes(UserType.TEACHER)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  // TODO: Attach @Roles('TEACHER', 'DEAN') guard here to secure project creation pipeline
-  async create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectService.createProject(createProjectDto);
+  async create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() createProjectDto: CreateProjectDto
+  ) {
+    return this.projectService.createProject(user,createProjectDto);
   }
 
   @Get(':id')
