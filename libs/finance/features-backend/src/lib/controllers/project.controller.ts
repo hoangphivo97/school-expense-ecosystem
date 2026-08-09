@@ -24,12 +24,13 @@ export class ProjectController {
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() createProjectDto: CreateProjectDto
-  ) {
-    return this.projectService.createProject(user,createProjectDto);
+  ) {1797
+    return this.projectService.createProject(user, createProjectDto);
   }
 
   @Get(':id')
-  // TODO: Attach @Roles('TEACHER', 'DEAN', 'FINANCE') guard here to secure single project querying
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @UserTypes(UserType.TEACHER)
   async findById(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,

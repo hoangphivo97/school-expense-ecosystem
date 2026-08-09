@@ -3,7 +3,7 @@ import { ProjectRepository } from '../project.repository';
 import { CreateProjectDto, AddStudentsToProjectDto, GenerateProjectJoinCodeDto } from '../DTO/project/create-project.dto';
 import { Project, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/finance/types';
 import { randomBytes } from 'node:crypto';
-import { AuthenticatedUser, Role } from '@school-expense-ecosystem/shared/types';
+import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class ProjectService {
@@ -94,9 +94,22 @@ export class ProjectService {
   }
 
   async findAll(user: AuthenticatedUser): Promise<Project[]> {
-    const isFinanceOfficer = user.role === Role.LEVEL_1_FINANCE;
-    const targetFacultyId = isFinanceOfficer ? undefined : user.facultyId;
+    // 1. Level 1 (Finance): Global Scope - Access all projects for auditing
+    if (user.role === Role.LEVEL_1_FINANCE) {
+      return this.projectRepo.findAll();
+    }
 
-    return this.projectRepo.findAll({ facultyId: targetFacultyId });
+    // 2. Student Context: Roster Scope - Access strictly enrolled projects
+    if (user.userType === UserType.STUDENT) {
+      return this.projectRepo.findProjectsByStudentId(user.uid);
+    }
+
+    // 3. Level 2 (Dean): Faculty Boundary Scope - Access all projects in their faculty
+    if (user.role === Role.LEVEL_2_DEAN) {
+      return this.projectRepo.findAll({ facultyId: user.facultyId });
+    }
+
+    // 4. Level 3 (Teacher): Mentorship Scope - Access strictly projects mentored by this teacher
+    return this.projectRepo.findProjectsByMentorId(user.uid);
   }
 }

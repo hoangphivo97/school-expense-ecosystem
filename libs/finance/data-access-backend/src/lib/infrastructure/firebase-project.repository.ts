@@ -3,6 +3,8 @@ import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { Project } from '@school-expense-ecosystem/finance/types';
 import { ProjectRepository } from '../project.repository';
+import { Filter } from 'firebase-admin/firestore';
+import { FacultyId } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class FirestoreProjectRepository implements ProjectRepository {
@@ -50,5 +52,32 @@ export class FirestoreProjectRepository implements ProjectRepository {
 
   async updateJoinConfig(id: string, config: Project['joinConfig']): Promise<void> {
     await this.collection.doc(id).update({ joinConfig: config });
+  }
+
+  async findProjectsByStudentId(studentId: string): Promise<Project[]> {
+    const snapshot = await this.collection
+      .where('joinedStudentIds', 'array-contains', studentId)
+      .get();
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Project));
+  }
+
+  async findProjectsByMentorId(mentorUid: string): Promise<Project[]> {
+    const snapshot = await this.collection
+      .where('mentorId', '==', mentorUid)
+      .get();
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as unknown as Project));
+  }
+
+  async findAll(filters?: { facultyId?: FacultyId }): Promise<Project[]> {
+    let query: admin.firestore.Query = this.collection;
+
+    if (filters?.facultyId) {
+      query = query.where('facultyId', '==', filters.facultyId);
+    }
+
+    const snapshot = await query.get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Project));
   }
 }
