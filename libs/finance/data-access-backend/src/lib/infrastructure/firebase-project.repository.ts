@@ -1,9 +1,7 @@
-// ... 1-2 lines above in project.repository.ts
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { Project } from '@school-expense-ecosystem/finance/types';
 import { ProjectRepository } from '../project.repository';
-import { Filter } from 'firebase-admin/firestore';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
