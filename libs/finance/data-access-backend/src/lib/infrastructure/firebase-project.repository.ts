@@ -23,18 +23,7 @@ export class FirestoreProjectRepository implements ProjectRepository {
     const doc = await this.collection.doc(id).get();
     if (!doc.exists) return null;
 
-    const data = doc.data()!;
-    
-    // Safely parse Firestore Timestamps back to native JS Date instances
-    return {
-      ...data,
-      startDate: (data['startDate'] as admin.firestore.Timestamp)?.toDate() ?? data['startDate'],
-      endDate: (data['endDate'] as admin.firestore.Timestamp)?.toDate() ?? data['endDate'],
-      joinConfig: data['joinConfig'] ? {
-        ...data['joinConfig'],
-        expiresAt: (data['joinConfig'].expiresAt as admin.firestore.Timestamp)?.toDate() ?? data['joinConfig'].expiresAt
-      } : undefined
-    } as unknown as Project;
+    return this.mapDocToProject(doc);
   }
 
   async update(id: string, data: Partial<Project>): Promise<void> {
@@ -52,12 +41,12 @@ export class FirestoreProjectRepository implements ProjectRepository {
     await this.collection.doc(id).update({ joinConfig: config });
   }
 
-  async findProjectsByStudentId(studentId: string): Promise<Project[]> {
+  async findProjectsByStudentId(studentUid: string): Promise<Project[]> {
     const snapshot = await this.collection
-      .where('joinedStudentIds', 'array-contains', studentId)
+      .where('joinedStudentIds', 'array-contains', studentUid)
       .get();
 
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Project));
+    return snapshot.docs.map((doc) => this.mapDocToProject(doc));
   }
 
   async findProjectsByMentorId(mentorUid: string): Promise<Project[]> {
@@ -65,7 +54,7 @@ export class FirestoreProjectRepository implements ProjectRepository {
       .where('mentorId', '==', mentorUid)
       .get();
 
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as unknown as Project));
+    return snapshot.docs.map((doc) => this.mapDocToProject(doc));
   }
 
   async findAll(filters?: { facultyId?: FacultyId }): Promise<Project[]> {
@@ -76,6 +65,20 @@ export class FirestoreProjectRepository implements ProjectRepository {
     }
 
     const snapshot = await query.get();
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Project));
+    return snapshot.docs.map((doc) => this.mapDocToProject(doc));
+  }
+
+  private mapDocToProject(doc: admin.firestore.DocumentSnapshot): Project {
+    const data = doc.data()!;
+    return {
+      ...data,
+      id: doc.id,
+      startDate: (data['startDate'] as admin.firestore.Timestamp)?.toDate() ?? data['startDate'],
+      endDate: (data['endDate'] as admin.firestore.Timestamp)?.toDate() ?? data['endDate'],
+      joinConfig: data['joinConfig'] ? {
+        ...data['joinConfig'],
+        expiresAt: (data['joinConfig'].expiresAt as admin.firestore.Timestamp)?.toDate() ?? data['joinConfig'].expiresAt
+      } : undefined
+    } as unknown as Project;
   }
 }

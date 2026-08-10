@@ -93,7 +93,7 @@ export class ProjectService {
     return project;
   }
 
-  async findAll(user: AuthenticatedUser): Promise<Project[]> {
+  async getProjectsForUser(user: AuthenticatedUser): Promise<Project[]> {
     // 1. Level 1 (Finance): Global Scope - Access all projects for auditing
     if (user.role === Role.LEVEL_1_FINANCE) {
       return this.projectRepo.findAll();

@@ -11,10 +11,10 @@ export class ProjectController {
   @Get()
   @Roles(Role.LEVEL_3_USER, Role.LEVEL_2_DEAN, Role.LEVEL_1_FINANCE)
   @UserTypes(UserType.TEACHER)
-  async findAll(
+  async getProjectsForUser(
     @CurrentUser() user: AuthenticatedUser
   ) {
-    return this.projectService.findAll(user);
+    return this.projectService.getProjectsForUser(user);
   }
 
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
