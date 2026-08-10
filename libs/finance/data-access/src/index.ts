@@ -1,1 +1,1 @@
-export * from './lib/finance-data-access/finance-data-access';
+export * from './services/project-api.service';

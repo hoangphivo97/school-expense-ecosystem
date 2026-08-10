@@ -10,7 +10,8 @@ import { FacultyBudgetInit } from '@school-expense-ecosystem/finance/types';
   selector: 'lib-budget-manager',
   imports: [FormField, CommonModule],
   templateUrl: './budget-manager.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './budget-manager.scss',
 })
 export class BudgetManager {
   private readonly budgetService = inject(BudgetService);

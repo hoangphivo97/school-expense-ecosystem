@@ -1,0 +1,148 @@
+<lib-header></lib-header>
+<div class="project-list" *transloco="let t; read:'project.projectList'">
+  <lib-filter 
+    [mode]="filterModeEnum.PROJECT" 
+    [yearsList]="availableYearsSignal()" 
+    [value]="filterParams()"
+    (filterChange)="onProjectFiltersChanged($event)">
+
+    <!-- Action button based on User Role -->
+    @if (isStudent()) {
+      <button primaryAction mat-flat-button color="primary" (click)="openJoinByCodeModal()">
+        <mat-icon>vpn_key</mat-icon> {{ t('actions.joinByCode') }}
+      </button>
+    } @else {
+      <button primaryAction mat-flat-button color="primary" (click)="openCreateProjectModal()">
+        <mat-icon>add</mat-icon> {{ t('actions.createProject') }}
+      </button>
+    }
+  </lib-filter>
+
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden" [seLoading]="isGridDataLoading()">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
+
+          <!-- Project ID / Code -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.id') }}</th>
+            <td mat-cell *matCellDef="let project">
+              <span class="code-badge">{{ project.id }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Project Name -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.name') }}</th>
+            <td mat-cell *matCellDef="let project" [matTooltip]="project.name" matTooltipPosition="above">
+              <div class="description-clamp-wrapper fw-semibold">{{ project.name }}</div>
+            </td>
+          </ng-container>
+
+          <!-- Funding Type -->
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.type') }}</th>
+            <td mat-cell *matCellDef="let project">
+              {{ 'shared.filter.options.projectType.' + project.type | transloco }}
+            </td>
+          </ng-container>
+
+          <!-- Faculty -->
+          <ng-container matColumnDef="facultyId">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.facultyId') }}</th>
+            <td mat-cell *matCellDef="let project">
+              {{ project.facultyId | uppercase }}
+            </td>
+          </ng-container>
+
+          <!-- Budget Cap -->
+          <ng-container matColumnDef="budgetCap">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.budgetCap') }}</th>
+            <td mat-cell *matCellDef="let project" class="fw-bold text-dark">
+              {{ project.budgetCap | number: '1.0-0' }} VND
+            </td>
+          </ng-container>
+
+          <!-- Current Spent -->
+          <ng-container matColumnDef="currentSpent">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.currentSpent') }}</th>
+            <td mat-cell *matCellDef="let project" class="text-secondary">
+              {{ project.currentSpent | number: '1.0-0' }} VND
+            </td>
+          </ng-container>
+
+          <!-- Timeline (Start - End Date) -->
+          <ng-container matColumnDef="timeline">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.timeline') }}</th>
+            <td mat-cell *matCellDef="let project">
+              {{ project.startDate | date: 'dd/MM/yyyy' }} - {{ project.endDate | date: 'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.status') }}</th>
+            <td mat-cell *matCellDef="let project">
+              <span class="badge badge-status-variant" [ngClass]="'status-' + project.status">
+                {{ 'shared.filter.options.projectStatus.' + project.status | transloco }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
+            <td mat-cell *matCellDef="let project" class="action-column">
+              <button mat-icon-button [matMenuTriggerFor]="menu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="navigateToDetail(project.id)">
+                  <mat-icon>visibility</mat-icon>
+                  <span>{{ t('actions.viewDetails') }}</span>
+                </button>
+                @if (canManageJoinCode(project)) {
+                  <button mat-menu-item (click)="openJoinCodeModal(project)">
+                    <mat-icon>qr_code</mat-icon>
+                    <span>{{ t('actions.manageJoinCode') }}</span>
+                  </button>
+                }
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="dynamicDisplayedColumns()"></tr>
+          <tr mat-row *matRowDef="let row; columns: dynamicDisplayedColumns()"></tr>
+
+          <!-- Empty State -->
+          <tr class="mat-mdc-no-data-row" *matNoDataRow>
+            <td [attr.colspan]="dynamicDisplayedColumns().length">
+              @if (!isGridDataLoading()) {
+                <div class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
+                  <div class="empty-icon-box mb-3">
+                    <mat-icon class="material-icons-outlined text-muted">folder_off</mat-icon>
+                  </div>
+                  <h3 class="empty-title m-0">{{ t('empty.title') }}</h3>
+                  <p class="empty-subtitle text-muted px-3">
+                    {{ t('empty.subtitle') }}
+                  </p>
+                </div>
+              }
+            </td>
+          </tr>
+        </table>
+
+        <lib-pagination 
+          [totalItems]="totalItems()" 
+          [pageSize]="pageSize()" 
+          [currentPage]="currentPageIndex()"
+          [pageSizeOptions]="[10, 20, 50, 100]" 
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)">
+        </lib-pagination>
+
+      </div>
+    </div>
+  </div>
+</div>
+<lib-footer></lib-footer>
