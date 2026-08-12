@@ -8,7 +8,7 @@ import { FacultyBudgetInit } from '@school-expense-ecosystem/finance/types';
   providedIn: 'root',
 })
 
-export class BudgetService {
+export class BudgetBackendService {
   private readonly firestore = inject(Firestore);
   private readonly auth = inject(Auth);
   private readonly user$ = authState(this.auth);

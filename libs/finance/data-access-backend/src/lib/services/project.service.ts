@@ -6,7 +6,7 @@ import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
-export class ProjectService {
+export class ProjectBackendService {
   constructor(private readonly projectRepo: ProjectRepository) {}
 
   async createProject(user: AuthenticatedUser ,dto: CreateProjectDto): Promise<Project> {

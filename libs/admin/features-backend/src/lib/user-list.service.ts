@@ -7,7 +7,7 @@ import { IAdminAuditLogRepository } from './repository/audit-log.repository';
 import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
-export class UserListService {
+export class UserListBackendService {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly auditLogRepository: IAdminAuditLogRepository

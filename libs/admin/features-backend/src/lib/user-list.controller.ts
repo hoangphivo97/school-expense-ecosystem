@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { UserListService } from './user-list.service';
+import { UserListBackendService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/shared/types';
 import { JwtAuthGuard, RolesGuard, Roles } from '@school-expense-ecosystem/shared/guards-backend';
 import { ChangeUserStatusDto, CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
@@ -11,7 +11,7 @@ import { ActiveAdmin } from './decorators/admin-executor.decorator';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_2_DEAN)
 export class UserListController {
-  constructor(private readonly userListService: UserListService) { }
+  constructor(private readonly userListService: UserListBackendService) { }
 
   @Get()
   async getManagedUsers(

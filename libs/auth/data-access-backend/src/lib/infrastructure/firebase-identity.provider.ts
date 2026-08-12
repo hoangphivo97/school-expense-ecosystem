@@ -1,4 +1,3 @@
-// firebase-identity.provider.ts
 import { Injectable } from '@nestjs/common';
 import  { IdentityProvider, ExternalIdentityProfile } from '../interface/identify-provider.interface'
 import * as admin from 'firebase-admin';

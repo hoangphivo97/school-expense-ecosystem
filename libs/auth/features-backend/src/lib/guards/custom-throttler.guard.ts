@@ -1,6 +1,5 @@
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { ErrorResponse } from '@school-expense-ecosystem/shared/types';
+import { Injectable } from '@nestjs/common';
 import { RateLimitExceededException } from '@school-expense-ecosystem/auth/data-access-backend';
 
 @Injectable()

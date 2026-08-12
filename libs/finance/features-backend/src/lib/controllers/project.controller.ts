@@ -1,12 +1,12 @@
 import { Controller, Post, Body, Param, HttpCode, HttpStatus, Get, UseGuards } from '@nestjs/common';
-import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, ProjectService } from '@school-expense-ecosystem/finance/data-access-backend';
+import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, ProjectBackendService } from '@school-expense-ecosystem/finance/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 
 @Controller('finance/projects')
 @UseGuards(RolesGuard)
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) { }
+  constructor(private readonly projectService: ProjectBackendService) { }
 
   @Get()
   @Roles(Role.LEVEL_3_USER, Role.LEVEL_2_DEAN, Role.LEVEL_1_FINANCE)

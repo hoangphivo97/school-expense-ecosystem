@@ -1,11 +1,11 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
-import { BudgetService } from './budget.services';
-import { CreateBudgetDto } from './budget/DTO/create-budget.dto';
+import { CurrentUser, JwtAuthGuard, Roles, RolesGuard } from '@school-expense-ecosystem/shared/guards-backend';
+import { BudgetBackendService, CreateBudgetDto } from '@school-expense-ecosystem/finance/data-access-backend';
 
 @Controller('budgets')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class BudgetController {
-  constructor(private readonly budgetService: BudgetService) { }
+  constructor(private readonly budgetService: BudgetBackendService) { }
 
   @Post()
   @Roles(UserRole.DISBURSER) // Chỉ cấp 1 (Phòng Tài Vụ) được phép vào cửa
