@@ -10,11 +10,13 @@
       "REPORT": "Analytics Report",
       "BUDGET_MANAGER": "Budget Allocation",
       "PROJECT_OVERVIEW":"Info Center",
+      "PROJECT_MANAGER": "Projects Manager",
       "routes": {
         "/expense/pending": "Pending Queue",
         "/expense/history": "Faculty History",
         "/dashboard": "Dashboard",
-        "/project-overview": "Project Overview"
+        "/project-overview": "Project Overview",
+        "/project-manager": "Projects Directory"
       }
     }
   },
@@ -28,7 +30,8 @@
       "/expense": "My Personal Claims",
       "/report": "Financial Reports",
       "/budget-manager": "Budget Management",
-      "/project-overview": "Project Overview"
+      "/project-overview": "Project Overview",
+      "/project-manager": "Project Management"
     }
   },
   "filter": {
@@ -74,6 +77,18 @@
         "PENDING_DISBURSEMENT": "Pending Disbursement",
         "DISBURSED": "Disbursed",
         "REJECTED": "Rejected"
+      },
+      "projectType": {
+        "ALL": "All Types",
+        "SCHOOL": "School Funded",
+        "OUTSOURCE": "Outsourced / External"
+      },
+      "projectStatus": {
+        "ALL": "All Statuses",
+        "ACTIVE": "Active",
+        "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
+        "COMPLETED": "Completed",
+        "ARCHIVED": "Archived"
       },
       "months": {
         "ALL": "All Months",

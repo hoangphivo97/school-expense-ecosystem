@@ -1,0 +1,48 @@
+{
+  "project": {
+    "projectList": {
+      "actions": {
+        "joinByCode": "使用代碼加入",
+        "createProject": "新增專案",
+        "viewDetails": "查看詳情",
+        "manageJoinCode": "管理邀請代碼"
+      },
+      "columns": {
+        "id": "專案編號",
+        "name": "專案名稱",
+        "type": "經費類型",
+        "facultyId": "所屬學院",
+        "budgetCap": "預算上限",
+        "currentSpent": "目前累計支出",
+        "timeline": "執行期間",
+        "status": "專案狀態"
+      },
+      "empty": {
+        "title": "查無專案資料",
+        "subtitle": "目前尚無符合條件或可顯示的專案清單。"
+      }
+    }
+  },
+  "shared": {
+    "filter": {
+      "options": {
+        "projectType": {
+          "SCHOOL": "校內補助經費",
+          "OUTSOURCE": "外部產學/委託"
+        },
+        "projectStatus": {
+          "ACTIVE": "進行中",
+          "PENDING_DEAN_APPROVAL": "待院長審批",
+          "COMPLETED": "已結案",
+          "ARCHIVED": "已封存"
+        }
+      }
+    },
+    "sidebar": {
+      "menu": {
+        "PROJECT_MANAGER": "專案管理",
+        "BUDGET_MANAGER": "預算管理"
+      }
+    }
+  }
+}

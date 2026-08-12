@@ -70,9 +70,11 @@ export class SidebarComponent implements OnInit {
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
+      NavItem.FINANCE,
       NavItem.BUDGET_MANAGER,
       NavItem.APPROVAL_CENTER,
-      NavItem.PROJECT_OVERVIEW
+      NavItem.PROJECT_OVERVIEW,
+      NavItem.PROJECT_MANAGER
     ],
     [Role.LEVEL_2_DEAN]: [
       NavItem.DASHBOARD,
@@ -80,12 +82,14 @@ export class SidebarComponent implements OnInit {
       NavItem.REPORT,
       NavItem.USER_LIST,
       NavItem.APPROVAL_CENTER,
-      NavItem.PROJECT_OVERVIEW
+      NavItem.PROJECT_OVERVIEW,
+      NavItem.PROJECT_MANAGER
     ],
     [Role.LEVEL_3_USER]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
-      NavItem.PROJECT_OVERVIEW
+      NavItem.PROJECT_OVERVIEW,
+      NavItem.PROJECT_MANAGER
     ]
   };
 
@@ -106,12 +110,30 @@ export class SidebarComponent implements OnInit {
       }
     }
 
-    return APP_NAVIGATION.filter((item: any) => allowedItems.has(item.key));
+    return APP_NAVIGATION
+      .filter((item) => allowedItems.has(item.key))
+      .map((item) => {
+        if (!item.children || item.children.length === 0) {
+          return item;
+        }
+
+        // Filter sub-items if child has a specific permission key defined
+        const filteredChildren = item.children.filter((child) =>
+          !child.key || allowedItems.has(child.key)
+        );
+
+        return {
+          ...item,
+          children: filteredChildren,
+        };
+      })
+      .filter((item) => !item.children || item.children.length > 0);
   });
 
   ngOnInit(): void {
     this.getUrlAndActiveSidebar();
     this.setActiveItemByUrl(this.router.url);
+    // console.log(this.filteredNavItems())
   }
 
   getUrlAndActiveSidebar() {
@@ -148,12 +170,12 @@ export class SidebarComponent implements OnInit {
   }
 
   setActive(itemKey: NavItem) {
-    console.log(itemKey)
     const currentQueryParams = this.router.parseUrl(this.router.url).queryParams;
-    const targetItem = APP_NAVIGATION.find(item => item.key === itemKey);
-    // If the parent menu houses sub-items, immediately auto-route to the primary leaf node entry
-    if (targetItem && targetItem.children && targetItem.children.length > 0) {
-      this.router.navigate([targetItem.children[0].route], {
+    
+    // Pick from filteredNavItems so users navigate to their first authorized sub-menu
+    const currentItem = this.filteredNavItems().find(item => item.key === itemKey);
+    if (currentItem && currentItem.children && currentItem.children.length > 0) {
+      this.router.navigate([currentItem.children[0].route], {
         queryParams: currentQueryParams,
         queryParamsHandling: 'merge',
       });

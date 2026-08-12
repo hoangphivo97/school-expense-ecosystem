@@ -10,11 +10,13 @@
       "REPORT": "統計分析報表",
       "BUDGET_MANAGER": "預算額度管理",
       "PROJECT_OVERVIEW": "專案概覽",
+      "PROJECT_MANAGER": "專案列表",
       "routes": {
         "/expense/pending": "待審批隊列",
         "/expense/history": "院系審批歷史",
         "/dashboard": "儀表板",
-        "/project-overview": "專案概覽"
+        "/project-overview": "專案概覽",
+        "/project-maanger": "專案清單"
       }
     }
   },
@@ -27,7 +29,8 @@
       "/user-list": "系統使用者名錄",
       "/expense": "我的個人申請單",
       "/report": "財務報表中心",
-      "/budget-manager": "預算額度管理"
+      "/budget-manager": "預算額度管理",
+      "/project-manager": "專案管理"
     }
   },
   "filter": {
@@ -73,6 +76,18 @@
         "PENDING_DISBURSEMENT": "待財務撥款",
         "DISBURSED": "已成功撥款",
         "REJECTED": "駁回申請"
+      },
+      "projectType": {
+        "ALL": "所有類型",
+        "SCHOOL": "校內補助經費",
+        "OUTSOURCE": "外部產學/委託"
+      },
+      "projectStatus": {
+        "ALL": "所有狀態",
+        "ACTIVE": "進行中",
+        "PENDING_DEAN_APPROVAL": "待院長審批",
+        "COMPLETED": "已結案",
+        "ARCHIVED": "已封存"
       },
       "months": {
         "ALL": "所有月份",

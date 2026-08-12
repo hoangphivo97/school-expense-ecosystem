@@ -21,7 +21,7 @@ import { MatMenuModule } from '@angular/material/menu';
   styleUrls: ['./project-list.component.scss'],
   imports: [HeaderComponent, FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, FooterComponent, TranslocoModule, MatMenuModule],
   providers: [
-    { provide: TRANSLOCO_SCOPE, useValue: 'finance' }
+    { provide: TRANSLOCO_SCOPE, useValue: 'project' }
   ]
 })
 export class ProjectListComponent implements OnInit {

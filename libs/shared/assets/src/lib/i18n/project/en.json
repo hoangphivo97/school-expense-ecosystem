@@ -1,0 +1,46 @@
+{
+  "projectList": {
+    "actions": {
+      "joinByCode": "Join via Code",
+      "createProject": "Create Project",
+      "viewDetails": "View Details",
+      "manageJoinCode": "Manage Join Code"
+    },
+    "columns": {
+      "id": "Project ID",
+      "name": "Project Name",
+      "type": "Funding Type",
+      "facultyId": "Faculty",
+      "budgetCap": "Budget Cap",
+      "currentSpent": "Current Spent",
+      "timeline": "Timeline",
+      "status": "Status"
+    },
+    "empty": {
+      "title": "No Projects Found",
+      "subtitle": "There are no projects available to display in this view."
+    }
+  },
+  "shared": {
+    "filter": {
+      "options": {
+        "projectType": {
+          "SCHOOL": "School Funded",
+          "OUTSOURCE": "Outsourced / External"
+        },
+        "projectStatus": {
+          "ACTIVE": "Active",
+          "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
+          "COMPLETED": "Completed",
+          "ARCHIVED": "Archived"
+        }
+      }
+    },
+    "sidebar": {
+      "menu": {
+        "PROJECT_MANAGER": "Projects",
+        "BUDGET_MANAGER": "Budget Manager"
+      }
+    }
+  }
+}

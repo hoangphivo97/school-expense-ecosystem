@@ -74,7 +74,7 @@ export class ProjectOverview implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    this.ledgerService.getLedgerTimelines().subscribe(data => console.log(data))
+
   }
 
 

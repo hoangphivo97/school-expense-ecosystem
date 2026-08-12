@@ -49,7 +49,7 @@ export const routes: Routes = [
         path: '',
         loadChildren: () =>
           import('@school-expense-ecosystem/finance/features').then(
-            (m) => m.FINANCE_ROUTES_BUDGET_MANAGER
+            (m) => m.FINANCE_ROUTES
           ),
       },
       {

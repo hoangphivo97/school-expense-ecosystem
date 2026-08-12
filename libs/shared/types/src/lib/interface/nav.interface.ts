@@ -12,4 +12,5 @@ export interface SubNavItemConfig {
   label: string;
   route: string;
   icon: string;
+  key?: NavItem;
 }
