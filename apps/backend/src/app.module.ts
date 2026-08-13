@@ -8,6 +8,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { throttlerConfig } from './app.security-config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppCheckGuard, JwtAuthGuard } from '@school-expense-ecosystem/shared/guards-backend';
+import { ProjectBackendModule } from '@school-expense-ecosystem/projects/features-backend';
 
 
 @Module({
@@ -17,6 +18,7 @@ import { AppCheckGuard, JwtAuthGuard } from '@school-expense-ecosystem/shared/gu
     FirestoreModule,
     ExpenseFeaturesBackendModule,
     ThrottlerModule.forRoot(throttlerConfig),
+    ProjectBackendModule
   ],
   controllers: [AppController],
   providers: [

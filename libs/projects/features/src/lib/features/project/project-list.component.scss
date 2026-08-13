@@ -1,0 +1,151 @@
+html,
+body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+  background-color: var(--bg-secondary);
+
+  .button:hover {
+    cursor: pointer;
+  }
+
+  .project-list {
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+
+    ::ng-deep {
+      .mat-mdc-table {
+        background-color: var(--bg-secondary);
+      }
+    }
+
+    .code-badge {
+      font-family: monospace;
+      font-weight: 600;
+      color: #334155;
+      background-color: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.8125rem;
+    }
+
+    .create-section {
+      display: flex;
+      flex-direction: row-reverse;
+
+      .create-btn {
+        border: none;
+        padding: 20px;
+        border-radius: 35px;
+        font-size: 1.2rem;
+        color: var(--text-primary);
+        background-color: var(--purple-bland-8);
+
+        &:hover {
+          color: var(--bg-secondary);
+          background-color: var(--text-primary);
+        }
+      }
+    }
+
+    .synchronized-material-table {
+      background-color: transparent;
+      font-family: var(--bs-font-sans-serif);
+
+      tr.mat-mdc-header-row {
+        background-color: #f1f5f9; // Light gray slate tint matching enterprise standard
+        border-bottom: 2px solid #cbd5e1;
+      }
+
+      tr.mat-mdc-row:hover {
+        cursor: pointer;
+        background-color: #f0f2ff;
+      }
+
+      th.table-column-header {
+        font-size: 0.75rem; // 12px sleek tracking titles
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        color: #475569;
+      }
+
+      td.mat-mdc-cell {
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.875rem; // 14px smooth readability text cells
+      }
+
+      td.action-column {
+        display: flex;
+        justify-content: flex-end;
+      }
+    }
+
+    .description-clamp-wrapper {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      /* Force text bounding limit to exactly 2 lines maximum */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+      /* Prevent cell expansion */
+      white-space: normal;
+      line-height: 1.4;
+    }
+
+    .badge-status-variant {
+      font-weight: 600;
+      padding: 0.45em 0.8em;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      text-transform: capitalize;
+
+      // Define color registry mapping each ProjectStatus token configuration
+      $project-statuses: (
+        'ACTIVE': (bg: #ecfdf5, text: #065f46, border: #a7f3d0),
+        // Success Emerald Green
+        'PENDING_DEAN_APPROVAL': (bg: #fff7ed, text: #c2410c, border: #fed7aa),
+        // Attention Orange
+        'COMPLETED': (bg: #f0f9ff, text: #0369a1, border: #bae6fd),
+        // Operational Sky Blue
+        'ARCHIVED': (bg: #f1f5f9, text: #475569, border: #cbd5e1)
+        // Slate Neutral Gray
+      );
+
+      // Iterate dynamically through the registry map to generate style variants
+      @each $status-name, $tokens in $project-statuses {
+        &.status-#{$status-name} {
+          background-color: map-get($tokens, bg);
+          color: map-get($tokens, text);
+          border: 1px solid map-get($tokens, border);
+        }
+      }
+    }
+
+    .no-data {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      font-size: 25px;
+      padding-bottom: 40px;
+    }
+  }
+}
+
+lib-header,
+lib-footer {
+  flex: 0 0 auto;
+  flex-direction: column;
+}

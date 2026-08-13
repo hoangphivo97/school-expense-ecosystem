@@ -53,6 +53,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: '',
+        loadChildren: () =>
+          import('@school-expense-ecosystem/projects/features').then(
+            (m) => m.PROJECT_ROUTE
+          ),
+      },
+      {
         path: '**',
         redirectTo: 'project-overview',
       },

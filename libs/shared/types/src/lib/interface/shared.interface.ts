@@ -64,4 +64,5 @@ export interface SharedFilterFields {
   facultyId?: string | null;
   userType?: string | null;
   role?: string | null;
+  projectType?: string | null;
 }

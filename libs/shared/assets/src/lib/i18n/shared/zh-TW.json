@@ -43,7 +43,8 @@
       "requestStatus": "申請單狀態",
       "month": "月份",
       "year": "年度",
-      "faculty": "學院/科系"
+      "faculty": "學院/科系",
+      "projectType": "專案類型"
     },
     "tooltip": {
       "reset": "清除目前篩選條件"

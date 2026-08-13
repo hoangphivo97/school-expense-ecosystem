@@ -2,12 +2,16 @@
 :host {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background-color: var(--bg-primary);
+  height: 100%;
+  box-sizing: border-box;
   transition: background-color 0.3s ease;
+  background-color: var(--bg-secondary);
 
   .user-directory-layout-root {
-    flex: 1 0 auto; // Keeps footer safely pinned to page bottom limits
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
   }
 
   .layout-headline {

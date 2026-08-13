@@ -44,7 +44,8 @@
       "requestStatus": "Request Status",
       "month": "Month",
       "year": "Year",
-      "faculty": "Faculty"
+      "faculty": "Faculty",
+      "projectType": "Project Type"
     },
     "tooltip": {
       "reset": "Clear active layout filters"
