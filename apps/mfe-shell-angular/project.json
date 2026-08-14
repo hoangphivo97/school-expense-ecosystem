@@ -21,6 +21,11 @@
             "glob": "**/*",
             "input": "libs/shared/assets/src/lib/i18n",
             "output": "assets/i18n"
+          },
+          {
+            "input": ".",
+            "glob": "CHANGELOG.md",
+            "output": "assets"
           }
         ],
         "styles": [

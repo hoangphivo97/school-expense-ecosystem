@@ -30,15 +30,16 @@ jobs:
       - name: Install Dependencies
         run: yarn install --immutable
 
-      - name: Generate Changelog
-        run: npx conventional-changelog-cli -p angular -i CHANGELOG.md -s
-
-      - name: Commit & Push Changelog
+      - name: Bump Version & Update Changelog
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "docs: auto update CHANGELOG.md on deploy [skip ci]" || echo "No changes to commit"
+          npx standard-version --skip.tag
+
+      - name: Commit & Push Changelog
+        run: |
+          git add CHANGELOG.md package.json
+          git commit -m "chore(release): update version and changelog [skip ci]" || echo "No changes to commit"
           git push origin main
 
       - name: Install Firebase CLI globally
