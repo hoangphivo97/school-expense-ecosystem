@@ -7,12 +7,14 @@ export interface CreateProjectPayload {
   budgetCap: number;
   currentSpent?: number;
   facultyId: FacultyId;
-  mentorId: string;
   deanId?: string;
-  startDate: string;
-  endDate: string;
-  maxUses: number;
+  startDate?: string;
+  endDate?: string;
+  maxUses?: number;
   expiresAt: string;
+  initialSpent?: number;
+  initialSpentReason?: string;
+  initialSpentProofUrls?: string[];
 }
 
 export interface GenerateJoinCodePayload {
