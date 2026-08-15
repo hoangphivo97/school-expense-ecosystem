@@ -9,28 +9,23 @@ export interface ProjectJoinConfig {
 }
 
 export interface Project {
-  id: string;
-  name: string;
-  budgetCap: number;
-  initialSpent: number;
-  currentSpent: number;
-  status: ProjectStatus;
-  facultyId: FacultyId;
-  mentorId: string;
-
-  initialSpentReason?: string;
-  initialSpentProofUrls?: string[];
-  
-  deanId?: string;            
-  deanApprovedAt?: string;
-  
-  financeOfficerId?: string;  
-  financeApprovedAt?: string;
-  auditNotes?: string;        
-  
-  startDate: string;
-  endDate: string;
-  joinedStudentIds: string[];
+    id: string;
+    name: string;
+    description?: string;
+    type: ProjectFundingType;
+    budgetCap: number;
+    initialSpent: number;
+    currentSpent: number;
+    pendingSpent: number;
+    status: ProjectStatus;
+    facultyId: FacultyId;
+    mentorId: string;
+    startDate: string;
+    endDate: string;
+    joinConfig?: ProjectJoinConfig;
+    joinedStudentIds: string[];
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface Event {

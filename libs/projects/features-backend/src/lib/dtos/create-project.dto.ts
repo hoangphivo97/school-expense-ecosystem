@@ -1,61 +1,64 @@
-import { ProjectFundingType } from "@school-expense-ecosystem/projects/types";
-import { FacultyId } from "@school-expense-ecosystem/shared/types";
-import { IsString, IsNumber, IsPositive, IsEnum, IsOptional, Min, IsDateString, IsArray, ArrayMinSize } from "class-validator";
+import { CreateProjectPayload, ProjectFundingType } from '@school-expense-ecosystem/projects/types';
+import { FacultyId } from '@school-expense-ecosystem/shared/types';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Min,
+} from 'class-validator';
 
-export class CreateProjectDto {
-    @IsString()
-    name!: string;
+export class CreateProjectDto implements CreateProjectPayload {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 
-    @IsNumber()
-    @IsPositive()
-    budgetCap!: number;
+  @IsOptional()
+  @IsString()
+  description?: string;
 
-    @IsOptional()
-    @IsNumber()
-    @Min(0)
-    currentSpent?: number;
+  @IsNumber()
+  @IsPositive()
+  budgetCap!: number;
 
-    @IsEnum(ProjectFundingType)
-    @IsString()
-    type!: ProjectFundingType;
+  // Architect Fix: Accept legacy audited spent baseline instead of runtime currentSpent
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  initialSpent?: number;
 
-    @IsString()
-    mentorId!: string;
+  @IsEnum(ProjectFundingType)
+  type!: ProjectFundingType;
 
-    @IsString()
-    @IsEnum(FacultyId)
-    facultyId!: FacultyId;
+  @IsEnum(FacultyId)
+  facultyId!: FacultyId;
 
-    @IsOptional()
-    @IsString()
-    deanId?: string;
+  // Optional: If omitted, backend controller will automatically fallback to req.user.uid
+  @IsOptional()
+  @IsString()
+  mentorId?: string;
 
-    @IsNumber()
-    @Min(1)
-    maxUses!: number;
+  @IsDateString()
+  startDate!: string;
 
-    @IsString()
-    expiresAt!: Date;
+  @IsDateString()
+  endDate!: string;
 
-    @IsDateString()
-    startDate!: Date;
+  // Optional Join Code configuration upon project creation
+  @IsOptional()
+  @IsBoolean()
+  generateJoinCode?: boolean;
 
-    @IsDateString()
-    endDate!: Date;
-}
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  maxUses?: number;
 
-export class AddStudentsToProjectDto {
-    @IsArray()
-    @IsString({ each: true })
-    @ArrayMinSize(1, { message: 'At least one student ID must be provided' })
-    studentIds!: string[];
-}
-
-export class GenerateProjectJoinCodeDto {
-    @IsNumber()
-    @Min(1)
-    maxUses!: number;
-
-    @IsDateString()
-    expiresAt!: Date;
+  @IsOptional()
+  @IsDateString()
+  expiresAt?: string;
 }

@@ -1,71 +1,153 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto } from '@school-expense-ecosystem/projects/features-backend';
+import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { Project, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 
 @Injectable()
 export class ProjectService {
-  constructor(private readonly projectRepo: ProjectRepository) {}
+  constructor(private readonly projectRepo: ProjectRepository) { }
 
-  async createProject(user: AuthenticatedUser ,dto: CreateProjectDto): Promise<Project> {
-    // Determine the initial approval workflow status based on funding source
+  async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<Project> {
     const hasApprovalAuthority = user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_2_DEAN;
-    const initialStatus: ProjectStatus = hasApprovalAuthority || dto.type !== ProjectFundingType.SCHOOL 
+    const initialStatus: ProjectStatus = hasApprovalAuthority || dto.type !== ProjectFundingType.SCHOOL
       ? ProjectStatus.ACTIVE
       : ProjectStatus.PENDING_DEAN_APPROVAL;
 
     const facultyPrefix = dto.facultyId.toUpperCase();
     const shortHash = randomBytes(3).toString('hex').toUpperCase();
     const projectId = `PRJ-${facultyPrefix}-${shortHash}`;
-    
-    // Generate an initial safe invitation code block using standard crypto utilities
-    const generatedCode = randomBytes(3).toString('hex').toUpperCase();
+
+    const initialSpent = dto.initialSpent ?? 0;
+    if (initialSpent > dto.budgetCap) {
+      throw new BadRequestException('Initial spent baseline cannot exceed project budget cap');
+    }
+
+    // Optional Join Code initialization
+    let joinConfig: Project['joinConfig'];
+    if (dto.generateJoinCode || dto.maxUses) {
+      joinConfig = {
+        code: `PRJ-${randomBytes(3).toString('hex').toUpperCase()}`,
+        maxUses: dto.maxUses ?? 30,
+        usedCount: 0,
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt).toISOString() : new Date(dto.endDate).toISOString(),
+      };
+    }
 
     const newProject: Project = {
       id: projectId,
       name: dto.name,
+      description: dto.description,
       type: dto.type,
       budgetCap: dto.budgetCap,
-      currentSpent: dto.currentSpent ?? 0,
+      initialSpent: initialSpent,
+      currentSpent: initialSpent,
+      pendingSpent: 0,
       status: initialStatus,
-      mentorId: dto.mentorId,
+      mentorId: dto.mentorId ?? user.uid,
       facultyId: dto.facultyId,
-      deanId: dto.deanId,
       startDate: new Date(dto.startDate).toISOString(),
       endDate: new Date(dto.endDate).toISOString(),
       joinedStudentIds: [],
-      joinConfig: {
-        code: generatedCode,
-        maxUses: dto.maxUses,
-        usedCount: 0,
-        expiresAt: new Date(dto.expiresAt).toISOString(),
-      }
+      joinConfig: joinConfig,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     return this.projectRepo.create(newProject);
   }
 
-  async addStudents(projectId: string, dto: AddStudentsToProjectDto): Promise<void> {
-    const project = await this.projectRepo.findById(projectId);
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
+  async updateProject(projectId: string, user: AuthenticatedUser, dto: UpdateProjectDto): Promise<Project> {
+    const project = await this.validateProjectAccess(projectId, user);
+
+    if (project.status === ProjectStatus.ARCHIVED) {
+      throw new BadRequestException('Cannot modify an archived project');
     }
 
-    // Defensive Check: Prevent roster mutation if the project has not cleared financial approval
-    if (project.status === 'PENDING_DEAN_APPROVAL') {
+    const updateData: Partial<Project> = {
+      ...(dto.name && { name: dto.name }),
+      ...(dto.description !== undefined && { description: dto.description }),
+      ...(dto.facultyId && { facultyId: dto.facultyId }),
+      ...(dto.startDate && { startDate: new Date(dto.startDate).toISOString() }),
+      ...(dto.endDate && { endDate: new Date(dto.endDate).toISOString() }),
+    };
+
+    await this.projectRepo.update(projectId, updateData);
+    return { ...project, ...updateData };
+  }
+
+  async archiveProject(projectId: string, user: AuthenticatedUser): Promise<void> {
+    const project = await this.validateProjectAccess(projectId, user);
+
+    if (project.status === ProjectStatus.ARCHIVED) {
+      throw new BadRequestException('Project is already archived');
+    }
+
+    if (project.pendingSpent > 0) {
+      throw new BadRequestException('Cannot archive project with pending expense requests in progress');
+    }
+
+    await this.projectRepo.update(projectId, { status: ProjectStatus.ARCHIVED });
+  }
+
+  async joinProjectByCode(user: AuthenticatedUser, dto: JoinProjectByCodeDto): Promise<Project> {
+    const project = await this.projectRepo.findByJoinCode(dto.code.trim().toUpperCase());
+    if (!project) {
+      throw new NotFoundException('Invalid invitation code or project does not exist');
+    }
+
+    if (project.status !== ProjectStatus.ACTIVE) {
+      throw new BadRequestException('Cannot join a project that is not currently active');
+    }
+
+    if (!project.joinConfig) {
+      throw new BadRequestException('Invitation joining is disabled for this project');
+    }
+
+    if (new Date(project.joinConfig.expiresAt) < new Date()) {
+      throw new BadRequestException('The project invitation code has expired');
+    }
+
+    if (project.joinConfig.usedCount >= project.joinConfig.maxUses) {
+      throw new BadRequestException('The maximum recruitment capacity for this code has been reached');
+    }
+
+    if (project.joinedStudentIds.includes(user.uid)) {
+      throw new ConflictException('You are already enrolled in this project');
+    }
+
+    await this.projectRepo.addStudentsBulk(project.id, [user.uid]);
+    await this.projectRepo.updateJoinConfig(project.id, {
+      ...project.joinConfig,
+      usedCount: project.joinConfig.usedCount + 1,
+    });
+
+    return project;
+  }
+
+  async removeStudent(projectId: string, studentId: string, user: AuthenticatedUser): Promise<void> {
+    const project = await this.validateProjectAccess(projectId, user);
+    
+    if (!project.joinedStudentIds.includes(studentId)) {
+      throw new NotFoundException(`Student ${studentId} is not enrolled in this project`);
+    }
+
+    await this.projectRepo.removeStudent(projectId, studentId);
+  }
+
+  async addStudents(projectId: string, user: AuthenticatedUser, dto: AddStudentsToProjectDto): Promise<void> {
+    const project = await this.validateProjectAccess(projectId, user);
+
+    if (project.status === ProjectStatus.PENDING_DEAN_APPROVAL) {
       throw new BadRequestException('Cannot modify student roster while project approval is pending');
     }
 
     await this.projectRepo.addStudentsBulk(projectId, dto.studentIds);
   }
 
-  async generateNewJoinCode(projectId: string, dto: GenerateProjectJoinCodeDto): Promise<Project['joinConfig']> {
-    const project = await this.projectRepo.findById(projectId);
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
-    }
+  async generateNewJoinCode(projectId: string, user: AuthenticatedUser, dto: GenerateProjectJoinCodeDto): Promise<Project['joinConfig']> {
+    const project = await this.validateProjectAccess(projectId, user);
 
     const secureCode = `PRJ-${randomBytes(3).toString('hex').toUpperCase()}`;
     const newConfig: Project['joinConfig'] = {
@@ -80,36 +162,44 @@ export class ProjectService {
   }
 
   async findById(projectId: string, user: AuthenticatedUser): Promise<Project> {
+    return this.validateProjectAccess(projectId, user);
+  }
+
+  async getProjectsForUser(user: AuthenticatedUser, query?: ProjectQueryDto): Promise<{ items: Project[]; total: number } | Project[]> {
+    // 1. Level 1 (Finance): Global Auditing Scope
+    if (user.role === Role.LEVEL_1_FINANCE) {
+      return this.projectRepo.findWithQuery(query ?? {});
+    }
+
+    // 2. Student Context: Enrolled Projects Scope
+    if (user.userType === UserType.STUDENT) {
+      return this.projectRepo.findProjectsByStudentId(user.uid);
+    }
+
+    // 3. Level 2 (Dean): Faculty Boundary Scope
+    if (user.role === Role.LEVEL_2_DEAN) {
+      return this.projectRepo.findWithQuery({ ...(query ?? {}), facultyId: user.facultyId });
+    }
+
+    // 4. Level 3 (Teacher/Mentor): Personal Projects Scope
+    return this.projectRepo.findProjectsByMentorId(user.uid);
+  }
+
+  private async validateProjectAccess(projectId: string, user: AuthenticatedUser): Promise<Project> {
     const project = await this.projectRepo.findById(projectId);
     if (!project) {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
     const isFinanceOfficer = user.role === Role.LEVEL_1_FINANCE;
-    if (!isFinanceOfficer && project.facultyId !== user.facultyId) {
-      throw new ForbiddenException('You do not have permission to access projects outside your faculty boundary');
+    const isProjectMentor = project.mentorId === user.uid;
+    const isEnrolledStudent = project.joinedStudentIds.includes(user.uid);
+    const isFacultyDean = user.role === Role.LEVEL_2_DEAN && project.facultyId === user.facultyId;
+
+    if (!isFinanceOfficer && !isProjectMentor && !isEnrolledStudent && !isFacultyDean) {
+      throw new ForbiddenException('You do not have permission to access or modify this project');
     }
 
     return project;
-  }
-
-  async getProjectsForUser(user: AuthenticatedUser): Promise<Project[]> {
-    // 1. Level 1 (Finance): Global Scope - Access all projects for auditing
-    if (user.role === Role.LEVEL_1_FINANCE) {
-      return this.projectRepo.findAll();
-    }
-
-    // 2. Student Context: Roster Scope - Access strictly enrolled projects
-    if (user.userType === UserType.STUDENT) {
-      return this.projectRepo.findProjectsByStudentId(user.uid);
-    }
-
-    // 3. Level 2 (Dean): Faculty Boundary Scope - Access all projects in their faculty
-    if (user.role === Role.LEVEL_2_DEAN) {
-      return this.projectRepo.findAll({ facultyId: user.facultyId });
-    }
-
-    // 4. Level 3 (Teacher): Mentorship Scope - Access strictly projects mentored by this teacher
-    return this.projectRepo.findProjectsByMentorId(user.uid);
   }
 }
