@@ -1,3 +1,4 @@
 export * from './lib/services/budget.service';
-export * from './lib/DTO/budget/base-budget.dto';
-export * from './lib/DTO/budget/create-budget.dto';
+export * from './lib/services/faculty.service';
+export * from './lib/repositories/abstracts/faculty.repository';
+export * from './lib/repositories/infrastructure/firestore-faculty.repository';

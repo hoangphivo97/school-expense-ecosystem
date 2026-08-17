@@ -70,11 +70,23 @@ export class ProjectListComponent implements OnInit {
 
   loadProjects(): void {
     this.isGridDataLoading.set(true);
-    // Architect Practice: Pass reactive filter params down to HTTP Client layer
-    this.projectApiService.getProjects().subscribe({
-      next: (projects) => {
-        this.projectsSignal.set(projects);
-        this.totalItems.set(projects.length);
+
+    const queryParams: Record<string, any> = {
+      page: this.currentPageIndex(),
+      limit: this.pageSize(),
+      ...this.filterParams(),
+    };
+
+    this.projectApiService.getProjects(queryParams).subscribe({
+      next: (response) => {
+        // Handle both paginated object and plain list responses cleanly
+        if (Array.isArray(response)) {
+          this.projectsSignal.set(response);
+          this.totalItems.set(response.length);
+        } else {
+          this.projectsSignal.set(response.items);
+          this.totalItems.set(response.total);
+        }
         this.isGridDataLoading.set(false);
       },
       error: () => this.isGridDataLoading.set(false),
@@ -90,19 +102,23 @@ export class ProjectListComponent implements OnInit {
 
   onProjectFiltersChanged(filters: SharedFilterFields): void {
     this.filterParams.set(filters);
-    // TODO: Connect filters to backend API query once Project filter specification is finalized
+    this.currentPageIndex.set(1); // Reset to first page upon applying new filter
+    this.loadProjects();
   }
 
   onPageChange(page: number): void {
     this.currentPageIndex.set(page);
+    this.loadProjects();
   }
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
+    this.currentPageIndex.set(1);
+    this.loadProjects();
   }
 
   navigateToDetail(projectId: string): void {
-    this.router.navigate(['/finance/projects', projectId]);
+    // this.router.navigate(['/finance/projects', projectId]);
   }
 
   openCreateProjectModal(): void {

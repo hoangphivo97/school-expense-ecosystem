@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { SharedFilterFields } from '@school-expense-ecosystem/shared/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
 
 @Injectable({
   providedIn: 'root',
@@ -16,18 +16,18 @@ export class ProjectApiService {
   /**
    * Fetch context-aware project list (Finance, Dean, Teacher, or Student)
    */
-  getProjects(filters?: SharedFilterFields): Observable<Project[]> {
+  getProjects(query?: ProjectQueryPayload): Observable<{ items: Project[]; total: number } | Project[]> {
     let params = new HttpParams();
 
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
+    if (query) {
+      Object.entries(query).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== '') {
           params = params.set(key, String(value));
         }
       });
     }
 
-    return this.http.get<Project[]>(this.apiUrl, { params });
+    return this.http.get<{ items: Project[]; total: number } | Project[]>(this.apiUrl, { params });
   }
 
   /**
@@ -44,6 +44,10 @@ export class ProjectApiService {
     return this.http.post<Project>(this.apiUrl, payload);
   }
 
+  archiveProject(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${id}/archive`, {});
+  }
+
   /**
    * Generate or reset invitation join code (Teacher / Dean)
    */
@@ -55,7 +59,7 @@ export class ProjectApiService {
    * Enroll current student into a project via Join Code
    */
   joinProjectByCode(payload: JoinProjectByCodePayload): Observable<Project> {
-    return this.http.post<Project>(`${this.apiUrl}/join-by-code`, payload);
+    return this.http.post<Project>(`${this.apiUrl}/join`, payload);
   }
 
   /**
@@ -63,5 +67,13 @@ export class ProjectApiService {
    */
   approveProject(projectId: string): Observable<Project> {
     return this.http.patch<Project>(`${this.apiUrl}/${projectId}/approve`, {});
+  }
+
+  addStudents(projectId: string, studentIds: string[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${projectId}/students`, { studentIds });
+  }
+
+  removeStudent(projectId: string, studentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${projectId}/students/${studentId}`);
   }
 }
