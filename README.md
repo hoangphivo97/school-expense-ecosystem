@@ -18,6 +18,32 @@ This platform enforces a strict **Role-Based Access Control (RBAC)** matrix acro
 ### Detail Diagram Link: [ARCHITECTURE](https://github.com/hoangphivo97/school-expense-ecosystem/blob/main/ARCHITECTURE.md)
 ---
  
+## 🔌 Database-Agnostic Persistence Layer (Ports & Adapters)
+Domain services and business controllers depend exclusively on abstract repository contracts (Dependency Inversion Principle), isolating business rules from underlying database engines.
+```text
+┌────────────────────────────────────────────────────────┐
+│                   Domain & Service Layer               │
+│               (ProjectService, AuthService)            │
+└───────────────────────────┬────────────────────────────┘
+                            │ depends on (Ports)
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│               Abstract Repository Contracts            │
+│            (ProjectRepository, AuthUserRepository)     │
+└───────────────────────────┬────────────────────────────┘
+                            │ implemented by (Adapters)
+        ┌───────────────────┴───────────────────┐
+        ▼                                       ▼
+┌──────────────────────────────┐    ┌─────────────────────────────────────┐
+│  FirestoreProjectRepository  │    │  SupabaseProjectRepository          │
+│   (Current NoSQL Driver)     │    │  (PostgreSQL ACID / RPC)(Planned)   │
+└──────────────────────────────┘    └─────────────────────────────────────┘
+```
+* **Zero Business Mutation**: Switching between cloud storage engines (e.g., Google Cloud Firestore $\leftrightarrow$ Supabase PostgreSQL / MongoDB) requires zero changes to core domain logic, controllers, or frontend API contracts.
+* **Modular Provider Swapping**: Swapping data drivers is isolated to a single provider token binding change inside the corresponding NestJS Data Access module (useClass: SupabaseProjectRepository).
+* **Encapsulated Concurrency**: Concurrency controls (such as atomic budget counters and multi-record updates) are implemented natively inside infrastructure adapters without leaking vendor SDK primitives into the domain layer.
+* **Streamlined Unit Testing**: Repository ports allow seamless mocking using fast in-memory adapters for isolated unit tests without spinning up heavy database emulators.
+
 
 ## 📂 System Topology & Library Boundaries
 
