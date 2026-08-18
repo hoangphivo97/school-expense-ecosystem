@@ -13,6 +13,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { Project, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectDialogComponent, CreateProjectDialogData } from '../dialogs/create-project-dialog/create-project-dialog.component';
 
 
 @Component({
@@ -126,8 +127,15 @@ export class ProjectListComponent implements OnInit {
   }
 
   openCreateProjectModal(): void {
-    // Open project creation dialog logic
-  }
+  const dialogData: CreateProjectDialogData = {
+    facultyId: this.currentUser()?.facultyId,
+  };
+
+  this.dialog.open(CreateProjectDialogComponent, {
+    width: '700px',
+    data: dialogData,
+  });
+}
 
   openJoinByCodeModal(): void {
     // Open student join code input dialog logic

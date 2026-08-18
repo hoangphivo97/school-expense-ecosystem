@@ -1,6 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule, MatHint } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { TRANSLOCO_SCOPE } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { CreateProjectPayload, ProjectFundingType } from '@school-expense-ecosystem/projects/types';
 import { FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
@@ -13,16 +21,21 @@ export interface CreateProjectDialogData {
 
 @Component({
   selector: 'lib-create-project-dialog',
-  imports: [],
+  imports: [MatDialogModule, MatIconModule, MatHint, MatFormFieldModule, MatSelectModule, ReactiveFormsModule, MatDatepickerModule, MatInputModule, MatButtonModule],
   templateUrl: './create-project-dialog.component.html',
   styleUrl: './create-project-dialog.component.scss',
+  providers: [
+    provideNativeDateAdapter(),
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+    { provide: TRANSLOCO_SCOPE, useValue: 'admin' }
+  ],
 })
 export class CreateProjectDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<CreateProjectDialogComponent>);
   private readonly projectApiService = inject(ProjectApiService);
   private readonly facultyApiService = inject(FacultyApiService);
-  
+
   readonly data = inject<CreateProjectDialogData>(MAT_DIALOG_DATA, { optional: true });
 
   readonly isSubmitting = signal<boolean>(false);
