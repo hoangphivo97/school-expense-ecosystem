@@ -4,7 +4,7 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
-export class ThemeService {
+export class DarkModeService {
   isDarkMode = signal(false);
   private readonly _document = inject(DOCUMENT)
 

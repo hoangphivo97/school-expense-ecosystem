@@ -1,3 +1,4 @@
-export * from './lib/shared-data-access/ThemeService/theme.service';
-export * from './lib/shared-data-access/LocalStorage/local-storage.service';
-export * from './lib/shared-data-access/auth-signal.store';
+export * from './lib/auth-store/auth-signal.store';
+export * from './lib/faculty-service/faculty-api.service';
+export * from './lib/local-storage-service/local-storage.service';
+export * from './lib/theme-service/dark-mode.service';

@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { ThemeService } from './theme.service';
 import { expect, describe, it, beforeEach } from '@jest/globals';
+import {DarkModeService} from './dark-mode.service';
 
 describe('Theme', () => {
-  let service: ThemeService;
+  let service: DarkModeService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(ThemeService);
+    service = TestBed.inject(DarkModeService);
   });
 
   it('should be created', () => {
