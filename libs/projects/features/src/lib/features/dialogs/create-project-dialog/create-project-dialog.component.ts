@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { CreateProjectPayload, ProjectFundingType } from '@school-expense-ecosystem/projects/types';
+import { FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
 
 export interface CreateProjectDialogData {
@@ -20,19 +21,19 @@ export class CreateProjectDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<CreateProjectDialogComponent>);
   private readonly projectApiService = inject(ProjectApiService);
+  private readonly facultyApiService = inject(FacultyApiService);
+  
   readonly data = inject<CreateProjectDialogData>(MAT_DIALOG_DATA, { optional: true });
 
   readonly isSubmitting = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
 
   readonly fundingTypes = Object.values(ProjectFundingType);
-  readonly defaultFaculties: { id: FacultyId; name: string }[] = [
-    { id: FacultyId.FIT, name: 'Information Technology' },
-    { id: FacultyId.FBE, name: 'Faculty of Business and Economics' },
-    { id: FacultyId.FLL, name: 'Faculty of Foreign Languages' },
-  ];
+  readonly faculties = computed(
+    () => this.data?.availableFaculties ?? this.facultyApiService.facultiesResource.value()
+  );
 
-  readonly faculties = this.data?.availableFaculties ?? this.defaultFaculties;
+  readonly isFacultiesLoading = this.facultyApiService.facultiesResource.isLoading;
 
   readonly form: FormGroup = this.fb.group(
     {

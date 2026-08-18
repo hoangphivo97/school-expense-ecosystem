@@ -2,7 +2,7 @@ import { Component, OnInit, Signal, computed, inject, signal } from '@angular/co
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { FilterMode, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
-import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -27,6 +27,7 @@ import { Project, ProjectStatus } from '@school-expense-ecosystem/projects/types
 export class ProjectListComponent implements OnInit {
   private readonly projectApiService = inject(ProjectApiService);
   private readonly authSignalStore = inject(AuthSignalStore);
+  private readonly facultyApiService = inject(FacultyApiService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
@@ -42,11 +43,14 @@ export class ProjectListComponent implements OnInit {
   // Auth Context Signals
   readonly currentUser = this.authSignalStore.user;
   readonly isStudent = computed(() => this.currentUser()?.userType === UserType.STUDENT);
-  readonly facultiesListSignal = signal<{ facultyId: string; facultyName: string }[]>([
-    { facultyId: 'FIT', facultyName: 'Information Technology' },
-    { facultyId: 'FBA', facultyName: 'Business Administration' },
-    { facultyId: 'FET', facultyName: 'Engineering & Technology' }
-  ]);
+
+  // Dynamic Lookup Signals
+  readonly facultiesListSignal = computed(() =>
+    this.facultyApiService.facultiesResource.value().map((faculty) => ({
+      facultyId: faculty.id,
+      facultyName: faculty.name,
+    }))
+  );
 
   // Reactive Grid Data & Columns
   readonly dataSource = computed(() => this.projectsSignal());
