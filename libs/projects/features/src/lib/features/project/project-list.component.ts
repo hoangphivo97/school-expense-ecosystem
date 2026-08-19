@@ -1,7 +1,7 @@
 import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { FilterMode, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { DialogData, FacultyId, FilterMode, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
@@ -12,8 +12,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { Project, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { Project, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { CreateProjectDialogComponent, CreateProjectDialogData } from '../dialogs/create-project-dialog/create-project-dialog.component';
+import { filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 @Component({
@@ -33,13 +35,30 @@ export class ProjectListComponent implements OnInit {
   private readonly router = inject(Router);
 
   // State Signals
-  readonly isGridDataLoading = signal<boolean>(false);
-  readonly projectsSignal = signal<Project[]>([]);
-  readonly totalItems = signal<number>(0);
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(1);
   readonly filterParams = signal<SharedFilterFields>({});
   readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
+
+  // 2. Computed Query Pipeline
+  readonly queryParams = computed<ProjectQueryPayload>(() => {
+    const filters = this.filterParams();
+    return {
+      page: this.currentPageIndex(),
+      limit: this.pageSize(),
+      ...(filters.searchTerm ? { search: filters.searchTerm.trim() } : {}),
+      ...(filters.facultyId ? { facultyId: filters.facultyId as FacultyId } : {}),
+      ...(filters.status ? { status: filters.status as ProjectStatus } : {}),
+    }
+  });
+
+  // 3. Declarative HTTP Resource 
+  readonly projectsResource = this.projectApiService.getProjectsResource(this.queryParams);
+
+  // 4. State Signals dẫn xuất trực tiếp từ Resource (Không cần set thủ công)
+  readonly isGridDataLoading = this.projectsResource.isLoading;
+  readonly dataSource = computed(() => this.projectsResource.value().items);
+  readonly totalItems = computed(() => this.projectsResource.value().total);
 
   // Auth Context Signals
   readonly currentUser = this.authSignalStore.user;
@@ -54,7 +73,6 @@ export class ProjectListComponent implements OnInit {
   );
 
   // Reactive Grid Data & Columns
-  readonly dataSource = computed(() => this.projectsSignal());
   readonly dynamicDisplayedColumns: Signal<string[]> = computed(() => [
     'id',
     'name',
@@ -70,32 +88,6 @@ export class ProjectListComponent implements OnInit {
   filterModeEnum = FilterMode
 
   ngOnInit(): void {
-    this.loadProjects();
-  }
-
-  loadProjects(): void {
-    this.isGridDataLoading.set(true);
-
-    const queryParams: Record<string, any> = {
-      page: this.currentPageIndex(),
-      limit: this.pageSize(),
-      ...this.filterParams(),
-    };
-
-    this.projectApiService.getProjects(queryParams).subscribe({
-      next: (response) => {
-        // Handle both paginated object and plain list responses cleanly
-        if (Array.isArray(response)) {
-          this.projectsSignal.set(response);
-          this.totalItems.set(response.length);
-        } else {
-          this.projectsSignal.set(response.items);
-          this.totalItems.set(response.total);
-        }
-        this.isGridDataLoading.set(false);
-      },
-      error: () => this.isGridDataLoading.set(false),
-    });
   }
 
   canManageJoinCode(project: Project): boolean {
@@ -108,18 +100,15 @@ export class ProjectListComponent implements OnInit {
   onProjectFiltersChanged(filters: SharedFilterFields): void {
     this.filterParams.set(filters);
     this.currentPageIndex.set(1); // Reset to first page upon applying new filter
-    this.loadProjects();
   }
 
   onPageChange(page: number): void {
     this.currentPageIndex.set(page);
-    this.loadProjects();
   }
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
     this.currentPageIndex.set(1);
-    this.loadProjects();
   }
 
   navigateToDetail(projectId: string): void {
@@ -127,15 +116,22 @@ export class ProjectListComponent implements OnInit {
   }
 
   openCreateProjectModal(): void {
-  const dialogData: CreateProjectDialogData = {
-    facultyId: this.currentUser()?.facultyId,
-  };
+    const dialogData: CreateProjectDialogData = {
+      facultyId: this.currentUser()?.facultyId,
+    };
 
-  this.dialog.open(CreateProjectDialogComponent, {
-    width: '700px',
-    data: dialogData,
-  });
-}
+    const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
+      width: '700px',
+      data: dialogData,
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((createdProject) => {
+      if (createdProject) {
+        this.projectsResource.reload();
+      }
+    });
+  }
 
   openJoinByCodeModal(): void {
     // Open student join code input dialog logic

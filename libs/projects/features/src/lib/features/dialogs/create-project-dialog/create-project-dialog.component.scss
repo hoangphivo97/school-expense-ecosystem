@@ -1,137 +1,163 @@
-.dialog-container {
-  display: flex;
-  flex-direction: column;
-  max-width: 700px;
-  width: 100%;
-}
+:host {
+  display: block;
+  background-color: var(--bg-modal, #ffffff);
+  color: var(--text-primary, #1e293b);
 
-.dialog-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem 0.5rem;
-  margin: 0;
-
-  .header-title {
+  .modal-wrapper {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-
-    .header-icon {
-      font-size: 28px;
-      width: 28px;
-      height: 28px;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--mat-dialog-headline-color, rgba(0, 0, 0, 0.87));
-    }
-  }
-}
-
-.dialog-content {
-  padding: 1rem 1.5rem !important;
-  max-height: 75vh;
-  overflow-y: auto;
-
-  .alert-banner {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    margin-bottom: 1rem;
-
-    mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
-
-    &.error-banner {
-      background-color: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-
-    &.warning-banner {
-      background-color: #fef3c7;
-      color: #92400e;
-      border: 1px solid #fde68a;
-    }
+    flex-direction: column;
+    max-height: 85vh;
+    overflow: hidden;
   }
 
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    margin-top: 0.5rem;
+  .modal-header-box {
+    padding: 24px 24px 16px;
 
-    .full-width {
-      grid-column: span 2;
+    .title-icon-wrapper {
+      background: rgba(103, 58, 183, 0.1);
+      padding: 12px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      mat-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 26px;
+      }
     }
 
-    mat-form-field {
-      width: 100%;
+    .title-text-group {
+      .main-title-text {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary, #1e293b);
+        line-height: 1.2;
+      }
 
-      .input-prefix {
-        margin-right: 4px;
-        color: rgba(0, 0, 0, 0.54);
-        font-weight: 500;
+      .sub-title-text {
+        font-size: 13px;
+        color: var(--text-primary, #1e293b);
+        opacity: 0.6;
+        margin-top: 4px;
       }
     }
   }
 
-  ::ng-deep .faculty-dropdown-panel {
-    min-width: calc(100% + 40px) !important;
-    max-width: 480px !important;
-    border-radius: 8px !important;
+  .custom-content {
+    flex: 1;
+    overflow-y: auto;
+    margin: 0 !important;
+    padding: 16px 24px !important;
+    background-color: var(--bg-modal, #ffffff);
 
-    .mat-mdc-option {
-      font-family: inherit !important;
-      font-size: 14px !important;
-      min-height: 44px !important;
-      padding: 0 16px !important;
-      letter-spacing: normal !important;
-
-      .mdc-list-item__primary-text {
-        font-family: inherit !important;
-        font-size: 14px !important;
-        color: rgba(0, 0, 0, 0.87);
-        white-space: normal;
-        line-height: 1.4;
+    ::ng-deep {
+      .mdc-text-field--outlined {
+        border-radius: 12px !important;
+        background-color: var(--bg-input, transparent);
       }
 
-      // Trạng thái hover và active đồng bộ màu theme
-      &:hover:not(.mdc-list-item--disabled) {
-        background-color: rgba(0, 0, 0, 0.04) !important;
+      // Trạng thái Tĩnh (Default): Icon xám trầm
+      .field-icon {
+        color: var(--text-primary, #1e293b) !important;
+        opacity: 0.45;
+        transition: opacity 0.2s ease, color 0.2s ease;
       }
 
-      &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
-        background-color: rgba(103, 58, 183, 0.08) !important; // Hoặc màu primary của app
+      mat-label,
+      input::placeholder,
+      textarea::placeholder {
+        color: var(--text-primary, #64748b);
+      }
 
-        .mdc-list-item__primary-text {
-          color: var(--mat-select-focused-arrow-color, #5b21b6) !important;
-          font-weight: 500 !important;
+      mat-mdc-select-value,
+      .mdc-text-field__input,
+      .mat-mdc-select-arrow {
+        color: var(--text-primary, #1e293b);
+      }
+
+      // Trạng thái FOCUS: Icon chuyển sang màu Primary
+      .mdc-text-field--focused {
+        .field-icon {
+          opacity: 1;
+          color: var(--mdc-outlined-text-field-focus-border-color, #673ab7) !important;
         }
       }
+
+      // Trạng thái ERROR (Invalid): Icon chuyển sang màu Error
+      .mat-form-field-invalid {
+        .field-icon {
+          opacity: 1;
+          color: var(--mdc-outlined-text-field-error-border-color, #f44336) !important;
+        }
+      }
+
+      // Căn chỉnh vị trí icon trong Textarea
+      .mat-mdc-form-field-prefix {
+        display: inline-flex;
+        align-items: center;
+
+        .refined-textarea-icon {
+          align-self: flex-start;
+          margin-top: 10px;
+        }
+      }
+
+      .currency-suffix {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-primary, #1e293b);
+        opacity: 0.6;
+        margin-right: 4px;
+      }
+    }
+  }
+
+  .modal-footer {
+    padding: 16px 24px 24px !important;
+    border-top: 1px solid var(--mat-divider-color, rgba(0, 0, 0, 0.08));
+
+    .submit-btn {
+      display: inline-flex;
+      align-items: center;
     }
   }
 }
 
-.dialog-actions {
-  padding: 1rem 1.5rem !important;
-  border-top: 1px solid var(--mat-divider-color, rgba(0, 0, 0, 0.08));
-  gap: 0.75rem;
+// Panel Dropdown của Faculty
+::ng-deep .faculty-dropdown-panel {
+  min-width: calc(100% + 40px) !important;
+  max-width: 480px !important;
+  border-radius: 8px !important;
 
-  .submit-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+  .mat-mdc-option {
+    font-family: inherit !important;
+    font-size: 14px !important;
+    min-height: 44px !important;
+    padding: 0 16px !important;
+
+    .mdc-list-item__primary-text {
+      font-family: inherit !important;
+      font-size: 14px !important;
+      color: rgba(0, 0, 0, 0.87);
+      white-space: normal;
+      line-height: 1.4;
+    }
+
+    &:hover:not(.mdc-list-item--disabled) {
+      background-color: rgba(0, 0, 0, 0.04) !important;
+    }
+
+    &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+      background-color: rgba(103, 58, 183, 0.08) !important;
+
+      .mdc-list-item__primary-text {
+        color: #5b21b6 !important;
+        font-weight: 500 !important;
+      }
+    }
   }
 }
 
@@ -142,16 +168,5 @@
 @keyframes spin {
   100% {
     transform: rotate(360deg);
-  }
-}
-
-// Responsive breakdown for smaller screens / mobile viewport
-@media (max-width: 600px) {
-  .dialog-content .form-grid {
-    grid-template-columns: 1fr;
-
-    .col-span-2 {
-      grid-column: span 1;
-    }
   }
 }

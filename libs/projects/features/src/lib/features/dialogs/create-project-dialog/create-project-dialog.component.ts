@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,7 +28,8 @@ export interface CreateProjectDialogData {
   providers: [
     provideNativeDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
-    { provide: TRANSLOCO_SCOPE, useValue: 'admin' }
+    { provide: TRANSLOCO_SCOPE, useValue: 'admin' },
+    DecimalPipe
   ],
 })
 export class CreateProjectDialogComponent {
@@ -35,6 +37,7 @@ export class CreateProjectDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<CreateProjectDialogComponent>);
   private readonly projectApiService = inject(ProjectApiService);
   private readonly facultyApiService = inject(FacultyApiService);
+  private readonly decimalPipe = inject(DecimalPipe);
 
   readonly data = inject<CreateProjectDialogData>(MAT_DIALOG_DATA, { optional: true });
 
@@ -54,7 +57,7 @@ export class CreateProjectDialogComponent {
       description: ['', [Validators.maxLength(500)]],
       type: [ProjectFundingType.SCHOOL, [Validators.required]],
       facultyId: [this.data?.facultyId ?? FacultyId.FIT, [Validators.required]],
-      budgetCap: [null, [Validators.required, Validators.min(1)]],
+      budgetCap: [0, [Validators.required, Validators.min(1)]],
       initialSpent: [0, [Validators.min(0)]],
       startDate: [new Date(), [Validators.required]],
       endDate: [null, [Validators.required]],
@@ -66,8 +69,18 @@ export class CreateProjectDialogComponent {
   private validateDateRange(control: AbstractControl): ValidationErrors | null {
     const start = control.get('startDate')?.value;
     const end = control.get('endDate')?.value;
-    if (start && end && new Date(start) > new Date(end)) {
-      return { invalidDateRange: true };
+
+    if (start && end) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+
+      // Set to midnight to compare purely on date boundaries
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+
+      if (startDate > endDate) {
+        return { invalidDateRange: true };
+      }
     }
     return null;
   }
@@ -80,6 +93,29 @@ export class CreateProjectDialogComponent {
       return { initialSpentExceedsBudget: true };
     }
     return null;
+  }
+
+  onInputAmount(event: Event, controlName: 'budgetCap' | 'initialSpent'): void {
+    const inputElement = event.target as HTMLInputElement;
+    const sanitized = inputElement.value.replace(/,/g, '').replace(/[^0-9.]/g, '').trim();
+
+    if (sanitized === '' || sanitized === '.') {
+      this.form.get(controlName)?.setValue(null, { emitEvent: false });
+      this.form.get(controlName)?.updateValueAndValidity();
+      inputElement.value = '';
+      return;
+    }
+
+    const numericValue = parseFloat(sanitized);
+    if (!isNaN(numericValue)) {
+      this.form.get(controlName)?.setValue(numericValue, { emitEvent: false });
+      this.form.get(controlName)?.updateValueAndValidity();
+      inputElement.value = this.decimalPipe.transform(numericValue, '1.0-2') || '';
+    } else {
+      this.form.get(controlName)?.setValue(null, { emitEvent: false });
+      this.form.get(controlName)?.updateValueAndValidity();
+      inputElement.value = '';
+    }
   }
 
   onSubmit(): void {

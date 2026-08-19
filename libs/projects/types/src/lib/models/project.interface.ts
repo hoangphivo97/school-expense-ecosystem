@@ -22,7 +22,7 @@ export interface Project {
     mentorId: string;
     startDate: string;
     endDate: string;
-    joinConfig?: ProjectJoinConfig;
+    joinConfig?: ProjectJoinConfig | null;
     joinedStudentIds: string[];
     createdAt?: string;
     updatedAt?: string;

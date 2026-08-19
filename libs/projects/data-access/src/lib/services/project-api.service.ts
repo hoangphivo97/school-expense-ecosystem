@@ -1,7 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
-import { SharedFilterFields } from '@school-expense-ecosystem/shared/types';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
 
@@ -16,25 +15,38 @@ export class ProjectApiService {
   /**
    * Fetch context-aware project list (Finance, Dean, Teacher, or Student)
    */
-  getProjects(query?: ProjectQueryPayload): Observable<{ items: Project[]; total: number } | Project[]> {
-    let params = new HttpParams();
+  getProjectsResource(queryFn?: () => ProjectQueryPayload | undefined) {
+    return httpResource<{ items: Project[]; total: number }>(() => {
+      const query = queryFn ? queryFn() : undefined;
+      const params: Record<string, string> = {};
 
-    if (query) {
-      Object.entries(query).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
-          params = params.set(key, String(value));
-        }
-      });
-    }
+      if (query) {
+        Object.entries(query).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && value !== '') {
+            params[key] = String(value);
+          }
+        });
+      }
 
-    return this.http.get<{ items: Project[]; total: number } | Project[]>(this.apiUrl, { params });
+      return {
+        url: this.apiUrl,
+        params,
+      };
+    }, {
+      defaultValue: { items: [], total: 0 },
+    });
   }
 
   /**
    * Fetch single project details by ID
    */
-  getProjectById(id: string): Observable<Project> {
-    return this.http.get<Project>(`${this.apiUrl}/${id}`);
+  getProjectByIdResource(idFn: () => string | null | undefined) {
+    return httpResource<Project | null>(() => {
+      const id = idFn();
+      return id ? `${this.apiUrl}/${id}` : undefined;
+    }, {
+      defaultValue: null,
+    });
   }
 
   /**

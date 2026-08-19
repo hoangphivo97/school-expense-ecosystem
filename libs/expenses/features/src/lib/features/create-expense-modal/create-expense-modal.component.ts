@@ -85,7 +85,7 @@ export class CreateExpenseModalComponent implements OnInit {
     description: ['', [Validators.required, Validators.minLength(5)]],
     purpose: ['', [Validators.required]],
     paidMethod: [PaidMethod.CASH, [Validators.required]],
-    amount: [0 as number, [Validators.required]],
+    amount: [0, [Validators.required]],
     proofUrls: [[] as string[], Validators.required]
   });
 

@@ -25,7 +25,7 @@ export class ProjectService {
     }
 
     // Optional Join Code initialization
-    let joinConfig: Project['joinConfig'];
+    let joinConfig: Project['joinConfig'] | null = null;
     if (dto.generateJoinCode || dto.maxUses) {
       joinConfig = {
         code: `PRJ-${randomBytes(3).toString('hex').toUpperCase()}`,

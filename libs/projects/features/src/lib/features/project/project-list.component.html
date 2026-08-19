@@ -6,9 +6,7 @@
     [value]="filterParams()"
     (filterChange)="onProjectFiltersChanged($event)"
     [facultiesList]="facultiesListSignal()"
-    >
-
-    <!-- Action button based on User Role -->
+  >
     @if (isStudent()) {
       <button primaryAction mat-flat-button color="primary" (click)="openJoinByCodeModal()">
         <mat-icon>vpn_key</mat-icon> {{ t('actions.joinByCode') }}
@@ -61,7 +59,7 @@
           <ng-container matColumnDef="budgetCap">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.budgetCap') }}</th>
             <td mat-cell *matCellDef="let project" class="fw-bold text-dark">
-              {{ project.budgetCap | number: '1.0-0' }} VND
+              {{ project.budgetCap | number: '1.0-0' }} TWD
             </td>
           </ng-container>
 
@@ -69,7 +67,7 @@
           <ng-container matColumnDef="currentSpent">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.currentSpent') }}</th>
             <td mat-cell *matCellDef="let project" class="text-secondary">
-              {{ project.currentSpent | number: '1.0-0' }} VND
+              {{ project.currentSpent | number: '1.0-0' }} TWD
             </td>
           </ng-container>
 
