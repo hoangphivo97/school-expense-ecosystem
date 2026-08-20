@@ -1,7 +1,7 @@
 import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { DialogData, FacultyId, FilterMode, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
+import { MatDialog } from '@angular/material/dialog';
+import { FacultyId, FilterMode, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
@@ -14,8 +14,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { Project, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { CreateProjectDialogComponent, CreateProjectDialogData } from '../dialogs/create-project-dialog/create-project-dialog.component';
-import { filter } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 @Component({
@@ -112,7 +110,7 @@ export class ProjectListComponent implements OnInit {
   }
 
   navigateToDetail(projectId: string): void {
-    // this.router.navigate(['/finance/projects', projectId]);
+    this.router.navigate(['/projects', projectId]);
   }
 
   openCreateProjectModal(): void {

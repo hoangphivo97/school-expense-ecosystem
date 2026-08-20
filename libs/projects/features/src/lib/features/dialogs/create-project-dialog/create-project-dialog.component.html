@@ -1,12 +1,12 @@
-<div class="modal-wrapper">
+<div class="modal-wrapper" *transloco="let t; read: 'project.createDialog'">
   <!-- Modal Header Box -->
   <div class="modal-header-box d-flex align-items-center">
     <div class="title-icon-wrapper me-3">
       <mat-icon color="primary">create_new_folder</mat-icon>
     </div>
     <div class="title-text-group d-flex flex-column">
-      <h2 class="main-title-text m-0">Create New Project</h2>
-      <p class="sub-title-text m-0">Define project budget limits, funding scope, and timeline</p>
+      <h2 class="main-title-text m-0">{{ t('title') }}</h2>
+      <p class="sub-title-text m-0">{{ t('subtitle') }}</p>
     </div>
   </div>
 
@@ -14,40 +14,39 @@
     <form [formGroup]="form" class="w-100 py-2">
       <!-- Global Server Error Banner -->
       @if (errorMessage()) {
-      <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-        <mat-icon class="fs-5 w-auto h-auto text-danger">error_outline</mat-icon>
-        <span>{{ errorMessage() }}</span>
-      </div>
+        <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto text-danger">error_outline</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
       }
 
       <!-- Cross-field Validation Warnings -->
       @if (form.errors?.['invalidDateRange'] && (form.get('endDate')?.touched || form.get('startDate')?.touched)) {
-      <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-        <mat-icon class="fs-5 w-auto h-auto text-warning">warning_amber</mat-icon>
-        <span>Timeline Constraint: Start date must be earlier than or equal to End date.</span>
-      </div>
+        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto text-warning">warning_amber</mat-icon>
+          <span>{{ t('warnings.invalidDateRange') }}</span>
+        </div>
       }
 
-      @if (form.errors?.['initialSpentExceedsBudget'] && (form.get('initialSpent')?.touched ||
-      form.get('budgetCap')?.touched)) {
-      <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-        <mat-icon class="fs-5 w-auto h-auto text-warning">warning_amber</mat-icon>
-        <span>Budget Constraint: Initial spent cannot exceed the total designated budget cap.</span>
-      </div>
+      @if (form.errors?.['initialSpentExceedsBudget'] && (form.get('initialSpent')?.touched || form.get('budgetCap')?.touched)) {
+        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto text-warning">warning_amber</mat-icon>
+          <span>{{ t('warnings.initialSpentExceedsBudget') }}</span>
+        </div>
       }
 
       <div class="row g-4 m-0">
-        <!-- Project Name (Full Width) -->
+        <!-- Project Name -->
         <div class="col-12">
           <mat-form-field appearance="outline" class="w-100 custom-field">
-            <mat-label>Project Name</mat-label>
+            <mat-label>{{ t('fields.name.label') }}</mat-label>
             <mat-icon matIconPrefix class="field-icon">folder_special</mat-icon>
-            <input matInput formControlName="name" placeholder="e.g., AI Research & Lab Automation" maxlength="150" />
+            <input matInput formControlName="name" [placeholder]="t('fields.name.placeholder')" maxlength="150" />
             @if (form.get('name')?.hasError('required')) {
-            <mat-error>Project name is required</mat-error>
+              <mat-error>{{ t('fields.name.errors.required') }}</mat-error>
             }
             @if (form.get('name')?.hasError('maxlength')) {
-            <mat-error>Project name must not exceed 150 characters</mat-error>
+              <mat-error>{{ t('fields.name.errors.maxlength') }}</mat-error>
             }
           </mat-form-field>
         </div>
@@ -55,26 +54,30 @@
         <!-- Funding Type -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field">
-            <mat-label>Funding Type</mat-label>
+            <mat-label>{{ t('fields.type.label') }}</mat-label>
             <mat-select formControlName="type">
               <mat-select-trigger>
                 <div class="d-flex align-items-center gap-2">
                   <mat-icon class="fs-6 h-auto w-auto field-icon">account_balance</mat-icon>
-                  <span class="selected-value">{{ form.get('type')?.value }}</span>
+                  <span class="selected-value">
+                    {{ 'shared.filter.options.projectType.' + form.get('type')?.value | transloco }}
+                  </span>
                 </div>
               </mat-select-trigger>
               @for (type of fundingTypes; track type) {
-              <mat-option [value]="type">{{ type }}</mat-option>
+                <mat-option [value]="type">
+                  {{ 'shared.filter.options.projectType.' + type | transloco }}
+                </mat-option>
               }
             </mat-select>
-            <mat-error>Funding type is required</mat-error>
+            <mat-error>{{ t('fields.type.errors.required') }}</mat-error>
           </mat-form-field>
         </div>
 
         <!-- Faculty / Department -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field">
-            <mat-label>Faculty / Department</mat-label>
+            <mat-label>{{ t('fields.faculty.label') }}</mat-label>
             <mat-select formControlName="facultyId" panelClass="faculty-dropdown-panel">
               <mat-select-trigger>
                 <div class="d-flex align-items-center gap-2">
@@ -83,80 +86,93 @@
                 </div>
               </mat-select-trigger>
               @if (isFacultiesLoading()) {
-              <mat-option disabled>Loading faculties...</mat-option>
+                <mat-option disabled>{{ t('fields.faculty.loading') }}</mat-option>
               }
               @for (faculty of faculties(); track faculty.id) {
-              <mat-option [value]="faculty.id">
-                {{ faculty.name }} ({{ faculty.id }})
-              </mat-option>
+                <mat-option [value]="faculty.id">
+                  {{ faculty.name }} ({{ faculty.id }})
+                </mat-option>
               }
             </mat-select>
-            <mat-error>Faculty assignment is required</mat-error>
+            <mat-error>{{ t('fields.faculty.errors.required') }}</mat-error>
           </mat-form-field>
         </div>
 
         <!-- Budget Cap -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field amount-field">
-            <mat-label>Budget Cap (Total Limit)</mat-label>
+            <mat-label>{{ t('fields.budgetCap.label') }}</mat-label>
             <mat-icon matIconPrefix class="field-icon">payments</mat-icon>
             <span matTextSuffix class="currency-suffix">TWD</span>
             <input matInput formControlName="budgetCap" (input)="onInputAmount($event, 'budgetCap')" placeholder="0" />
             @if (form.get('budgetCap')?.hasError('required')) {
-            <mat-error>Budget cap is required</mat-error>
+              <mat-error>{{ t('fields.budgetCap.errors.required') }}</mat-error>
             }
-            <mat-error>Budget cap must be greater than 0</mat-error>
+            <mat-error>{{ t('fields.budgetCap.errors.min') }}</mat-error>
           </mat-form-field>
         </div>
 
         <!-- Initial Spent -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field amount-field">
-            <mat-label>Initial Committed Spent</mat-label>
+            <mat-label>{{ t('fields.initialSpent.label') }}</mat-label>
             <mat-icon matIconPrefix class="field-icon">account_balance_wallet</mat-icon>
             <span matTextSuffix class="currency-suffix">TWD</span>
-            <input matInput formControlName="initialSpent" (input)="onInputAmount($event, 'initialSpent')"
-              placeholder="0" />
-            <mat-hint align="end" class="fw-medium">Historical committed expenses</mat-hint>
-            <mat-error>Initial spent cannot be negative</mat-error>
+            <input matInput formControlName="initialSpent" (input)="onInputAmount($event, 'initialSpent')" placeholder="0" />
+            <mat-hint align="end" class="fw-medium">{{ t('fields.initialSpent.hint') }}</mat-hint>
+            <mat-error>{{ t('fields.initialSpent.errors.min') }}</mat-error>
           </mat-form-field>
         </div>
 
         <!-- Start Date -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field">
-            <mat-label>Start Date</mat-label>
-            <input matInput [matDatepicker]="startPicker" formControlName="startDate" readonly
-              [max]="form.get('endDate')?.value" readonly />
+            <mat-label>{{ t('fields.startDate.label') }}</mat-label>
+            <input
+              matInput
+              [matDatepicker]="startPicker"
+              formControlName="startDate"
+              [max]="form.get('endDate')?.value"
+              readonly
+            />
             <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
             <mat-datepicker #startPicker></mat-datepicker>
-            <mat-error>Start date is required</mat-error>
+            <mat-error>{{ t('fields.startDate.errors.required') }}</mat-error>
           </mat-form-field>
         </div>
 
         <!-- End Date -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field">
-            <mat-label>End Date</mat-label>
-            <input matInput [matDatepicker]="endPicker" formControlName="endDate" [min]="form.get('startDate')?.value"
-              readonly />
+            <mat-label>{{ t('fields.endDate.label') }}</mat-label>
+            <input
+              matInput
+              [matDatepicker]="endPicker"
+              formControlName="endDate"
+              [min]="form.get('startDate')?.value"
+              readonly
+            />
             <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
             <mat-datepicker #endPicker></mat-datepicker>
-            <mat-error>End date is required</mat-error>
+            <mat-error>{{ t('fields.endDate.errors.required') }}</mat-error>
           </mat-form-field>
         </div>
 
-        <!-- Description (Full Width) -->
+        <!-- Description -->
         <div class="col-12">
           <mat-form-field appearance="outline" class="w-100 custom-field">
-            <mat-label>Project Scope & Description</mat-label>
+            <mat-label>{{ t('fields.description.label') }}</mat-label>
             <mat-icon matIconPrefix class="field-icon refined-textarea-icon">notes</mat-icon>
-            <textarea matInput rows="3" formControlName="description"
-              placeholder="Explain project deliverables, objectives, and expenditure justification..."
-              maxlength="500"></textarea>
+            <textarea
+              matInput
+              rows="3"
+              formControlName="description"
+              [placeholder]="t('fields.description.placeholder')"
+              maxlength="500"
+            ></textarea>
             <mat-hint align="end">{{ form.get('description')?.value?.length || 0 }} / 500</mat-hint>
             @if (form.get('description')?.hasError('maxlength')) {
-            <mat-error>Description cannot exceed 500 characters</mat-error>
+              <mat-error>{{ t('fields.description.errors.maxlength') }}</mat-error>
             }
           </mat-form-field>
         </div>
@@ -165,17 +181,23 @@
   </mat-dialog-content>
 
   <!-- Modal Actions Footer -->
-  <mat-dialog-actions align="end" class="modal-footer px-4 pb-4 pt-2">
+<mat-dialog-actions align="end" class="modal-footer px-4 pb-4 pt-2">
     <button mat-button type="button" class="cancel-btn" (click)="onCancel()" [disabled]="isSubmitting()">
-      Cancel
+      {{ t('actions.cancel') }}
     </button>
 
-    <button mat-flat-button color="primary" type="submit" class="submit-btn px-4 ms-2"
-      [disabled]="form.invalid || isSubmitting()" (click)="onSubmit()">
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      class="submit-btn px-4 ms-2"
+      [disabled]="form.invalid || isSubmitting()"
+      (click)="onSubmit()"
+    >
       <mat-icon class="me-2" [class.spinning]="isSubmitting()">
         {{ isSubmitting() ? 'sync' : 'save' }}
       </mat-icon>
-      <span>{{ isSubmitting() ? 'Creating...' : 'Create Project' }}</span>
+      <span>{{ isSubmitting() ? t('actions.submitting') : t('actions.submit') }}</span>
     </button>
   </mat-dialog-actions>
 </div>

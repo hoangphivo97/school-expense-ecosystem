@@ -1,26 +1,24 @@
 {
-  "project": {
-    "projectList": {
-      "actions": {
-        "joinByCode": "使用代碼加入",
-        "createProject": "新增專案",
-        "viewDetails": "查看詳情",
-        "manageJoinCode": "管理邀請代碼"
-      },
-      "columns": {
-        "id": "專案編號",
-        "name": "專案名稱",
-        "type": "經費類型",
-        "facultyId": "所屬學院",
-        "budgetCap": "預算上限",
-        "currentSpent": "目前累計支出",
-        "timeline": "執行期間",
-        "status": "專案狀態"
-      },
-      "empty": {
-        "title": "查無專案資料",
-        "subtitle": "目前尚無符合條件或可顯示的專案清單。"
-      }
+  "projectList": {
+    "actions": {
+      "joinByCode": "使用代碼加入",
+      "createProject": "新增專案",
+      "viewDetails": "查看詳情",
+      "manageJoinCode": "管理邀請代碼"
+    },
+    "columns": {
+      "id": "專案編號",
+      "name": "專案名稱",
+      "type": "經費類型",
+      "facultyId": "所屬學院",
+      "budgetCap": "預算上限",
+      "currentSpent": "目前累計支出",
+      "timeline": "執行期間",
+      "status": "專案狀態"
+    },
+    "empty": {
+      "title": "查無專案資料",
+      "subtitle": "目前尚無符合條件或可顯示的專案清單。"
     }
   },
   "shared": {
@@ -43,6 +41,75 @@
         "PROJECT_MANAGER": "專案管理",
         "BUDGET_MANAGER": "預算管理"
       }
+    }
+  },
+  "createDialog": {
+    "title": "建立新專案",
+    "subtitle": "設定專案預算上限、經費來源與執行期程",
+    "warnings": {
+      "invalidDateRange": "期程限制：開始日期不可晚於結束日期。",
+      "initialSpentExceedsBudget": "預算限制：期初已支用金額不可超過專案總預算上限。"
+    },
+    "fields": {
+      "name": {
+        "label": "專案名稱",
+        "placeholder": "例如：AI 智慧研究與實驗室自動化",
+        "errors": {
+          "required": "專案名稱為必填項目",
+          "maxlength": "專案名稱長度不得超過 150 個字元"
+        }
+      },
+      "type": {
+        "label": "經費來源",
+        "errors": {
+          "required": "經費來源為必選項目"
+        }
+      },
+      "faculty": {
+        "label": "所屬院系",
+        "loading": "院系資料載入中...",
+        "errors": {
+          "required": "所屬院係為必選項目"
+        }
+      },
+      "budgetCap": {
+        "label": "預算上限（總額限制）",
+        "errors": {
+          "required": "預算上限為必填項目",
+          "min": "預算上限必須大於 0"
+        }
+      },
+      "initialSpent": {
+        "label": "期初已支用金額",
+        "hint": "已承諾或已動支的歷史費用",
+        "errors": {
+          "min": "期初已支用金額不能為負數"
+        }
+      },
+      "startDate": {
+        "label": "開始日期",
+        "errors": {
+          "required": "開始日期為必填項目"
+        }
+      },
+      "endDate": {
+        "label": "結束日期",
+        "errors": {
+          "required": "結束日期為必填項目"
+        }
+      },
+      "description": {
+        "label": "專案範疇與說明",
+        "placeholder": "請說明專案預期產出、目標及經費支用必要性...",
+        "errors": {
+          "maxlength": "專案說明長度不得超過 500 個字元"
+        }
+      }
+    },
+    "actions": {
+      "cancel": "取消",
+      "submit": "建立專案",
+      "submitting": "建立中..."
     }
   }
 }

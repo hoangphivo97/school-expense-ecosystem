@@ -119,29 +119,28 @@ body {
         // Attention Orange
         'COMPLETED': (bg: #f0f9ff, text: #0369a1, border: #bae6fd),
         // Operational Sky Blue
-        'ARCHIVED': (bg: #f1f5f9, text: #475569, border: #cbd5e1)
-        // Slate Neutral Gray
+        'ARCHIVED': (bg: #f1f5f9, text: #475569, border: #cbd5e1) // Slate Neutral Gray
       );
 
-      // Iterate dynamically through the registry map to generate style variants
-      @each $status-name, $tokens in $project-statuses {
-        &.status-#{$status-name} {
-          background-color: map-get($tokens, bg);
-          color: map-get($tokens, text);
-          border: 1px solid map-get($tokens, border);
-        }
+    // Iterate dynamically through the registry map to generate style variants
+    @each $status-name, $tokens in $project-statuses {
+      &.status-#{$status-name} {
+        background-color: map-get($tokens, bg);
+        color: map-get($tokens, text);
+        border: 1px solid map-get($tokens, border);
       }
     }
-
-    .no-data {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      font-size: 25px;
-      padding-bottom: 40px;
-    }
   }
+
+  .no-data {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 25px;
+    padding-bottom: 40px;
+  }
+}
 }
 
 lib-header,

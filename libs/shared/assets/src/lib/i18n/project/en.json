@@ -42,5 +42,74 @@
         "BUDGET_MANAGER": "Budget Manager"
       }
     }
+  },
+  "createDialog": {
+    "title": "Create New Project",
+    "subtitle": "Define project budget limits, funding scope, and timeline",
+    "warnings": {
+      "invalidDateRange": "Timeline Constraint: Start date must be earlier than or equal to End date.",
+      "initialSpentExceedsBudget": "Budget Constraint: Initial spent cannot exceed the total designated budget cap."
+    },
+    "fields": {
+      "name": {
+        "label": "Project Name",
+        "placeholder": "e.g., AI Research & Lab Automation",
+        "errors": {
+          "required": "Project name is required",
+          "maxlength": "Project name must not exceed 150 characters"
+        }
+      },
+      "type": {
+        "label": "Funding Type",
+        "errors": {
+          "required": "Funding type is required"
+        }
+      },
+      "faculty": {
+        "label": "Faculty / Department",
+        "loading": "Loading faculties...",
+        "errors": {
+          "required": "Faculty assignment is required"
+        }
+      },
+      "budgetCap": {
+        "label": "Budget Cap (Total Limit)",
+        "errors": {
+          "required": "Budget cap is required",
+          "min": "Budget cap must be greater than 0"
+        }
+      },
+      "initialSpent": {
+        "label": "Initial Committed Spent",
+        "hint": "Historical committed expenses",
+        "errors": {
+          "min": "Initial spent cannot be negative"
+        }
+      },
+      "startDate": {
+        "label": "Start Date",
+        "errors": {
+          "required": "Start date is required"
+        }
+      },
+      "endDate": {
+        "label": "End Date",
+        "errors": {
+          "required": "End date is required"
+        }
+      },
+      "description": {
+        "label": "Project Scope & Description",
+        "placeholder": "Explain project deliverables, objectives, and expenditure justification...",
+        "errors": {
+          "maxlength": "Description cannot exceed 500 characters"
+        }
+      }
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "submit": "Create Project",
+      "submitting": "Creating..."
+    }
   }
 }
