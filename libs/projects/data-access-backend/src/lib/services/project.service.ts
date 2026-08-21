@@ -61,16 +61,52 @@ export class ProjectService {
   async updateProject(projectId: string, user: AuthenticatedUser, dto: UpdateProjectDto): Promise<Project> {
     const project = await this.validateProjectAccess(projectId, user);
 
-    if (project.status === ProjectStatus.ARCHIVED) {
-      throw new BadRequestException('Cannot modify an archived project');
+    if (project.status === ProjectStatus.ARCHIVED || project.status === ProjectStatus.COMPLETED) {
+      throw new BadRequestException('Cannot modify an archived or completed project');
+    }
+
+    // Prohibit modifying core financial baselines on ACTIVE projects
+    if (project.status === ProjectStatus.ACTIVE) {
+      if (dto.initialSpent !== undefined && dto.initialSpent !== project.initialSpent) {
+        throw new BadRequestException('Cannot modify initial spent baseline on an active project');
+      }
+      if (dto.budgetCap !== undefined && dto.budgetCap !== project.budgetCap) {
+        throw new BadRequestException('Cannot modify budget cap directly on an active project');
+      }
+    }
+
+    const isDeanOrFinance = user.role === Role.LEVEL_2_DEAN || user.role === Role.LEVEL_1_FINANCE;
+    const isExtendingSchoolProject =
+      project.type === ProjectFundingType.SCHOOL &&
+      dto.endDate &&
+      new Date(dto.endDate) > new Date(project.endDate);
+
+    const nextStatus = (!isDeanOrFinance && isExtendingSchoolProject)
+      ? ProjectStatus.PENDING_DEAN_APPROVAL
+      : project.status;
+
+    // Calculate new spent baseline if initialSpent is updated in draft/pending state
+    const newInitialSpent = dto.initialSpent !== undefined ? Number(dto.initialSpent) : project.initialSpent;
+    const targetBudgetCap = dto.budgetCap !== undefined ? Number(dto.budgetCap) : project.budgetCap;
+
+    if (newInitialSpent > targetBudgetCap) {
+      throw new BadRequestException('Initial spent cannot exceed project budget cap');
     }
 
     const updateData: Partial<Project> = {
-      ...(dto.name && { name: dto.name }),
-      ...(dto.description !== undefined && { description: dto.description }),
+      ...(dto.name && { name: dto.name.trim() }),
+      ...(dto.description !== undefined && { description: dto.description ? dto.description.trim() : null }),
+      ...(dto.type && { type: dto.type }),
       ...(dto.facultyId && { facultyId: dto.facultyId }),
+      ...(dto.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
+      ...(dto.initialSpent !== undefined && { 
+        initialSpent: newInitialSpent,
+        currentSpent: newInitialSpent, // Sync initial baseline to current spent
+      }),
       ...(dto.startDate && { startDate: new Date(dto.startDate).toISOString() }),
       ...(dto.endDate && { endDate: new Date(dto.endDate).toISOString() }),
+      status: nextStatus,
+      updatedAt: new Date().toISOString(),
     };
 
     await this.projectRepo.update(projectId, updateData);
@@ -128,7 +164,7 @@ export class ProjectService {
 
   async removeStudent(projectId: string, studentId: string, user: AuthenticatedUser): Promise<void> {
     const project = await this.validateProjectAccess(projectId, user);
-    
+
     if (!project.joinedStudentIds.includes(studentId)) {
       throw new NotFoundException(`Student ${studentId} is not enrolled in this project`);
     }

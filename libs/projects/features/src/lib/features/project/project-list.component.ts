@@ -1,7 +1,7 @@
 import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { FacultyId, FilterMode, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
+import { DialogActionEnum, FacultyId, FilterMode, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
@@ -109,13 +109,10 @@ export class ProjectListComponent implements OnInit {
     this.currentPageIndex.set(1);
   }
 
-  navigateToDetail(projectId: string): void {
-    this.router.navigate(['/projects', projectId]);
-  }
-
   openCreateProjectModal(): void {
     const dialogData: CreateProjectDialogData = {
       facultyId: this.currentUser()?.facultyId,
+      action: DialogActionEnum.Create
     };
 
     const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
@@ -126,6 +123,66 @@ export class ProjectListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((createdProject) => {
       if (createdProject) {
+        this.projectsResource.reload();
+      }
+    });
+  }
+
+  navigateToDetail(project: Project): void {
+    this.dialog.open(CreateProjectDialogComponent, {
+      width: '700px',
+      data: {
+        action: DialogActionEnum.Detail,
+        project,
+      },
+      disableClose: false,
+    });
+  }
+
+  canEditProject(project: Project): boolean {
+    const user = this.currentUser();
+    if (!user) return false;
+
+    const isLocked = [ProjectStatus.ARCHIVED, ProjectStatus.COMPLETED, ProjectStatus.REJECTED].includes(project.status);
+    if (isLocked) return false;
+
+    const isMentor = user.uid === project.mentorId;
+    const isDean = user.role === Role.LEVEL_2_DEAN && user.facultyId === project.facultyId;
+    const isFinanceOrAdmin = user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_0_ADMIN;
+
+    return isMentor || isDean || isFinanceOrAdmin;
+  }
+
+  canApproveProject(project: Project): boolean {
+    const user = this.currentUser();
+    if (!user || project.status !== ProjectStatus.PENDING_DEAN_APPROVAL) return false;
+
+    const isFacultyDean = user.role === Role.LEVEL_2_DEAN && user.facultyId === project.facultyId;
+    const isFinance = user.role === Role.LEVEL_1_FINANCE;
+
+    return isFacultyDean || isFinance;
+  }
+
+  onApproveProject(project: Project): void {
+    this.projectApiService.approveProject(project.id).subscribe({
+      next: () => {
+        this.projectsResource.reload();
+      },
+    });
+  }
+
+  openEditModal(project: Project): void {
+    const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
+      width: '700px',
+      data: {
+        action: DialogActionEnum.Edit,
+        project,
+      },
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
         this.projectsResource.reload();
       }
     });

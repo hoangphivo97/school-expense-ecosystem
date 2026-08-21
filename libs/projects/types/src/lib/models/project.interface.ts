@@ -11,7 +11,7 @@ export interface ProjectJoinConfig {
 export interface Project {
     id: string;
     name: string;
-    description?: string;
+    description?: string | null;
     type: ProjectFundingType;
     budgetCap: number;
     initialSpent: number;

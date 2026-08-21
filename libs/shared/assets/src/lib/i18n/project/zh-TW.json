@@ -4,7 +4,9 @@
       "joinByCode": "使用代碼加入",
       "createProject": "新增專案",
       "viewDetails": "查看詳情",
-      "manageJoinCode": "管理邀請代碼"
+      "manageJoinCode": "管理邀請代碼",
+      "editProject": "編輯專案",
+      "approveProject": "核准專案"
     },
     "columns": {
       "id": "專案編號",
@@ -46,6 +48,9 @@
   "createDialog": {
     "title": "建立新專案",
     "subtitle": "設定專案預算上限、經費來源與執行期程",
+    "editTitle": "Update Project Details",
+    "detailTitle": "Project Details",
+    "detailSubtitle": "Overview of project parameters and allocated financial boundaries",
     "warnings": {
       "invalidDateRange": "期程限制：開始日期不可晚於結束日期。",
       "initialSpentExceedsBudget": "預算限制：期初已支用金額不可超過專案總預算上限。"
@@ -109,7 +114,9 @@
     "actions": {
       "cancel": "取消",
       "submit": "建立專案",
-      "submitting": "建立中..."
+      "submitting": "建立中...",
+      "update": "儲存變更",
+      "close": "關閉"
     }
   }
 }

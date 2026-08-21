@@ -2,7 +2,7 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig, ProjectQueryPayload, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 
 @Injectable({
   providedIn: 'root',
@@ -58,6 +58,10 @@ export class ProjectApiService {
 
   archiveProject(id: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/${id}/archive`, {});
+  }
+
+  updateProject(id: string, payload: UpdateProjectPayload): Observable<Project> {
+    return this.http.patch<Project>(`${this.apiUrl}/${id}`, payload);
   }
 
   /**

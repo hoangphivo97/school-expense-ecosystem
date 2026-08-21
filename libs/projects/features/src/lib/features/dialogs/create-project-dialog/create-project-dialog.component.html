@@ -2,11 +2,15 @@
   <!-- Modal Header Box -->
   <div class="modal-header-box d-flex align-items-center">
     <div class="title-icon-wrapper me-3">
-      <mat-icon color="primary">create_new_folder</mat-icon>
+      <mat-icon color="primary">{{ isDetailMode() ? 'folder_open' : 'create_new_folder' }}</mat-icon>
     </div>
     <div class="title-text-group d-flex flex-column">
-      <h2 class="main-title-text m-0">{{ t('title') }}</h2>
-      <p class="sub-title-text m-0">{{ t('subtitle') }}</p>
+      <h2 class="main-title-text m-0">
+        {{ isDetailMode() ? t('detailTitle') : (isEditMode() ? t('editTitle') : t('title')) }}
+      </h2>
+      <p class="sub-title-text m-0">
+        {{ isDetailMode() ? t('detailSubtitle') : t('subtitle') }}
+      </p>
     </div>
   </div>
 
@@ -14,25 +18,26 @@
     <form [formGroup]="form" class="w-100 py-2">
       <!-- Global Server Error Banner -->
       @if (errorMessage()) {
-        <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-          <mat-icon class="fs-5 w-auto h-auto text-danger">error_outline</mat-icon>
-          <span>{{ errorMessage() }}</span>
-        </div>
+      <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+        <mat-icon class="fs-5 w-auto h-auto text-danger">error_outline</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
       }
 
       <!-- Cross-field Validation Warnings -->
       @if (form.errors?.['invalidDateRange'] && (form.get('endDate')?.touched || form.get('startDate')?.touched)) {
-        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-          <mat-icon class="fs-5 w-auto h-auto text-warning">warning_amber</mat-icon>
-          <span>{{ t('warnings.invalidDateRange') }}</span>
-        </div>
+      <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+        <mat-icon class="fs-5 w-auto h-auto text-warning">warning_amber</mat-icon>
+        <span>{{ t('warnings.invalidDateRange') }}</span>
+      </div>
       }
 
-      @if (form.errors?.['initialSpentExceedsBudget'] && (form.get('initialSpent')?.touched || form.get('budgetCap')?.touched)) {
-        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-          <mat-icon class="fs-5 w-auto h-auto text-warning">warning_amber</mat-icon>
-          <span>{{ t('warnings.initialSpentExceedsBudget') }}</span>
-        </div>
+      @if (form.errors?.['initialSpentExceedsBudget'] && (form.get('initialSpent')?.touched ||
+      form.get('budgetCap')?.touched)) {
+      <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+        <mat-icon class="fs-5 w-auto h-auto text-warning">warning_amber</mat-icon>
+        <span>{{ t('warnings.initialSpentExceedsBudget') }}</span>
+      </div>
       }
 
       <div class="row g-4 m-0">
@@ -42,12 +47,12 @@
             <mat-label>{{ t('fields.name.label') }}</mat-label>
             <mat-icon matIconPrefix class="field-icon">folder_special</mat-icon>
             <input matInput formControlName="name" [placeholder]="t('fields.name.placeholder')" maxlength="150" />
-            @if (form.get('name')?.hasError('required')) {
-              <mat-error>{{ t('fields.name.errors.required') }}</mat-error>
-            }
-            @if (form.get('name')?.hasError('maxlength')) {
-              <mat-error>{{ t('fields.name.errors.maxlength') }}</mat-error>
-            }
+            <mat-error>
+              {{ form.get('name')?.errors | formError: {
+              required: t('fields.name.errors.required'),
+              maxlength: t('fields.name.errors.maxlength')
+              } }}
+            </mat-error>
           </mat-form-field>
         </div>
 
@@ -65,12 +70,13 @@
                 </div>
               </mat-select-trigger>
               @for (type of fundingTypes; track type) {
-                <mat-option [value]="type">
-                  {{ 'shared.filter.options.projectType.' + type | transloco }}
-                </mat-option>
+              <mat-option [value]="type">
+                {{ 'shared.filter.options.projectType.' + type | transloco }}
+              </mat-option>
               }
             </mat-select>
-            <mat-error>{{ t('fields.type.errors.required') }}</mat-error>
+            <mat-error>{{ form.get('type')?.errors | formError: { required: t('fields.type.errors.required') }
+              }}</mat-error>
           </mat-form-field>
         </div>
 
@@ -86,15 +92,16 @@
                 </div>
               </mat-select-trigger>
               @if (isFacultiesLoading()) {
-                <mat-option disabled>{{ t('fields.faculty.loading') }}</mat-option>
+              <mat-option disabled>{{ t('fields.faculty.loading') }}</mat-option>
               }
               @for (faculty of faculties(); track faculty.id) {
-                <mat-option [value]="faculty.id">
-                  {{ faculty.name }} ({{ faculty.id }})
-                </mat-option>
+              <mat-option [value]="faculty.id">
+                {{ faculty.name }} ({{ faculty.id }})
+              </mat-option>
               }
             </mat-select>
-            <mat-error>{{ t('fields.faculty.errors.required') }}</mat-error>
+            <mat-error>{{ form.get('facultyId')?.errors | formError: { required: t('fields.faculty.errors.required') }
+              }}</mat-error>
           </mat-form-field>
         </div>
 
@@ -105,10 +112,12 @@
             <mat-icon matIconPrefix class="field-icon">payments</mat-icon>
             <span matTextSuffix class="currency-suffix">TWD</span>
             <input matInput formControlName="budgetCap" (input)="onInputAmount($event, 'budgetCap')" placeholder="0" />
-            @if (form.get('budgetCap')?.hasError('required')) {
-              <mat-error>{{ t('fields.budgetCap.errors.required') }}</mat-error>
-            }
-            <mat-error>{{ t('fields.budgetCap.errors.min') }}</mat-error>
+            <mat-error>
+              {{ form.get('budgetCap')?.errors | formError: {
+              required: t('fields.budgetCap.errors.required'),
+              min: t('fields.budgetCap.errors.min')
+              } }}
+            </mat-error>
           </mat-form-field>
         </div>
 
@@ -118,9 +127,11 @@
             <mat-label>{{ t('fields.initialSpent.label') }}</mat-label>
             <mat-icon matIconPrefix class="field-icon">account_balance_wallet</mat-icon>
             <span matTextSuffix class="currency-suffix">TWD</span>
-            <input matInput formControlName="initialSpent" (input)="onInputAmount($event, 'initialSpent')" placeholder="0" />
+            <input matInput formControlName="initialSpent" (input)="onInputAmount($event, 'initialSpent')"
+              placeholder="0" />
             <mat-hint align="end" class="fw-medium">{{ t('fields.initialSpent.hint') }}</mat-hint>
-            <mat-error>{{ t('fields.initialSpent.errors.min') }}</mat-error>
+            <mat-error>{{ form.get('initialSpent')?.errors | formError: { min: t('fields.initialSpent.errors.min') }
+              }}</mat-error>
           </mat-form-field>
         </div>
 
@@ -128,16 +139,12 @@
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field">
             <mat-label>{{ t('fields.startDate.label') }}</mat-label>
-            <input
-              matInput
-              [matDatepicker]="startPicker"
-              formControlName="startDate"
-              [max]="form.get('endDate')?.value"
-              readonly
-            />
+            <input matInput [matDatepicker]="startPicker" formControlName="startDate" [max]="form.get('endDate')?.value"
+              readonly />
             <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
             <mat-datepicker #startPicker></mat-datepicker>
-            <mat-error>{{ t('fields.startDate.errors.required') }}</mat-error>
+            <mat-error>{{ form.get('startDate')?.errors | formError: { required: t('fields.startDate.errors.required') }
+              }}</mat-error>
           </mat-form-field>
         </div>
 
@@ -145,16 +152,12 @@
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field">
             <mat-label>{{ t('fields.endDate.label') }}</mat-label>
-            <input
-              matInput
-              [matDatepicker]="endPicker"
-              formControlName="endDate"
-              [min]="form.get('startDate')?.value"
-              readonly
-            />
+            <input matInput [matDatepicker]="endPicker" formControlName="endDate" [min]="form.get('startDate')?.value"
+              readonly />
             <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
             <mat-datepicker #endPicker></mat-datepicker>
-            <mat-error>{{ t('fields.endDate.errors.required') }}</mat-error>
+            <mat-error>{{ form.get('endDate')?.errors | formError: { required: t('fields.endDate.errors.required') }
+              }}</mat-error>
           </mat-form-field>
         </div>
 
@@ -163,17 +166,11 @@
           <mat-form-field appearance="outline" class="w-100 custom-field">
             <mat-label>{{ t('fields.description.label') }}</mat-label>
             <mat-icon matIconPrefix class="field-icon refined-textarea-icon">notes</mat-icon>
-            <textarea
-              matInput
-              rows="3"
-              formControlName="description"
-              [placeholder]="t('fields.description.placeholder')"
-              maxlength="500"
-            ></textarea>
+            <textarea matInput rows="3" formControlName="description"
+              [placeholder]="t('fields.description.placeholder')" maxlength="500"></textarea>
             <mat-hint align="end">{{ form.get('description')?.value?.length || 0 }} / 500</mat-hint>
-            @if (form.get('description')?.hasError('maxlength')) {
-              <mat-error>{{ t('fields.description.errors.maxlength') }}</mat-error>
-            }
+            <mat-error>{{ form.get('description')?.errors | formError: { maxlength:
+              t('fields.description.errors.maxlength') } }}</mat-error>
           </mat-form-field>
         </div>
       </div>
@@ -181,23 +178,24 @@
   </mat-dialog-content>
 
   <!-- Modal Actions Footer -->
-<mat-dialog-actions align="end" class="modal-footer px-4 pb-4 pt-2">
+  <mat-dialog-actions align="end" class="modal-footer px-4 pb-4 pt-2">
+    @if (isDetailMode()) {
+    <button mat-flat-button color="primary" type="button" class="px-4" (click)="onCancel()">
+      {{ t('actions.close') }}
+    </button>
+    } @else {
     <button mat-button type="button" class="cancel-btn" (click)="onCancel()" [disabled]="isSubmitting()">
       {{ t('actions.cancel') }}
     </button>
 
-    <button
-      mat-flat-button
-      color="primary"
-      type="button"
-      class="submit-btn px-4 ms-2"
-      [disabled]="form.invalid || isSubmitting()"
-      (click)="onSubmit()"
-    >
+    <button mat-flat-button color="primary" type="button" class="submit-btn px-4 ms-2"
+      [disabled]="form.invalid || isSubmitting()" (click)="onSubmit()">
       <mat-icon class="me-2" [class.spinning]="isSubmitting()">
         {{ isSubmitting() ? 'sync' : 'save' }}
       </mat-icon>
-      <span>{{ isSubmitting() ? t('actions.submitting') : t('actions.submit') }}</span>
+      <span>{{ isSubmitting() ? t('actions.submitting') : (isEditMode() ? t('actions.update') : t('actions.submit'))
+        }}</span>
     </button>
+    }
   </mat-dialog-actions>
 </div>

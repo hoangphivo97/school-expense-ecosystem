@@ -11,18 +11,21 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { CreateProjectPayload, ProjectFundingType } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, Project, ProjectFundingType } from '@school-expense-ecosystem/projects/types';
 import { FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { FacultyId } from '@school-expense-ecosystem/shared/types';
+import { DialogActionEnum, FacultyId } from '@school-expense-ecosystem/shared/types';
+import { FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 
 export interface CreateProjectDialogData {
   facultyId?: FacultyId;
   availableFaculties?: { id: FacultyId; name: string }[];
+  action: DialogActionEnum
+  project?: Project;
 }
 
 @Component({
   selector: 'lib-create-project-dialog',
-  imports: [MatDialogModule, MatIconModule, MatHint, MatFormFieldModule, MatSelectModule, ReactiveFormsModule, MatDatepickerModule, MatInputModule, MatButtonModule, TranslocoModule],
+  imports: [MatDialogModule, MatIconModule, MatHint, MatFormFieldModule, MatSelectModule, ReactiveFormsModule, MatDatepickerModule, MatInputModule, MatButtonModule, TranslocoModule, FormErrorPipe],
   templateUrl: './create-project-dialog.component.html',
   styleUrl: './create-project-dialog.component.scss',
   providers: [
@@ -40,6 +43,9 @@ export class CreateProjectDialogComponent {
   private readonly decimalPipe = inject(DecimalPipe);
 
   readonly data = inject<CreateProjectDialogData>(MAT_DIALOG_DATA, { optional: true });
+  readonly action = signal<DialogActionEnum>(this.data?.action ?? DialogActionEnum.Create);
+  readonly isDetailMode = computed(() => this.action() === DialogActionEnum.Detail);
+  readonly isEditMode = computed(() => this.action() === DialogActionEnum.Edit);
 
   readonly isSubmitting = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
@@ -64,6 +70,26 @@ export class CreateProjectDialogComponent {
     },
     { validators: [this.validateDateRange, this.validateInitialSpent] }
   );
+
+  constructor() {
+    if (this.data?.project) {
+      const project = this.data.project;
+      this.form.patchValue({
+        name: project.name,
+        description: project.description ?? '',
+        type: project.type,
+        facultyId: project.facultyId,
+        budgetCap: project.budgetCap,
+        initialSpent: project.initialSpent,
+        startDate: new Date(project.startDate),
+        endDate: new Date(project.endDate),
+      });
+
+      if (this.isDetailMode()) {
+        this.form.disable();
+      }
+    }
+  }
 
   // Custom Validator: Ensure startDate <= endDate
   private validateDateRange(control: AbstractControl): ValidationErrors | null {

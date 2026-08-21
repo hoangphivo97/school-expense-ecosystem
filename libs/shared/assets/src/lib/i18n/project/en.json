@@ -4,7 +4,9 @@
       "joinByCode": "Join via Code",
       "createProject": "Create Project",
       "viewDetails": "View Details",
-      "manageJoinCode": "Manage Join Code"
+      "manageJoinCode": "Manage Join Code",
+      "editProject": "Edit Project",
+      "approveProject": "Approve Project"
     },
     "columns": {
       "id": "Project ID",
@@ -46,6 +48,9 @@
   "createDialog": {
     "title": "Create New Project",
     "subtitle": "Define project budget limits, funding scope, and timeline",
+    "editTitle": "Update Project Details",
+    "detailTitle": "Project Details",
+    "detailSubtitle": "Overview of project parameters and allocated financial boundaries",
     "warnings": {
       "invalidDateRange": "Timeline Constraint: Start date must be earlier than or equal to End date.",
       "initialSpentExceedsBudget": "Budget Constraint: Initial spent cannot exceed the total designated budget cap."
@@ -109,7 +114,9 @@
     "actions": {
       "cancel": "Cancel",
       "submit": "Create Project",
-      "submitting": "Creating..."
+      "submitting": "Creating...",
+      "close": "Close",
+      "update": "Save Changes"
     }
   }
 }

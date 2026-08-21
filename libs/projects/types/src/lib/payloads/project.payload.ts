@@ -17,7 +17,10 @@ export interface CreateProjectPayload {
 
 export interface UpdateProjectPayload {
   name?: string;
-  description?: string;
+  description?: string | null;
+  type?: ProjectFundingType;
+  facultyId?: FacultyId;
+  budgetCap?: number;
   startDate?: string;
   endDate?: string;
 }

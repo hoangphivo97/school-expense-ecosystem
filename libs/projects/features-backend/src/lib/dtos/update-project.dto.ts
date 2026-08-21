@@ -1,6 +1,6 @@
-import { UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
+import { ProjectFundingType, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
-import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpdateProjectDto implements UpdateProjectPayload {
   @IsOptional()
@@ -9,11 +9,20 @@ export class UpdateProjectDto implements UpdateProjectPayload {
 
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string | null;
+
+  @IsOptional()
+  @IsEnum(ProjectFundingType)
+  type?: ProjectFundingType;
 
   @IsOptional()
   @IsEnum(FacultyId)
   facultyId?: FacultyId;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  budgetCap?: number;
 
   @IsOptional()
   @IsDateString()
@@ -22,4 +31,9 @@ export class UpdateProjectDto implements UpdateProjectPayload {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  initialSpent?: number;
 }
