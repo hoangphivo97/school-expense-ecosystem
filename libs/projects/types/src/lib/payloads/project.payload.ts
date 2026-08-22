@@ -33,6 +33,7 @@ export interface ProjectQueryPayload {
   facultyId?: FacultyId;
   mentorId?: string;
   status?: ProjectStatus;
+  studentId?: string;
 }
 
 export interface GenerateJoinCodePayload {

@@ -85,11 +85,14 @@ export class FirestoreProjectRepository implements ProjectRepository {
     if (query.mentorId) {
       baseQuery = baseQuery.where('mentorId', '==', query.mentorId);
     }
+    if (query.studentId) {
+      baseQuery = baseQuery.where('joinedStudentIds', 'array-contains', query.studentId);
+    }
 
     const snapshot = await baseQuery.get();
     let items = snapshot.docs.map((doc) => this.mapDocToProject(doc));
 
-    // Optional in-memory search for project name
+    // In-memory search for project name
     if (query.search) {
       const searchLower = query.search.toLowerCase();
       items = items.filter((p) => p.name.toLowerCase().includes(searchLower));
@@ -111,14 +114,6 @@ export class FirestoreProjectRepository implements ProjectRepository {
       joinConfig: config,
       updatedAt: new Date().toISOString(),
     });
-  }
-
-  async findProjectsByStudentId(studentUid: string): Promise<Project[]> {
-    const snapshot = await this.collection
-      .where('joinedStudentIds', 'array-contains', studentUid)
-      .get();
-
-    return snapshot.docs.map((doc) => this.mapDocToProject(doc));
   }
 
   async findProjectsByMentorId(mentorUid: string): Promise<Project[]> {

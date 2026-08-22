@@ -130,8 +130,12 @@
             <input matInput formControlName="initialSpent" (input)="onInputAmount($event, 'initialSpent')"
               placeholder="0" />
             <mat-hint align="end" class="fw-medium">{{ t('fields.initialSpent.hint') }}</mat-hint>
-            <mat-error>{{ form.get('initialSpent')?.errors | formError: { min: t('fields.initialSpent.errors.min') }
-              }}</mat-error>
+            <mat-error>
+              {{ form.get('initialSpent')?.errors | formError: { 
+                min: t('fields.initialSpent.errors.min'),
+                initialSpentExceedsBudget: t('warnings.initialSpentExceedsBudget')
+              } }}
+            </mat-error>
           </mat-form-field>
         </div>
 

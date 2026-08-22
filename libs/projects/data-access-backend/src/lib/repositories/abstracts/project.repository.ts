@@ -16,6 +16,4 @@ export abstract class ProjectRepository {
   ): Promise<void>;
 
   abstract findWithQuery(query: ProjectQueryPayload): Promise<{ items: Project[]; total: number }>;
-  abstract findProjectsByStudentId(studentUid: string): Promise<Project[]>;
-  abstract findProjectsByMentorId(mentorUid: string): Promise<Project[]>;
 }

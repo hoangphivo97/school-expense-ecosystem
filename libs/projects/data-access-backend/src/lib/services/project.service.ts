@@ -99,7 +99,7 @@ export class ProjectService {
       ...(dto.type && { type: dto.type }),
       ...(dto.facultyId && { facultyId: dto.facultyId }),
       ...(dto.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
-      ...(dto.initialSpent !== undefined && { 
+      ...(dto.initialSpent !== undefined && {
         initialSpent: newInitialSpent,
         currentSpent: newInitialSpent, // Sync initial baseline to current spent
       }),
@@ -201,24 +201,29 @@ export class ProjectService {
     return this.validateProjectAccess(projectId, user);
   }
 
-  async getProjectsForUser(user: AuthenticatedUser, query?: ProjectQueryDto): Promise<{ items: Project[]; total: number } | Project[]> {
+  async getProjectsForUser(
+    user: AuthenticatedUser,
+    query?: ProjectQueryDto
+  ): Promise<{ items: Project[]; total: number }> {
+    const baseQuery = query ?? {};
+
     // 1. Level 1 (Finance): Global Auditing Scope
     if (user.role === Role.LEVEL_1_FINANCE) {
-      return this.projectRepo.findWithQuery(query ?? {});
+      return this.projectRepo.findWithQuery(baseQuery);
     }
 
     // 2. Student Context: Enrolled Projects Scope
     if (user.userType === UserType.STUDENT) {
-      return this.projectRepo.findProjectsByStudentId(user.uid);
+      return this.projectRepo.findWithQuery({ ...baseQuery, studentId: user.uid });
     }
 
     // 3. Level 2 (Dean): Faculty Boundary Scope
     if (user.role === Role.LEVEL_2_DEAN) {
-      return this.projectRepo.findWithQuery({ ...(query ?? {}), facultyId: user.facultyId });
+      return this.projectRepo.findWithQuery({ ...baseQuery, facultyId: user.facultyId });
     }
 
     // 4. Level 3 (Teacher/Mentor): Personal Projects Scope
-    return this.projectRepo.findProjectsByMentorId(user.uid);
+    return this.projectRepo.findWithQuery({ ...baseQuery, mentorId: user.uid });
   }
 
   private async validateProjectAccess(projectId: string, user: AuthenticatedUser): Promise<Project> {

@@ -123,10 +123,19 @@ export class CreateProjectDialogComponent {
 
   // Custom Validator: Ensure initialSpent <= budgetCap
   private validateInitialSpent(control: AbstractControl): ValidationErrors | null {
-    const budget = Number(control.get('budgetCap')?.value || 0);
-    const initial = Number(control.get('initialSpent')?.value || 0);
-    if (budget > 0 && initial > budget) {
+    const budgetControl = control.get('budgetCap');
+    const initialControl = control.get('initialSpent');
+
+    const budget = Number(budgetControl?.value || 0);
+    const initial = Number(initialControl?.value || 0);
+
+    if (initial > budget) {
+      initialControl?.setErrors({ ...initialControl.errors, initialSpentExceedsBudget: true });
       return { initialSpentExceedsBudget: true };
+    } else if (initialControl?.hasError('initialSpentExceedsBudget')) {
+      const errors = { ...initialControl.errors };
+      delete errors['initialSpentExceedsBudget'];
+      initialControl.setErrors(Object.keys(errors).length ? errors : null);
     }
     return null;
   }
@@ -134,24 +143,27 @@ export class CreateProjectDialogComponent {
   onInputAmount(event: Event, controlName: 'budgetCap' | 'initialSpent'): void {
     const inputElement = event.target as HTMLInputElement;
     const sanitized = inputElement.value.replace(/,/g, '').replace(/[^0-9.]/g, '').trim();
+    const control = this.form.get(controlName);
+
+    control?.markAsTouched();
 
     if (sanitized === '' || sanitized === '.') {
-      this.form.get(controlName)?.setValue(null, { emitEvent: false });
-      this.form.get(controlName)?.updateValueAndValidity();
+      control?.setValue(null);
       inputElement.value = '';
+      this.form.updateValueAndValidity();
       return;
     }
 
     const numericValue = parseFloat(sanitized);
     if (!isNaN(numericValue)) {
-      this.form.get(controlName)?.setValue(numericValue, { emitEvent: false });
-      this.form.get(controlName)?.updateValueAndValidity();
+      control?.setValue(numericValue);
       inputElement.value = this.decimalPipe.transform(numericValue, '1.0-2') || '';
     } else {
-      this.form.get(controlName)?.setValue(null, { emitEvent: false });
-      this.form.get(controlName)?.updateValueAndValidity();
+      control?.setValue(null);
       inputElement.value = '';
     }
+
+    this.form.updateValueAndValidity();
   }
 
   onSubmit(): void {
