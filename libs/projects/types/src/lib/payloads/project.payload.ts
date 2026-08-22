@@ -21,6 +21,7 @@ export interface UpdateProjectPayload {
   type?: ProjectFundingType;
   facultyId?: FacultyId;
   budgetCap?: number;
+  initialSpent?: number;
   startDate?: string;
   endDate?: string;
 }

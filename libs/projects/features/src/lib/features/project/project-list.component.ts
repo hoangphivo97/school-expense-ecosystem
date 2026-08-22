@@ -1,26 +1,26 @@
 import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogActionEnum, FacultyId, FilterMode, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
+import { FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { Project, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
-import { CreateProjectDialogComponent, CreateProjectDialogData } from '../dialogs/create-project-dialog/create-project-dialog.component';
+import { CreateProjectDialogComponent } from '../dialogs/create-project-dialog/create-project-dialog.component';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 
 @Component({
   selector: 'lib-project-list',
   templateUrl: './project-list.component.html',
   styleUrls: ['./project-list.component.scss'],
-  imports: [HeaderComponent, FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, FooterComponent, TranslocoModule, MatMenuModule],
+  imports: [HeaderComponent, FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, FooterComponent, TranslocoModule, MatMenuModule, MatSnackBarModule],
   providers: [
     { provide: TRANSLOCO_SCOPE, useValue: 'project' }
   ]
@@ -30,7 +30,7 @@ export class ProjectListComponent implements OnInit {
   private readonly authSignalStore = inject(AuthSignalStore);
   private readonly facultyApiService = inject(FacultyApiService);
   private readonly dialog = inject(MatDialog);
-  private readonly router = inject(Router);
+  private readonly notify = inject(NotificationService);
 
   // State Signals
   readonly pageSize = signal<number>(10);
@@ -110,24 +110,22 @@ export class ProjectListComponent implements OnInit {
   }
 
   openCreateProjectModal(): void {
-    const dialogData: CreateProjectDialogData = {
-      facultyId: this.currentUser()?.facultyId,
-      action: DialogActionEnum.Create
-    };
-
     const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
       width: '700px',
-      data: dialogData,
+      data: {
+        facultyId: this.currentUser()?.facultyId,
+        action: DialogActionEnum.Create
+      },
       disableClose: true,
     });
 
     dialogRef.afterClosed().subscribe((createdProject) => {
       if (createdProject) {
+        this.notify.success('project.projectList.notifications.created');
         this.projectsResource.reload();
       }
     });
   }
-
   navigateToDetail(project: Project): void {
     this.dialog.open(CreateProjectDialogComponent, {
       width: '700px',
@@ -166,6 +164,7 @@ export class ProjectListComponent implements OnInit {
   onApproveProject(project: Project): void {
     this.projectApiService.approveProject(project.id).subscribe({
       next: () => {
+        this.notify.success('project.projectList.notifications.approved');
         this.projectsResource.reload();
       },
     });
@@ -181,8 +180,9 @@ export class ProjectListComponent implements OnInit {
       disableClose: true,
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
+    dialogRef.afterClosed().subscribe((updatedProject) => {
+      if (updatedProject) {
+        this.notify.success('project.projectList.notifications.updated');
         this.projectsResource.reload();
       }
     });

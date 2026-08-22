@@ -5,14 +5,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { DeleteReasonType, DeleteUserPayload } from '@school-expense-ecosystem/admin/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { form, FormField, required, validate, } from '@angular/forms/signals';
-import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { FormErrorSignalPipe, LoadingDirective, NotificationService } from '@school-expense-ecosystem/shared/ui';
 import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
-import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-user-delete-modal',
@@ -27,8 +27,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/tran
 export class UserDeleteModalComponent {
   private readonly userListService = inject(UserListService);
   private readonly dialogRef = inject(MatDialogRef<UserDeleteModalComponent>);
-  private readonly snackBar = inject(MatSnackBar);
-  private readonly translocoService = inject(TranslocoService);
+  private readonly notify = inject(NotificationService)
 
   protected readonly dialogData = inject(MAT_DIALOG_DATA);
   protected readonly targetUser = this.dialogData.user as UserBase;
@@ -72,15 +71,14 @@ export class UserDeleteModalComponent {
     const payload = this.deleteModel();
 
     if (payload.reasonType === DeleteReasonType.SECURITY_THREAT) {
-      this.snackBar.open('Security protocol active: User status locked.', 'Close', { duration: 4000 });
+      this.notify.warning('Security protocol active: User status locked.');
       this.dialogRef.close({ isDeleted: false, action: 'SECURITY_LOCKED' });
       return;
     }
 
     this.userListService.deleteUser(this.targetUser.uid, payload).pipe(trackLoading(this.isLoading)).subscribe({
       next: () => {
-        const successMsg = this.translocoService.translate('admin.userList.deleteModal.notifications.purgeSuccess');
-        this.snackBar.open(successMsg, 'Close', { duration: 4000 });
+        this.notify.success('admin.userList.deleteModal.notifications.purgeSuccess');
         this.dialogRef.close({ isDeleted: true, targetUid: this.targetUser.uid });
       },
       error: (err) => {
@@ -92,10 +90,7 @@ export class UserDeleteModalComponent {
         const fallbackMsg = 'Failed to purge user account due to administrative policy restrictions.';
         const apiErrorMsg = err.error?.errorMsg || fallbackMsg;
 
-        this.snackBar.open(apiErrorMsg, 'Close', {
-          duration: 5000,
-          panelClass: ['toast-error']
-        });
+        this.notify.error(apiErrorMsg);
       }
     });
   }

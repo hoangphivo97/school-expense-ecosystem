@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { CreateProjectPayload, Project, ProjectFundingType } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, Project, ProjectFundingType, ProjectStatus, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 import { FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { DialogActionEnum, FacultyId } from '@school-expense-ecosystem/shared/types';
 import { FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
@@ -86,7 +86,17 @@ export class CreateProjectDialogComponent {
       });
 
       if (this.isDetailMode()) {
+        // Read-only inspection mode: lock entire form
         this.form.disable();
+      } else if (this.isEditMode()) {
+        // When active, freeze financial allocations, faculty assignment, and baseline start date
+        if (project.status === ProjectStatus.ACTIVE) {
+          this.form.get('type')?.disable();
+          this.form.get('facultyId')?.disable();
+          this.form.get('budgetCap')?.disable();
+          this.form.get('initialSpent')?.disable();
+          this.form.get('startDate')?.disable();
+        }
       }
     }
   }
@@ -150,7 +160,36 @@ export class CreateProjectDialogComponent {
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
+    // Using getRawValue() ensures values from disabled controls are still captured
     const formValue = this.form.getRawValue();
+
+    // 1. Branch Execution: Edit Project Flow
+    if (this.isEditMode() && this.data?.project) {
+      const updatePayload: UpdateProjectPayload = {
+        name: formValue.name.trim(),
+        description: formValue.description?.trim() || null,
+        type: formValue.type,
+        facultyId: formValue.facultyId,
+        budgetCap: Number(formValue.budgetCap),
+        initialSpent: Number(formValue.initialSpent || 0),
+        startDate: new Date(formValue.startDate).toISOString(),
+        endDate: new Date(formValue.endDate).toISOString(),
+      };
+
+      this.projectApiService.updateProject(this.data.project.id, updatePayload).subscribe({
+        next: (updatedProject) => {
+          this.isSubmitting.set(false);
+          this.dialogRef.close(updatedProject);
+        },
+        error: (err) => {
+          this.isSubmitting.set(false);
+          this.errorMessage.set(err?.error?.errorMsg || err?.error?.message || 'Failed to update project.');
+        },
+      });
+      return;
+    }
+
+    // 2. Branch Execution: Create Project Flow
     const payload: CreateProjectPayload = {
       name: formValue.name.trim(),
       description: formValue.description?.trim() || undefined,

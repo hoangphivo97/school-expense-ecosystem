@@ -141,8 +141,8 @@
             <mat-label>{{ t('fields.startDate.label') }}</mat-label>
             <input matInput [matDatepicker]="startPicker" formControlName="startDate" [max]="form.get('endDate')?.value"
               readonly />
-            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-            <mat-datepicker #startPicker></mat-datepicker>
+            <mat-datepicker-toggle matIconSuffix [for]="startPicker" [disabled]="form.get('startDate')?.disabled"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker [disabled]="form.get('startDate')?.disabled"></mat-datepicker>
             <mat-error>{{ form.get('startDate')?.errors | formError: { required: t('fields.startDate.errors.required') }
               }}</mat-error>
           </mat-form-field>

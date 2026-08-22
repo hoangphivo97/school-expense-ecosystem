@@ -21,6 +21,11 @@
     "empty": {
       "title": "No Projects Found",
       "subtitle": "There are no projects available to display in this view."
+    },
+    "notifications": {
+      "created": "Project has been created successfully.",
+      "updated": "Project details updated successfully.",
+      "approved": "Project has been approved successfully."
     }
   },
   "shared": {

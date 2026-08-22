@@ -21,6 +21,11 @@
     "empty": {
       "title": "查無專案資料",
       "subtitle": "目前尚無符合條件或可顯示的專案清單。"
+    },
+    "notifications": {
+      "created": "專案已成功建立。",
+      "updated": "專案內容已成功更新。",
+      "approved": "專案已成功核准。"
     }
   },
   "shared": {

@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
@@ -14,7 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
-import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { FormErrorSignalPipe, LoadingDirective, NotificationService } from '@school-expense-ecosystem/shared/ui';
 import { email, form, FormField, required, submit, disabled, validate } from '@angular/forms/signals';
 import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 
@@ -37,9 +37,9 @@ export class UserFormModalComponent implements OnInit {
   private readonly userListService = inject(UserListService);
   private readonly dialogRef = inject(MatDialogRef<UserFormModalComponent>);
   protected readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true });
-  private readonly snackBar = inject(MatSnackBar);
   private readonly authStore = inject(AuthSignalStore);
   private readonly translocoService = inject(TranslocoService);
+  private readonly notify = inject(NotificationService);
 
   // Unify Component State into Modern Angular Signals
   protected readonly mode = signal<'create' | 'edit' | 'detail'>('create');
@@ -291,7 +291,7 @@ export class UserFormModalComponent implements OnInit {
         next: () => {
           const successKey = this.isEditMode() ? 'admin.userForm.notifications.updateSuccess' : 'admin.userForm.notifications.provisionSuccess';
           const msg = this.translocoService.translate(successKey);
-          this.showNotification(msg, 'success');
+          this.notify.success(successKey);
           this.dialogRef.close({ isSuccess: true, payload: basePayload });
         },
         error: (err) => {
@@ -301,23 +301,13 @@ export class UserFormModalComponent implements OnInit {
           console.error('User mutation pipeline failed:', err);
 
           const fallbackKey = this.isEditMode() ? 'admin.userForm.notifications.updateError' : 'admin.userForm.notifications.provisionError';
-          const fallbackMsg = this.translocoService.translate(fallbackKey);
 
-          const apiErrorMsg = err.error?.errorMsg || fallbackMsg;
+          const errorMsgOrKey = err.error?.errorMsg || fallbackKey;
 
-          this.showNotification(apiErrorMsg, 'error');
+          this.notify.error(errorMsgOrKey);
         }
       });
     })
-  }
-
-  private showNotification(message: string, type: 'success' | 'error'): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: type === 'success' ? ['toast-success'] : ['toast-error']
-    });
   }
 
   protected switchToEditMode(): void {

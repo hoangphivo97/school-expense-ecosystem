@@ -13,6 +13,7 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { HTTP_ERROR_DELEGATE } from '@school-expense-ecosystem/shared/tokens';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DialogError, ErrorResponse, RestrictedAccountError } from '@school-expense-ecosystem/shared/types';
+import { NotificationService } from '@school-expense-ecosystem/shared/ui';
 
 type ErrorModalDelegate = (payload: DialogError) => void;
 
@@ -23,7 +24,7 @@ export const authInterceptor: HttpInterceptorFn = (
   const auth = inject(AuthService);
   const router = inject(Router);
   const authStore = inject(AuthSignalStore);
-  const snackBar = inject(MatSnackBar)
+  const notify = inject(NotificationService);
 
   const showErrorModal = inject(HTTP_ERROR_DELEGATE, { optional: true }) as ErrorModalDelegate | null;
 
@@ -48,7 +49,7 @@ export const authInterceptor: HttpInterceptorFn = (
         case 500:
           return handle500Error(err, showErrorModal);
         case 403:
-          return handle403Error(err, authStore, router, snackBar);
+          return handle403Error(err, authStore, router, notify);
         case 401:
           return handle401Error(err, req, next, auth, router, showErrorModal);
         default:
@@ -78,7 +79,7 @@ function handle403Error(
   err: HttpErrorResponse,
   authStore: AuthSignalStore,
   router: Router,
-  snackBar: MatSnackBar
+  notify: NotificationService
 ): Observable<never> {
   const errorBody = err.error as ErrorResponse;
 
@@ -94,10 +95,7 @@ function handle403Error(
     }
 
     case 'AUTH_DEMO_READ_ONLY': {
-      snackBar.open(errorBody.errorMsg, 'Close', {
-        duration: 6000,
-        panelClass: ['toast-warning']
-      });
+      notify.warning(errorBody.errorMsg);
       break;
     }
 
@@ -112,10 +110,7 @@ function handle403Error(
     // Case 3: DEMO ACCOUNT
     default: {
       const fallbackMessage = errorBody?.errorMsg || 'Action denied: Insufficient permissions.';
-      snackBar.open(fallbackMessage, 'Close', {
-        duration: 5000,
-        panelClass: ['toast-error']
-      });
+      notify.error(fallbackMessage);
       break;
     }
   }
