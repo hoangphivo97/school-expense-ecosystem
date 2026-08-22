@@ -26,6 +26,7 @@ export interface Project {
     joinedStudentIds: string[];
     createdAt?: string;
     updatedAt?: string;
+    rejectionReason?: string | null;
 }
 
 export interface Event {

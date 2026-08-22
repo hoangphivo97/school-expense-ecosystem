@@ -4,3 +4,4 @@ export * from './lib/project-backend.module';
 export * from './lib/dtos/manage-members.dto';
 export * from './lib/dtos/project-query.dto';
 export * from './lib/dtos/update-project.dto';
+export * from './lib/dtos/reject-project.dto';

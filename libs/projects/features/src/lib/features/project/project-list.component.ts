@@ -188,6 +188,22 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
+  canRejectProject(project: Project): boolean {
+    return this.canApproveProject(project);
+  }
+
+  onRejectProject(project: Project): void {
+    this.projectApiService.rejectProject(project.id).subscribe({
+      next: () => {
+        this.notify.success('project.projectList.notifications.rejected');
+        this.projectsResource.reload();
+      },
+      error: (err) => {
+        this.notify.error(err?.error?.errorMsg || 'Failed to reject project proposal.');
+      },
+    });
+  }
+
   openJoinByCodeModal(): void {
     // Open student join code input dialog logic
   }

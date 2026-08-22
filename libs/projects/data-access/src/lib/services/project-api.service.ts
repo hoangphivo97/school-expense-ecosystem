@@ -81,8 +81,8 @@ export class ProjectApiService {
   /**
    * Approve pending project funding (Dean / Finance)
    */
-  approveProject(projectId: string): Observable<Project> {
-    return this.http.patch<Project>(`${this.apiUrl}/${projectId}/approve`, {});
+  approveProject(id: string): Observable<Project> {
+    return this.http.patch<Project>(`${this.apiUrl}/${id}/approve`, {});
   }
 
   addStudents(projectId: string, studentIds: string[]): Observable<void> {
@@ -91,5 +91,9 @@ export class ProjectApiService {
 
   removeStudent(projectId: string, studentId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${projectId}/students/${studentId}`);
+  }
+
+  rejectProject(id: string, reason?: string): Observable<Project> {
+    return this.http.patch<Project>(`${this.apiUrl}/${id}/reject`, { reason });
   }
 }

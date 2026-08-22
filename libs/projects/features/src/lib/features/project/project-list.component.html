@@ -105,6 +105,18 @@
                     <mat-icon>check_circle</mat-icon>
                   </button>
                 }
+
+                @if (canRejectProject(project)) {
+                  <button
+                    mat-icon-button
+                    class="text-danger"
+                    [matTooltip]="t('actions.rejectProject')"
+                    (click)="onRejectProject(project)"
+                    aria-label="Reject Project"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                }
                 
                 @if (canEditProject(project)) {
                   <button

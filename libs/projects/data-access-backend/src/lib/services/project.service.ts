@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
+import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { Project, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 
@@ -242,5 +242,50 @@ export class ProjectService {
     }
 
     return project;
+  }
+
+  async approveProject(projectId: string, user: AuthenticatedUser): Promise<Project> {
+    const project = await this.validateProjectAccess(projectId, user);
+    const isFacultyDean = user.role === Role.LEVEL_2_DEAN && project.facultyId === user.facultyId;
+    const isFinance = user.role === Role.LEVEL_1_FINANCE;
+
+    if (!isFacultyDean && !isFinance) {
+      throw new ForbiddenException('Only the Faculty Dean or Finance can approve project proposals');
+    }
+
+    if (project.status !== ProjectStatus.PENDING_DEAN_APPROVAL) {
+      throw new BadRequestException('Only projects pending approval can be approved');
+    }
+
+    const updateData: Partial<Project> = {
+      status: ProjectStatus.ACTIVE,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.projectRepo.update(projectId, updateData);
+    return { ...project, ...updateData };
+  }
+
+  async rejectProject(projectId: string, user: AuthenticatedUser, dto?: RejectProjectDto): Promise<Project> {
+    const project = await this.validateProjectAccess(projectId, user);
+    const isFacultyDean = user.role === Role.LEVEL_2_DEAN && project.facultyId === user.facultyId;
+    const isFinance = user.role === Role.LEVEL_1_FINANCE;
+
+    if (!isFacultyDean && !isFinance) {
+      throw new ForbiddenException('Only the Faculty Dean or Finance can reject project proposals');
+    }
+
+    if (project.status !== ProjectStatus.PENDING_DEAN_APPROVAL) {
+      throw new BadRequestException('Only projects pending approval can be rejected');
+    }
+
+    const updateData: Partial<Project> = {
+      status: ProjectStatus.REJECTED,
+      rejectionReason: dto?.reason?.trim() || null,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.projectRepo.update(projectId, updateData);
+    return { ...project, ...updateData };
   }
 }

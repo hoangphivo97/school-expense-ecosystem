@@ -6,7 +6,8 @@
       "viewDetails": "查看詳情",
       "manageJoinCode": "管理邀請代碼",
       "editProject": "編輯專案",
-      "approveProject": "核准專案"
+      "approveProject": "核准專案",
+      "rejectProject": "拒絕專案"
     },
     "columns": {
       "id": "專案編號",
@@ -25,7 +26,8 @@
     "notifications": {
       "created": "專案已成功建立。",
       "updated": "專案內容已成功更新。",
-      "approved": "專案已成功核准。"
+      "approved": "專案已成功核准。",
+      "rejected": "專案申請已被拒絕。"
     }
   },
   "shared": {

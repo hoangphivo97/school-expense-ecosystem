@@ -6,7 +6,8 @@
       "viewDetails": "View Details",
       "manageJoinCode": "Manage Join Code",
       "editProject": "Edit Project",
-      "approveProject": "Approve Project"
+      "approveProject": "Approve Project",
+      "rejectProject": "Reject Project"
     },
     "columns": {
       "id": "Project ID",
@@ -25,7 +26,8 @@
     "notifications": {
       "created": "Project has been created successfully.",
       "updated": "Project details updated successfully.",
-      "approved": "Project has been approved successfully."
+      "approved": "Project has been approved successfully.",
+      "rejected": "Project proposal has been rejected."
     }
   },
   "shared": {

@@ -14,7 +14,7 @@ import {
 import { ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, UpdateProjectDto } from '../..';
+import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '../..';
 
 @Controller('projects-manager')
 @UseGuards(RolesGuard)
@@ -127,5 +127,28 @@ export class ProjectController {
     @CurrentUser() user: AuthenticatedUser
   ) {
     return this.projectService.removeStudent(projectId, studentId, user);
+  }
+
+  // Approve Project Proposal
+  @Patch(':id/approve')
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
+  @HttpCode(HttpStatus.OK)
+  async approve(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.projectService.approveProject(id, user);
+  }
+
+  // Reject Project Proposal
+  @Patch(':id/reject')
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
+  @HttpCode(HttpStatus.OK)
+  async reject(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() rejectDto?: RejectProjectDto
+  ) {
+    return this.projectService.rejectProject(id, user, rejectDto);
   }
 }
