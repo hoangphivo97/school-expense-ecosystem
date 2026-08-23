@@ -4,7 +4,7 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule, MatHint } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -13,8 +13,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { CreateProjectPayload, Project, ProjectFundingType, ProjectStatus, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 import { FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { DialogActionEnum, FacultyId } from '@school-expense-ecosystem/shared/types';
-import { FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
+import { ConfirmDialogData, DialogActionEnum, FacultyId } from '@school-expense-ecosystem/shared/types';
+import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 
 export interface CreateProjectDialogData {
   facultyId?: FacultyId;
@@ -41,6 +41,7 @@ export class CreateProjectDialogComponent {
   private readonly projectApiService = inject(ProjectApiService);
   private readonly facultyApiService = inject(FacultyApiService);
   private readonly decimalPipe = inject(DecimalPipe);
+  private readonly dialog = inject(MatDialog);
 
   readonly data = inject<CreateProjectDialogData>(MAT_DIALOG_DATA, { optional: true });
   readonly action = signal<DialogActionEnum>(this.data?.action ?? DialogActionEnum.Create);
@@ -226,6 +227,27 @@ export class CreateProjectDialogComponent {
   }
 
   onCancel(): void {
-    this.dialogRef.close();
+    if (this.isDetailMode() || this.form.pristine) {
+      this.dialogRef.close();
+      return;
+    }
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      disableClose: true,
+      data: {
+        title: 'Discard Changes',
+        message: 'You have unsaved changes in this project. Are you sure you want to discard them?',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        confirmColor: 'warn',
+        icon: 'warning'
+      } as ConfirmDialogData
+    });
+
+    confirmRef.afterClosed().subscribe((isConfirmed: boolean) => {
+      if (isConfirmed) {
+        this.dialogRef.close();
+      }
+    });
   }
 }

@@ -1,8 +1,8 @@
 import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { DialogActionEnum, FacultyId, FilterMode, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
+import { ConfirmDialogData, DialogActionEnum, FacultyId, FilterMode, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
+import { BaseModalComponent, BaseModalData, ConfirmDialogComponent, CopyToClipboardDirective, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,12 +15,17 @@ import { Project, ProjectQueryPayload, ProjectStatus } from '@school-expense-eco
 import { CreateProjectDialogComponent } from '../dialogs/create-project-dialog/create-project-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
+export interface ProjectViewModel extends Project {
+  canApprove: boolean;
+  canReject: boolean;
+  canEdit: boolean;
+}
 
 @Component({
   selector: 'lib-project-list',
   templateUrl: './project-list.component.html',
   styleUrls: ['./project-list.component.scss'],
-  imports: [HeaderComponent, FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, FooterComponent, TranslocoModule, MatMenuModule, MatSnackBarModule],
+  imports: [HeaderComponent, FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, FooterComponent, TranslocoModule, MatMenuModule, MatSnackBarModule, CopyToClipboardDirective],
   providers: [
     { provide: TRANSLOCO_SCOPE, useValue: 'project' }
   ]
@@ -31,6 +36,7 @@ export class ProjectListComponent implements OnInit {
   private readonly facultyApiService = inject(FacultyApiService);
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
+  private readonly translocoService = inject(TranslocoService);
 
   // State Signals
   readonly pageSize = signal<number>(10);
@@ -55,7 +61,30 @@ export class ProjectListComponent implements OnInit {
 
   // 4. State Signals dẫn xuất trực tiếp từ Resource (Không cần set thủ công)
   readonly isGridDataLoading = this.projectsResource.isLoading;
-  readonly dataSource = computed(() => this.projectsResource.value().items);
+  readonly dataSource = computed<ProjectViewModel[]>(() => {
+    const items = this.projectsResource.value()?.items ?? [];
+    const user = this.currentUser();
+
+    if (!user) return [];
+
+    return items.map((project) => {
+      const isPending = project.status === ProjectStatus.PENDING_DEAN_APPROVAL;
+      const isFacultyDean = user.role === Role.LEVEL_2_DEAN && user.facultyId === project.facultyId;
+      const isFinance = user.role === Role.LEVEL_1_FINANCE;
+      const isDeanOrFinance = isFacultyDean || isFinance;
+
+      const isLocked = [ProjectStatus.ARCHIVED, ProjectStatus.COMPLETED, ProjectStatus.REJECTED].includes(project.status);
+      const isMentor = user.uid === project.mentorId;
+      const isAdmin = user.role === Role.LEVEL_0_ADMIN;
+
+      return {
+        ...project,
+        canApprove: isPending && isDeanOrFinance,
+        canReject: isPending && isDeanOrFinance,
+        canEdit: !isLocked && (isMentor || isFacultyDean || isFinance || isAdmin),
+      };
+    });
+  });
   readonly totalItems = computed(() => this.projectsResource.value().total);
 
   // Auth Context Signals
@@ -162,11 +191,33 @@ export class ProjectListComponent implements OnInit {
   }
 
   onApproveProject(project: Project): void {
-    this.projectApiService.approveProject(project.id).subscribe({
-      next: () => {
-        this.notify.success('project.projectList.notifications.approved');
-        this.projectsResource.reload();
-      },
+    const confirmData: ConfirmDialogData = {
+      title: this.translocoService.translate('project.projectList.approveModal.title'),
+      message: this.translocoService.translate('project.projectList.approveModal.message', { name: project.name }),
+      confirmText: this.translocoService.translate('project.projectList.approveModal.confirm'),
+      cancelText: this.translocoService.translate('project.projectList.approveModal.cancel'),
+      confirmColor: 'primary',
+      icon: 'check_circle',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: confirmData,
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((isConfirmed: boolean) => {
+      if (!isConfirmed) return;
+
+      this.projectApiService.approveProject(project.id).subscribe({
+        next: () => {
+          this.notify.success('project.projectList.notifications.approved');
+          this.projectsResource.reload();
+        },
+        error: (err) => {
+          this.notify.error(err?.error?.errorMsg || 'Failed to approve project proposal.');
+        },
+      });
     });
   }
 
@@ -193,14 +244,30 @@ export class ProjectListComponent implements OnInit {
   }
 
   onRejectProject(project: Project): void {
-    this.projectApiService.rejectProject(project.id).subscribe({
-      next: () => {
-        this.notify.success('project.projectList.notifications.rejected');
-        this.projectsResource.reload();
-      },
-      error: (err) => {
-        this.notify.error(err?.error?.errorMsg || 'Failed to reject project proposal.');
-      },
+    const modalData: BaseModalData = {
+      title: this.translocoService.translate('project.projectList.rejectModal.title'),
+      message: this.translocoService.translate('project.projectList.rejectModal.message', { name: project.name }),
+      placeholder: this.translocoService.translate('project.projectList.rejectModal.placeholder'),
+    };
+
+    const dialogRef = this.dialog.open(BaseModalComponent, {
+      width: '500px',
+      data: modalData,
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((reason: string | null) => {
+      if (!reason) return;
+
+      this.projectApiService.rejectProject(project.id, reason).subscribe({
+        next: () => {
+          this.notify.success('project.projectList.notifications.rejected');
+          this.projectsResource.reload();
+        },
+        error: (err) => {
+          this.notify.error(err?.error?.errorMsg || 'Failed to reject project proposal.');
+        },
+      });
     });
   }
 

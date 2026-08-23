@@ -7,7 +7,8 @@
       "manageJoinCode": "管理邀請代碼",
       "editProject": "編輯專案",
       "approveProject": "核准專案",
-      "rejectProject": "拒絕專案"
+      "rejectProject": "拒絕專案",
+      "clickToCopy": "點擊複製"
     },
     "columns": {
       "id": "專案編號",
@@ -27,7 +28,19 @@
       "created": "專案已成功建立。",
       "updated": "專案內容已成功更新。",
       "approved": "專案已成功核准。",
-      "rejected": "專案申請已被拒絕。"
+      "rejected": "專案申請已被拒絕。",
+      "copiedToClipboard": "專案編號已複製至剪貼簿。"
+    },
+    "rejectModal": {
+      "title": "拒絕專案申請",
+      "message": "請輸入拒絕專案「{{name}}」的具體原因：",
+      "placeholder": "請輸入修改建議或預算調整說明..."
+    },
+    "approveModal": {
+      "title": "核准專案申請",
+      "message": "您確定要核准專案「{{name}}」嗎？核准後該專案將正式啟用並開放經費報支申請。",
+      "confirm": "確認核准",
+      "cancel": "取消"
     }
   },
   "shared": {

@@ -7,7 +7,8 @@
       "manageJoinCode": "Manage Join Code",
       "editProject": "Edit Project",
       "approveProject": "Approve Project",
-      "rejectProject": "Reject Project"
+      "rejectProject": "Reject Project",
+      "clickToCopy": "Click to copy"
     },
     "columns": {
       "id": "Project ID",
@@ -27,7 +28,19 @@
       "created": "Project has been created successfully.",
       "updated": "Project details updated successfully.",
       "approved": "Project has been approved successfully.",
-      "rejected": "Project proposal has been rejected."
+      "rejected": "Project proposal has been rejected.",
+      "copiedToClipboard": "Project ID copied to clipboard."
+    },
+    "rejectModal": {
+      "title": "Reject Project Proposal",
+      "message": "Please specify the justification for rejecting \"{{name}}\":",
+      "placeholder": "Enter constructive feedback or budget revision instructions..."
+    },
+    "approveModal": {
+      "title": "Approve Project Proposal",
+      "message": "Are you sure you want to approve \"{{name}}\"? This will activate the project and allow expense requests.",
+      "confirm": "Approve Project",
+      "cancel": "Cancel"
     }
   },
   "shared": {

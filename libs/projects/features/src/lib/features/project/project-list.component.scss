@@ -29,6 +29,19 @@ body {
       }
     }
 
+    .project-id-chip {
+      cursor: pointer;
+      font-family: monospace;
+      font-weight: 600;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        color: var(--mat-sys-primary, #673ab7);
+        text-decoration: underline;
+        opacity: 0.85;
+      }
+    }
+
     .code-badge {
       font-family: monospace;
       font-weight: 600;

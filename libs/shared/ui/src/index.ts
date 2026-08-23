@@ -14,3 +14,4 @@ export * from './lib/ui/components/language-switcher/language-switcher.component
 export * from './lib/ui/directives/loading.directive';
 export * from './lib/ui/components/pagination/pagination.component';
 export * from './lib/ui/services/notification-service/notification.service';
+export * from './lib/ui/directives/copy-to-clipboard.directive';

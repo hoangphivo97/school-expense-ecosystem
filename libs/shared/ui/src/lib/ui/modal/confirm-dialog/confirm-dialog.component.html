@@ -1,23 +1,30 @@
-<div class="confirm-dialog-container p-3">
-  <h2 mat-dialog-title class="d-flex align-items-center gap-2 m-0" 
-      [class.text-warn]="config.confirmColor === 'warn'"
-      [class.text-warning]="config.confirmColor === 'primary'">
-    <mat-icon>{{ config.icon || 'warning' }}</mat-icon>
-    <span>{{ config.title || 'Are you sure?' }}</span>
+<div class="confirm-dialog-wrapper text-center p-4">
+  <!-- Centered Icon Badge -->
+  <div class="icon-badge mx-auto mb-3" [class]="'badge-' + (config.confirmColor || 'primary')">
+    <mat-icon>{{ config.icon || 'help_outline' }}</mat-icon>
+  </div>
+
+  <!-- Title -->
+  <h2 class="dialog-title fw-bold fs-5 mb-2">
+    {{ config.title || 'Are you sure?' }}
   </h2>
-  
-  <mat-dialog-content class="mt-2 text-secondary fs-6">
+
+  <!-- Message -->
+  <p class="dialog-message text-secondary small mb-4 lh-base px-2">
     {{ config.message || 'Do you really want to proceed with this action?' }}
-  </mat-dialog-content>
-  
-  <mat-dialog-actions align="end" class="mt-4 gap-2">
-    <button mat-button [mat-dialog-close]="false" class="px-3 rounded">
+  </p>
+
+  <!-- Actions -->
+  <mat-dialog-actions align="center" class="gap-2 p-0 border-0">
+    <button mat-button [mat-dialog-close]="false" class="px-4 rounded-2">
       {{ config.cancelText || 'Cancel' }}
     </button>
-    <button mat-flat-button 
-            [color]="config.confirmColor || 'primary'" 
-            [mat-dialog-close]="true" 
-            class="px-3 rounded">
+    <button
+      mat-flat-button
+      [color]="config.confirmColor || 'primary'"
+      [mat-dialog-close]="true"
+      class="px-4 rounded-2 fw-medium"
+    >
       {{ config.confirmText || 'Confirm' }}
     </button>
   </mat-dialog-actions>
