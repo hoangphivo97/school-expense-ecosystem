@@ -151,4 +151,11 @@ export class ProjectController {
   ) {
     return this.projectService.rejectProject(id, user, rejectDto);
   }
+
+  @Get('students/search')
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @UserTypes(UserType.TEACHER)
+  async searchStudents(@Query('query') query: string) {
+    return this.projectService.searchStudents(query);
+  }
 }

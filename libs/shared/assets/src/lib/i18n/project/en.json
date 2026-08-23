@@ -17,6 +17,7 @@
       "facultyId": "Faculty",
       "budgetCap": "Budget Cap",
       "currentSpent": "Current Spent",
+      "enrolledStudents": "Students",
       "timeline": "Timeline",
       "status": "Status"
     },
@@ -137,6 +138,59 @@
       "submitting": "Creating...",
       "close": "Close",
       "update": "Save Changes"
+    }
+  },
+  "manageMembersDialog": {
+    "title": "Project Members & Recruitment",
+    "close": "Close",
+    "tabs": {
+      "roster": "Roster",
+      "joinCode": "Invitation Code"
+    },
+    "roster": {
+      "searchLabel": "Search Student",
+      "searchPlaceholder": "Type student name, student ID, or email...",
+      "noStudentsFound": "No students found matching your search.",
+      "addButton": "Add",
+      "emptyState": "No students have joined this project yet.",
+      "copyIdTooltip": "Copy Student ID",
+      "removeTooltip": "Remove student from project",
+      "alreadyEnrolled": "Student is already enrolled in this project.",
+      "addSuccess": "Student added successfully.",
+      "removeSuccess": "Student removed successfully."
+    },
+    "code": {
+      "clickToCopy": "Click to copy invitation code",
+      "expiresAt": "Valid until",
+      "capacityLabel": "Enrolled Students",
+      "regenerateButton": "Generate New Code",
+      "generate": "Create Join Code",
+      "generating": "Creating...",
+      "back": "Back",
+      "copied": "Invitation code copied to clipboard.",
+      "status": {
+        "active": "Active",
+        "expired": "Expired",
+        "full": "Full Capacity"
+      },
+      "fields": {
+        "maxUses": {
+          "label": "Recruitment Capacity",
+          "hint": "Maximum number of students that can join",
+          "errors": {
+            "required": "Capacity limit is required.",
+            "min": "Must allow at least 1 student.",
+            "max": "Cannot exceed 200 students per code."
+          }
+        },
+        "expiresAt": {
+          "label": "Expiration Date",
+          "hint": "Must be on or before project end date",
+          "errors": {
+            "required": "Expiration date is required."
+          }
+        }
+      }
     }
   }
 }

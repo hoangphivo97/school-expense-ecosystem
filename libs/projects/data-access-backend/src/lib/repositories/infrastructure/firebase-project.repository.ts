@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FacultyId } from '@school-expense-ecosystem/shared/types';
+import { FacultyId, UserType } from '@school-expense-ecosystem/shared/types';
 import { ProjectRepository } from '../abstracts/project.repository';
-import { Project, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
+import { Project, ProjectQueryPayload, StudentSummary } from '@school-expense-ecosystem/projects/types';
 
 @Injectable()
 export class FirestoreProjectRepository implements ProjectRepository {
@@ -12,6 +12,10 @@ export class FirestoreProjectRepository implements ProjectRepository {
 
   private get collection() {
     return this.db.collection('projects');
+  }
+
+  private get usersCollection() {
+    return this.db.collection('users');
   }
 
   async create(project: Project): Promise<Project> {
@@ -150,5 +154,42 @@ export class FirestoreProjectRepository implements ProjectRepository {
     }
     if (dateVal instanceof Date) return dateVal.toISOString();
     return new Date(dateVal).toISOString();
+  }
+
+  async searchStudents(query: string, limitCount = 20): Promise<StudentSummary[]> {
+    const normalizedQuery = query.toLowerCase().trim();
+    if (!normalizedQuery) return [];
+
+    // Query students collection
+    const snapshot = await this.usersCollection
+      .where('userType', '==', UserType.STUDENT)
+      .limit(100)
+      .get();
+
+    const matchedStudents: StudentSummary[] = [];
+
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      const fullName = (data['fullName'] || '').toLowerCase();
+      const studentCode = (data['studentCode'] || '').toLowerCase();
+      const email = (data['email'] || '').toLowerCase();
+
+      if (
+        fullName.includes(normalizedQuery) ||
+        studentCode.includes(normalizedQuery) ||
+        email.includes(normalizedQuery)
+      ) {
+        matchedStudents.push({
+          id: doc.id,
+          studentCode: data['studentCode'] ?? '',
+          fullName: data['fullName'] ?? '',
+          email: data['email'] ?? '',
+        });
+
+        if (matchedStudents.length >= limitCount) break;
+      }
+    }
+
+    return matchedStudents;
   }
 }

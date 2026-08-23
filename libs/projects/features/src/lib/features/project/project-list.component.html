@@ -33,6 +33,7 @@
               class="project-id-chip"
               [matTooltip]="t('actions.clickToCopy')"
               [copyToClipboard]="project.id"
+              copySuccessKey="project.projectList.notifications.copiedToClipboard"
             >
               {{ project.id }}
             </span>
@@ -86,6 +87,45 @@
               {{ project.startDate | date: 'dd/MM/yyyy' }} - {{ project.endDate | date: 'dd/MM/yyyy' }}
             </td>
           </ng-container>
+
+          <!-- Enrolled Students Column -->
+          <ng-container matColumnDef="enrolledStudents">
+          <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+            {{ t('columns.enrolledStudents') }}
+          </th>
+          <td mat-cell *matCellDef="let project" class="py-3 px-4">
+            @if (project.joinConfig?.maxUses) {
+              <div class="enrollment-container">
+                <!-- Text ratio & Percentage -->
+                <div class="d-flex justify-content-between align-items-center mb-1 small">
+                  <span class="fw-semibold font-monospace" [class.text-danger]="project.isEnrollmentFull">
+                    {{ project.joinedStudentIds?.length || 0 }}/{{ project.joinConfig.maxUses }}
+                  </span>
+                  <span class="text-secondary smaller">{{ project.enrollmentPercentage }}%</span>
+                </div>
+
+                <!-- Custom Compact Progress Track -->
+                <div class="progress-track">
+                  <div
+                    class="progress-fill"
+                    [style.width.%]="project.enrollmentPercentage"
+                    [ngClass]="{
+                      'bg-danger': project.isEnrollmentFull,
+                      'bg-warning': (project.enrollmentPercentage || 0) >= 80 && !project.isEnrollmentFull,
+                      'bg-primary': (project.enrollmentPercentage || 0) < 80
+                    }"
+                  ></div>
+                </div>
+              </div>
+            } @else {
+              <!-- Fallback when no join code / quota is set -->
+              <div class="d-flex align-items-center gap-1 text-secondary small">
+                <mat-icon class="fs-6 h-auto w-auto">person</mat-icon>
+                <span>{{ project.joinedStudentIds?.length || 0 }}</span>
+              </div>
+            }
+          </td>
+        </ng-container>
 
           <!-- Status -->
           <ng-container matColumnDef="status">

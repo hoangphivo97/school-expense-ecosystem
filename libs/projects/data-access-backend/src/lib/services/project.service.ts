@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
-import { Project, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { Project, ProjectFundingType, ProjectJoinConfig, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
 
 @Injectable()
 export class ProjectService {
@@ -182,11 +182,11 @@ export class ProjectService {
     await this.projectRepo.addStudentsBulk(projectId, dto.studentIds);
   }
 
-  async generateNewJoinCode(projectId: string, user: AuthenticatedUser, dto: GenerateProjectJoinCodeDto): Promise<Project['joinConfig']> {
+  async generateNewJoinCode(projectId: string, user: AuthenticatedUser, dto: GenerateProjectJoinCodeDto): Promise<ProjectJoinConfig> {
     const project = await this.validateProjectAccess(projectId, user);
 
     const secureCode = `PRJ-${randomBytes(3).toString('hex').toUpperCase()}`;
-    const newConfig: Project['joinConfig'] = {
+    const newConfig: ProjectJoinConfig = {
       code: secureCode,
       maxUses: dto.maxUses,
       usedCount: 0,
@@ -287,5 +287,13 @@ export class ProjectService {
 
     await this.projectRepo.update(projectId, updateData);
     return { ...project, ...updateData };
+  }
+
+  async searchStudents(query: string): Promise<StudentSummary[]> {
+    const trimmed = query?.trim() ?? '';
+    if (trimmed.length < 2) {
+      return [];
+    }
+    return this.projectRepo.searchStudents(trimmed);
   }
 }

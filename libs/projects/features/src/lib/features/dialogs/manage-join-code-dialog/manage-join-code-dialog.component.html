@@ -1,0 +1,223 @@
+<div class="manage-members-modal p-4" *transloco="let t; read: 'project.manageMembersDialog'">
+  <!-- Modal Header -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex align-items-center gap-3">
+      <div class="icon-badge">
+        <mat-icon color="primary">groups</mat-icon>
+      </div>
+      <div>
+        <h2 class="dialog-title m-0 fw-bold fs-5">{{ t('title') }}</h2>
+        <p class="dialog-subtitle text-secondary small m-0">{{ data.project.name }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Server Error Banner -->
+  @if (errorMessage()) {
+  <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+    <mat-icon class="fs-5 w-auto h-auto text-danger">error_outline</mat-icon>
+    <span>{{ errorMessage() }}</span>
+  </div>
+  }
+
+  <!-- Tabbed Interface -->
+  <mat-tab-group animationDuration="150ms" class="custom-tab-group">
+    <!-- TAB 1: Member Roster Management -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="me-2 fs-6 h-auto w-auto">badge</mat-icon>
+        <span>{{ t('tabs.roster') }} ({{ joinedStudentIds().length }})</span>
+      </ng-template>
+
+      <div class="tab-content-wrapper pt-3">
+        <!-- Add Student Form -->
+        <div class="d-flex gap-2 align-items-start mb-3">
+          <mat-form-field appearance="outline" class="flex-grow-1 custom-field" subscriptSizing="dynamic">
+            <mat-label>{{ t('roster.searchLabel') }}</mat-label>
+            <mat-icon matIconPrefix class="field-icon">person_add</mat-icon>
+            <input matInput [value]="searchRawQuery()" (input)="searchRawQuery.set($any($event.target).value)"
+              [matAutocomplete]="auto" [placeholder]="t('roster.searchPlaceholder')" />
+
+            @if (studentsResource.isLoading()) {
+            <mat-spinner matIconSuffix diameter="18" class="me-2"></mat-spinner>
+            }
+
+            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayStudentFn"
+              (optionSelected)="onStudentSelected($event)">
+              @for (student of studentsResource.value(); track student.id) {
+              <mat-option [value]="student">
+                <div class="d-flex flex-column py-1">
+                  <div class="fw-semibold lh-sm">{{ student.fullName }}</div>
+                  <small class="text-secondary lh-sm">{{ student.studentCode }} • {{ student.email }}</small>
+                </div>
+              </mat-option>
+              }
+
+              <!-- No Results State -->
+              @if (!studentsResource.isLoading() && studentsResource.value().length === 0 && debouncedQuery()) {
+              <mat-option disabled class="text-secondary small">
+                {{ t('roster.noStudentsFound') }}
+              </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="button" class="h-auto py-3 px-3"
+            [disabled]="!selectedStudent() || isMemberMutating()" (click)="onAddStudent()">
+            <mat-icon class="me-1">add</mat-icon>
+            <span>{{ t('roster.addButton') }}</span>
+          </button>
+        </div>
+
+        <!-- Enrolled Members List -->
+        <div class="member-list-container border rounded-3 p-2">
+          @if (joinedStudentIds().length === 0) {
+          <div class="text-center text-secondary py-4 small">
+            <mat-icon class="fs-2 h-auto w-auto d-block mx-auto mb-1 text-muted">person_off</mat-icon>
+            <span>{{ t('roster.emptyState') }}</span>
+          </div>
+          } @else {
+          <ul class="list-unstyled m-0">
+            @for (studentId of joinedStudentIds(); track studentId) {
+            <li class="member-item d-flex align-items-center justify-content-between p-2 rounded-2">
+              <div class="d-flex align-items-center gap-2">
+                <mat-icon class="text-secondary fs-5 h-auto w-auto">school</mat-icon>
+                <span class="font-monospace fw-semibold small">{{ studentId }}</span>
+              </div>
+
+              <div class="d-flex align-items-center gap-1">
+                <button mat-icon-button type="button" [copyToClipboard]="studentId"
+                  [matTooltip]="t('roster.copyIdTooltip')">
+                  <mat-icon class="fs-6 h-auto w-auto text-secondary">content_copy</mat-icon>
+                </button>
+                <button mat-icon-button type="button" class="text-danger" [disabled]="isMemberMutating()"
+                  (click)="onRemoveStudent(studentId)" [matTooltip]="t('roster.removeTooltip')">
+                  <mat-icon class="fs-6 h-auto w-auto">delete_outline</mat-icon>
+                </button>
+              </div>
+            </li>
+            }
+          </ul>
+          }
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- TAB 2: Invitation Code Management -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="me-2 fs-6 h-auto w-auto">vpn_key</mat-icon>
+        <span>{{ t('tabs.joinCode') }}</span>
+      </ng-template>
+
+      <div class="tab-content-wrapper pt-3">
+        @if (joinConfig() && !isCreatingNew()) {
+        <div class="code-card p-3 rounded-3 mb-3 border">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="badge text-uppercase px-2 py-1" [ngClass]="{
+                  'bg-danger-subtle text-danger': isExpired() || isFullCapacity(),
+                  'bg-success-subtle text-success': !isExpired() && !isFullCapacity()
+                }">
+              {{ (isExpired() ? t('code.status.expired') : (isFullCapacity() ? t('code.status.full') :
+              t('code.status.active'))) }}
+            </span>
+            <span class="text-secondary small">
+              {{ t('code.expiresAt') }}: {{ joinConfig()!.expiresAt | date: 'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <!-- Code Box with Click to Copy -->
+          <div
+            class="code-display-box d-flex align-items-center justify-content-between p-3 rounded-2 my-2 bg-light border"
+            [copyToClipboard]="joinConfig()!.code" copySuccessKey="project.manageMembersDialog.code.copied"
+            [matTooltip]="t('code.clickToCopy')">
+            <span class="invitation-code font-monospace fw-bold fs-4 text-primary tracking-wider">
+              {{ joinConfig()!.code }}
+            </span>
+            <button mat-icon-button type="button" class="text-primary" aria-label="Copy Code">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+
+          <!-- Recruitment Capacity Progress -->
+          <div class="recruitment-progress mt-3">
+            <div class="d-flex justify-content-between text-secondary small mb-1">
+              <span>{{ t('code.capacityLabel') }}</span>
+              <span class="fw-semibold">{{ joinedStudentIds().length }} / {{ joinConfig()!.maxUses }}</span>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="capacityPercentage()"
+              [color]="isFullCapacity() ? 'warn' : 'primary'"></mat-progress-bar>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button mat-stroked-button color="primary" type="button" (click)="toggleCreateMode(true)">
+            <mat-icon class="me-1">refresh</mat-icon>
+            <span>{{ t('code.regenerateButton') }}</span>
+          </button>
+        </div>
+        }
+
+        @if (isCreatingNew()) {
+        <form [formGroup]="form" (ngSubmit)="onSubmitCode()" class="mt-2">
+          <div class="d-flex flex-column gap-3">
+            <div>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ t('code.fields.maxUses.label') }}</mat-label>
+                <mat-icon matIconPrefix class="field-icon">group_add</mat-icon>
+                <input matInput type="number" formControlName="maxUses" min="1" max="200" placeholder="30" />
+                <mat-hint align="end">{{ t('code.fields.maxUses.hint') }}</mat-hint>
+                <mat-error>
+                  {{ form.get('maxUses')?.errors | formError: {
+                  required: t('code.fields.maxUses.errors.required'),
+                  min: t('code.fields.maxUses.errors.min'),
+                  max: t('code.fields.maxUses.errors.max')
+                  } }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ t('code.fields.expiresAt.label') }}</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="expiresAt" [min]="minDate" [max]="maxDate"
+                  readonly />
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+                <mat-hint align="end">{{ t('code.fields.expiresAt.hint') }}</mat-hint>
+                <mat-error>
+                  {{ form.get('expiresAt')?.errors | formError: { required: t('code.fields.expiresAt.errors.required') }
+                  }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            @if (joinConfig()) {
+            <button mat-button type="button" (click)="toggleCreateMode(false)" [disabled]="isSubmitting()">
+              {{ t('code.back') }}
+            </button>
+            }
+
+            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting()"
+              class="px-4">
+              <mat-icon class="me-1" [class.spinning]="isSubmitting()">
+                {{ isSubmitting() ? 'sync' : 'key' }}
+              </mat-icon>
+              <span>{{ isSubmitting() ? t('code.generating') : t('code.generate') }}</span>
+            </button>
+          </div>
+        </form>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <!-- Modal Footer -->
+  <mat-dialog-actions align="end" class="gap-2 p-0 mt-4 border-0">
+    <button mat-button type="button" (click)="onClose()" [disabled]="isSubmitting() || isMemberMutating()">
+      {{ t('close') }}
+    </button>
+  </mat-dialog-actions>
+</div>

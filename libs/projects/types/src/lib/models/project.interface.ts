@@ -39,3 +39,10 @@ export interface Event {
     endDate: string;
     facultyId?: FacultyId;
 }
+
+export interface StudentSummary {
+  id: string;
+  studentCode: string;
+  fullName: string;
+  email: string;
+}

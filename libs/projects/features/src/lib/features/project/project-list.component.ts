@@ -14,11 +14,14 @@ import { ProjectApiService } from '@school-expense-ecosystem/projects/data-acces
 import { Project, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { CreateProjectDialogComponent } from '../dialogs/create-project-dialog/create-project-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ManageJoinCodeDialogComponent } from '../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 
 export interface ProjectViewModel extends Project {
   canApprove: boolean;
   canReject: boolean;
   canEdit: boolean;
+  enrollmentPercentage?: number;
+  isEnrollmentFull?: boolean;
 }
 
 @Component({
@@ -77,11 +80,18 @@ export class ProjectListComponent implements OnInit {
       const isMentor = user.uid === project.mentorId;
       const isAdmin = user.role === Role.LEVEL_0_ADMIN;
 
+      const enrolledCount = project.joinedStudentIds?.length || 0;
+      const maxUses = project.joinConfig?.maxUses;
+      const enrollmentPercentage = maxUses ? Math.min(Math.round((enrolledCount / maxUses) * 100), 100) : undefined;
+      const isEnrollmentFull = maxUses ? enrolledCount >= maxUses : false;
+
       return {
         ...project,
         canApprove: isPending && isDeanOrFinance,
         canReject: isPending && isDeanOrFinance,
         canEdit: !isLocked && (isMentor || isFacultyDean || isFinance || isAdmin),
+        enrollmentPercentage,
+        isEnrollmentFull,
       };
     });
   });
@@ -108,6 +118,7 @@ export class ProjectListComponent implements OnInit {
     'budgetCap',
     'currentSpent',
     'timeline',
+    'enrolledStudents',
     'status',
     'action',
   ]);
@@ -276,6 +287,16 @@ export class ProjectListComponent implements OnInit {
   }
 
   openJoinCodeModal(project: Project): void {
-    // Open join code configuration/QR dialog logic
+    const dialogRef = this.dialog.open(ManageJoinCodeDialogComponent, {
+      width: '540px',
+      data: { project },
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((updatedConfig) => {
+      if (updatedConfig) {
+        this.projectsResource.reload();
+      }
+    });
   }
 }

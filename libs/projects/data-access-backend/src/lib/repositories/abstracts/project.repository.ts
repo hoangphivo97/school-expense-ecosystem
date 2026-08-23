@@ -1,4 +1,4 @@
-import { Project, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
+import { Project, ProjectQueryPayload, StudentSummary } from '@school-expense-ecosystem/projects/types';
 
 export abstract class ProjectRepository {
   abstract create(project: Project): Promise<Project>;
@@ -16,4 +16,5 @@ export abstract class ProjectRepository {
   ): Promise<void>;
 
   abstract findWithQuery(query: ProjectQueryPayload): Promise<{ items: Project[]; total: number }>;
+  abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
 }

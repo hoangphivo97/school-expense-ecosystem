@@ -17,6 +17,7 @@
       "facultyId": "所屬學院",
       "budgetCap": "預算上限",
       "currentSpent": "目前累計支出",
+      "enrolledStudents": "參與學生",
       "timeline": "執行期間",
       "status": "專案狀態"
     },
@@ -137,6 +138,59 @@
       "submitting": "建立中...",
       "update": "儲存變更",
       "close": "關閉"
+    }
+  },
+  "manageMembersDialog": {
+    "title": "專案成員名冊與招募管理",
+    "close": "關閉",
+    "tabs": {
+      "roster": "成員名冊",
+      "joinCode": "邀請碼"
+    },
+    "roster": {
+      "searchLabel": "搜尋學生",
+      "searchPlaceholder": "輸入學生姓名、學號或電子郵件...",
+      "noStudentsFound": "查無符合條件的學生。",
+      "addButton": "加入",
+      "emptyState": "目前尚未有學生加入此專案。",
+      "copyIdTooltip": "複製學生學號",
+      "removeTooltip": "自專案中移除此學生",
+      "alreadyEnrolled": "該學生已加入此專案。",
+      "addSuccess": "成功將學生加入專案。",
+      "removeSuccess": "已自專案中移除該學生。"
+    },
+    "code": {
+      "clickToCopy": "點擊複製專案邀請碼",
+      "expiresAt": "有效期限至",
+      "capacityLabel": "已加入學生人數",
+      "regenerateButton": "重新產生邀請碼",
+      "generate": "建立邀請碼",
+      "generating": "建立中...",
+      "back": "返回",
+      "copied": "專案邀請碼已複製至剪貼簿。",
+      "status": {
+        "active": "有效",
+        "expired": "已過期",
+        "full": "名額已滿"
+      },
+      "fields": {
+        "maxUses": {
+          "label": "招募人數上限",
+          "hint": "允許加入此專案的學生上限人數",
+          "errors": {
+            "required": "請輸入招募上限人數。",
+            "min": "至少需開放 1 位學生加入。",
+            "max": "單次邀請上限不能超過 200 人。"
+          }
+        },
+        "expiresAt": {
+          "label": "有效期限",
+          "hint": "截止日期不得晚於專案結束日期",
+          "errors": {
+            "required": "請選擇邀請碼有效期限。"
+          }
+        }
+      }
     }
   }
 }

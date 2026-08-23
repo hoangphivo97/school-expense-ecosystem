@@ -1,8 +1,8 @@
-import { HttpClient, httpResource } from '@angular/common/http';
+import { HttpClient, HttpParams, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig, ProjectQueryPayload, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig, ProjectQueryPayload, StudentSummary, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 
 @Injectable({
   providedIn: 'root',
@@ -77,6 +77,11 @@ export class ProjectApiService {
   joinProjectByCode(payload: JoinProjectByCodePayload): Observable<Project> {
     return this.http.post<Project>(`${this.apiUrl}/join`, payload);
   }
+
+searchStudents(query: string): Observable<StudentSummary[]> {
+  const params = new HttpParams().set('query', query.trim());
+  return this.http.get<StudentSummary[]>(`${this.apiUrl}/students/search`, { params });
+}
 
   /**
    * Approve pending project funding (Dean / Finance)

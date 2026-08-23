@@ -20,12 +20,35 @@ body {
   .project-list {
     flex: 1 0 auto;
     width: 100%;
-    max-width: 1500px;
+    max-width: 1600px;
     margin: 0 auto;
 
     ::ng-deep {
       .mat-mdc-table {
         background-color: var(--bg-secondary);
+      }
+    }
+
+    .enrollment-container {
+      min-width: 100px;
+      max-width: 130px;
+
+      .smaller {
+        font-size: 0.75rem;
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 5px;
+        background-color: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+
+        .progress-fill {
+          height: 100%;
+          border-radius: 999px;
+          transition: width 0.3s ease-in-out;
+        }
       }
     }
 
@@ -96,10 +119,6 @@ body {
         font-size: 0.875rem; // 14px smooth readability text cells
       }
 
-      td.action-column {
-        display: flex;
-        justify-content: flex-end;
-      }
     }
 
     .description-clamp-wrapper {
@@ -139,6 +158,7 @@ body {
         background-color: map-get($tokens, bg);
         color: map-get($tokens, text);
         border: 1px solid map-get($tokens, border);
+        text-wrap-mode: nowrap;
       }
     }
   }
