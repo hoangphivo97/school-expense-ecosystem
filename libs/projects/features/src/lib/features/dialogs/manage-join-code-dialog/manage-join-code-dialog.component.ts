@@ -19,6 +19,7 @@ import { toDebouncedSignal } from '@school-expense-ecosystem/shared/utils-fronte
 import { rxResource } from '@angular/core/rxjs-interop';
 import {MatAutocompleteModule, MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import { of } from 'rxjs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 export interface ManageJoinCodeDialogData {
   project: Project;
@@ -48,7 +49,8 @@ export interface ManageJoinCodeDialogResult {
     FormErrorPipe,
     CopyToClipboardDirective,
     DatePipe,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './manage-join-code-dialog.component.html',
   styleUrl: './manage-join-code-dialog.component.scss',
