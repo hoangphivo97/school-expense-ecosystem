@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FacultyId, UserType } from '@school-expense-ecosystem/shared/types';
+import { FacultyId, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ProjectRepository } from '../abstracts/project.repository';
 import { Project, ProjectQueryPayload, StudentSummary } from '@school-expense-ecosystem/projects/types';
 
@@ -160,9 +160,10 @@ export class FirestoreProjectRepository implements ProjectRepository {
     const normalizedQuery = query.toLowerCase().trim();
     if (!normalizedQuery) return [];
 
-    // Query students collection
+    // Query active student accounts only
     const snapshot = await this.usersCollection
       .where('userType', '==', UserType.STUDENT)
+      .where('status', '==', UserStatus.ACTIVE)
       .limit(100)
       .get();
 
@@ -170,20 +171,21 @@ export class FirestoreProjectRepository implements ProjectRepository {
 
     for (const doc of snapshot.docs) {
       const data = doc.data();
-      const fullName = (data['fullName'] || '').toLowerCase();
-      const studentCode = (data['studentCode'] || '').toLowerCase();
-      const email = (data['email'] || '').toLowerCase();
+      const userCode = String(data['userCode'] || '').trim();
+      const fullName = String(data['fullName'] || '').trim();
+      const email = String(data['email'] || '').trim();
 
+      // Check matching keyword against fullName, userCode (student code), or email
       if (
-        fullName.includes(normalizedQuery) ||
-        studentCode.includes(normalizedQuery) ||
-        email.includes(normalizedQuery)
+        fullName.toLowerCase().includes(normalizedQuery) ||
+        userCode.toLowerCase().includes(normalizedQuery) ||
+        email.toLowerCase().includes(normalizedQuery)
       ) {
         matchedStudents.push({
           id: doc.id,
-          studentCode: data['studentCode'] ?? '',
-          fullName: data['fullName'] ?? '',
-          email: data['email'] ?? '',
+          studentCode: userCode,
+          fullName: fullName,
+          email: email,
         });
 
         if (matchedStudents.length >= limitCount) break;
@@ -192,4 +194,6 @@ export class FirestoreProjectRepository implements ProjectRepository {
 
     return matchedStudents;
   }
+
+  
 }

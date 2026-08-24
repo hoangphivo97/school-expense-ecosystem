@@ -18,6 +18,6 @@ import { IAdminAuditLogRepository } from './repository/audit-log.repository';
       useClass: FirestoreAuditLogRepository,
     },
   ],
-  exports: [UserListBackendService],
+  exports: [UserListBackendService, UserRepository],
 })
 export class UserListBackendModule {}

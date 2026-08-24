@@ -1,15 +1,15 @@
-import { 
-  Controller, 
-  Post, 
-  Body, 
-  Param, 
-  HttpCode, 
-  HttpStatus, 
-  Get, 
-  Patch, 
-  Delete, 
-  Query, 
-  UseGuards 
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Patch,
+  Delete,
+  Query,
+  UseGuards
 } from '@nestjs/common';
 import { ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
@@ -19,7 +19,7 @@ import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, 
 @Controller('projects-manager')
 @UseGuards(RolesGuard)
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(private readonly projectService: ProjectService) { }
 
   // 1. Get Project List (Accessible to Teachers, Students, Deans, Finance)
   @Get()
@@ -53,6 +53,13 @@ export class ProjectController {
     @Body() joinDto: JoinProjectByCodeDto
   ) {
     return this.projectService.joinProjectByCode(user, joinDto);
+  }
+
+  @Get('students/search')
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @UserTypes(UserType.TEACHER)
+  async searchStudents(@Query('query') query: string) {
+    return this.projectService.searchStudents(query);
   }
 
   // 4. Get Project Details by ID
@@ -116,6 +123,16 @@ export class ProjectController {
     return this.projectService.addStudents(projectId, user, addStudentsDto);
   }
 
+  @Get(':id/students')
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @UserTypes(UserType.TEACHER, UserType.STUDENT)
+  async getProjectStudents(
+    @Param('id') projectId: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.projectService.getProjectStudents(projectId, user);
+  }
+
   // 9. Remove Student from Project
   @Delete(':id/students/:studentId')
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
@@ -150,12 +167,5 @@ export class ProjectController {
     @Body() rejectDto?: RejectProjectDto
   ) {
     return this.projectService.rejectProject(id, user, rejectDto);
-  }
-
-  @Get('students/search')
-  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
-  @UserTypes(UserType.TEACHER)
-  async searchStudents(@Query('query') query: string) {
-    return this.projectService.searchStudents(query);
   }
 }

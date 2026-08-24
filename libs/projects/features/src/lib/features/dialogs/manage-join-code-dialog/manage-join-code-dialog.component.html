@@ -26,7 +26,7 @@
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon class="me-2 fs-6 h-auto w-auto">badge</mat-icon>
-        <span>{{ t('tabs.roster') }} ({{ joinedStudentIds().length }})</span>
+        <span>{{ t('tabs.roster') }} ({{ joinedStudents().length }})</span>
       </ng-template>
 
       <div class="tab-content-wrapper pt-3">
@@ -48,7 +48,12 @@
               <mat-option [value]="student">
                 <div class="d-flex flex-column py-1">
                   <div class="fw-semibold lh-sm">{{ student.fullName }}</div>
-                  <small class="text-secondary lh-sm">{{ student.studentCode }} • {{ student.email }}</small>
+                  <small class="text-secondary lh-sm">
+                    @if (student.studentCode) {
+                    <span>{{ student.studentCode }} • </span>
+                    }
+                    <span>{{ student.email }}</span>
+                  </small>
                 </div>
               </mat-option>
               }
@@ -71,27 +76,34 @@
 
         <!-- Enrolled Members List -->
         <div class="member-list-container border rounded-3 p-2">
-          @if (joinedStudentIds().length === 0) {
+          @if (joinedStudents().length === 0) {
           <div class="text-center text-secondary py-4 small">
             <mat-icon class="fs-2 h-auto w-auto d-block mx-auto mb-1 text-muted">person_off</mat-icon>
             <span>{{ t('roster.emptyState') }}</span>
           </div>
           } @else {
-          <ul class="list-unstyled m-0">
-            @for (studentId of joinedStudentIds(); track studentId) {
+          <ul class="list-unstyled m-0 p-0 d-flex flex-column gap-1">
+            @for (student of joinedStudents(); track student.id) {
             <li class="member-item d-flex align-items-center justify-content-between p-2 rounded-2">
               <div class="d-flex align-items-center gap-2">
                 <mat-icon class="text-secondary fs-5 h-auto w-auto">school</mat-icon>
-                <span class="font-monospace fw-semibold small">{{ studentId }}</span>
+                <div class="d-flex flex-column">
+                  <span class="fw-semibold small lh-sm">{{ student.fullName }}</span>
+                  @if (student.studentCode || student.email) {
+                  <small class="text-secondary lh-sm">
+                    {{ student.studentCode ? student.studentCode + ' • ' : '' }}{{ student.email }}
+                  </small>
+                  }
+                </div>
               </div>
 
               <div class="d-flex align-items-center gap-1">
-                <button mat-icon-button type="button" [copyToClipboard]="studentId"
+                <button mat-icon-button type="button" [copyToClipboard]="student.studentCode || student.id"
                   [matTooltip]="t('roster.copyIdTooltip')">
                   <mat-icon class="fs-6 h-auto w-auto text-secondary">content_copy</mat-icon>
                 </button>
                 <button mat-icon-button type="button" class="text-danger" [disabled]="isMemberMutating()"
-                  (click)="onRemoveStudent(studentId)" [matTooltip]="t('roster.removeTooltip')">
+                  (click)="onRemoveStudent(student.id)" [matTooltip]="t('roster.removeTooltip')">
                   <mat-icon class="fs-6 h-auto w-auto">delete_outline</mat-icon>
                 </button>
               </div>
@@ -143,7 +155,7 @@
           <div class="recruitment-progress mt-3">
             <div class="d-flex justify-content-between text-secondary small mb-1">
               <span>{{ t('code.capacityLabel') }}</span>
-              <span class="fw-semibold">{{ joinedStudentIds().length }} / {{ joinConfig()!.maxUses }}</span>
+              <span class="fw-semibold">{{ joinedStudents().length }} / {{ joinConfig()!.maxUses }}</span>
             </div>
             <mat-progress-bar mode="determinate" [value]="capacityPercentage()"
               [color]="isFullCapacity() ? 'warn' : 'primary'"></mat-progress-bar>

@@ -6,7 +6,7 @@ import { ProjectApiService } from '@school-expense-ecosystem/projects/data-acces
 import { GenerateJoinCodePayload, Project, ProjectJoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/types';
 import { CopyToClipboardDirective, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -58,7 +58,7 @@ export interface ManageJoinCodeDialogResult {
     { provide: TRANSLOCO_SCOPE, useValue: 'project' },
   ],
 })
-export class ManageJoinCodeDialogComponent {
+export class ManageJoinCodeDialogComponent implements OnInit{
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult>);
   private readonly projectApiService = inject(ProjectApiService);
@@ -70,9 +70,11 @@ export class ManageJoinCodeDialogComponent {
   readonly isMemberMutating = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
   readonly selectedStudent = signal<StudentSummary | null>(null);
+  readonly isLoadingRoster = signal<boolean>(true);
 
   // State Signals
-  readonly joinedStudentIds = signal<string[]>(this.data.project.joinedStudentIds ?? []);
+  readonly joinedStudents = signal<StudentSummary[]>([]);
+
   readonly joinConfig = signal<ProjectJoinConfig | null>(this.data.project.joinConfig ?? null);
   readonly isCreatingNew = signal<boolean>(!this.data.project.joinConfig);
 
@@ -98,13 +100,13 @@ export class ManageJoinCodeDialogComponent {
 
   readonly isFullCapacity = computed(() => {
     const config = this.joinConfig();
-    return config ? this.joinedStudentIds().length >= config.maxUses : false;
+    return config ? this.joinedStudents().length >= config.maxUses : false;
   });
 
   readonly capacityPercentage = computed(() => {
     const config = this.joinConfig();
     if (!config || config.maxUses === 0) return 0;
-    return Math.min(Math.round((this.joinedStudentIds().length / config.maxUses) * 100), 100);
+    return Math.min(Math.round((this.joinedStudents().length / config.maxUses) * 100), 100);
   });
 
   // Forms
@@ -117,6 +119,31 @@ export class ManageJoinCodeDialogComponent {
     expiresAt: [this.getDefaultExpiryDate(), [Validators.required]],
   });
 
+  ngOnInit(): void {
+    this.loadProjectRoster();
+  }
+
+  private loadProjectRoster(): void {
+    const studentIds = this.data.project.joinedStudentIds ?? [];
+
+    if (studentIds.length === 0) {
+      this.joinedStudents.set([]);
+      this.isLoadingRoster.set(false);
+      return;
+    }
+    
+    this.isLoadingRoster.set(true);
+    this.projectApiService.getProjectStudents(this.data.project.id).subscribe({
+      next: (students) => {
+        this.joinedStudents.set(students);
+        this.isLoadingRoster.set(false);
+      },
+      error: () => {
+        this.isLoadingRoster.set(false);
+      },
+    });
+  }
+
   private getDefaultExpiryDate(): Date {
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
@@ -128,7 +155,7 @@ export class ManageJoinCodeDialogComponent {
     const student = this.selectedStudent();
     if (!student || this.isMemberMutating()) return;
 
-    if (this.joinedStudentIds().includes(student.id)) {
+    if (this.joinedStudents().some((s) => s.id === student.id)) {
       this.errorMessage.set('Student is already enrolled in this project.');
       return;
     }
@@ -139,7 +166,8 @@ export class ManageJoinCodeDialogComponent {
     this.projectApiService.addStudents(this.data.project.id, [student.id]).subscribe({
       next: () => {
         this.isMemberMutating.set(false);
-        this.joinedStudentIds.update((ids) => [...ids, student.id]);
+        // Prepend or append full StudentSummary object into local state
+        this.joinedStudents.update((list) => [student, ...list]);
         this.searchRawQuery.set('');
         this.selectedStudent.set(null);
       },
@@ -152,7 +180,8 @@ export class ManageJoinCodeDialogComponent {
 
   displayStudentFn(student: StudentSummary | string | null): string {
     if (!student) return '';
-    return typeof student === 'string' ? student : `${student.fullName} (${student.studentCode})`;
+    if (typeof student === 'string') return student;
+    return student.studentCode ? `${student.fullName} (${student.studentCode})` : student.fullName;
   }
 
   onStudentSelected(event: MatAutocompleteSelectedEvent): void {
@@ -169,7 +198,7 @@ export class ManageJoinCodeDialogComponent {
     this.projectApiService.removeStudent(this.data.project.id, studentId).subscribe({
       next: () => {
         this.isMemberMutating.set(false);
-        this.joinedStudentIds.update((ids) => ids.filter((id) => id !== studentId));
+        this.joinedStudents.update((list) => list.filter((s) => s.id !== studentId));
       },
       error: (err) => {
         this.isMemberMutating.set(false);
@@ -210,7 +239,7 @@ export class ManageJoinCodeDialogComponent {
 
   onClose(): void {
     this.dialogRef.close({
-      joinedStudentIds: this.joinedStudentIds(),
+      joinedStudentIds: this.joinedStudents(),
       joinConfig: this.joinConfig(),
     });
   }

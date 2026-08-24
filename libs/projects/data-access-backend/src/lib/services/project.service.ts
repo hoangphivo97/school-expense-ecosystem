@@ -4,10 +4,14 @@ import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/sha
 import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { Project, ProjectFundingType, ProjectJoinConfig, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 
 @Injectable()
 export class ProjectService {
-  constructor(private readonly projectRepo: ProjectRepository) { }
+  constructor(
+    private readonly projectRepo: ProjectRepository,
+    private readonly userRepo: UserRepository,
+  ) { }
 
   async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<Project> {
     const hasApprovalAuthority = user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_2_DEAN;
@@ -295,5 +299,20 @@ export class ProjectService {
       return [];
     }
     return this.projectRepo.searchStudents(trimmed);
+  }
+
+  async getProjectStudents(projectId: string, user: AuthenticatedUser): Promise<StudentSummary[]> {
+    const project = await this.validateProjectAccess(projectId, user);
+    const studentIds = project.joinedStudentIds ?? [];
+    if (studentIds.length === 0) return [];
+
+    const users = await this.userRepo.findByIds(studentIds);
+
+    return users.map((u) => ({
+      id: u.uid || (u as any).id,
+      studentCode: String(u.userCode || '').trim(),
+      fullName: String(u.fullName || '').trim(),
+      email: String(u.email || '').trim(),
+    }));
   }
 }

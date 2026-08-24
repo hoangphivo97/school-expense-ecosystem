@@ -101,4 +101,8 @@ searchStudents(query: string): Observable<StudentSummary[]> {
   rejectProject(id: string, reason?: string): Observable<Project> {
     return this.http.patch<Project>(`${this.apiUrl}/${id}/reject`, { reason });
   }
+
+  getProjectStudents(projectId: string):Observable<StudentSummary[]>{
+    return this.http.get<StudentSummary[]>(`${this.apiUrl}/${projectId}/students`);
+  }
 }

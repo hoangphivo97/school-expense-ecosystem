@@ -148,4 +148,22 @@ export class FirebaseUserRepository implements UserRepository {
       throw error;
     }
   }
+
+  async findByIds(uids: string[]): Promise<UserBase[]> {
+    if (!uids || uids.length === 0) return [];
+
+    const docRefs = uids.map((uid) => this.db.collection('users').doc(uid));
+    const snapshots = await this.db.getAll(...docRefs);
+
+    return snapshots
+      .filter((snap) => snap.exists)
+      .map((snap) => {
+        const data = snap.data()!;
+        return {
+          id: snap.id,
+          uid: snap.id,
+          ...data,
+        } as unknown as UserBase;
+      });
+  }
 }
