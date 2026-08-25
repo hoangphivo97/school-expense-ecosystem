@@ -132,14 +132,15 @@
         <div class="code-card p-3 rounded-3 mb-3 border">
           <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="badge text-uppercase px-2 py-1" [ngClass]="{
-                  'bg-danger-subtle text-danger': isExpired() || isFullCapacity(),
-                  'bg-success-subtle text-success': !isExpired() && !isFullCapacity()
+                  'bg-primary-subtle text-primary': codeStatus() === 'SCHEDULED',
+                  'bg-success-subtle text-success': codeStatus() === 'ACTIVE',
+                  'bg-warning-subtle text-warning': codeStatus() === 'FULL',
+                  'bg-danger-subtle text-danger': codeStatus() === 'EXPIRED'
                 }">
-              {{ (isExpired() ? t('code.status.expired') : (isFullCapacity() ? t('code.status.full') :
-              t('code.status.active'))) }}
+              {{ t('code.status.' + (codeStatus() | lowercase)) }}
             </span>
             <span class="text-secondary small">
-              {{ t('code.expiresAt') }}: {{ joinConfig()!.expiresAt | date: 'dd/MM/yyyy' }}
+              {{ joinConfig()!.startsAt | date: 'dd/MM/yyyy' }} ➔ {{ joinConfig()!.expiresAt | date: 'dd/MM/yyyy' }}
             </span>
           </div>
 
@@ -160,10 +161,12 @@
           <div class="recruitment-progress mt-3">
             <div class="d-flex justify-content-between text-secondary small mb-1">
               <span>{{ t('code.capacityLabel') }}</span>
-              <span class="fw-semibold">{{ joinedStudents().length }} / {{ joinConfig()!.maxUses }}</span>
+              <span class="fw-semibold">
+                {{ joinConfig()!.usedCount }} / {{ joinConfig()!.maxUses }} ({{ capacityPercentage() }}%)
+              </span>
             </div>
             <mat-progress-bar mode="determinate" [value]="capacityPercentage()"
-              [color]="isFullCapacity() ? 'warn' : 'primary'"></mat-progress-bar>
+              [color]="codeStatus() === 'FULL' ? 'warn' : 'primary'"></mat-progress-bar>
           </div>
         </div>
 
@@ -176,7 +179,7 @@
         }
 
         @if (isCreatingNew()) {
-        <form [formGroup]="form" (ngSubmit)="onSubmitCode()" class="mt-2">
+        <form [formGroup]="createCodeForm" class="mt-2">
           <div class="d-flex flex-column gap-3">
             <div>
               <mat-form-field appearance="outline" class="w-100">
@@ -185,7 +188,7 @@
                 <input matInput type="number" formControlName="maxUses" min="1" max="200" placeholder="30" />
                 <mat-hint align="end">{{ t('code.fields.maxUses.hint') }}</mat-hint>
                 <mat-error>
-                  {{ form.get('maxUses')?.errors | formError: {
+                  {{ createCodeForm.get('maxUses')?.errors | formError: {
                   required: t('code.fields.maxUses.errors.required'),
                   min: t('code.fields.maxUses.errors.min'),
                   max: t('code.fields.maxUses.errors.max')
@@ -194,19 +197,35 @@
               </mat-form-field>
             </div>
 
-            <div>
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>{{ t('code.fields.expiresAt.label') }}</mat-label>
-                <input matInput [matDatepicker]="picker" formControlName="expiresAt" [min]="minDate" [max]="maxDate"
-                  readonly />
-                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                <mat-datepicker #picker></mat-datepicker>
-                <mat-hint align="end">{{ t('code.fields.expiresAt.hint') }}</mat-hint>
-                <mat-error>
-                  {{ form.get('expiresAt')?.errors | formError: { required: t('code.fields.expiresAt.errors.required') }
-                  }}
-                </mat-error>
-              </mat-form-field>
+            <!-- Date Range Inputs (Starts At & Expires At) -->
+            <div class="row g-2">
+              <div class="col-6">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>{{ t('code.fields.startsAt.label') }}</mat-label>
+                  <input matInput [matDatepicker]="startPicker" formControlName="startsAt" [min]="minStartDate"
+                    [max]="maxEndDate" readonly />
+                  <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #startPicker></mat-datepicker>
+                  <mat-error>
+                    {{ createCodeForm.get('startsAt')?.errors | formError: { required: t('code.fields.startsAt.errors.required') }
+                    }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="col-6">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>{{ t('code.fields.expiresAt.label') }}</mat-label>
+                  <input matInput [matDatepicker]="endPicker" formControlName="expiresAt"
+                    [min]="createCodeForm.get('startsAt')?.value || minStartDate" [max]="maxEndDate" readonly />
+                  <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #endPicker></mat-datepicker>
+                  <mat-error>
+                    {{ createCodeForm.get('expiresAt')?.errors | formError: { required: t('code.fields.expiresAt.errors.required')
+                    } }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
             </div>
           </div>
 
@@ -217,7 +236,7 @@
             </button>
             }
 
-            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting()"
+            <button mat-flat-button color="primary" type="submit" (click)="onSubmitCode()" [disabled]="createCodeForm.invalid || isSubmitting()"
               class="px-4">
               <mat-icon class="me-1" [class.spinning]="isSubmitting()">
                 {{ isSubmitting() ? 'sync' : 'key' }}

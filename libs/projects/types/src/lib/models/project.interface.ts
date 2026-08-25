@@ -5,7 +5,9 @@ export interface ProjectJoinConfig {
     code: string;
     maxUses: number;
     usedCount: number;
+    startsAt: string;
     expiresAt: string;
+    createdAt?: string;
 }
 
 export interface Project {
@@ -41,8 +43,8 @@ export interface Event {
 }
 
 export interface StudentSummary {
-  id: string;
-  studentCode: string;
-  fullName: string;
-  email: string;
+    id: string;
+    studentCode: string;
+    fullName: string;
+    email: string;
 }

@@ -14,7 +14,7 @@ import { ProjectApiService } from '@school-expense-ecosystem/projects/data-acces
 import { Project, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { CreateProjectDialogComponent } from '../dialogs/create-project-dialog/create-project-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { ManageJoinCodeDialogComponent } from '../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
+import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 
 export interface ProjectViewModel extends Project {
   canApprove: boolean;
@@ -293,8 +293,8 @@ export class ProjectListComponent implements OnInit {
       disableClose: true,
     });
 
-    dialogRef.afterClosed().subscribe((updatedConfig) => {
-      if (updatedConfig) {
+    dialogRef.afterClosed().subscribe((result?: ManageJoinCodeDialogResult) => {
+      if (result) {
         this.projectsResource.reload();
       }
     });

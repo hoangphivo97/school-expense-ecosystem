@@ -38,6 +38,7 @@ export interface ProjectQueryPayload {
 
 export interface GenerateJoinCodePayload {
   maxUses: number;
+  startsAt: string;
   expiresAt: string;
 }
 

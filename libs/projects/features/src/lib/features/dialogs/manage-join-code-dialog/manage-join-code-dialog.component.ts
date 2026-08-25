@@ -30,6 +30,8 @@ export interface ManageJoinCodeDialogResult {
   joinConfig: ProjectJoinConfig | null;
 }
 
+export type JoinCodeStatus = 'SCHEDULED' | 'ACTIVE' | 'FULL' | 'EXPIRED';
+
 @Component({
   selector: 'lib-manage-join-code-dialog',
   standalone: true,
@@ -73,6 +75,7 @@ export class ManageJoinCodeDialogComponent implements OnInit{
   readonly errorMessage = signal<string | null>(null);
   readonly selectedStudent = signal<StudentSummary | null>(null);
   readonly isLoadingRoster = signal<boolean>(true);
+  private readonly hasMutated = signal<boolean>(false);
 
   // State Signals
   readonly joinedStudents = signal<StudentSummary[]>([]);
@@ -80,8 +83,8 @@ export class ManageJoinCodeDialogComponent implements OnInit{
   readonly joinConfig = signal<ProjectJoinConfig | null>(this.data.project.joinConfig ?? null);
   readonly isCreatingNew = signal<boolean>(!this.data.project.joinConfig);
 
-  readonly minDate = new Date();
-  readonly maxDate = new Date(this.data.project.endDate);
+  readonly minStartDate = new Date();
+  readonly maxEndDate = new Date(this.data.project.endDate);
 
   readonly studentsResource = rxResource({
     params: () => this.debouncedQuery().trim(),
@@ -92,6 +95,20 @@ export class ManageJoinCodeDialogComponent implements OnInit{
       return this.projectApiService.searchStudents(query);
     },
     defaultValue: [] as StudentSummary[],
+  });
+
+  readonly codeStatus = computed<JoinCodeStatus | null>(() => {
+    const config = this.joinConfig();
+    if (!config) return null;
+
+    const now = new Date();
+    const startsAt = new Date(config.startsAt);
+    const expiresAt = new Date(config.expiresAt);
+
+    if (now < startsAt) return 'SCHEDULED';
+    if (now > expiresAt) return 'EXPIRED';
+    if (config.usedCount >= config.maxUses) return 'FULL';
+    return 'ACTIVE';
   });
 
 
@@ -108,7 +125,7 @@ export class ManageJoinCodeDialogComponent implements OnInit{
   readonly capacityPercentage = computed(() => {
     const config = this.joinConfig();
     if (!config || config.maxUses === 0) return 0;
-    return Math.min(Math.round((this.joinedStudents().length / config.maxUses) * 100), 100);
+    return Math.min(Math.round((config.usedCount / config.maxUses) * 100), 100);
   });
 
   // Forms
@@ -116,8 +133,9 @@ export class ManageJoinCodeDialogComponent implements OnInit{
     studentId: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]+$/)]],
   });
 
-  readonly form: FormGroup = this.fb.group({
-    maxUses: [30, [Validators.required, Validators.min(1), Validators.max(200)]],
+  readonly createCodeForm: FormGroup = this.fb.group({
+    maxUses: [30, [Validators.required, Validators.min(1)]],
+    startsAt: [new Date(), [Validators.required]],
     expiresAt: [this.getDefaultExpiryDate(), [Validators.required]],
   });
 
@@ -149,7 +167,7 @@ export class ManageJoinCodeDialogComponent implements OnInit{
   private getDefaultExpiryDate(): Date {
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
-    return nextWeek > this.maxDate ? this.maxDate : nextWeek;
+    return nextWeek > this.maxEndDate ? this.maxEndDate : nextWeek;
   }
 
   // Member Management Operations
@@ -168,8 +186,8 @@ export class ManageJoinCodeDialogComponent implements OnInit{
     this.projectApiService.addStudents(this.data.project.id, [student.id]).subscribe({
       next: () => {
         this.isMemberMutating.set(false);
-        // Prepend or append full StudentSummary object into local state
         this.joinedStudents.update((list) => [student, ...list]);
+        this.hasMutated.set(true);
         this.searchRawQuery.set('');
         this.selectedStudent.set(null);
       },
@@ -201,6 +219,7 @@ export class ManageJoinCodeDialogComponent implements OnInit{
       next: () => {
         this.isMemberMutating.set(false);
         this.joinedStudents.update((list) => list.filter((s) => s.id !== studentId));
+        this.hasMutated.set(true); // Mark as dirty
       },
       error: (err) => {
         this.isMemberMutating.set(false);
@@ -216,14 +235,15 @@ export class ManageJoinCodeDialogComponent implements OnInit{
   }
 
   onSubmitCode(): void {
-    if (this.form.invalid || this.isSubmitting()) return;
+    if (this.createCodeForm.invalid || this.isSubmitting()) return;
 
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
     const payload: GenerateJoinCodePayload = {
-      maxUses: Number(this.form.get('maxUses')?.value),
-      expiresAt: new Date(this.form.get('expiresAt')?.value).toISOString(),
+      maxUses: Number(this.createCodeForm.get('maxUses')?.value),
+      startsAt: new Date(this.createCodeForm.get('startsAt')?.value).toISOString(),
+      expiresAt: new Date(this.createCodeForm.get('expiresAt')?.value).toISOString(),
     };
 
     this.projectApiService.generateJoinCode(this.data.project.id, payload).subscribe({
@@ -231,6 +251,7 @@ export class ManageJoinCodeDialogComponent implements OnInit{
         this.isSubmitting.set(false);
         this.joinConfig.set(newConfig);
         this.isCreatingNew.set(false);
+        this.hasMutated.set(true); // Mark as dirty
       },
       error: (err) => {
         this.isSubmitting.set(false);
@@ -240,9 +261,13 @@ export class ManageJoinCodeDialogComponent implements OnInit{
   }
 
   onClose(): void {
-    this.dialogRef.close({
-      joinedStudentIds: this.joinedStudents(),
-      joinConfig: this.joinConfig(),
-    });
+    if (this.hasMutated()) {
+      this.dialogRef.close({
+        joinedStudentIds: this.joinedStudents().map((s) => s.id),
+        joinConfig: this.joinConfig(),
+      });
+    } else {
+      this.dialogRef.close(); // Returns undefined/void -> No reload triggered
+    }
   }
 }

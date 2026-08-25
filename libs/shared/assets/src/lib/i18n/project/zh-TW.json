@@ -169,9 +169,10 @@
       "back": "返回",
       "copied": "專案邀請碼已複製至剪貼簿。",
       "status": {
-        "active": "有效",
-        "expired": "已過期",
-        "full": "名額已滿"
+        "scheduled": "即將開放",
+        "active": "開放加入中",
+        "full": "名額已滿",
+        "expired": "已截止"
       },
       "fields": {
         "maxUses": {
@@ -181,6 +182,12 @@
             "required": "請輸入招募上限人數。",
             "min": "至少需開放 1 位學生加入。",
             "max": "單次邀請上限不能超過 200 人。"
+          }
+        },
+        "startsAt": {
+          "label": "開始日期*",
+          "errors": {
+            "required": "請選擇開始日期"
           }
         },
         "expiresAt": {

@@ -169,9 +169,10 @@
       "back": "Back",
       "copied": "Invitation code copied to clipboard.",
       "status": {
+        "scheduled": "Upcoming",
         "active": "Active",
-        "expired": "Expired",
-        "full": "Full Capacity"
+        "full": "Full Capacity",
+        "expired": "Expired"
       },
       "fields": {
         "maxUses": {
@@ -188,6 +189,12 @@
           "hint": "Must be on or before project end date",
           "errors": {
             "required": "Expiration date is required."
+          }
+        },
+        "startsAt": {
+          "label": "Start Date*",
+          "errors": {
+            "required": "Start date is required"
           }
         }
       }

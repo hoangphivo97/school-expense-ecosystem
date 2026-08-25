@@ -1,8 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FacultyId, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
+import { UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ProjectRepository } from '../abstracts/project.repository';
 import { Project, ProjectQueryPayload, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { ProjectJoinCapacityReachedException, ProjectJoinCodeExpiredException, ProjectJoinDisabledException, ProjectJoinNotStartedException, ProjectNotFoundException, ProjectStudentAlreadyEnrolledException } from '../../exceptions/project.exception';
 
 @Injectable()
 export class FirestoreProjectRepository implements ProjectRepository {
@@ -139,10 +140,12 @@ export class FirestoreProjectRepository implements ProjectRepository {
       updatedAt: this.formatDate(data['updatedAt']),
       joinConfig: data['joinConfig']
         ? {
-          ...data['joinConfig'],
-          expiresAt: this.formatDate(data['joinConfig'].expiresAt),
-        }
-        : undefined,
+            ...data['joinConfig'],
+            startsAt: this.formatDate(data['joinConfig'].startsAt),
+            expiresAt: this.formatDate(data['joinConfig'].expiresAt),
+            createdAt: this.formatDate(data['joinConfig'].createdAt),
+          }
+        : null,
     } as Project;
   }
 
@@ -195,5 +198,53 @@ export class FirestoreProjectRepository implements ProjectRepository {
     return matchedStudents;
   }
 
-  
+  async enrollStudentViaCode(projectId: string, studentId: string): Promise<Project> {
+    const projectRef = this.collection.doc(projectId);
+
+    return this.db.runTransaction(async (transaction) => {
+      const doc = await transaction.get(projectRef);
+      if (!doc.exists) {
+        throw new ProjectNotFoundException(projectId);
+      }
+
+      const project = this.mapDocToProject(doc);
+      const joinConfig = project.joinConfig;
+
+      if (!joinConfig) {
+        throw new ProjectJoinDisabledException();
+      }
+
+      const joinedStudentIds = project.joinedStudentIds ?? [];
+      if (joinedStudentIds.includes(studentId)) {
+        throw new ProjectStudentAlreadyEnrolledException();
+      }
+
+      const now = new Date();
+      if (now < new Date(joinConfig.startsAt)) {
+        throw new ProjectJoinNotStartedException(joinConfig.startsAt);
+      }
+      if (now > new Date(joinConfig.expiresAt)) {
+        throw new ProjectJoinCodeExpiredException();
+      }
+      if (joinConfig.usedCount >= joinConfig.maxUses) {
+        throw new ProjectJoinCapacityReachedException();
+      }
+
+      // Atomically append student ID and increment recruitment quota usage
+      transaction.update(projectRef, {
+        joinedStudentIds: admin.firestore.FieldValue.arrayUnion(studentId),
+        'joinConfig.usedCount': admin.firestore.FieldValue.increment(1),
+        updatedAt: new Date().toISOString(),
+      });
+
+      return {
+        ...project,
+        joinedStudentIds: [...joinedStudentIds, studentId],
+        joinConfig: {
+          ...joinConfig,
+          usedCount: joinConfig.usedCount + 1,
+        },
+      };
+    });
+  }
 }

@@ -1,12 +1,15 @@
 import { GenerateJoinCodePayload, JoinProjectByCodePayload } from '@school-expense-ecosystem/projects/types';
-import { ArrayMinSize, IsArray, IsDateString, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { ArrayMinSize, IsArray, IsDateString, IsISO8601, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
 export class GenerateProjectJoinCodeDto implements GenerateJoinCodePayload {
   @IsNumber()
   @Min(1)
   maxUses!: number;
 
-  @IsDateString()
+  @IsISO8601()
+  startsAt!: string;
+
+  @IsISO8601()
   expiresAt!: string;
 }
 
