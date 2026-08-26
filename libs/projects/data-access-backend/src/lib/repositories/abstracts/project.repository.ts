@@ -18,4 +18,5 @@ export abstract class ProjectRepository {
   abstract findWithQuery(query: ProjectQueryPayload): Promise<{ items: Project[]; total: number }>;
   abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
   abstract enrollStudentViaCode(projectId: string, studentId: string): Promise<Project>;
+  abstract createWithFacultyFund(project: Project, departmentFundId: string): Promise<Project>;
 }

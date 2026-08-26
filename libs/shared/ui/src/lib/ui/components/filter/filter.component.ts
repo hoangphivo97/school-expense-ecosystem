@@ -26,6 +26,7 @@ import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 
 @Component({
   selector: 'lib-filter',
@@ -74,11 +75,11 @@ export class FilterComponent<T = unknown> implements OnInit {
   readonly filterChange = output<SharedFilterParams>();
 
   readonly systemRolesOptions = [
-    { value: 'ALL', label: 'All Roles' },
-    { value: Role.LEVEL_0_ADMIN, label: 'Admin' },
-    { value: Role.LEVEL_1_FINANCE, label: 'Finance Officer' },
-    { value: Role.LEVEL_2_DEAN, label: 'Faculty Dean' },
-    { value: Role.LEVEL_3_USER, label: 'End User' }
+    { value: 'ALL', labelKey: 'shared.filter.all_roles' },
+    { value: Role.LEVEL_0_ADMIN, labelKey: 'shared.roles.admin' },
+    { value: Role.LEVEL_1_FINANCE, labelKey: 'shared.roles.finance' },
+    { value: Role.LEVEL_2_DEAN, labelKey: 'shared.roles.dean' },
+    { value: Role.LEVEL_3_USER, labelKey: 'shared.roles.end_user' }
   ];
 
   readonly userTypesOptions = [
@@ -97,17 +98,20 @@ export class FilterComponent<T = unknown> implements OnInit {
   ];
 
   readonly projectStatusOptions = [
-    { value: 'ALL', label: 'All Statuses' },
-    { value: 'ACTIVE', label: 'Active' },
-    { value: 'PENDING_DEAN_APPROVAL', label: 'Pending Dean Approval' },
-    { value: 'COMPLETED', label: 'Completed' },
-    { value: 'ARCHIVED', label: 'Archived' },
+    { value: 'ALL', labelKey: 'shared.filter.all_statuses' },
+    { value: ProjectStatus.ACTIVE, labelKey: 'projects.status.active' },
+    { value: ProjectStatus.PENDING_DEAN_APPROVAL, labelKey: 'projects.status.pending_dean_approval' },
+    { value: ProjectStatus.PENDING_FINANCE_APPROVAL, labelKey: 'projects.status.pending_finance_approval' },
+    { value: ProjectStatus.REJECTED, labelKey: 'projects.status.rejected' },
+    { value: ProjectStatus.COMPLETED, labelKey: 'projects.status.completed' },
+    { value: ProjectStatus.ARCHIVED, labelKey: 'projects.status.archived' },
   ];
 
   readonly projectTypeOptions = [
-    { value: 'ALL', label: 'All Types' },
-    { value: 'SCHOOL', label: 'School Funded' },
-    { value: 'OUTSOURCE', label: 'Outsourced' },
+    { value: 'ALL', labelKey: 'shared.filter.all_types' },
+    { value: ProjectFundingType.SCHOOL, labelKey: 'projects.funding.school' },
+    { value: ProjectFundingType.FACULTY, labelKey: 'projects.funding.faculty' },
+    { value: ProjectFundingType.OUTSOURCE, labelKey: 'projects.funding.external' },
   ];
 
   readonly expenseStatusOptions = EXPENSE_STATUS_OPTIONS;
@@ -252,9 +256,18 @@ export class FilterComponent<T = unknown> implements OnInit {
             searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
             month: this.showMonth() ? (formValues.month !== undefined ? formValues.month : null) : null,
             year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
-            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to ExpenseStatus implicitly
+            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined,
             facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
             userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
+          };
+        } else if (this.mode() === FilterMode.PROJECT) {
+          // Explicit mapping for Project Filter Mode
+          payload = {
+            searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
+            year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
+            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined,
+            facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
+            projectType: formValues.projectType === 'ALL' ? undefined : formValues.projectType,
           };
         } else {
           payload = {

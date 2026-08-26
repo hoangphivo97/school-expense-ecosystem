@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsDateString,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -21,13 +22,13 @@ export class CreateProjectDto implements CreateProjectPayload {
   @IsString()
   description?: string;
 
-  @IsNumber()
+  @IsInt()
   @IsPositive()
   budgetCap!: number;
 
   // Architect Fix: Accept legacy audited spent baseline instead of runtime currentSpent
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   initialSpent?: number;
 

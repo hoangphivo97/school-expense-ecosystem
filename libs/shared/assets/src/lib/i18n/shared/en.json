@@ -9,7 +9,7 @@
       "USER_LIST": "User Management",
       "REPORT": "Analytics Report",
       "BUDGET_MANAGER": "Budget Allocation",
-      "PROJECT_OVERVIEW":"Info Center",
+      "PROJECT_OVERVIEW": "Info Center",
       "PROJECT_MANAGER": "Projects Manager",
       "routes": {
         "/expense/pending": "Pending Queue",
@@ -54,16 +54,16 @@
       "faculties": { "ALL": "All Faculties" },
       "roles": {
         "ALL": "All Roles",
-        "ADMIN": "Admin",
-        "FINANCE_OFFICER": "Finance Officer",
-        "FACULTY_DEAN": "Faculty Dean",
-        "END_USER": "End User"
+        "LEVEL_0_ADMIN": "System Admin",
+        "LEVEL_1_FINANCE": "Finance Officer",
+        "LEVEL_2_DEAN": "Faculty Dean",
+        "LEVEL_3_USER": "End User"
       },
       "userTypes": {
         "ALL": "All User Types",
         "STUDENT": "Student",
-        "TEACHER": "Teacher",
-        "STAFF": "Staff"
+        "TEACHER": "Teacher / Mentor",
+        "STAFF": "Administrative Staff"
       },
       "accountStatus": {
         "ALL": "All Statuses",
@@ -80,17 +80,20 @@
         "REJECTED": "Rejected"
       },
       "projectType": {
-        "ALL": "All Types",
-        "SCHOOL": "School Funded",
-        "OUTSOURCE": "Outsourced / External"
-      },
+          "ALL": "All Types",
+          "SCHOOL": "School Funded",
+          "FACULTY": "Faculty Funded",
+          "OUTSOURCE": "External / Outsource"
+        },
       "projectStatus": {
-        "ALL": "All Statuses",
-        "ACTIVE": "Active",
-        "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
-        "COMPLETED": "Completed",
-        "ARCHIVED": "Archived"
-      },
+          "ALL": "All Statuses",
+          "ACTIVE": "Active",
+          "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
+          "PENDING_FINANCE_APPROVAL": "Pending Finance Approval",
+          "REJECTED": "Rejected",
+          "COMPLETED": "Completed",
+          "ARCHIVED": "Archived"
+        },
       "months": {
         "ALL": "All Months",
         "1": "January",

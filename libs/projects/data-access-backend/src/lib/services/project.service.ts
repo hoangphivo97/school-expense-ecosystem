@@ -15,10 +15,21 @@ export class ProjectService {
   ) { }
 
   async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<Project> {
-    const hasApprovalAuthority = user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_2_DEAN;
-    const initialStatus: ProjectStatus = hasApprovalAuthority || dto.type !== ProjectFundingType.SCHOOL
-      ? ProjectStatus.ACTIVE
-      : ProjectStatus.PENDING_DEAN_APPROVAL;
+    const isSchoolFunded = dto.type === ProjectFundingType.SCHOOL;
+    const isFinance = user.role === Role.LEVEL_1_FINANCE;
+    const isDean = user.role === Role.LEVEL_2_DEAN;
+
+    let initialStatus: ProjectStatus;
+    if (!isSchoolFunded || isFinance) {
+      // Non-school funded projects or projects directly created by Finance are immediately active
+      initialStatus = ProjectStatus.ACTIVE;
+    } else if (isDean) {
+      // Dean creating a school-funded project must route to Finance approval
+      initialStatus = ProjectStatus.PENDING_FINANCE_APPROVAL;
+    } else {
+      // Teachers/Mentors creating a school-funded project route to Dean approval first
+      initialStatus = ProjectStatus.PENDING_DEAN_APPROVAL;
+    }
 
     const facultyPrefix = dto.facultyId.toUpperCase();
     const shortHash = randomBytes(3).toString('hex').toUpperCase();
@@ -48,6 +59,12 @@ export class ProjectService {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    if (dto.type === ProjectFundingType.FACULTY) {
+      const currentYear = new Date().getFullYear();
+      const departmentFundId = `${dto.facultyId.toUpperCase()}_DEPT_${currentYear}`;
+      return this.projectRepo.createWithFacultyFund(newProject, departmentFundId);
+    }
 
     return this.projectRepo.create(newProject);
   }
@@ -260,16 +277,23 @@ export class ProjectService {
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && project.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
 
-    if (!isFacultyDean && !isFinance) {
-      throw new ProjectApprovalForbiddenException();
-    }
+    let nextStatus: ProjectStatus;
 
-    if (project.status !== ProjectStatus.PENDING_DEAN_APPROVAL) {
-      throw new ProjectInvalidStatusTransitionException('Only projects pending approval can be approved.');
+    if (project.status === ProjectStatus.PENDING_DEAN_APPROVAL) {
+      if (!isFacultyDean) throw new ProjectApprovalForbiddenException();
+      // Route to Finance if school-funded, otherwise activate directly
+      nextStatus = project.type === ProjectFundingType.SCHOOL
+        ? ProjectStatus.PENDING_FINANCE_APPROVAL
+        : ProjectStatus.ACTIVE;
+    } else if (project.status === ProjectStatus.PENDING_FINANCE_APPROVAL) {
+      if (!isFinance) throw new ProjectApprovalForbiddenException();
+      nextStatus = ProjectStatus.ACTIVE;
+    } else {
+      throw new ProjectInvalidStatusTransitionException('Project is not in a pending approval state.');
     }
 
     const updateData: Partial<Project> = {
-      status: ProjectStatus.ACTIVE,
+      status: nextStatus,
       updatedAt: new Date().toISOString(),
     };
 

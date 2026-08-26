@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import { UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ProjectRepository } from '../abstracts/project.repository';
 import { Project, ProjectQueryPayload, StudentSummary } from '@school-expense-ecosystem/projects/types';
-import { ProjectJoinCapacityReachedException, ProjectJoinCodeExpiredException, ProjectJoinDisabledException, ProjectJoinNotStartedException, ProjectNotFoundException, ProjectStudentAlreadyEnrolledException } from '../../exceptions/project.exception';
+import { ProjectInitialSpentExceedsCapException, ProjectJoinCapacityReachedException, ProjectJoinCodeExpiredException, ProjectJoinDisabledException, ProjectJoinNotStartedException, ProjectNotFoundException, ProjectStudentAlreadyEnrolledException } from '../../exceptions/project.exception';
 
 @Injectable()
 export class FirestoreProjectRepository implements ProjectRepository {
@@ -17,6 +17,10 @@ export class FirestoreProjectRepository implements ProjectRepository {
 
   private get usersCollection() {
     return this.db.collection('users');
+  }
+
+  private get departmentFundsCollection() {
+    return this.db.collection('department_funds');
   }
 
   async create(project: Project): Promise<Project> {
@@ -245,6 +249,35 @@ export class FirestoreProjectRepository implements ProjectRepository {
           usedCount: joinConfig.usedCount + 1,
         },
       };
+    });
+  }
+
+  async createWithFacultyFund(project: Project, departmentFundId: string): Promise<Project> {
+    const fundRef = this.departmentFundsCollection.doc(departmentFundId);
+    const projectRef = this.collection.doc(project.id);
+
+    return this.db.runTransaction(async (transaction) => {
+      const fundDoc = await transaction.get(fundRef);
+      if (!fundDoc.exists) {
+        throw new ProjectNotFoundException(`Department fund ${departmentFundId} not found`);
+      }
+
+      const fundData = fundDoc.data()!;
+      const remainingBudget = Number(fundData['remainingBudget'] || 0);
+
+      if (remainingBudget < project.budgetCap) {
+        throw new ProjectInitialSpentExceedsCapException();
+      }
+
+      // Atomically decrement remaining budget from the department fund
+      transaction.update(fundRef, {
+        remainingBudget: admin.firestore.FieldValue.increment(-project.budgetCap),
+        updatedAt: new Date().toISOString(),
+      });
+
+      // Persist the new project record
+      transaction.set(projectRef, project);
+      return project;
     });
   }
 }

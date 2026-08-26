@@ -1,6 +1,7 @@
 export enum ProjectFundingType {
     SCHOOL = 'SCHOOL',
-    OUTSOURCE = 'OUTSOURCE'
+    OUTSOURCE = 'OUTSOURCE',
+    FACULTY = "FACULTY"
 }
 
 export enum ProjectStatus {
