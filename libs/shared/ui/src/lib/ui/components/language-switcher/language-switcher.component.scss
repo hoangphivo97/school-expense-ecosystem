@@ -1,15 +1,35 @@
+// ==========================================================================
+// Language Switcher Component Style Tokens (Sidebar Context Layout)
+// ==========================================================================
+@use 'variables';
+
+:host {
+  ::ng-deep {
+
+    /* Architect Fix: Eradicate brute-force button !important overrides by chaining native Material identifier weights naturally */
+    .mat-mdc-button.mat-mdc-button-base.collapsed {
+      min-width: 0; // Natural cascading overrides Material's default min-width restriction safely
+      padding: 0; // Strips horizontal padding to prevent ripple deformation
+      width: 48px; // Force an exact corporate icon-button bounding box size
+      height: 48px;
+    }
+  }
+}
+
 .lang-switcher-trigger {
   margin-top: 15px;
   width: 100%;
-  padding: 8px 16px;
   text-align: left;
   border-radius: 8px;
-  color: #616161; // Matches the default material sidebar icon colors
+  /* Architect Fix: Map properties to standard system variable scopes instead of static grey codes */
+  color: var(--text-secondary);
+  transition: background-color 0.2s ease-in-out;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: var(--hover-bg);
   }
 
+  // 1. STANDARD EXPANDED STATE (Mặc định khi mở rộng)
   .trigger-content {
     display: flex;
     align-items: center;
@@ -17,27 +37,53 @@
     width: 100%;
 
     .label-text {
+      color: var(--primary-color);
       font-weight: 500;
-      font-size: 14px;
+      font-size: variables.$text-fonr-size;
       flex-grow: 1;
     }
 
-    .icon-align, .arrow-align {
+    .icon-align,
+    .arrow-align {
+      color: var(--primary-color);
       font-size: 20px;
       width: 20px;
       height: 20px;
+    }
+
+    .abbrev-text {
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+  }
+
+  // 2. CLEAN COLLAPSED STATE (Điểm tập trung duy nhất khi thu nhỏ)
+  &.collapsed {
+    padding: 6px 12px;
+    text-align: center;
+
+    // Reflow the child layout cleanly via parent-driven state
+    .trigger-content {
+      flex-direction: column;
+      gap: 4px;
     }
   }
 }
 
 // Styling constraints for the items inside the active dropdown portal list
-::ng-deep .custom-lang-menu {
-  border-radius: 8px !important;
+// Architect Fix: Chain with panel root structure to drop the brute force !important rule elegantly
+::ng-deep .mat-mdc-menu-panel.custom-lang-menu {
+  border-radius: 8px;
   margin-top: 4px;
+  background-color: var(--bg-secondary);
 
   .active-lang {
-    background-color: rgba(103, 58, 183, 0.08); // Tinted with primary background highlight
-    color: #673ab7;
+    /* Architect Fix: Switch from rigid purple hex strings to adaptive core theme infrastructure design tokens */
+    background-color: var(--purple-bland-8);
+    color: var(--primary-color);
     font-weight: 600;
   }
 
@@ -47,6 +93,7 @@
     justify-content: space-between;
     min-width: 160px;
     gap: 16px;
+    color: var(--text-primary);
 
     .check-icon {
       font-size: 18px;

@@ -11,16 +11,18 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 
-import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { DialogActionEnum, DialogData, ExpenseStatus, Role, SharedFilterParams, UserStatus } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
-import { DateFormatValue, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
+import { DateFormatValue, EXPENSE_STATUS_OPTIONS, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
 import { FilterMode } from '@school-expense-ecosystem/shared/types'
 import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'lib-expense-list',
@@ -29,10 +31,14 @@ import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
     HeaderComponent, FooterComponent, FormsModule, DecimalPipe, CommonModule,
     MatButtonModule, MatTableModule, MatPaginatorModule, MatIconModule, MatInputModule,
     EnumToStringPipe, FilterComponent,
-    LoadingDirective
+    LoadingDirective, TranslocoModule, MatTooltipModule,
+    PaginationComponent
   ],
   templateUrl: './expense-list.component.html',
   styleUrl: './expense-list.component.scss',
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'expense' }
+  ]
 })
 export class ExpenseListComponent implements OnInit {
   readonly localStorageService = inject(LocalStorageService);
@@ -46,10 +52,17 @@ export class ExpenseListComponent implements OnInit {
     this.viewMode() === 'PERSONAL' ? this.expensePersonalResource : this.expenseReviewerResource
   );
 
+  readonly dynamicDisplayedColumns = computed(() => {
+    return this.viewMode() === 'PENDING_QUEUE'
+      ? [...this.displayedColumns, 'action']
+      : this.displayedColumns;
+  });
+
   paidMethodToString = EnumToStringPipe
   filterModeEnum = FilterMode
 
   displayedColumns: string[] = [
+    'expenseCode',
     'date',
     'requesterCode',
     'requesterName',
@@ -60,7 +73,6 @@ export class ExpenseListComponent implements OnInit {
     'paidMethod',
     'amount',
     'status',
-    'action'
   ];
   dialogActionEnum = DialogActionEnum;
 
@@ -68,6 +80,8 @@ export class ExpenseListComponent implements OnInit {
   readonly currentPageIndex = signal<number>(0);
   private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
   readonly viewMode = signal<'PERSONAL' | 'PENDING_QUEUE' | 'FACULTY_HISTORY'>('PERSONAL');
+
+  readonly operationalStatuses = EXPENSE_STATUS_OPTIONS;
 
   private readonly roleQueueMapping: Partial<Record<Role, ExpenseStatus>> = {
     [Role.LEVEL_3_USER]: ExpenseStatus.PENDING_TEACHER_REVIEW,
@@ -182,9 +196,15 @@ export class ExpenseListComponent implements OnInit {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageSize.set(event.pageSize);
-    this.currentPageIndex.set(event.pageIndex);
+  onPageChange(pageIndex: number): void {
+    this.currentPageIndex.set(pageIndex);
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize.set(newSize);
+
+    this.currentPageIndex.set(0);
+    this.pageTokens.set({ 0: '' });
   }
 
   getListAfterSuccessCallApi(dialogRef: MatDialogRef<CreateExpenseModalComponent | BaseModalComponent>) {

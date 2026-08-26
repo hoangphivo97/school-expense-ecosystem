@@ -1,7 +1,7 @@
-import { NavItem, NavItemConfig } from '@school-expense-ecosystem/shared/types';
+import { ExpenseStatus, NavItem, NavItemConfig } from '@school-expense-ecosystem/shared/types';
 
 export const months = [
-  { value: null, label: 'All Month' },
+  { value: null, label: 'ALL' },
   { value: 1, label: 'January' },
   { value: 2, label: 'February' },
   { value: 3, label: 'March' },
@@ -17,7 +17,13 @@ export const months = [
 ];
 
 export const APP_NAVIGATION: NavItemConfig[] = [
-  { key: NavItem.DASHBOARD, label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
+  {
+    key: NavItem.PROJECT_OVERVIEW, label: 'Dashboard', icon: 'dashboard', 
+    children: [
+      { label: 'Project Overview', route: '/project-overview', icon: 'info' },
+      { label: 'Dashboard', route: '/dashboard', icon: 'insert_chart' }
+    ]
+  },
   { key: NavItem.EXPENSE, label: 'My Expenses', icon: 'local_atm', route: '/expense' },
   {
     key: NavItem.APPROVAL_CENTER,
@@ -47,15 +53,15 @@ export const ROUTE_HEADER_TITLE_REGISTRY: Record<string, string> = {
   '/user-list': 'System User Directory',
   '/expense': 'My Personal Claims',
   '/report': 'Financial Reports',
-  '/budget-manager': 'Budget Management'
+  '/budget-manager': 'Budget Management',
+  '/project-overview': 'Project Overview'
 };
 
-export const URL_ROUTE_LINKER: Record<string, NavItem> = {
-  '/expense/pending': NavItem.APPROVAL_CENTER,
-  '/expense/history': NavItem.APPROVAL_CENTER,
-  '/dashboard': NavItem.DASHBOARD,
-  '/user-list': NavItem.USER_LIST,
-  '/expense': NavItem.EXPENSE,
-  '/report': NavItem.REPORT,
-  '/budget-manager': NavItem.BUDGET_MANAGER
-};
+export const EXPENSE_STATUS_OPTIONS = [
+  { value: 'ALL', label: 'All Statuses' },
+  { value: ExpenseStatus.PENDING_TEACHER_REVIEW, label: 'Pending Teacher' },
+  { value: ExpenseStatus.PENDING_DEAN_APPROVAL, label: 'Pending Dean' },
+  { value: ExpenseStatus.PENDING_DISBURSEMENT, label: 'Pending Disbursement' },
+  { value: ExpenseStatus.DISBURSED, label: 'Disbursed' },
+  { value: ExpenseStatus.REJECTED, label: 'Rejected' }
+];

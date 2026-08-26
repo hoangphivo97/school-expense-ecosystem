@@ -35,7 +35,7 @@ export class ReviewerExpenseQueryDto implements ReviewerExpenseRequestFilters {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  limit: number = 10;
+  limit = 10;
 
   @IsOptional()
   @IsString()
@@ -72,7 +72,7 @@ export class PersonalExpenseQueryDto implements Omit<PersonalExpenseRequestFilte
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  limit: number = 10;
+  limit = 10;
 
   @IsOptional()
   @IsString()

@@ -1,0 +1,199 @@
+<lib-header></lib-header>
+
+<div class="project-overview-container">
+
+  <!-- ==========================================================================
+     Top Section: Architectural Showcase Hero Banner & Diagram Gateway
+     ========================================================================== -->
+  <section class="hero-banner">
+    <div class="banner-content">
+      <span class="brand-badge">Academic Portfolio Gateway</span>
+      <h1 class="banner-title">School Expense Ecosystem</h1>
+
+      <p class="banner-description">
+        Welcome to the core enterprise administration gateway. This platform is architected as an advanced,
+        high-performance <strong>Nx Monorepo</strong> utilizing <strong>Micro-frontends (Module Federation)</strong>
+        with an Angular Shell
+        application and React Remote modules, orchestrated alongside a secure NestJS backend.
+      </p>
+
+      <p class="banner-notice">Dark Mode optimization active for all federated views.</p>
+
+      <!-- Architectural Diagram & Docs Quicklinks Hub -->
+      <div class="architecture-gateways">
+        <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/blob/main/ARCHITECTURE.md"
+          class="architecture-link">
+          <mat-icon>menu_book</mat-icon> View Architecture Documentation &rarr;
+        </a>
+      </div>
+
+      <hr class="divider">
+
+      <div class="tech-tags-matrix">
+        <span class="stack-tag">Angular 22</span>
+        <span class="stack-tag">React 19+</span>
+        <span class="stack-tag">NestJS Backend</span>
+        <span class="stack-tag">Nx Monorepo Workspace</span>
+        <span class="stack-tag">Module Federation</span>
+        <span class="stack-tag">Firebase</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+     Lane 1: System Status Matrix Ledger
+     ========================================================================== -->
+  <section class="status-lane">
+    <h2>System Status Matrix</h2>
+    <div class="status-grid">
+      @for(status of systemStatuses(); track status){
+      <div class="status-card" [ngClass]="status.status">
+        <span class="label">{{ status.key }}</span>
+        <strong class="value">{{ status.value }}</strong>
+      </div>
+      }
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+     System Components Grid Matrix (With Granular Role & UserType Containment)
+     ========================================================================== -->
+  <section class="components-integration-section">
+    <h2 class="section-title">Future Plan & Idea</h2>
+    <div class="components-grid">
+
+      <!-- Card 1: AI Decision Support System -->
+      <article class="integration-card">
+        <div class="card-header">
+          <div class="card-icon-box status-info">
+            <mat-icon>psychology</mat-icon>
+          </div>
+          <span class="status-badge state-info">Research R&D</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Intelligent Decision Analytics</h3>
+          <p class="card-text">
+            Integrate artificial intelligence as an <strong>Intelligent Decision Support System (IDSS)</strong> to assist user decision-making, evaluate expenditure forecast caps, and automatically detect institutional financial anomalies.
+          </p>
+        </div>
+        <div class="card-footer">
+          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/136" class="action-btn">
+            View AI Proposal Blueprint
+          </a>
+        </div>
+      </article>
+
+      <!-- Card 2: Local Linux Infrastructure Simulation -->
+      <article class="integration-card">
+        <div class="card-header">
+          <div class="card-icon-box status-warning">
+            <mat-icon>dns</mat-icon>
+          </div>
+          <span class="status-badge state-warning">Sandbox Stage</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Bare-Metal Linux Topologies</h3>
+          <p class="card-text">
+            Experiment with establishing and hosting localized, dedicated <strong>Linux systems</strong> to measure, benchmark, and optimize response latency compared to pure serverless cloud structures.
+          </p>
+        </div>
+        <div class="card-footer">
+          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/141" class="action-btn">
+            View Infrastructure Spec
+          </a>
+        </div>
+      </article>
+
+      <!-- Card 3: Snapdragon 855 Edge Inference Pipeline -->
+      <article class="integration-card">
+        <div class="card-header">
+          <div class="card-icon-box status-success">
+            <mat-icon>developer_board</mat-icon>
+          </div>
+          <span class="status-badge state-success">Proof of Concept</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Edge AI Processing Hardware</h3>
+          <p class="card-text">
+            Repurpose and orchestrate legacy hardware assets powered by <strong>Snapdragon 855 processors</strong> into localized edge inference pipelines for optimized on-device AI computing and data compilation.
+          </p>
+        </div>
+        <div class="card-footer">
+          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/112" class="action-btn">
+            View Hardware Pipeline Spec
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+     Lanes 2 & 3: Double-Lane Evolutionary & Roadmap Timelines
+     ========================================================================== -->
+  <div class="timelines-wrapper">
+    <!-- Lane 2: Chronological Historical Timeline -->
+    <section class="timeline-lane history">
+      <h2>Chronological History</h2>
+      @for(group of historicalTimeline(); track group.year){
+      <div class="year-group">
+        <h3 class="year-header">{{ group.year }}</h3>
+        @for(item of group.items; track item){
+        <div class="timeline-node">
+          <div class="node-meta"><span [ngClass]="'state-' + item.timelineState">Month {{ item.month }}</span></div>
+          <div class="node-content">
+            <!-- Architect Fix: Structural header wrapper to align dynamic components cleanly -->
+            <div class="node-header">
+              <div class="title-container">
+                <h4>{{ item.title }}</h4>
+                <a [href]="item.issueUrl" target="_blank" rel="noopener noreferrer" class="issue-external-link"
+                  title="Open GitHub Issue">
+                  <mat-icon>launch</mat-icon>
+                </a>
+              </div>
+              <span class="status-badge" [ngClass]="item.status">
+                {{ item.status === 'completed' ? 'Completed' : item.status === 'in-progress' ? 'In-Progress' : 'Todo' }}
+              </span>
+              <div [innerHTML]="item.description"></div>
+            </div>
+          </div>
+        </div>
+
+        }
+      </div>
+      }
+    </section>
+
+    <!-- Lane 3: Future Roadmap Backlog -->
+    <section class="timeline-lane roadmap">
+      <h2>Future Roadmap Backlog</h2>
+      @for(group of roadmapTimeline() ; track group.year){
+      <div class="year-group">
+        <h3 class="year-header">{{ group.year }}</h3>
+        @for(item of group.items; track item){
+        <div class="timeline-node dashed">
+          <div class="node-meta"><span [ngClass]="'state-' + item.timelineState">Month {{ item.month }}</span></div>
+          <div class="node-content">
+            <!-- Architect Fix: Structural header wrapper to align dynamic components cleanly -->
+            <div class="node-header">
+              <div class="title-container">
+                <h4>{{ item.title }}</h4>
+                <a [href]="item.issueUrl" target="_blank" rel="noopener noreferrer" class="issue-external-link"
+                  title="Open GitHub Issue">
+                  <mat-icon>launch</mat-icon>
+                </a>
+              </div>
+              <span class="status-badge" [ngClass]="item.status">
+                {{ item.status === 'completed' ? 'Completed' : item.status === 'in-progress' ? 'In-Progress' : 'Todo' }}
+              </span>
+              <div [innerHTML]="item.description"></div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </section>
+  </div>
+
+</div>

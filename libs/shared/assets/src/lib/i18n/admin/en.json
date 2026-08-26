@@ -1,0 +1,156 @@
+{
+  "userForm": {
+    "titleDetail": "User Profile Details",
+    "titleEdit": "Update User Profile",
+    "titleCreate": "Provision New Account",
+    "systemRole": "System Role",
+    "correspondingAuth": "Corresponding Auth Stream",
+    "authMethod": {
+      "google": "Google OAuth",
+      "system": "System Email/Password"
+    },
+    "email": "Institutional Email",
+    "fullName": "Full Legal Name",
+    "dob": "Date of Birth",
+    "userCode": "Institutional ID (User Code)",
+    "userType": "User Type",
+    "initialPassword": "Initial Password",
+    "confirmPassword": "Confirm Initial Password",
+    "facultyScope": "Assigned Faculty Scope",
+    "accountStatus": "Account Operational Status",
+    "errors": {
+      "roleRequired": "Role configuration is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email framework layout",
+      "nameRequired": "Full legal name is required",
+      "dobRequired": "Date of birth validation is required",
+      "codeRequired": "User verification code is required",
+      "typeRequired": "Personnel classification type is required",
+      "passwordRequired": "Initial password is required",
+      "passwordLength": "Password fails security length constraints (Min 6)",
+      "confirmRequired": "Please confirm the security credential",
+      "passwordMismatch": "Credential mismatch. Verification failed",
+      "facultyRequired": "Faculty isolation scope assignment is required"
+    },
+    "roles": {
+      "ADMIN": "System Admin (Backdoor)",
+      "FINANCE_OFFICER": "Finance Officer (Institutional)",
+      "FACULTY_DEAN": "Faculty Dean (Isolated Scope)",
+      "END_USER": "Teacher / Student"
+    },
+    "types": {
+      "STAFF": "Staff Member",
+      "TEACHER": "Teacher",
+      "STUDENT": "Student"
+    },
+    "faculties": {
+      "FIT": "Faculty of Information Technology (FIT)",
+      "FBE": "Faculty of Business and Economics (FBE)",
+      "FLL": "Faculty of Foreign Languages (FLL)"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "ONBOARDING": "Onboarding"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "editProfile": "Edit Profile",
+      "update": "Update",
+      "provision": "Provision"
+    },
+    "notifications": {
+      "updateSuccess": "User profile updated successfully!",
+      "provisionSuccess": "Account provisioned successfully!",
+      "updateError": "Failed to update user profile due to a system boundary error.",
+      "provisionError": "Failed to provision user account due to an identity conflict."
+    }
+  },
+  "userList": {
+    "title": "User Account Directory",
+    "headers": {
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "identityId": "Student/Staff ID",
+      "role": "System Role",
+      "userType": "User Type",
+      "status": "Account Status",
+      "createdAt": "Created At"
+    },
+    "roles": {
+      "ADMIN": "System Administrator",
+      "FINANCE_OFFICER": "Finance Specialist",
+      "FACULTY_DEAN": "Faculty Dean",
+      "END_USER": "Standard User"
+    },
+    "types": {
+      "STAFF": "Staff",
+      "TEACHER": "Teacher",
+      "STUDENT": "Student"
+    },
+    "states": {
+      "onboardingPending": "Onboarding Pending",
+      "pending": "Pending",
+      "unassigned": "Unassigned",
+      "protected": "Protected",
+      "you": "You"
+    },
+    "tooltips": {
+      "onboarding": "This user has authenticated via Google but has not yet filled out their onboarding profile info.",
+      "pendingId": "Organizational ID code will be established upon onboarding completion.",
+      "unassignedOps": "System management or financial operations accounts do not require an institutional classification type.",
+      "unassignedUser": "This profile is incomplete. User classification selection is currently pending onboarding completion.",
+      "protectedRule": "Self-modification is restricted, and other admins cannot be changed for security reasons.",
+      "editLocked": "Account profile is incomplete. Editing is locked during onboarding."
+    },
+    "feedback": {
+      "loading": "Synchronizing secure directories...",
+      "emptyTitle": "No Users Found",
+      "emptySubtitle": "There are no system directory accounts recorded for the selected filtering criteria."
+    },
+    "actions": {
+      "retry": "Retry Connection",
+      "paginatorAria": "Select page of database users",
+      "activate": "Activate Account",
+      "reject": "Reject Account",
+      "deactivate": "Deactivate Account",
+      "liftRestriction": "Lift Restriction (Re-activate)",
+      "edit": "Edit User",
+      "delete": "Delete User"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "SUSPENDED": "Suspended",
+      "REJECTED": "Rejected",
+      "ONBOARDING": "Onboarding"
+    }
+  },
+  "deleteModal": {
+    "title": "Dangerous Action: Destructive Account Deletion",
+    "targetProfile": "Target Profile",
+    "selectReason": "Select Deletion Matrix Option",
+    "policyTitle": "Retention Policy:",
+    "policyDesc": "The user will remain in the database under the Rejected pool indefinitely. No remote API mutations will be dispatched.",
+    "warningTitle": "Warning:",
+    "warningDesc": "This action will permanently wipe out the Firestore profile record and delete the credentials from Firebase Auth.",
+    "confirmLabel": "Type \"DELETE\" to confirm dynamic purge",
+    "actions": {
+      "cancel": "Cancel",
+      "acknowledge": "Acknowledge & Close",
+      "purge": "Execute Permanent Purge"
+    },
+    "errors": {
+      "required": "This verification string field is required.",
+      "pattern": "Verification match string failure (Must be exactly 'DELETE')."
+    },
+    "options": {
+      "INPUT_ERROR": "Option A: Input Data Error (Removable)",
+      "SECURITY_THREAT": "Option B: Security Threat Boundary Violation (Lock Permanently)"
+    },
+    "notifications": {
+      "securityActive": "Security protocol active: User status locked.",
+      "purgeSuccess": "Account purged successfully."
+    }
+  }
+}

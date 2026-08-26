@@ -1,0 +1,101 @@
+{
+  "sidebar": {
+    "welcome": "Welcome",
+    "logout": "Log Out",
+    "menu": {
+      "DASHBOARD": "Dashboard",
+      "EXPENSE": "My Expenses",
+      "APPROVAL_CENTER": "Approval Center",
+      "USER_LIST": "User Management",
+      "REPORT": "Analytics Report",
+      "BUDGET_MANAGER": "Budget Allocation",
+      "PROJECT_OVERVIEW":"Info Center",
+      "routes": {
+        "/expense/pending": "Pending Queue",
+        "/expense/history": "Faculty History",
+        "/dashboard": "Dashboard",
+        "/project-overview": "Project Overview"
+      }
+    }
+  },
+  "header": {
+    "fallback": "System Management",
+    "titles": {
+      "/expense/pending": "Review Inbox Queue",
+      "/expense/history": "Faculty Expense History",
+      "/dashboard": "Dashboard Overview",
+      "/user-list": "System User Directory",
+      "/expense": "My Personal Claims",
+      "/report": "Financial Reports",
+      "/budget-manager": "Budget Management",
+      "/project-overview": "Project Overview"
+    }
+  },
+  "filter": {
+    "searchLabel": "Search query",
+    "searchPlaceholder": "Type to search ID, Request Code, Requester Name",
+    "labels": {
+      "systemRole": "System Role",
+      "userType": "User Type",
+      "accountStatus": "Account Status",
+      "requestStatus": "Request Status",
+      "month": "Month",
+      "year": "Year",
+      "faculty": "Faculty"
+    },
+    "tooltip": {
+      "reset": "Clear active layout filters"
+    },
+    "options": {
+      "faculties": { "ALL": "All Faculties" },
+      "roles": {
+        "ALL": "All Roles",
+        "ADMIN": "Admin",
+        "FINANCE_OFFICER": "Finance Officer",
+        "FACULTY_DEAN": "Faculty Dean",
+        "END_USER": "End User"
+      },
+      "userTypes": {
+        "ALL": "All User Types",
+        "STUDENT": "Student",
+        "TEACHER": "Teacher",
+        "STAFF": "Staff"
+      },
+      "accountStatus": {
+        "ALL": "All Statuses",
+        "ACTIVE": "Active",
+        "ONBOARDING": "Onboarding",
+        "REJECTED": "Rejected"
+      },
+      "expenseStatus": {
+        "ALL": "All Statuses",
+        "PENDING_TEACHER_REVIEW": "Pending Teacher",
+        "PENDING_DEAN_APPROVAL": "Pending Dean",
+        "PENDING_DISBURSEMENT": "Pending Disbursement",
+        "DISBURSED": "Disbursed",
+        "REJECTED": "Rejected"
+      },
+      "months": {
+        "ALL": "All Months",
+        "1": "January",
+        "2": "February",
+        "3": "March",
+        "4": "April",
+        "5": "May",
+        "6": "June",
+        "7": "July",
+        "8": "August",
+        "9": "September",
+        "10": "October",
+        "11": "November",
+        "12": "December"
+      }
+    }
+  },
+  "pagination": {
+    "ariaLabel": "Data grid navigation",
+    "itemsPerPage": "Items per page:",
+    "prevPage": "Go to previous page",
+    "nextPage": "Go to next page"
+  }
+}

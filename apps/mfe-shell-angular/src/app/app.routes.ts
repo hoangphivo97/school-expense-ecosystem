@@ -19,11 +19,10 @@ export const routes: Routes = [
     canActivate: [authGuard, activeUserGuard],
     canActivateChild: [rolesGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
-        path: 'dashboard',
-        loadComponent: () =>
-          import('@school-expense-ecosystem/dashboard/features').then((m) => m.DashboardComponent),
+        path: '',
+        loadChildren: () =>
+          import('@school-expense-ecosystem/dashboard/features').then((m) => m.DASHBOARD_ROUTES),
       },
       {
         path: 'user-list',
@@ -58,7 +57,7 @@ export const routes: Routes = [
       },
       {
         path: '**',
-        redirectTo: 'dashboard',
+        redirectTo: 'project-overview',
       },
     ],
   },

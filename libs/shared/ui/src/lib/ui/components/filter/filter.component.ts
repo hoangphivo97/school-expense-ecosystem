@@ -20,12 +20,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableDataSource } from '@angular/material/table';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { FilterMode, FilterUserParams, SharedFilterParams, } from '@school-expense-ecosystem/shared/types';
-import { months } from '@school-expense-ecosystem/shared/constants';
+import { FilterMode, SharedFilterFields, SharedFilterParams, } from '@school-expense-ecosystem/shared/types';
+import { EXPENSE_STATUS_OPTIONS, months } from '@school-expense-ecosystem/shared/constants';
 import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-filter',
@@ -39,17 +39,22 @@ import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
     MatFormFieldModule,
     MatIconModule,
     MatTooltipModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    TranslocoModule
   ],
   templateUrl: './filter.component.html',
   styleUrl: './filter.component.scss',
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'shared' }
+  ]
 })
 export class FilterComponent<T = unknown> implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly paginator = viewChild(MatPaginator);
 
-  mode = input<FilterMode>(FilterMode.EXPENSE);
+  readonly mode = input<FilterMode>(FilterMode.EXPENSE);
+  readonly disableStatus = input<boolean>(false);
 
   readonly showSearch = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.USER);
   readonly showMonth = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
@@ -60,12 +65,12 @@ export class FilterComponent<T = unknown> implements OnInit {
   readonly showFaculty = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE);
 
   // Multi-dimensional dynamic model mapping streams
-  inputDataSource = input<MatTableDataSource<T> | null>(null);
-  value = input<SharedFilterParams | null>(null);
-  yearsList = input<number[]>([]);
-  facultiesList = input<{ facultyId: string; facultyName: string }[]>([]);
+  readonly inputDataSource = input<MatTableDataSource<T> | null>(null);
+  readonly value = input<SharedFilterParams | null>(null);
+  readonly yearsList = input<number[]>([]);
+  readonly facultiesList = input<{ facultyId: string; facultyName: string }[]>([]);
 
-  filterChange = output<SharedFilterParams>();
+  readonly filterChange = output<SharedFilterParams>();
 
   readonly systemRolesOptions = [
     { value: 'ALL', label: 'All Roles' },
@@ -90,14 +95,7 @@ export class FilterComponent<T = unknown> implements OnInit {
     // { value: UserStatus.INACTIVE, label: 'Inactive' }
   ];
 
-  readonly expenseStatusOptions = [
-    { value: 'ALL', label: 'All Statuses' },
-    { value: ExpenseStatus.PENDING_TEACHER_REVIEW, label: 'Pending Teacher' },
-    { value: ExpenseStatus.PENDING_DEAN_APPROVAL, label: 'Pending Dean' },
-    { value: ExpenseStatus.PENDING_DISBURSEMENT, label: 'Pending Disbursement' },
-    { value: ExpenseStatus.DISBURSED, label: 'Disbursed' },
-    { value: ExpenseStatus.REJECTED, label: 'Rejected' }
-  ];
+  readonly expenseStatusOptions = EXPENSE_STATUS_OPTIONS;
 
   readonly currentMonth = new Date().getMonth() + 1;
   readonly currentYear = new Date().getFullYear();
@@ -148,12 +146,21 @@ export class FilterComponent<T = unknown> implements OnInit {
 
   constructor() {
     effect(() => {
+      const statusControl = this.filterForm.get('status');
+      if (this.disableStatus()) {
+        statusControl?.disable({ emitEvent: false });
+      } else {
+        statusControl?.enable({ emitEvent: false });
+      }
+    });
+
+    effect(() => {
       const incomingState = this.value();
       if (!incomingState) return;
 
       // Reactively branch on the component mode signal to cleanly narrow union type boundaries
       if (this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT) {
-        const expenseState = incomingState as FilterExpenseParams;
+        const expenseState = incomingState as unknown as SharedFilterFields;
         this.filterForm.patchValue({
           month: expenseState.month !== undefined ? expenseState.month : this.currentMonth,
           year: expenseState.year !== undefined ? expenseState.year : this.currentYear,
@@ -163,7 +170,7 @@ export class FilterComponent<T = unknown> implements OnInit {
           userType: expenseState.userType ?? 'ALL'
         }, { emitEvent: false });
       } else {
-        const userState = incomingState as FilterUserParams;
+        const userState = incomingState as unknown as SharedFilterFields;
         this.filterForm.patchValue({
           searchTerm: userState.searchTerm ?? '',
           role: userState.role ?? 'ALL',
@@ -208,7 +215,7 @@ export class FilterComponent<T = unknown> implements OnInit {
           return val;
         };
 
-        let payload: SharedFilterParams;
+        let payload;
 
         if (this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT) {
           payload = {
@@ -218,7 +225,7 @@ export class FilterComponent<T = unknown> implements OnInit {
             status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to ExpenseStatus implicitly
             facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
             userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
-          } as FilterExpenseParams;
+          };
         } else {
           payload = {
             searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
@@ -226,7 +233,7 @@ export class FilterComponent<T = unknown> implements OnInit {
             userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
             status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to UserStatus implicitly
             facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
-          } as FilterUserParams;
+          };
         }
 
         const dataSource = this.inputDataSource();

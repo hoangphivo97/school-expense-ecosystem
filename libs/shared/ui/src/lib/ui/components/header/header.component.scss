@@ -1,26 +1,17 @@
-// ==========================================================================
-// Header Component Style Tokens
-// Inspired by premium modern enterprise dashboards (e.g., Tailwind Slate, Material Design Tokens)
-// ==========================================================================
-
-$header-bg:          #ffffff;
-$text-primary:       #0f172a; // Slate 900 - Premium dark text for readability
-$text-secondary:     #64748b; // Slate 500 - Subdued tint for metadata/subtitles
-$border-divider:     #f1f5f9; // Slate 100 - Razor thin separator line
-$shadow-subtle:      0 1px 2px 0 rgba(0, 0, 0, 0.05);
+@use 'variables';
 
 .app-header {
   display: block;
-  background-color: $header-bg;
-  border-bottom: 1px solid $border-divider;
+  background-color: var(--bg-secondary); 
+  border-bottom: 1px solid var(--border-color);
   padding: 1.5rem 2rem; // Spacious vertical breathing room for deep enterprise viewports
   margin-bottom: 1.75rem;
-  box-shadow: $shadow-subtle;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 
   .header-container {
     width: 100%;
     max-width: 1440px; // Standard enterprise layout anchor cap
-    margin: 0 auto;
+    // margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -28,9 +19,10 @@ $shadow-subtle:      0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .page-title {
-  font-size: 1.5rem; // ~24px optimal golden ratio sizing for micro layouts
+  /* DRY Strategy: Bind system typography directly to workspace architecture font scales */
+  font-size: variables.$h1-font-size; 
   font-weight: 700;
-  color: $text-primary;
+  color: var(--text-primary);
   letter-spacing: -0.025em; // Tightened tracking for high-end typography look
   line-height: 1.2;
   margin: 0;
@@ -41,36 +33,27 @@ $shadow-subtle:      0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .page-subtitle {
-  font-size: 0.875rem; // ~14px
+  font-size: variables.$text-fonr-size; 
   font-weight: 400;
-  color: $text-secondary;
+  color: var(--text-secondary);
   margin: 0;
 }
 
-
 // ==========================================================================
-// 🌟 BULLETPROOF DARK MODE FOR HEADER COMPONENT
+// 🌟 CLEAN SPECIFICITY DARK MODE OVERRIDES (ZERO !IMPORTANT BLOCK)
 // ==========================================================================
-::ng-deep body.dark-mode {
+/* Architect Fix: Natural cascading injection eliminates forced properties safely */
+::ng-deep html body.dark-mode {
   .app-header {
-    background-color: var(--bg-secondary) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    /* Deep contrast optimization for rich presentation dark panels layout */
+    border-bottom-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  }
-
-  .page-title {
-    color: var(--text-primary) !important; 
-  }
-
-  .page-subtitle {
-    color: var(--text-secondary) !important; 
   }
 }
 
 // ==========================================================================
 // Micro-Animations (Performance-First Hardware Accelerated Transitions)
 // ==========================================================================
-
 .animate-fade-in {
   // Utilizing standard cubic-bezier for snappy, elegant app response times
   animation: headerReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;

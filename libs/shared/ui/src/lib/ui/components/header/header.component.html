@@ -1,7 +1,7 @@
-<header class="app-header animate-fade-in">
+<header class="app-header animate-fade-in" *transloco="let t">
   <div class="header-container">
     
-    <h1 class="page-title">{{ pageTitle() }}</h1>
+    <h1 class="page-title">{{ t('shared.' + pageTitle()) }}</h1>
     
     </div>
 </header>

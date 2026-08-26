@@ -1,11 +1,10 @@
 import {
   Component,
   computed,
-  EventEmitter,
   inject,
-  Input,
+  input,
   OnInit,
-  Output,
+  output,
   signal,
 } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -16,7 +15,7 @@ import { NavItem, UserType } from '@school-expense-ecosystem/shared/types';
 import { MatDialog } from '@angular/material/dialog';
 import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons/faArrowRightFromBracket';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { APP_NAVIGATION, URL_ROUTE_LINKER } from '@school-expense-ecosystem/shared/constants';
+import { APP_NAVIGATION } from '@school-expense-ecosystem/shared/constants';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ReactWrapperComponent } from '@school-expense-ecosystem/shared/ui';
@@ -24,6 +23,7 @@ import { A11yModule } from "@angular/cdk/a11y";
 import { Role } from '@school-expense-ecosystem/shared/types';
 import { MatTooltip } from "@angular/material/tooltip";
 import { LanguageSwitcherComponent } from "@school-expense-ecosystem/shared/ui";
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-sidebar',
@@ -37,51 +37,57 @@ import { LanguageSwitcherComponent } from "@school-expense-ecosystem/shared/ui";
     ReactWrapperComponent,
     A11yModule,
     MatTooltip,
-    LanguageSwitcherComponent
+    LanguageSwitcherComponent,
+    TranslocoModule
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'shared' }
+  ]
 })
 export class SidebarComponent implements OnInit {
   readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly authStore = inject(AuthSignalStore)
 
-  @Output() toggle = new EventEmitter<void>();
-  @Output() logout = new EventEmitter<void>();
-  @Input() collapsed = false;
+  readonly toggle = output<void>();
+  readonly logout = output<void>();
+  readonly collapsed = input(false);
 
   readonly user = this.authStore.user;
   faArrowRightFromBracket = faArrowRightFromBracket;
 
-  activeItem = signal<NavItem>(NavItem.DASHBOARD)
+  activeItem = signal<NavItem>(NavItem.PROJECT_OVERVIEW)
 
   private readonly ROLES_PERMISSION: Record<Role, NavItem[]> = {
     [Role.LEVEL_0_ADMIN]: [
       NavItem.DASHBOARD,
-      NavItem.USER_LIST
+      NavItem.USER_LIST,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_1_FINANCE]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
       NavItem.BUDGET_MANAGER,
-      NavItem.APPROVAL_CENTER
+      NavItem.APPROVAL_CENTER,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_2_DEAN]: [
       NavItem.DASHBOARD,
       NavItem.EXPENSE,
       NavItem.REPORT,
       NavItem.USER_LIST,
-      NavItem.APPROVAL_CENTER
+      NavItem.APPROVAL_CENTER,
+      NavItem.PROJECT_OVERVIEW
     ],
     [Role.LEVEL_3_USER]: [
       NavItem.DASHBOARD,
-      NavItem.EXPENSE
+      NavItem.EXPENSE,
+      NavItem.PROJECT_OVERVIEW
     ]
   };
-
-  private readonly URL_ROUTE_MAPPING = URL_ROUTE_LINKER;
 
   private readonly USER_TYPE_PERMISSIONS: Partial<Record<UserType, NavItem[]>> = {
     [UserType.TEACHER]: [NavItem.APPROVAL_CENTER],
@@ -118,20 +124,33 @@ export class SidebarComponent implements OnInit {
   }
 
   setActiveItemByUrl(url: string): void {
-    const match = Object.entries(this.URL_ROUTE_MAPPING)
-      .sort((a, b) => b[0].length - a[0].length)
-      .find(([routeKey]) => url.includes(routeKey));
+    let matchedKey: NavItem | null = null;
+    let longestMatchLength = 0;
 
-    if (match) {
-      const [_, navItem] = match;
-      this.activeItem.set(navItem);
+    for (const item of APP_NAVIGATION) {
+      if (item.route && url.includes(item.route) && item.route.length > longestMatchLength) {
+        matchedKey = item.key;
+        longestMatchLength = item.route.length;
+      }
+      if (item.children) {
+        for (const child of item.children) {
+          if (url.includes(child.route) && child.route.length > longestMatchLength) {
+            matchedKey = item.key;
+            longestMatchLength = child.route.length;
+          }
+        }
+      }
+    }
+
+    if (matchedKey) {
+      this.activeItem.set(matchedKey);
     }
   }
 
   setActive(itemKey: NavItem) {
+    console.log(itemKey)
     const currentQueryParams = this.router.parseUrl(this.router.url).queryParams;
     const targetItem = APP_NAVIGATION.find(item => item.key === itemKey);
-
     // If the parent menu houses sub-items, immediately auto-route to the primary leaf node entry
     if (targetItem && targetItem.children && targetItem.children.length > 0) {
       this.router.navigate([targetItem.children[0].route], {
@@ -141,13 +160,10 @@ export class SidebarComponent implements OnInit {
       return;
     }
 
-    this.router.navigate([itemKey], {
+    const urlSlug = itemKey.toLowerCase().replace(/_/g, '-');
+    this.router.navigate([urlSlug], {
       queryParams: currentQueryParams,
       queryParamsHandling: 'merge',
     });
-  }
-
-  get navItems() {
-    return APP_NAVIGATION;
   }
 }

@@ -1,10 +1,10 @@
 <!-- Main structural wrapper for the navigation sidebar -->
-<div class="sidebar-section">
+<div class="sidebar-section" *transloco="let t; read: 'shared.sidebar'">
   <!-- Profile & Account Matrix Area -->
   <div class="account-section">
     <mat-icon class="account-icon">account_circle</mat-icon>
-    <h2 class="label" [class.hide]="collapsed">
-      Welcome
+    <h2 class="label" [class.hide]="collapsed()">
+      {{ t('welcome') }}
       @if (user()) {
       <span class="account-name" [matTooltip]="user()?.fullName || 'User'" matTooltipPosition="above">
         {{ user()?.fullName }}
@@ -12,7 +12,7 @@
       }
     </h2>
   </div>
-  <lib-language-switcher></lib-language-switcher>
+  <lib-language-switcher [collapsed]="collapsed()"></lib-language-switcher>
 
   <!-- Centralized Navigation Menu Links -->
   <nav class="navigation-menu">
@@ -21,13 +21,13 @@
     <div class="nav-item-group">
       <a class="nav-item-link" [class.active]="item.key === activeItem()" (click)="setActive(item.key)">
         <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-        <span class="label" [class.hide]="collapsed">{{ item.label }}</span>
+        <span class="label" [class.hide]="collapsed()">{{ t('menu.' + item.key) }}</span>
       </a>
-      <div class="sub-menu-container" [class.expanded]="item.key === activeItem() && !collapsed">
+      <div class="sub-menu-container" [class.expanded]="item.key === activeItem() && !collapsed()">
         @for (sub of item.children; track sub.route) {
         <a class="sub-nav-item-link" [routerLink]="[sub.route]" routerLinkActive="sub-active">
           <mat-icon class="sub-nav-icon">{{ sub.icon }}</mat-icon>
-          <span class="label" [class.hide]="collapsed">{{ sub.label }}</span>
+          <span class="label" [class.hide]="collapsed()">{{ t('menu.routes.' + sub.route) }}</span>
         </a>
         }
       </div>
@@ -35,7 +35,7 @@
     } @else {
     <a class="nav-item-link" [class.active]="item.key === activeItem()" (click)="setActive(item.key)">
       <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-      <span class="label" [class.hide]="collapsed">{{ item.label }}</span>
+      <span class="label" [class.hide]="collapsed()">{{ t('menu.' + item.key) }}</span>
     </a>
     }
     }
@@ -46,7 +46,7 @@
     <!-- <lib-react-wrapper></lib-react-wrapper> -->
     <button type="button" class="logout-btn" (click)="logout.emit()">
       <fa-icon [icon]="faArrowRightFromBracket" size="1x" class="logout-icon"></fa-icon>
-      <span class="label" [class.hide]="collapsed">Log Out</span>
+      <span class="label" [class.hide]="collapsed()">{{ t('logout') }}</span>
     </button>
   </div>
 

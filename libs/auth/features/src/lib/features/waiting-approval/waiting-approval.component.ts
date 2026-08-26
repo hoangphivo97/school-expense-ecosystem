@@ -4,6 +4,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthRealtimeService, AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { MatButton } from '@angular/material/button';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-waiting-approval',
@@ -11,11 +12,15 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
   imports: [
     MatCardModule,
     MatProgressSpinnerModule,
-    MatButton
+    MatButton,
+    TranslocoModule
   ],
   templateUrl: './waiting-approval.component.html',
   styleUrl: './waiting-approval.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers:[
+    { provide: TRANSLOCO_SCOPE, useValue: 'auth' }
+  ]
 })
 export class WaitingApprovalComponent implements OnInit {
   private readonly authStore = inject(AuthSignalStore);

@@ -20,7 +20,7 @@ body {
   .expense-list {
     flex: 1 0 auto;
     width: 100%;
-    max-width: 1300px;
+    max-width: 1500px;
     margin: 0 auto;
 
     ::ng-deep {
@@ -48,45 +48,91 @@ body {
       }
     }
 
-    table {
-      ::ng-deep {
-        tr.mat-mdc-header-row {
-          background-color: #f1f5f9; // Light gray slate tint matching enterprise standard
-          border-bottom: 2px solid #cbd5e1;
-        }
+    .synchronized-material-table {
+      background-color: transparent;
+      font-family: var(--bs-font-sans-serif);
 
-        tr.mat-mdc-row:hover {
-          cursor: pointer;
-          background-color: #F0F2FF;
-        }
+      tr.mat-mdc-header-row {
+        background-color: #f1f5f9; // Light gray slate tint matching enterprise standard
+        border-bottom: 2px solid #cbd5e1;
+      }
 
-        th.table-column-header {
-          font-size: 0.75rem; // 12px sleek tracking titles
-          font-weight: 600;
-          letter-spacing: 0.05em;
-          color: #475569;
-        }
+      tr.mat-mdc-row:hover {
+        cursor: pointer;
+        background-color: #F0F2FF;
+      }
 
-        td.mat-mdc-cell {
-          border-bottom: 1px solid #e2e8f0;
-          font-size: 0.875rem; // 14px smooth readability text cells
-        }
+      th.table-column-header {
+        font-size: 0.75rem; // 12px sleek tracking titles
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        color: #475569;
+      }
 
-        td.action-column {
-          display: flex;
-        }
+      td.mat-mdc-cell {
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.875rem; // 14px smooth readability text cells
+      }
+
+      td.action-column {
+        display: flex;
       }
     }
 
-    .no-data {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      font-size: 25px;
-      padding-bottom: 40px;
+    .description-clamp-wrapper {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      /* Force text bounding limit to exactly 2 lines maximum */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+      /* Prevent the description cell from eating up too much horizontal grid weight */
+      white-space: normal;
+      line-height: 1.4;
+    }
+
+    .badge-status-variant {
+      font-weight: 600;
+      padding: 0.45em 0.8em;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      text-transform: capitalize;
+
+      // Define an enterprise-grade color registry mapping each ExpenseStatus token configuration cleanly
+      $expense-statuses: (
+        'PENDING_TEACHER_REVIEW': (bg: #fefce8, text: #854d0e, border: #fef08a),
+        // Warning Yellow
+        'PENDING_DEAN_APPROVAL': (bg: #fff7ed, text: #c2410c, border: #fed7aa),
+        // Attention Orange
+        'PENDING_FINANCE_APPROVAL': (bg: #f0f9ff, text: #0369a1, border: #bae6fd),
+        // Operational Sky Blue
+        'PENDING_DISBURSEMENT': (bg: #faf5ff, text: #6b21a8, border: #e9d5ff),
+        // Processing Purple
+        'DISBURSED': (bg: #ecfdf5, text: #065f46, border: #a7f3d0),
+        // Success Emerald Green
+        'REJECTED': (bg: #fef2f2, text: #991b1b, border: #fee2e2) // Critical/Failure Red
+      );
+
+    // Iterate dynamically through the registry map to generate style variants without boilerplate bloating
+    @each $status-name, $tokens in $expense-statuses {
+      &.status-#{$status-name} {
+        background-color: map-get($tokens, bg);
+        color: map-get($tokens, text);
+        border: 1px solid map-get($tokens, border);
+      }
     }
   }
+
+  .no-data {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 25px;
+    padding-bottom: 40px;
+  }
+}
 }
 
 lib-header,
