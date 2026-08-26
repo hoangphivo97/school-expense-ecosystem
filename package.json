@@ -1,6 +1,6 @@
 {
   "name": "school-expense-ecosystem",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "devDependencies": {
     "@angular-devkit/build-angular": "^22.0.0",
     "@angular-devkit/core": "^22.0.0",
