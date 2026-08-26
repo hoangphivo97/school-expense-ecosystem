@@ -36,9 +36,11 @@ export class ProjectOverview implements OnInit {
     let currentRelease: ChangelogRelease | null = null;
     let currentSection: ChangelogSection | null = null;
 
-    const releaseRegex = /^#\s+([^\s]+)\s+\((.*?)\)/;
-    const sectionRegex = /^###\s+(.*)/;
-    const itemRegex = /^\*\s+(?:(?:\*\*([^*]+):\*\*\s*)?)(.*?)(?:\s*\(\[([a-f0-9]+)\]\((https?:\/\/[^\)]+)\)\))?$/;
+    const releaseRegex = /^#{1,3}\s+(?:\[?v?([0-9]+\.[0-9]+\.[0-9]+[^\]\s]*)\]?(?:\([^\)]*\))?)\s+\((.*?)\)/;
+
+    const sectionRegex = /^#{3,4}\s+([A-Za-z\s]+)(?:\s*\(\d+\))?$/;
+
+    const itemRegex = /^\*\s+(?:(?:\*\*([^*]+):\*\*\s*)?)(.*?)(?:\s*\(\[?([a-f0-9]+)\]?(?:\((https?:\/\/[^\)]+)\))?\))?$/;
 
     for (const rawLine of lines) {
       const line = rawLine.trim();

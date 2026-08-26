@@ -45,7 +45,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          npx standard-version --skip.tag --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
+          npx standard-version --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
 
       - name: Deploy Affected Applications Only
         env:
