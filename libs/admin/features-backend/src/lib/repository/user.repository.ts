@@ -1,5 +1,5 @@
 import { CreateUserInput, CreateUserResult, PaginatedUserResult, UpdateUserInput, UserQueryPayload } from '@school-expense-ecosystem/admin/types';
-import { UserStatus } from '@school-expense-ecosystem/shared/types';
+import { UserBase, UserStatus } from '@school-expense-ecosystem/shared/types';
 
 export abstract class UserRepository {
   abstract findPaginated(filters: UserQueryPayload): Promise<PaginatedUserResult>;
@@ -11,4 +11,5 @@ export abstract class UserRepository {
   abstract updateStatus(uid: string, status: UserStatus, reason?: string): Promise<void>;
   abstract deleteUserRecord(uid: string): Promise<void>;
   abstract deleteAuthAccount(uid: string) : Promise<void>;
+  abstract findByIds(uids: string[]): Promise<UserBase[]>;
 }

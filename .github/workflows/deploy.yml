@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -26,6 +29,18 @@ jobs:
 
       - name: Install Dependencies
         run: yarn install --immutable
+
+      - name: Bump Version & Update Changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npx standard-version --skip.tag
+
+      - name: Commit & Push Changelog
+        run: |
+          git add CHANGELOG.md package.json
+          git commit -m "chore(release): update version and changelog [skip ci]" || echo "No changes to commit"
+          git push origin main
 
       - name: Install Firebase CLI globally
         run: npm install -g firebase-tools

@@ -36,7 +36,9 @@ export const APP_NAVIGATION: NavItemConfig[] = [
   },
   { key: NavItem.USER_LIST, label: 'User', icon: 'accessibility_new', route: '/user-list' },
   { key: NavItem.REPORT, label: 'Report', icon: 'insert_chart_outlined', route: '/report' },
-  { key: NavItem.BUDGET_MANAGER, label: 'Budget Manager', icon: 'account_balance', route: '/budget-manager' }
+  { key: NavItem.BUDGET_MANAGER, label: 'Budget Manager', icon: 'account_balance', route: '/budget-manager' },
+  { key: NavItem.PROJECT_MANAGER, label: 'Projects', icon: 'folder_open', route: '/project-manager' },
+
 ];
 
 export const mainColorPieChart: string[] = [
@@ -54,7 +56,8 @@ export const ROUTE_HEADER_TITLE_REGISTRY: Record<string, string> = {
   '/expense': 'My Personal Claims',
   '/report': 'Financial Reports',
   '/budget-manager': 'Budget Management',
-  '/project-overview': 'Project Overview'
+  '/project-overview': 'Project Overview',
+  '/project-manager': 'Project Management',
 };
 
 export const EXPENSE_STATUS_OPTIONS = [

@@ -26,6 +26,7 @@ import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 
 @Component({
   selector: 'lib-filter',
@@ -56,13 +57,14 @@ export class FilterComponent<T = unknown> implements OnInit {
   readonly mode = input<FilterMode>(FilterMode.EXPENSE);
   readonly disableStatus = input<boolean>(false);
 
-  readonly showSearch = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.USER);
+  readonly showSearch = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.USER || this.mode() === FilterMode.PROJECT);
   readonly showMonth = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
-  readonly showYear = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
+  readonly showYear = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT || this.mode() === FilterMode.PROJECT);
   readonly showRole = computed(() => this.mode() === FilterMode.USER);
   readonly showUserType = computed(() => this.mode() === FilterMode.USER);
-  readonly showStatus = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE);
-  readonly showFaculty = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE);
+  readonly showStatus = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.PROJECT);
+  readonly showFaculty = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.PROJECT);
+  readonly showProjectType = computed(() => this.mode() === FilterMode.PROJECT);
 
   // Multi-dimensional dynamic model mapping streams
   readonly inputDataSource = input<MatTableDataSource<T> | null>(null);
@@ -73,11 +75,11 @@ export class FilterComponent<T = unknown> implements OnInit {
   readonly filterChange = output<SharedFilterParams>();
 
   readonly systemRolesOptions = [
-    { value: 'ALL', label: 'All Roles' },
-    { value: Role.LEVEL_0_ADMIN, label: 'Admin' },
-    { value: Role.LEVEL_1_FINANCE, label: 'Finance Officer' },
-    { value: Role.LEVEL_2_DEAN, label: 'Faculty Dean' },
-    { value: Role.LEVEL_3_USER, label: 'End User' }
+    { value: 'ALL', labelKey: 'shared.filter.all_roles' },
+    { value: Role.LEVEL_0_ADMIN, labelKey: 'shared.roles.admin' },
+    { value: Role.LEVEL_1_FINANCE, labelKey: 'shared.roles.finance' },
+    { value: Role.LEVEL_2_DEAN, labelKey: 'shared.roles.dean' },
+    { value: Role.LEVEL_3_USER, labelKey: 'shared.roles.end_user' }
   ];
 
   readonly userTypesOptions = [
@@ -95,6 +97,23 @@ export class FilterComponent<T = unknown> implements OnInit {
     // { value: UserStatus.INACTIVE, label: 'Inactive' }
   ];
 
+  readonly projectStatusOptions = [
+    { value: 'ALL', labelKey: 'shared.filter.all_statuses' },
+    { value: ProjectStatus.ACTIVE, labelKey: 'projects.status.active' },
+    { value: ProjectStatus.PENDING_DEAN_APPROVAL, labelKey: 'projects.status.pending_dean_approval' },
+    { value: ProjectStatus.PENDING_FINANCE_APPROVAL, labelKey: 'projects.status.pending_finance_approval' },
+    { value: ProjectStatus.REJECTED, labelKey: 'projects.status.rejected' },
+    { value: ProjectStatus.COMPLETED, labelKey: 'projects.status.completed' },
+    { value: ProjectStatus.ARCHIVED, labelKey: 'projects.status.archived' },
+  ];
+
+  readonly projectTypeOptions = [
+    { value: 'ALL', labelKey: 'shared.filter.all_types' },
+    { value: ProjectFundingType.SCHOOL, labelKey: 'projects.funding.school' },
+    { value: ProjectFundingType.FACULTY, labelKey: 'projects.funding.faculty' },
+    { value: ProjectFundingType.OUTSOURCE, labelKey: 'projects.funding.external' },
+  ];
+
   readonly expenseStatusOptions = EXPENSE_STATUS_OPTIONS;
 
   readonly currentMonth = new Date().getMonth() + 1;
@@ -108,7 +127,8 @@ export class FilterComponent<T = unknown> implements OnInit {
     role: 'ALL',
     userType: 'ALL',
     status: 'ALL',
-    facultyId: 'ALL'
+    facultyId: 'ALL',
+    projectType: 'ALL'
   };
 
   readonly filterForm = new FormGroup({
@@ -118,7 +138,8 @@ export class FilterComponent<T = unknown> implements OnInit {
     role: new FormControl(this.defaultFilterState.role),
     userType: new FormControl(this.defaultFilterState.userType),
     status: new FormControl(this.defaultFilterState.status),
-    facultyId: new FormControl(this.defaultFilterState.facultyId)
+    facultyId: new FormControl(this.defaultFilterState.facultyId),
+    projectType: new FormControl(this.defaultFilterState.projectType)
   });
 
   readonly processedYears = computed(() => {
@@ -169,7 +190,20 @@ export class FilterComponent<T = unknown> implements OnInit {
           facultyId: expenseState.facultyId ?? 'ALL',
           userType: expenseState.userType ?? 'ALL'
         }, { emitEvent: false });
-      } else {
+
+      }
+      else if (this.mode() === FilterMode.PROJECT) {
+        // Architect Fix: Patch incoming state specific to Project mode
+        const projectState = incomingState as unknown as SharedFilterFields;
+        this.filterForm.patchValue({
+          searchTerm: projectState.searchTerm ?? '',
+          year: projectState.year !== undefined ? projectState.year : this.currentYear,
+          status: projectState.status ?? 'ALL',
+          facultyId: projectState.facultyId ?? 'ALL',
+          projectType: (projectState as any).projectType ?? 'ALL'
+        }, { emitEvent: false })
+      }
+      else {
         const userState = incomingState as unknown as SharedFilterFields;
         this.filterForm.patchValue({
           searchTerm: userState.searchTerm ?? '',
@@ -222,9 +256,18 @@ export class FilterComponent<T = unknown> implements OnInit {
             searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
             month: this.showMonth() ? (formValues.month !== undefined ? formValues.month : null) : null,
             year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
-            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to ExpenseStatus implicitly
+            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined,
             facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
             userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
+          };
+        } else if (this.mode() === FilterMode.PROJECT) {
+          // Explicit mapping for Project Filter Mode
+          payload = {
+            searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
+            year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
+            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined,
+            facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
+            projectType: formValues.projectType === 'ALL' ? undefined : formValues.projectType,
           };
         } else {
           payload = {
@@ -253,7 +296,8 @@ export class FilterComponent<T = unknown> implements OnInit {
       role: this.defaultFilterState.role,
       userType: this.defaultFilterState.userType,
       status: this.defaultFilterState.status,
-      facultyId: this.defaultFilterState.facultyId
+      facultyId: this.defaultFilterState.facultyId,
+      projectType: this.defaultFilterState.projectType
     }, { emitEvent: true });
   }
 }

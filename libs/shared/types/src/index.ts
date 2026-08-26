@@ -7,3 +7,4 @@ export * from './lib/enums/user.enum';
 export * from './lib/enums/expense-shared.enum';
 export * from './lib/interface/auth.interface';
 export * from './lib/enums/nav.enum';
+export * from './lib/interface/faculty.interface';

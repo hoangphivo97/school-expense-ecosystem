@@ -44,10 +44,26 @@
         @for (option of accountStatusOptions; track option.value) {
         <mat-option [value]="option.value">{{ t('options.accountStatus.' + option.value) }}</mat-option>
         }
-        } @else {
+        }
+        @else if (mode() === 'PROJECT') {
+        @for (option of projectStatusOptions; track option.value) {
+        <mat-option [value]="option.value">{{ t('options.projectStatus.' + option.value) }}</mat-option>
+        }
+        }
+        @else {
         @for (option of expenseStatusOptions; track option.value) {
         <mat-option [value]="option.value">{{ t('options.expenseStatus.' + option.value) }}</mat-option>
         }
+        }
+      </mat-select>
+    </mat-form-field>
+    }
+    @if (showProjectType()) {
+    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
+      <mat-label>{{ t('labels.projectType') }}</mat-label>
+      <mat-select formControlName="projectType" panelClass="enterprise-dropdown-panel">
+        @for (option of projectTypeOptions; track option.value) {
+        <mat-option [value]="option.value">{{ t('options.projectType.' + option.value) }}</mat-option>
         }
       </mat-select>
     </mat-form-field>

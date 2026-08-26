@@ -1,0 +1,235 @@
+<lib-header></lib-header>
+<div class="project-list" *transloco="let t; read:'project.projectList'">
+  <lib-filter 
+    [mode]="filterModeEnum.PROJECT" 
+    [yearsList]="availableYearsSignal()" 
+    [value]="filterParams()"
+    (filterChange)="onProjectFiltersChanged($event)"
+    [facultiesList]="facultiesListSignal()"
+  >
+    @if (isStudent()) {
+      <button primaryAction mat-flat-button color="primary" (click)="openJoinByCodeModal()">
+        <mat-icon>vpn_key</mat-icon> {{ t('actions.joinByCode') }}
+      </button>
+    } @else {
+      <button primaryAction mat-flat-button color="primary" (click)="openCreateProjectModal()">
+        <mat-icon>add</mat-icon> {{ t('actions.createProject') }}
+      </button>
+    }
+  </lib-filter>
+
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden" [seLoading]="isGridDataLoading()">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
+
+          <!-- Project ID / Code -->
+          <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+            {{ t('columns.id') }}
+          </th>
+          <td mat-cell *matCellDef="let project" class="py-3 px-4">
+            <span
+              class="project-id-chip"
+              [matTooltip]="t('actions.clickToCopy')"
+              [copyToClipboard]="project.id"
+              copySuccessKey="project.projectList.notifications.copiedToClipboard"
+            >
+              {{ project.id }}
+            </span>
+          </td>
+        </ng-container>
+
+          <!-- Project Name -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.name') }}</th>
+            <td mat-cell *matCellDef="let project" [matTooltip]="project.name" matTooltipPosition="above">
+              <div class="description-clamp-wrapper fw-semibold">{{ project.name }}</div>
+            </td>
+          </ng-container>
+
+          <!-- Funding Type -->
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.type') }}</th>
+            <td mat-cell *matCellDef="let project">
+              {{ 'shared.filter.options.projectType.' + project.type | transloco }}
+            </td>
+          </ng-container>
+
+          <!-- Faculty -->
+          <ng-container matColumnDef="facultyId">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.facultyId') }}</th>
+            <td mat-cell *matCellDef="let project">
+              {{ project.facultyId | uppercase }}
+            </td>
+          </ng-container>
+
+          <!-- Budget Cap -->
+          <ng-container matColumnDef="budgetCap">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.budgetCap') }}</th>
+            <td mat-cell *matCellDef="let project" class="fw-bold text-dark">
+              {{ project.budgetCap | number: '1.0-0' }} TWD
+            </td>
+          </ng-container>
+
+          <!-- Current Spent -->
+          <ng-container matColumnDef="currentSpent">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.currentSpent') }}</th>
+            <td mat-cell *matCellDef="let project" class="text-secondary">
+              {{ project.currentSpent | number: '1.0-0' }} TWD
+            </td>
+          </ng-container>
+
+          <!-- Timeline (Start - End Date) -->
+          <ng-container matColumnDef="timeline">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.timeline') }}</th>
+            <td mat-cell *matCellDef="let project">
+              {{ project.startDate | date: 'dd/MM/yyyy' }} - {{ project.endDate | date: 'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <!-- Enrolled Students Column -->
+          <ng-container matColumnDef="enrolledStudents">
+          <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+            {{ t('columns.enrolledStudents') }}
+          </th>
+          <td mat-cell *matCellDef="let project" class="py-3 px-4">
+            @if (project.joinConfig?.maxUses) {
+              <div class="enrollment-container">
+                <!-- Text ratio & Percentage -->
+                <div class="d-flex justify-content-between align-items-center mb-1 small">
+                  <span class="fw-semibold font-monospace" [class.text-danger]="project.isEnrollmentFull">
+                    {{ project.joinedStudentIds?.length || 0 }}/{{ project.joinConfig.maxUses }}
+                  </span>
+                  <span class="text-secondary smaller">{{ project.enrollmentPercentage }}%</span>
+                </div>
+
+                <!-- Custom Compact Progress Track -->
+                <div class="progress-track">
+                  <div
+                    class="progress-fill"
+                    [style.width.%]="project.enrollmentPercentage"
+                    [ngClass]="{
+                      'bg-danger': project.isEnrollmentFull,
+                      'bg-warning': (project.enrollmentPercentage || 0) >= 80 && !project.isEnrollmentFull,
+                      'bg-primary': (project.enrollmentPercentage || 0) < 80
+                    }"
+                  ></div>
+                </div>
+              </div>
+            } @else {
+              <!-- Fallback when no join code / quota is set -->
+              <div class="d-flex align-items-center gap-1 text-secondary small">
+                <mat-icon class="fs-6 h-auto w-auto">person</mat-icon>
+                <span>{{ project.joinedStudentIds?.length || 0 }}</span>
+              </div>
+            }
+          </td>
+        </ng-container>
+
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.status') }}</th>
+            <td mat-cell *matCellDef="let project">
+              <span class="badge badge-status-variant" [ngClass]="'status-' + project.status">
+                {{ 'shared.filter.options.projectStatus.' + project.status | transloco }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
+            <td mat-cell *matCellDef="let project" class="action-column" (click)="$event.stopPropagation()">
+              <div class="d-flex align-items-center justify-content-end gap-1">
+                @if (project.canApprove) {
+                  <button
+                    mat-icon-button
+                    class="text-success"
+                    [matTooltip]="t('actions.approveProject')"
+                    (click)="onApproveProject(project)"
+                    aria-label="Approve Project"
+                  >
+                    <mat-icon>check_circle</mat-icon>
+                  </button>
+                }
+
+                @if (project.canReject) {
+                  <button
+                    mat-icon-button
+                    class="text-danger"
+                    [matTooltip]="t('actions.rejectProject')"
+                    (click)="onRejectProject(project)"
+                    aria-label="Reject Project"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                }
+                
+                @if (project.canEdit) {
+                  <button
+                    mat-icon-button
+                    color="accent"
+                    [matTooltip]="t('actions.editProject')"
+                    (click)="openEditModal(project)"
+                    aria-label="Edit Project"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+
+                @if (canManageJoinCode(project)) {
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    [matTooltip]="t('actions.manageJoinCode')"
+                    (click)="openJoinCodeModal(project)"
+                    aria-label="Manage Join Code"
+                  >
+                    <mat-icon>qr_code</mat-icon>
+                  </button>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="dynamicDisplayedColumns()"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: dynamicDisplayedColumns()"
+            class="clickable-row"
+            (click)="navigateToDetail(row)"
+          ></tr>
+
+          <!-- Empty State -->
+          <tr class="mat-mdc-no-data-row" *matNoDataRow>
+            <td [attr.colspan]="dynamicDisplayedColumns().length">
+              @if (!isGridDataLoading()) {
+                <div class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
+                  <div class="empty-icon-box mb-3">
+                    <mat-icon class="material-icons-outlined text-muted">folder_off</mat-icon>
+                  </div>
+                  <h3 class="empty-title m-0">{{ t('empty.title') }}</h3>
+                  <p class="empty-subtitle text-muted px-3">
+                    {{ t('empty.subtitle') }}
+                  </p>
+                </div>
+              }
+            </td>
+          </tr>
+        </table>
+
+        <lib-pagination 
+          [totalItems]="totalItems()" 
+          [pageSize]="pageSize()" 
+          [currentPage]="currentPageIndex()"
+          [pageSizeOptions]="[10, 20, 50, 100]" 
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)">
+        </lib-pagination>
+
+      </div>
+    </div>
+  </div>
+</div>
+<lib-footer></lib-footer>

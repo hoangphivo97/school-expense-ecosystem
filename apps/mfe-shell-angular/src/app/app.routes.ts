@@ -46,13 +46,17 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'budget-manager',
-        data: {
-          roles: [Role.LEVEL_1_FINANCE]
-        },
+        path: '',
         loadChildren: () =>
           import('@school-expense-ecosystem/finance/features').then(
-            (m) => m.FINANCE_ROUTES_BUDGET_MANAGER
+            (m) => m.FINANCE_ROUTES
+          ),
+      },
+      {
+        path: '',
+        loadChildren: () =>
+          import('@school-expense-ecosystem/projects/features').then(
+            (m) => m.PROJECT_ROUTE
           ),
       },
       {

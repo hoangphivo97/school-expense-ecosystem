@@ -12,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 
 import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
-import { DialogActionEnum, DialogData, ExpenseStatus, Role, SharedFilterParams, UserStatus } from '@school-expense-ecosystem/shared/types';
+import { DialogActionEnum, DialogData, ExpenseStatus, Role, SharedFilterParams } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, EXPENSE_STATUS_OPTIONS, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';

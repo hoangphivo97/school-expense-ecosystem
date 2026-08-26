@@ -1,0 +1,28 @@
+export enum ProjectFundingType {
+    SCHOOL = 'SCHOOL',
+    OUTSOURCE = 'OUTSOURCE',
+    FACULTY = "FACULTY"
+}
+
+export enum ProjectStatus {
+    DRAFT = 'DRAFT',
+    PENDING_DEAN_APPROVAL = 'PENDING_DEAN_APPROVAL',
+    PENDING_FINANCE_APPROVAL = 'PENDING_FINANCE_APPROVAL',
+    ACTIVE = 'ACTIVE',
+    COMPLETED = 'COMPLETED',
+    ARCHIVED = 'ARCHIVED',
+    REJECTED = 'REJECTED'
+}
+
+export enum EventStatus {
+    UPCOMING = "UPCOMING",
+    ONGOING = "ONGOING",
+    COMPLETED = "COMPLETED",
+    CANCELLED = "CANCELLED"
+}
+
+export enum EventScope {
+    SCHOOL_WIDE = "SCHOOL_WIDE",
+    FACULTY = "FACULTY",
+    CLUB = "CLUB"
+}

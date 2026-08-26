@@ -2,5 +2,11 @@
   "common": {
     "cancel": "Cancel",
     "submit": "Submit"
+  },
+  "shared":{
+    "notifications":{
+      "copiedToClipboard": "Copied to clipboard",
+      "copyFailed": "Failed to copy to clipboard."
+    }
   }
 }

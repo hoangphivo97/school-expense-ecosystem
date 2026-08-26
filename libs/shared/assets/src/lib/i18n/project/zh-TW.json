@@ -1,0 +1,203 @@
+{
+  "projectList": {
+    "actions": {
+      "joinByCode": "使用代碼加入",
+      "createProject": "新增專案",
+      "viewDetails": "查看詳情",
+      "manageJoinCode": "管理邀請代碼",
+      "editProject": "編輯專案",
+      "approveProject": "核准專案",
+      "rejectProject": "拒絕專案",
+      "clickToCopy": "點擊複製"
+    },
+    "columns": {
+      "id": "專案編號",
+      "name": "專案名稱",
+      "type": "經費類型",
+      "facultyId": "所屬學院",
+      "budgetCap": "預算上限",
+      "currentSpent": "目前累計支出",
+      "enrolledStudents": "參與學生",
+      "timeline": "執行期間",
+      "status": "專案狀態"
+    },
+    "empty": {
+      "title": "查無專案資料",
+      "subtitle": "目前尚無符合條件或可顯示的專案清單。"
+    },
+    "notifications": {
+      "created": "專案已成功建立。",
+      "updated": "專案內容已成功更新。",
+      "approved": "專案已成功核准。",
+      "rejected": "專案申請已被拒絕。",
+      "copiedToClipboard": "專案編號已複製至剪貼簿。"
+    },
+    "rejectModal": {
+      "title": "拒絕專案申請",
+      "message": "請輸入拒絕專案「{{name}}」的具體原因：",
+      "placeholder": "請輸入修改建議或預算調整說明..."
+    },
+    "approveModal": {
+      "title": "核准專案申請",
+      "message": "您確定要核准專案「{{name}}」嗎？核准後該專案將正式啟用並開放經費報支申請。",
+      "confirm": "確認核准",
+      "cancel": "取消"
+    }
+  },
+  "shared": {
+    "filter": {
+      "options": {
+        "projectType": {
+          "SCHOOL": "校內補助經費",
+          "OUTSOURCE": "外部產學/委託"
+        },
+        "projectStatus": {
+          "ACTIVE": "進行中",
+          "PENDING_DEAN_APPROVAL": "待院長審批",
+          "COMPLETED": "已結案",
+          "ARCHIVED": "已封存"
+        }
+      }
+    },
+    "sidebar": {
+      "menu": {
+        "PROJECT_MANAGER": "專案管理",
+        "BUDGET_MANAGER": "預算管理"
+      }
+    }
+  },
+  "createDialog": {
+    "title": "建立新專案",
+    "subtitle": "設定專案預算上限、經費來源與執行期程",
+    "editTitle": "Update Project Details",
+    "detailTitle": "Project Details",
+    "detailSubtitle": "Overview of project parameters and allocated financial boundaries",
+    "warnings": {
+      "invalidDateRange": "期程限制：開始日期不可晚於結束日期。",
+      "initialSpentExceedsBudget": "預算限制：期初已支用金額不可超過專案總預算上限。"
+    },
+    "fields": {
+      "name": {
+        "label": "專案名稱",
+        "placeholder": "例如：AI 智慧研究與實驗室自動化",
+        "errors": {
+          "required": "專案名稱為必填項目",
+          "maxlength": "專案名稱長度不得超過 150 個字元"
+        }
+      },
+      "type": {
+        "label": "經費來源",
+        "errors": {
+          "required": "經費來源為必選項目"
+        }
+      },
+      "faculty": {
+        "label": "所屬院系",
+        "loading": "院系資料載入中...",
+        "errors": {
+          "required": "所屬院係為必選項目"
+        }
+      },
+      "budgetCap": {
+        "label": "預算上限（總額限制）",
+        "errors": {
+          "required": "預算上限為必填項目",
+          "min": "預算上限必須大於 0"
+        }
+      },
+      "initialSpent": {
+        "label": "期初已支用金額",
+        "hint": "已承諾或已動支的歷史費用",
+        "errors": {
+          "min": "期初已支用金額不能為負數"
+        }
+      },
+      "startDate": {
+        "label": "開始日期",
+        "errors": {
+          "required": "開始日期為必填項目"
+        }
+      },
+      "endDate": {
+        "label": "結束日期",
+        "errors": {
+          "required": "結束日期為必填項目"
+        }
+      },
+      "description": {
+        "label": "專案範疇與說明",
+        "placeholder": "請說明專案預期產出、目標及經費支用必要性...",
+        "errors": {
+          "maxlength": "專案說明長度不得超過 500 個字元"
+        }
+      }
+    },
+    "actions": {
+      "cancel": "取消",
+      "submit": "建立專案",
+      "submitting": "建立中...",
+      "update": "儲存變更",
+      "close": "關閉"
+    }
+  },
+  "manageMembersDialog": {
+    "title": "專案成員名冊與招募管理",
+    "close": "關閉",
+    "tabs": {
+      "roster": "成員名冊",
+      "joinCode": "邀請碼"
+    },
+    "roster": {
+      "searchLabel": "搜尋學生",
+      "searchPlaceholder": "輸入學生姓名、學號或電子郵件...",
+      "noStudentsFound": "查無符合條件的學生。",
+      "addButton": "加入",
+      "emptyState": "目前尚未有學生加入此專案。",
+      "copyIdTooltip": "複製學生學號",
+      "removeTooltip": "自專案中移除此學生",
+      "alreadyEnrolled": "該學生已加入此專案。",
+      "addSuccess": "成功將學生加入專案。",
+      "removeSuccess": "已自專案中移除該學生。"
+    },
+    "code": {
+      "clickToCopy": "點擊複製專案邀請碼",
+      "expiresAt": "有效期限至",
+      "capacityLabel": "已加入學生人數",
+      "regenerateButton": "重新產生邀請碼",
+      "generate": "建立邀請碼",
+      "generating": "建立中...",
+      "back": "返回",
+      "copied": "專案邀請碼已複製至剪貼簿。",
+      "status": {
+        "scheduled": "即將開放",
+        "active": "開放加入中",
+        "full": "名額已滿",
+        "expired": "已截止"
+      },
+      "fields": {
+        "maxUses": {
+          "label": "招募人數上限",
+          "hint": "允許加入此專案的學生上限人數",
+          "errors": {
+            "required": "請輸入招募上限人數。",
+            "min": "至少需開放 1 位學生加入。",
+            "max": "單次邀請上限不能超過 200 人。"
+          }
+        },
+        "startsAt": {
+          "label": "開始日期*",
+          "errors": {
+            "required": "請選擇開始日期"
+          }
+        },
+        "expiresAt": {
+          "label": "有效期限",
+          "hint": "截止日期不得晚於專案結束日期",
+          "errors": {
+            "required": "請選擇邀請碼有效期限。"
+          }
+        }
+      }
+    }
+  }
+}

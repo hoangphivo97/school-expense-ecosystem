@@ -3,8 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoModule } from '@ngneat/transloco';
-import { ProjectLedgerService } from '@school-expense-ecosystem/dashboard/data-access';
-import { TimelineGroup } from '@school-expense-ecosystem/dashboard/types';
+import { ChangelogService, ProjectLedgerService } from '@school-expense-ecosystem/dashboard/data-access';
+import { ChangelogRelease, ChangelogSection, TimelineGroup } from '@school-expense-ecosystem/dashboard/types';
 import { HeaderComponent } from '@school-expense-ecosystem/shared/ui';
 import { map } from 'rxjs';
 
@@ -18,9 +18,69 @@ import { map } from 'rxjs';
 })
 export class ProjectOverview implements OnInit {
   private ledgerService = inject(ProjectLedgerService);
+  private changelogService = inject(ChangelogService);
 
   readonly currentYear = new Date().getFullYear();
   readonly currentMonth = new Date().getMonth() + 1;
+
+  readonly changelogContent = toSignal(
+    this.changelogService.getChangelog(), { initialValue: '' }
+  );
+
+  readonly parsedReleases = computed<ChangelogRelease[]>(() => {
+    const raw = this.changelogContent();
+    if (!raw) return [];
+
+    const lines = raw.split('\n');
+    const releases: ChangelogRelease[] = [];
+    let currentRelease: ChangelogRelease | null = null;
+    let currentSection: ChangelogSection | null = null;
+
+    const releaseRegex = /^#\s+([^\s]+)\s+\((.*?)\)/;
+    const sectionRegex = /^###\s+(.*)/;
+    const itemRegex = /^\*\s+(?:(?:\*\*([^*]+):\*\*\s*)?)(.*?)(?:\s*\(\[([a-f0-9]+)\]\((https?:\/\/[^\)]+)\)\))?$/;
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
+
+      const releaseMatch = line.match(releaseRegex);
+      if (releaseMatch) {
+        currentRelease = {
+          version: releaseMatch[1],
+          date: releaseMatch[2],
+          sections: [],
+          totalCommits: 0,
+        };
+        releases.push(currentRelease);
+        currentSection = null;
+        continue;
+      }
+
+      const sectionMatch = line.match(sectionRegex);
+      if (sectionMatch && currentRelease) {
+        currentSection = {
+          type: sectionMatch[1].trim(),
+          items: [],
+        };
+        currentRelease.sections.push(currentSection);
+        continue;
+      }
+
+      const itemMatch = line.match(itemRegex);
+      if (itemMatch && currentSection && currentRelease) {
+        currentSection.items.push({
+          scope: itemMatch[1]?.trim(),
+          description: itemMatch[2]?.trim(),
+          commitHash: itemMatch[3],
+          commitUrl: itemMatch[4],
+        });
+        currentRelease.totalCommits++;
+      }
+    }
+
+    return releases;
+  });
 
   systemStatuses = computed(() => {
     const historicalGroups = this.historicalTimeline();
@@ -74,7 +134,7 @@ export class ProjectOverview implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    this.ledgerService.getLedgerTimelines().subscribe(data => console.log(data))
+
   }
 
 
