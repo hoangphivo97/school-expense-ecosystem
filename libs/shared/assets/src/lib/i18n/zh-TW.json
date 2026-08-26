@@ -2,5 +2,11 @@
   "common": {
     "cancel": "取消",
     "submit": "確認"
+  },
+    "shared":{
+    "notifications":{
+      "copiedToClipboard": "已複製至剪貼簿。",
+      "copyFailed": "複製至剪貼簿失敗。"
+    }
   }
 }

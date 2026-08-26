@@ -1,8 +1,42 @@
-.confirm-dialog-container {
+.confirm-dialog-wrapper {
   max-width: 420px;
-  
-  // Custom button rounding presets to match modern high-fidelity layouts
-  .rounded {
-    border-radius: 6px !important;
+  margin: 0 auto;
+
+  .icon-badge {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
+    }
+
+    &.badge-primary {
+      background-color: rgba(103, 58, 183, 0.1);
+      color: #673ab7;
+    }
+
+    &.badge-warn {
+      background-color: rgba(244, 67, 54, 0.1);
+      color: #f44336;
+    }
+
+    &.badge-warning {
+      background-color: rgba(255, 152, 0, 0.12);
+      color: #ed6c02;
+    }
+  }
+
+  .dialog-title {
+    color: var(--mat-dialog-headline-color, #1e293b);
+  }
+
+  .dialog-message {
+    color: #64748b;
   }
 }

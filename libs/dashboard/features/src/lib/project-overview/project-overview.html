@@ -55,6 +55,71 @@
     </div>
   </section>
 
+ <section class="changelog-lane">
+    <div class="lane-header">
+      <div class="header-title-group">
+        <mat-icon class="header-icon">history_edu</mat-icon>
+        <div>
+          <h2 class="section-title">Production Deployment Changelog</h2>
+          <p class="section-subtitle">Real-time deployment audit trail generated from verified Git commits.</p>
+        </div>
+      </div>
+    </div>
+
+    @for (release of parsedReleases(); track release.version) {
+      <div class="release-card">
+        <!-- Release Card Header -->
+        <div class="release-header">
+          <div class="version-meta">
+            <span class="version-tag">v{{ release.version }}</span>
+            <span class="release-date"><mat-icon>event</mat-icon> {{ release.date }}</span>
+          </div>
+          <span class="commit-count-badge">{{ release.totalCommits }} Commits</span>
+        </div>
+
+        <!-- Release Body: Contained Scrollable Frame -->
+        <div class="release-body">
+          @for (section of release.sections; track section.type) {
+            <div class="section-block">
+              <h3 class="section-headline" [ngClass]="section.type === 'Bug Fixes' ? 'type-fix' : 'type-feat'">
+                <mat-icon>{{ section.type === 'Bug Fixes' ? 'build_circle' : 'stars' }}</mat-icon>
+                {{ section.type }} ({{ section.items.length }})
+              </h3>
+
+              <!-- 2-Column Responsive Grid -->
+              <div class="entries-grid">
+                @for (item of section.items; track item.commitHash || item.description) {
+                  <div class="entry-item">
+                    <!-- Left Column: Scope Badge & Description Text -->
+                    <div class="entry-main">
+                      @if (item.scope) {
+                        <span class="scope-chip">{{ item.scope }}</span>
+                      }
+                      <span class="entry-text">{{ item.description }}</span>
+                    </div>
+
+                    <!-- Right Column: GitHub Commit Link -->
+                    @if (item.commitHash && item.commitUrl) {
+                      <a [href]="item.commitUrl" target="_blank" rel="noopener noreferrer" class="commit-pill" title="View on GitHub">
+                        <code>#{{ item.commitHash | slice:0:7 }}</code>
+                        <mat-icon>launch</mat-icon>
+                      </a>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state-card">
+        <mat-icon>hourglass_empty</mat-icon>
+        <p>No deployment history available.</p>
+      </div>
+    }
+  </section>
+
   <!-- ==========================================================================
      System Components Grid Matrix (With Granular Role & UserType Containment)
      ========================================================================== -->
@@ -73,11 +138,14 @@
         <div class="card-body">
           <h3 class="card-title">Intelligent Decision Analytics</h3>
           <p class="card-text">
-            Integrate artificial intelligence as an <strong>Intelligent Decision Support System (IDSS)</strong> to assist user decision-making, evaluate expenditure forecast caps, and automatically detect institutional financial anomalies.
+            Integrate artificial intelligence as an <strong>Intelligent Decision Support System (IDSS)</strong> to
+            assist user decision-making, evaluate expenditure forecast caps, and automatically detect institutional
+            financial anomalies.
           </p>
         </div>
         <div class="card-footer">
-          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/136" class="action-btn">
+          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/136"
+            class="action-btn">
             View AI Proposal Blueprint
           </a>
         </div>
@@ -94,11 +162,13 @@
         <div class="card-body">
           <h3 class="card-title">Bare-Metal Linux Topologies</h3>
           <p class="card-text">
-            Experiment with establishing and hosting localized, dedicated <strong>Linux systems</strong> to measure, benchmark, and optimize response latency compared to pure serverless cloud structures.
+            Experiment with establishing and hosting localized, dedicated <strong>Linux systems</strong> to measure,
+            benchmark, and optimize response latency compared to pure serverless cloud structures.
           </p>
         </div>
         <div class="card-footer">
-          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/141" class="action-btn">
+          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/141"
+            class="action-btn">
             View Infrastructure Spec
           </a>
         </div>
@@ -115,11 +185,13 @@
         <div class="card-body">
           <h3 class="card-title">Edge AI Processing Hardware</h3>
           <p class="card-text">
-            Repurpose and orchestrate legacy hardware assets powered by <strong>Snapdragon 855 processors</strong> into localized edge inference pipelines for optimized on-device AI computing and data compilation.
+            Repurpose and orchestrate legacy hardware assets powered by <strong>Snapdragon 855 processors</strong> into
+            localized edge inference pipelines for optimized on-device AI computing and data compilation.
           </p>
         </div>
         <div class="card-footer">
-          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/112" class="action-btn">
+          <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/112"
+            class="action-btn">
             View Hardware Pipeline Spec
           </a>
         </div>

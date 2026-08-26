@@ -20,6 +20,255 @@
     gap: 8px;
   }
 
+  .changelog-lane {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .lane-header {
+      .header-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .header-icon {
+          color: var(--color-primary, #7D45FF);
+          font-size: 26px;
+          width: 26px;
+          height: 26px;
+        }
+
+        .section-title {
+          font-size: 1.3rem;
+          font-weight: 700;
+          color: var(--text-primary, #0f172a);
+          margin: 0;
+        }
+
+        .section-subtitle {
+          font-size: 0.85rem;
+          color: var(--text-secondary, #64748b);
+          margin: 2px 0 0 0;
+        }
+      }
+    }
+
+    .release-card {
+      background: var(--bg-card, #ffffff);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      overflow: hidden;
+
+      .release-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        background: var(--bg-surface-ground, #f8f9fa);
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
+
+        .version-meta {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          .version-tag {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            background: var(--color-primary, #7D45FF);
+            padding: 3px 10px;
+            border-radius: 20px;
+          }
+
+          .release-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary, #64748b);
+
+            mat-icon {
+              font-size: 15px;
+              width: 15px;
+              height: 15px;
+            }
+          }
+        }
+
+        .commit-count-badge {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #059669;
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          padding: 3px 10px;
+          border-radius: 6px;
+        }
+      }
+
+      .release-body {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+        max-height: 480px; // Architect Solution: Restrict vertical height and provide smooth scrolling
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+
+        .section-block {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+
+          .section-headline {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin: 0;
+
+            mat-icon {
+              font-size: 18px;
+              width: 18px;
+              height: 18px;
+            }
+
+            &.type-feat {
+              color: #059669;
+            }
+
+            &.type-fix {
+              color: #d97706;
+            }
+          }
+
+          // Architect Solution: 2-column grid layout for widescreen desktop/tablets
+          .entries-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+
+            @media (min-width: 1024px) {
+              grid-template-columns: repeat(2, 1fr);
+            }
+
+            .entry-item {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+              padding: 10px 14px;
+              border-radius: 10px;
+              background: var(--bg-surface-ground, #f8f9fa);
+              border: 1px solid var(--border-color, #e2e8f0);
+              transition: all 0.2s ease;
+
+              &:hover {
+                border-color: rgba(125, 69, 255, 0.3);
+                background: #ffffff;
+                box-shadow: 0 2px 8px rgba(125, 69, 255, 0.06);
+                transform: translateY(-1px);
+              }
+
+              // Left: Scope Chip & Description
+              .entry-main {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex: 1;
+                min-width: 0;
+
+                .scope-chip {
+                  font-size: 0.7rem;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.04em;
+                  color: var(--color-primary, #7D45FF);
+                  background: rgba(125, 69, 255, 0.08);
+                  border: 1px solid rgba(125, 69, 255, 0.2);
+                  padding: 2px 7px;
+                  border-radius: 5px;
+                  white-space: nowrap;
+                  flex-shrink: 0;
+                  margin-top: 1px;
+                }
+
+                .entry-text {
+                  font-size: 0.82rem;
+                  color: var(--text-primary, #0f172a);
+                  line-height: 1.4;
+                  word-break: break-word;
+                }
+              }
+
+              // Right: Link to GitHub Commit
+              .commit-pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                text-decoration: none;
+                padding: 4px 8px;
+                border-radius: 6px;
+                background: #ffffff;
+                border: 1px solid var(--border-color, #cbd5e1);
+                color: var(--text-secondary, #64748b);
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+
+                code {
+                  font-family: Consolas, Monaco, monospace;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                }
+
+                mat-icon {
+                  font-size: 13px;
+                  width: 13px;
+                  height: 13px;
+                }
+
+                &:hover {
+                  color: var(--color-primary, #7D45FF);
+                  border-color: var(--color-primary, #7D45FF);
+                  background: rgba(125, 69, 255, 0.05);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .empty-state-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      background: var(--bg-card, #ffffff);
+      border: 1px dashed var(--border-color, #cbd5e1);
+      border-radius: 14px;
+      color: var(--text-muted, #94a3b8);
+      gap: 8px;
+    }
+  }
+
   /* ==========================================================================
      Top Section: Architectural Showcase Hero Banner Block
      ========================================================================== */

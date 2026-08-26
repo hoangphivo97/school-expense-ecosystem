@@ -1,6 +1,7 @@
 export enum FilterMode {
     EXPENSE = "EXPENSE",
     USER = 'USER',
-    REPORT = 'REPORT'
+    REPORT = 'REPORT',
+    PROJECT = 'PROJECT'
 }
 

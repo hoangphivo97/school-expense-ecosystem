@@ -10,212 +10,176 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     @Inject('FIRESTORE_INSTANCE') private readonly db: admin.firestore.Firestore
   ) { }
 
+  private get collection() {
+    return this.db.collection('expenses')
+  }
+
+  private get auditLogsCollection() {
+    return this.db.collection('expense_audit_logs');
+  }
+
+  private toIsoString(val: unknown): string {
+    if (val instanceof admin.firestore.Timestamp) {
+      return val.toDate().toISOString();
+    }
+    if (val) {
+      return new Date(val as string | number | Date).toISOString();
+    }
+    return new Date().toISOString();
+  }
+
+  private toDate(val: unknown): Date {
+    if (val instanceof admin.firestore.Timestamp) {
+      return val.toDate();
+    }
+    return new Date((val as string | number | Date) || Date.now());
+  }
+
+  private formatYearMonth(year: number, month: number): string {
+    return `${year}-${String(month).padStart(2, '0')}`;
+  }
+
   private mapDocToExpense(doc: admin.firestore.DocumentSnapshot): ExpenseList {
     const data = doc.data();
     if (!data) throw new Error(`Document data is empty for ID: ${doc.id}`);
 
-    const dateStr = data['date'] instanceof admin.firestore.Timestamp
-      ? data['date'].toDate().toISOString()
-      : new Date(data['date'] || Date.now()).toISOString();
-
-    const createdAtStr = data['createdAt'] instanceof admin.firestore.Timestamp
-      ? data['createdAt'].toDate().toISOString()
-      : new Date(data['createdAt'] || Date.now()).toISOString();
-
-    const updatedAtStr = data['updatedAt'] instanceof admin.firestore.Timestamp
-      ? data['updatedAt'].toDate().toISOString()
-      : new Date(data['updatedAt'] || Date.now()).toISOString();
-
     return {
       ...data,
       id: doc.id,
-      date: dateStr,
-      createdAt: createdAtStr,
-      updatedAt: updatedAtStr,
+      date: this.toIsoString(data['date']),
+      createdAt: this.toIsoString(data['createdAt']),
+      updatedAt: this.toIsoString(data['updatedAt']),
       paidMethod: data['paidMethod'] || 'CASH',
     } as unknown as ExpenseList;
   }
 
-  async findPersonalExpensePaginated(filters: PersonalExpenseRequestFilters): Promise<PaginatedExpensesResponse> {
-    let query: admin.firestore.Query = this.db.collection('expenses').where('userId', '==', filters.userId);
+  private applyDateAndSearchFilters<T extends admin.firestore.Query>(
+    baseQuery: T,
+    // Architect Fix: Support nullable filter values (number | null | undefined) to match DTO definitions
+    filters: { year?: number | null; month?: number | null; searchTerm?: string | null }
+  ): T {
+    let query = baseQuery;
 
     if (filters.year && filters.month) {
-      // Scenario A: Exact Month Selected -> Utilize high-performance equality token to unlock flexible sorting
-      const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
-      query = query.where('filterYearMonth', '==', targetQueryStr);
+      const targetQueryStr = this.formatYearMonth(filters.year, filters.month);
+      query = query.where('filterYearMonth', '==', targetQueryStr) as T;
     } else if (filters.year) {
-      // Scenario B: All Months Selected -> Fall back to date-range inequality constraints covering the full calendar year
       const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
       const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
       query = query
         .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
-        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
+        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear)) as T;
     }
 
     if (filters.searchTerm) {
       const term = filters.searchTerm.trim();
       query = query
         .where('description', '>=', term)
-        .where('description', '<=', term + '\uf8ff')
-        .orderBy('description');
-    } else {
-      if (!filters.month && filters.year) {
-        query = query.orderBy('date', 'desc');
-      } else {
-        query = query.orderBy('updatedAt', 'desc');
-      }
+        .where('description', '<=', term + '\uf8ff') as T;
     }
 
-    if (filters.pageToken) {
-      const startDoc = await this.db.collection('expenses').doc(filters.pageToken).get();
+    return query;
+  }
+
+  private applySorting<T extends admin.firestore.Query>(
+    baseQuery: T,
+    // Architect Fix: Support nullable filter values (number | null | undefined) to match DTO definitions
+    filters: { year?: number | null; month?: number | null; searchTerm?: string | null }
+  ): T {
+    let query = baseQuery;
+
+    if (filters.searchTerm) {
+      query = query.orderBy('description') as T;
+    } else if (!filters.month && filters.year) {
+      query = query.orderBy('date', 'desc') as T;
+    } else {
+      query = query.orderBy('updatedAt', 'desc') as T;
+    }
+
+    return query;
+  }
+
+  private applyReviewerScope<T extends admin.firestore.Query>(
+    baseQuery: T,
+    user: AuthenticatedUser
+  ): T {
+    let query = baseQuery;
+    if (
+      (user.role === Role.LEVEL_3_USER && user.userType === UserType.TEACHER) ||
+      user.role === Role.LEVEL_2_DEAN
+    ) {
+      query = query.where('facultyId', '==', user.facultyId) as T;
+    }
+    return query;
+  }
+
+  private async executePaginatedQuery(
+    baseFilteredQuery: admin.firestore.Query,
+    limit: number,
+    pageToken?: string
+  ): Promise<PaginatedExpensesResponse> {
+    let query = baseFilteredQuery;
+
+    if (pageToken) {
+      const startDoc = await this.collection.doc(pageToken).get();
       if (startDoc.exists) {
         query = query.startAfter(startDoc);
       }
     }
 
-    const snapshot = await query.limit(filters.limit).get();
-    const expenses = snapshot.docs.map(doc => this.mapDocToExpense(doc));
+    const [snapshot, countSnapshot] = await Promise.all([
+      query.limit(limit).get(),
+      baseFilteredQuery.count().get()
+    ]);
 
+    const expenses = snapshot.docs.map(doc => this.mapDocToExpense(doc));
     const lastDoc = snapshot.docs[snapshot.docs.length - 1];
     const nextPageToken = lastDoc ? lastDoc.id : null;
-
-    let countQuery = this.db.collection('expenses').where('userId', '==', filters.userId);
-    if (filters.year && filters.month) {
-      const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
-      countQuery = countQuery.where('filterYearMonth', '==', targetQueryStr);
-    } else if (filters.year) {
-      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
-      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
-      countQuery = countQuery
-        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
-        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
-    }
-
-    if (filters.searchTerm) {
-      const term = filters.searchTerm.trim();
-      countQuery = countQuery
-        .where('description', '>=', term)
-        .where('description', '<=', term + '\uf8ff');
-    }
-
-    const countSnapshot = await countQuery.count().get();
     const totalItems = countSnapshot.data().count;
 
     return { expenses, nextPageToken, totalItems };
+  }
+
+  async findPersonalExpensePaginated(filters: PersonalExpenseRequestFilters): Promise<PaginatedExpensesResponse> {
+    let baseQuery = this.collection.where('userId', '==', filters.userId);
+    baseQuery = this.applyDateAndSearchFilters(baseQuery, filters);
+
+    const sortedQuery = this.applySorting(baseQuery, filters);
+    return this.executePaginatedQuery(sortedQuery, filters.limit, filters.pageToken);
   }
 
   async findReviewerExpensesPaginated(
     user: AuthenticatedUser,
     filters: ReviewerExpenseRequestFilters
   ): Promise<PaginatedExpensesResponse> {
-    let query: admin.firestore.Query = this.db.collection('expenses');
-
-    // Secure operational sandbox routing based on reviewer role & hierarchy perimeter
-    if (user.role === Role.LEVEL_3_USER && user.userType === UserType.TEACHER) {
-      // Teachers operate strictly within their own department perimeter
-      query = query.where('facultyId', '==', user.facultyId);
-    } else if (user.role === Role.LEVEL_2_DEAN) {
-      // Deans are strictly locked to their specific faculty boundary
-      query = query.where('facultyId', '==', user.facultyId);
-    } // Finance officers (Role.LEVEL_1_FINANCE) bypass faculty filters to audit the entire ecosystem
-
-    // Apply specific business workflow status filters if provided
-    if (filters.status && filters.status !== 'ALL') {
-      query = query.where('status', '==', filters.status);
-    }
-
-    if (filters.year && filters.month) {
-      const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
-      query = query.where('filterYearMonth', '==', targetQueryStr);
-    } else if (filters.year) {
-      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
-      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
-      query = query
-        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
-        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
-    }
-
-    if (filters.searchTerm) {
-      const term = filters.searchTerm.trim();
-      query = query
-        .where('description', '>=', term)
-        .where('description', '<=', term + '\uf8ff')
-        .orderBy('description');
-    } else {
-      if (!filters.month && filters.year) {
-        query = query.orderBy('date', 'desc');
-      } else {
-        query = query.orderBy('updatedAt', 'desc');
-      }
-    }
-
-    if (filters.pageToken) {
-      const startDoc = await this.db.collection('expenses').doc(filters.pageToken).get();
-      if (startDoc.exists) {
-        query = query.startAfter(startDoc);
-      }
-    }
-
-    const snapshot = await query.limit(filters.limit).get();
-    const expenses = snapshot.docs.map(doc => this.mapDocToExpense(doc));
-
-    const lastDoc = snapshot.docs[snapshot.docs.length - 1];
-    const nextPageToken = lastDoc ? lastDoc.id : null;
-
-    // Build matching metrics count pipeline mirroring the operational security track exactly
-    let countQuery: admin.firestore.Query = this.db.collection('expenses');
-    if (user.role === Role.LEVEL_3_USER && user.userType === UserType.TEACHER) {
-      countQuery = countQuery.where('facultyId', '==', user.facultyId);
-    } else if (user.role === Role.LEVEL_2_DEAN) {
-      countQuery = countQuery.where('facultyId', '==', user.facultyId);
-    }
+    // Architect Fix: Assigning CollectionReference directly to Query variable (Upcasting is always valid)
+    let baseQuery: admin.firestore.Query = this.collection;
+    baseQuery = this.applyReviewerScope(baseQuery, user);
 
     if (filters.status && filters.status !== 'ALL') {
-      countQuery = countQuery.where('status', '==', filters.status);
+      baseQuery = baseQuery.where('status', '==', filters.status);
     }
 
-    if (filters.year && filters.month) {
-      const targetQueryStr = `${filters.year}-${String(filters.month).padStart(2, '0')}`;
-      countQuery = countQuery.where('filterYearMonth', '==', targetQueryStr);
-    } else if (filters.year) {
-      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
-      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
-      countQuery = countQuery
-        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
-        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
-    }
+    baseQuery = this.applyDateAndSearchFilters(baseQuery, filters);
 
-    if (filters.searchTerm) {
-      const term = filters.searchTerm.trim();
-      countQuery = countQuery
-        .where('description', '>=', term)
-        .where('description', '<=', term + '\uf8ff');
-    }
-
-    const countSnapshot = await countQuery.count().get();
-    const totalItems = countSnapshot.data().count;
-
-    return { expenses, nextPageToken, totalItems };
+    const sortedQuery = this.applySorting(baseQuery, filters);
+    return this.executePaginatedQuery(sortedQuery, filters.limit, filters.pageToken);
   }
 
   async findById(id: string): Promise<ExpenseList | null> {
-    const doc = await this.db.collection('expenses').doc(id).get();
+    const doc = await this.collection.doc(id).get();
     if (!doc.exists) return null;
     return this.mapDocToExpense(doc);
   }
 
   async create(data: Omit<ExpenseList, 'id'>): Promise<ExpenseList> {
-    const docRef = this.db.collection('expenses').doc();
-
-    // Dynamically compute the equality tracking token string based on the provided target expense date
+    const docRef = this.collection.doc();
     const expenseDate = new Date(data.date);
-    const mm = String(expenseDate.getUTCMonth() + 1).padStart(2, '0');
-    const yyyy = expenseDate.getUTCFullYear();
 
     const firestorePayload = {
       ...data,
       date: admin.firestore.Timestamp.fromDate(expenseDate),
-      filterYearMonth: `${yyyy}-${mm}`,
+      filterYearMonth: this.formatYearMonth(expenseDate.getUTCFullYear(), expenseDate.getUTCMonth() + 1),
       createdAt: admin.firestore.Timestamp.now(),
       updatedAt: admin.firestore.Timestamp.now()
     };
@@ -226,7 +190,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
   }
 
   async update(id: string, data: Partial<ExpenseList>): Promise<ExpenseList> {
-    const docRef = this.db.collection('expenses').doc(id);
+    const docRef = this.collection.doc(id);
 
     const updatePayload: Record<string, unknown> = {
       ...data,
@@ -247,19 +211,21 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.collection('expenses').doc(id).delete();
+    await this.collection.doc(id).delete();
   }
 
   async findAvailableYears(userId: string): Promise<number[]> {
-    const snapshot = await this.db.collection('expenses').where('userId', '==', userId).get();
-    const yearsSet = new Set<number>();
+    // Architect Optimization: Use .select('date') to minimize Firestore network bandwidth
+    const snapshot = await this.collection
+      .where('userId', '==', userId)
+      .select('date')
+      .get();
 
+    const yearsSet = new Set<number>();
     snapshot.docs.forEach(doc => {
       const data = doc.data();
-      if (data['date'] instanceof admin.firestore.Timestamp) {
-        yearsSet.add(data['date'].toDate().getFullYear());
-      } else if (data['date']) {
-        yearsSet.add(new Date(data['date']).getFullYear());
+      if (data['date']) {
+        yearsSet.add(this.toDate(data['date']).getFullYear());
       }
     });
 
@@ -267,9 +233,8 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
   }
 
   async getAnalytics(filters: AnalyticsFilters): Promise<ExpenseAnalyticsDto> {
-    let query: admin.firestore.Query = this.db.collection('expenses');
+    let query: admin.firestore.Query = this.collection;
 
-    // 🎯 ĐÃ VÁ BUG: Khớp chuẩn Enum Role.LEVEL_2_DEAN thay thế cho text thô 'UserLevel2' cũ
     if (filters.role === Role.LEVEL_2_DEAN && filters.facultyId) {
       query = query.where('facultyId', '==', filters.facultyId);
     }
@@ -294,37 +259,35 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       return {
         amount: Number(data['amount']) || 0,
         paidMethod: data['paidMethod'] || data['paid'] || 'CASH',
-        date: data['date'] instanceof admin.firestore.Timestamp ? data['date'].toDate() : new Date(data['date'])
+        date: this.toDate(data['date'])
       };
     });
 
     const total = expenses.reduce((sum, e) => sum + e.amount, 0);
     const count = expenses.length;
-    const max = expenses.length > 0 ? Math.max(...expenses.map(e => e.amount)) : 0;
+    const max = count > 0 ? Math.max(...expenses.map(e => e.amount)) : 0;
 
-    // 1. Biểu đồ tròn
+    // 1. Pie Chart
     const pieMap: Record<string, number> = {};
+    // 2. Line Chart
+    const lineMap: Record<string, number> = {};
+    // 3. Bar Chart
+    const barMap: Record<string, number> = {};
+
     expenses.forEach(e => {
       pieMap[e.paidMethod] = (pieMap[e.paidMethod] || 0) + e.amount;
-    });
-    const pieData = Object.entries(pieMap).map(([label, amount]) => ({ label, amount }));
 
-    // 2. Biểu đồ đường
-    const lineMap: Record<string, number> = {};
-    expenses.forEach(e => {
       const dayStr = e.date.toISOString().split('T')[0];
       lineMap[dayStr] = (lineMap[dayStr] || 0) + e.amount;
-    });
-    const lineData = Object.entries(lineMap)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([label, amount]) => ({ label, amount }));
 
-    // 3. Biểu đồ cột
-    const barMap: Record<string, number> = {};
-    expenses.forEach(e => {
       const monthStr = e.date.toLocaleString('en-US', { month: 'short' });
       barMap[monthStr] = (barMap[monthStr] || 0) + e.amount;
     });
+
+    const pieData = Object.entries(pieMap).map(([label, amount]) => ({ label, amount }));
+    const lineData = Object.entries(lineMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([label, amount]) => ({ label, amount }));
     const barData = Object.entries(barMap).map(([label, amount]) => ({ label, amount }));
 
     return {
@@ -336,7 +299,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
   }
 
   async createAuditLog(log: Omit<ExpenseAuditLogDocument, 'id'>): Promise<void> {
-    const docRef = this.db.collection('expense_audit_logs').doc();
+    const docRef = this.auditLogsCollection.doc();
     await docRef.set({
       ...log,
       createdAt: admin.firestore.Timestamp.fromDate(new Date(log.createdAt))

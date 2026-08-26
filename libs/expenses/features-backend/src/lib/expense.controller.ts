@@ -1,7 +1,7 @@
 /// <reference types="multer" />
 import { Controller, Get, Post, Put, Body, Param, Query, Req, UseGuards, BadRequestException, ForbiddenException, UseInterceptors, ParseFilePipe, UploadedFile, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
 import { ExpenseBackendService, PersonalExpenseQueryDto, ReviewerExpenseQueryDto, StorageProvider } from '@school-expense-ecosystem/expenses/data-access-backend';
-import { JwtAuthGuard, RolesGuard } from '@school-expense-ecosystem/shared/guards-backend';
+import { CurrentUser, RolesGuard } from '@school-expense-ecosystem/shared/guards-backend';
 import { AuditAction } from '@school-expense-ecosystem/expenses/types';
 import { Request } from 'express';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
@@ -10,9 +10,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ExpenseCapGuard, ExpenseReviewGuard } from '@school-expense-ecosystem/expenses/guards-backend';
 
 
-interface AuthenticatedRequest extends Request {
-  user: AuthenticatedUser;
-}
 @Controller('expenses')
 @UseGuards(RolesGuard)
 export class ExpenseController {
@@ -22,22 +19,21 @@ export class ExpenseController {
 
   @Get()
   async getPersonalExpenses(
-    @Req() req: AuthenticatedRequest,
-    @Query() query: PersonalExpenseQueryDto
+    @Query() query: PersonalExpenseQueryDto,
+    @CurrentUser() user: AuthenticatedUser
   ) {
 
-    const userId = req.user.uid;
-    return this.expenseBackendService.getPersonalPaginatedExpenses(userId, query);
+    return this.expenseBackendService.getPersonalPaginatedExpenses(user.uid, query);
   }
 
   @Get('analytics')
   async getAnalytics(
-    @Req() req: AuthenticatedRequest,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('year') year?: string,
     @Query('month') month?: string
   ) {
 
-    const { role, facultyId } = req.user;
+    const { role, facultyId } = user;
     const filterYear = year ? parseInt(year, 10) : undefined;
     const filterMonth = month ? parseInt(month, 10) : undefined;
 
@@ -50,14 +46,19 @@ export class ExpenseController {
   }
 
   @Get('years')
-  async getAvailableYears(@Req() req: AuthenticatedRequest) {
-    return this.expenseBackendService.getUserAvailableYears(req.user.uid);
+  async getAvailableYears(
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.expenseBackendService.getUserAvailableYears(user.uid);
   }
 
   @Post()
   @UseGuards(ExpenseCapGuard)
-  async createExpense(@Req() req: AuthenticatedRequest, @Body() dto: CreateExpenseDto) {
-    return this.expenseBackendService.createExpense(req.user, dto);
+  async createExpense(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateExpenseDto
+  ) {
+    return this.expenseBackendService.createExpense(user, dto);
   }
 
   // @Put(':id')
@@ -71,7 +72,7 @@ export class ExpenseController {
   @Post(':id/review')
   @UseGuards(ExpenseReviewGuard)
   async reviewExpense(
-    @Req() req: AuthenticatedRequest,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
     @Body() body: { action: AuditAction; reason?: string }
   ) {
@@ -79,7 +80,7 @@ export class ExpenseController {
       throw new BadRequestException('Invalid workflow action');
     }
 
-    return this.expenseBackendService.reviewExpense(id, req.user, body.action, body.reason);
+    return this.expenseBackendService.reviewExpense(id, user, body.action, body.reason);
   }
 
   @Post('upload-proof')
@@ -112,14 +113,14 @@ export class ExpenseController {
 
   @Get('reviewer')
   async getReviewerExpenses(
-    @Req() req: AuthenticatedRequest,
+    @CurrentUser() user: AuthenticatedUser,
     @Query() query: ReviewerExpenseQueryDto
   ) {
     // Zero-Trust Enforcement: Explicitly reject students from accessing reviewer workflows
-    if (req.user.role === Role.LEVEL_3_USER && req.user.userType === UserType.STUDENT) {
+    if (user.role === Role.LEVEL_3_USER && user.userType === UserType.STUDENT) {
       throw new ForbiddenException('Access Denied: Students are excluded from reviewer queues.');
     }
 
-    return this.expenseBackendService.getReviewerExpenses(req.user, query);
+    return this.expenseBackendService.getReviewerExpenses(user, query);
   }
 }

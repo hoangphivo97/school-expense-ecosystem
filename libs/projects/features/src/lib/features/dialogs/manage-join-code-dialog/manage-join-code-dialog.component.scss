@@ -1,0 +1,66 @@
+.manage-members-modal {
+  max-width: 540px;
+  overflow: hidden;
+
+  ::ng-deep .mat-mdc-tab-body-content {
+    overflow: hidden !important;
+  }
+
+  .tab-content-wrapper {
+    overflow: hidden;
+  }
+
+  .icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: rgba(103, 58, 183, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .member-list-container {
+    max-height: 240px;
+    overflow-y: auto;
+    background-color: #f8fafc;
+
+    .member-item {
+      transition: background-color 0.15s ease-in-out;
+
+      &:hover {
+        background-color: #f1f5f9;
+      }
+    }
+  }
+
+  .code-display-box {
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #f1f5f9 !important;
+      border-color: var(--mat-sys-primary, #673ab7) !important;
+    }
+
+    .invitation-code {
+      letter-spacing: 2px;
+    }
+  }
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}

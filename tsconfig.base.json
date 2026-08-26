@@ -138,11 +138,36 @@
       ],
       "@school-expense-ecosystem/finance/features-backend": [
         "./libs/finance/features-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/finance/guards-backend": [
+        "./libs/finance/guards-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/data-access": [
+        "./libs/projects/data-access/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/data-access-backend": [
+        "./libs/projects/data-access-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/features": [
+        "./libs/projects/features/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/features-backend": [
+        "./libs/projects/features-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/guards-backend": [
+        "./libs/projects/guards-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/types": [
+        "./libs/projects/types/src/index.ts"
       ]
     }
   },
   "exclude": [
     "node_modules",
-    "tmp"
+    "dist",
+    ".angular",
+    ".cache",
+    "tmp",
+    "**/*.spec.ts"
   ]
 }

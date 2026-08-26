@@ -1,0 +1,203 @@
+{
+  "projectList": {
+    "actions": {
+      "joinByCode": "Join via Code",
+      "createProject": "Create Project",
+      "viewDetails": "View Details",
+      "manageJoinCode": "Manage Join Code",
+      "editProject": "Edit Project",
+      "approveProject": "Approve Project",
+      "rejectProject": "Reject Project",
+      "clickToCopy": "Click to copy"
+    },
+    "columns": {
+      "id": "Project ID",
+      "name": "Project Name",
+      "type": "Funding Type",
+      "facultyId": "Faculty",
+      "budgetCap": "Budget Cap",
+      "currentSpent": "Current Spent",
+      "enrolledStudents": "Students",
+      "timeline": "Timeline",
+      "status": "Status"
+    },
+    "empty": {
+      "title": "No Projects Found",
+      "subtitle": "There are no projects available to display in this view."
+    },
+    "notifications": {
+      "created": "Project has been created successfully.",
+      "updated": "Project details updated successfully.",
+      "approved": "Project has been approved successfully.",
+      "rejected": "Project proposal has been rejected.",
+      "copiedToClipboard": "Project ID copied to clipboard."
+    },
+    "rejectModal": {
+      "title": "Reject Project Proposal",
+      "message": "Please specify the justification for rejecting \"{{name}}\":",
+      "placeholder": "Enter constructive feedback or budget revision instructions..."
+    },
+    "approveModal": {
+      "title": "Approve Project Proposal",
+      "message": "Are you sure you want to approve \"{{name}}\"? This will activate the project and allow expense requests.",
+      "confirm": "Approve Project",
+      "cancel": "Cancel"
+    }
+  },
+  "shared": {
+    "filter": {
+      "options": {
+        "projectType": {
+          "SCHOOL": "School Funded",
+          "OUTSOURCE": "Outsourced / External"
+        },
+        "projectStatus": {
+          "ACTIVE": "Active",
+          "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
+          "COMPLETED": "Completed",
+          "ARCHIVED": "Archived"
+        }
+      }
+    },
+    "sidebar": {
+      "menu": {
+        "PROJECT_MANAGER": "Projects",
+        "BUDGET_MANAGER": "Budget Manager"
+      }
+    }
+  },
+  "createDialog": {
+    "title": "Create New Project",
+    "subtitle": "Define project budget limits, funding scope, and timeline",
+    "editTitle": "Update Project Details",
+    "detailTitle": "Project Details",
+    "detailSubtitle": "Overview of project parameters and allocated financial boundaries",
+    "warnings": {
+      "invalidDateRange": "Timeline Constraint: Start date must be earlier than or equal to End date.",
+      "initialSpentExceedsBudget": "Budget Constraint: Initial spent cannot exceed the total designated budget cap."
+    },
+    "fields": {
+      "name": {
+        "label": "Project Name",
+        "placeholder": "e.g., AI Research & Lab Automation",
+        "errors": {
+          "required": "Project name is required",
+          "maxlength": "Project name must not exceed 150 characters"
+        }
+      },
+      "type": {
+        "label": "Funding Type",
+        "errors": {
+          "required": "Funding type is required"
+        }
+      },
+      "faculty": {
+        "label": "Faculty / Department",
+        "loading": "Loading faculties...",
+        "errors": {
+          "required": "Faculty assignment is required"
+        }
+      },
+      "budgetCap": {
+        "label": "Budget Cap (Total Limit)",
+        "errors": {
+          "required": "Budget cap is required",
+          "min": "Budget cap must be greater than 0"
+        }
+      },
+      "initialSpent": {
+        "label": "Initial Committed Spent",
+        "hint": "Historical committed expenses",
+        "errors": {
+          "min": "Initial spent cannot be negative"
+        }
+      },
+      "startDate": {
+        "label": "Start Date",
+        "errors": {
+          "required": "Start date is required"
+        }
+      },
+      "endDate": {
+        "label": "End Date",
+        "errors": {
+          "required": "End date is required"
+        }
+      },
+      "description": {
+        "label": "Project Scope & Description",
+        "placeholder": "Explain project deliverables, objectives, and expenditure justification...",
+        "errors": {
+          "maxlength": "Description cannot exceed 500 characters"
+        }
+      }
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "submit": "Create Project",
+      "submitting": "Creating...",
+      "close": "Close",
+      "update": "Save Changes"
+    }
+  },
+  "manageMembersDialog": {
+    "title": "Project Members & Recruitment",
+    "close": "Close",
+    "tabs": {
+      "roster": "Roster",
+      "joinCode": "Invitation Code"
+    },
+    "roster": {
+      "searchLabel": "Search Student",
+      "searchPlaceholder": "Type student name, student ID, or email...",
+      "noStudentsFound": "No students found matching your search.",
+      "addButton": "Add",
+      "emptyState": "No students have joined this project yet.",
+      "copyIdTooltip": "Copy Student ID",
+      "removeTooltip": "Remove student from project",
+      "alreadyEnrolled": "Student is already enrolled in this project.",
+      "addSuccess": "Student added successfully.",
+      "removeSuccess": "Student removed successfully."
+    },
+    "code": {
+      "clickToCopy": "Click to copy invitation code",
+      "expiresAt": "Valid until",
+      "capacityLabel": "Enrolled Students",
+      "regenerateButton": "Generate New Code",
+      "generate": "Create Join Code",
+      "generating": "Creating...",
+      "back": "Back",
+      "copied": "Invitation code copied to clipboard.",
+      "status": {
+        "scheduled": "Upcoming",
+        "active": "Active",
+        "full": "Full Capacity",
+        "expired": "Expired"
+      },
+      "fields": {
+        "maxUses": {
+          "label": "Recruitment Capacity",
+          "hint": "Maximum number of students that can join",
+          "errors": {
+            "required": "Capacity limit is required.",
+            "min": "Must allow at least 1 student.",
+            "max": "Cannot exceed 200 students per code."
+          }
+        },
+        "expiresAt": {
+          "label": "Expiration Date",
+          "hint": "Must be on or before project end date",
+          "errors": {
+            "required": "Expiration date is required."
+          }
+        },
+        "startsAt": {
+          "label": "Start Date*",
+          "errors": {
+            "required": "Start date is required"
+          }
+        }
+      }
+    }
+  }
+}

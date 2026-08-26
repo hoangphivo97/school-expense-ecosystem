@@ -1,6 +1,6 @@
 <lib-header></lib-header>
-<main class="user-directory-layout-root container mt-5 mb-4">
 
+<div class="user-directory-layout-root">
   <lib-filter [mode]="filterModeEnum.USER" [value]="activeFilters()" (filterChange)="onUserFiltersChanged($event)">
 
     @if(isAdmin()){
@@ -185,6 +185,6 @@
 
     </div>
   </div>
-</main>
+</div>
 
 <lib-footer></lib-footer>

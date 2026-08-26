@@ -10,11 +10,13 @@
       "REPORT": "統計分析報表",
       "BUDGET_MANAGER": "預算額度管理",
       "PROJECT_OVERVIEW": "專案概覽",
+      "PROJECT_MANAGER": "專案列表",
       "routes": {
         "/expense/pending": "待審批隊列",
         "/expense/history": "院系審批歷史",
         "/dashboard": "儀表板",
-        "/project-overview": "專案概覽"
+        "/project-overview": "專案概覽",
+        "/project-maanger": "專案清單"
       }
     }
   },
@@ -27,7 +29,8 @@
       "/user-list": "系統使用者名錄",
       "/expense": "我的個人申請單",
       "/report": "財務報表中心",
-      "/budget-manager": "預算額度管理"
+      "/budget-manager": "預算額度管理",
+      "/project-manager": "專案管理"
     }
   },
   "filter": {
@@ -40,7 +43,8 @@
       "requestStatus": "申請單狀態",
       "month": "月份",
       "year": "年度",
-      "faculty": "學院/科系"
+      "faculty": "學院/科系",
+      "projectType": "專案類型"
     },
     "tooltip": {
       "reset": "清除目前篩選條件"
@@ -48,11 +52,11 @@
     "options": {
       "faculties": { "ALL": "所有學院/科系" },
       "roles": {
-        "ALL": "所有權限角色",
-        "ADMIN": "系統管理員",
-        "FINANCE_OFFICER": "財務主辦人員",
-        "FACULTY_DEAN": "學院院長/主管",
-        "END_USER": "一般終端使用者"
+        "ALL": "所有角色",
+        "LEVEL_0_ADMIN": "系統管理員",
+        "LEVEL_1_FINANCE": "主計處 / 財務專員",
+        "LEVEL_2_DEAN": "院長 / 系主任",
+        "LEVEL_3_USER": "一般使用者"
       },
       "userTypes": {
         "ALL": "所有使用者類型",
@@ -73,6 +77,21 @@
         "PENDING_DISBURSEMENT": "待財務撥款",
         "DISBURSED": "已成功撥款",
         "REJECTED": "駁回申請"
+      },
+      "projectStatus": {
+        "ALL": "所有專案狀態",
+        "ACTIVE": "執行中",
+        "PENDING_DEAN_APPROVAL": "待院系審查",
+        "PENDING_FINANCE_APPROVAL": "待主計處審核",
+        "REJECTED": "已駁回",
+        "COMPLETED": "已結案",
+        "ARCHIVED": "已封存"
+      },
+      "projectType": {
+        "ALL": "所有經費來源",
+        "SCHOOL": "校級補助專案",
+        "FACULTY": "院系自籌專案",
+        "OUTSOURCE": "產學 / 外部補助"
       },
       "months": {
         "ALL": "所有月份",

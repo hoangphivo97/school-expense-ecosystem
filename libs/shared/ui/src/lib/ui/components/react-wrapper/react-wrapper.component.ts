@@ -14,7 +14,7 @@ import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { ReactComponentType } from '@school-expense-ecosystem/shared/types';
 
-import { ThemeService } from '@school-expense-ecosystem/shared/data-access';
+import { DarkModeService } from '@school-expense-ecosystem/shared/data-access';
 import { NgZone } from '@angular/core';
 import { DarkModeToggleProps } from '@school-expense-ecosystem/shared/types'
 
@@ -25,7 +25,7 @@ import { DarkModeToggleProps } from '@school-expense-ecosystem/shared/types'
   styleUrls: ['./react-wrapper.component.css'],
 })
 export class ReactWrapperComponent implements AfterViewInit, OnDestroy {
-  protected readonly themeService = inject(ThemeService);
+  protected readonly themeService = inject(DarkModeService);
   private readonly ngZone = inject(NgZone);
 
   @ViewChild('reactContainer', { static: true }) containerRef!: ElementRef;
