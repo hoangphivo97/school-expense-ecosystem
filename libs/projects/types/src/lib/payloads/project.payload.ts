@@ -42,6 +42,6 @@ export interface GenerateJoinCodePayload {
   expiresAt: string;
 }
 
-export interface JoinProjectByCodePayload {
+export interface JoinEntitytByCodePayload {
   code: string;
 }

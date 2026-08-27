@@ -1,5 +1,5 @@
 import { FacultyId } from "@school-expense-ecosystem/shared/types";
-import { EventScope, EventStatus, ProjectFundingType, ProjectStatus } from "../enums/project.enum";
+import { ProjectFundingType, ProjectStatus } from "../enums/project.enum";
 
 export interface ProjectJoinConfig {
     code: string;
@@ -29,17 +29,6 @@ export interface Project {
     createdAt?: string;
     updatedAt?: string;
     rejectionReason?: string | null;
-}
-
-export interface Event {
-    id: string;
-    name: string;
-    status: EventStatus;
-    createdAt?: string;
-    scope: EventScope;
-    startDate: string;
-    endDate: string;
-    facultyId?: FacultyId;
 }
 
 export interface StudentSummary {
