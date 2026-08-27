@@ -73,8 +73,12 @@
     "detailTitle": "Project Details",
     "detailSubtitle": "Overview of project parameters and allocated financial boundaries",
     "warnings": {
-      "invalidDateRange": "Timeline Constraint: Start date must be earlier than or equal to End date.",
-      "initialSpentExceedsBudget": "Budget Constraint: Initial spent cannot exceed the total designated budget cap."
+      "invalidDateRange": "End date must be greater than or equal to start date.",
+      "initialSpentExceedsBudget": "Initial spent cannot exceed total budget cap.",
+      "deanSchoolApproval": "This School-funded project will require approval from FINANCE before activation.",
+      "deanFacultyDeduction": "Creating this Faculty project will directly allocate and deduct funds from the Faculty budget.",
+      "teacherDualApproval": "This School-funded project will require approval from both DEAN and FINANCE before activation.",
+      "teacherDeanApproval": "This Faculty-funded project will require approval from the DEAN before activation."
     },
     "fields": {
       "name": {

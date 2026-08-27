@@ -73,8 +73,12 @@
     "detailTitle": "Project Details",
     "detailSubtitle": "Overview of project parameters and allocated financial boundaries",
     "warnings": {
-      "invalidDateRange": "期程限制：開始日期不可晚於結束日期。",
-      "initialSpentExceedsBudget": "預算限制：期初已支用金額不可超過專案總預算上限。"
+      "invalidDateRange": "結束日期必須晚於或等於開始日期。",
+      "initialSpentExceedsBudget": "初期支出金額不得超過專案總預算上限。",
+      "deanSchoolApproval": "此校級經費專案在啟用前，需經由財務單位（FINANCE）審核批准。",
+      "deanFacultyDeduction": "建立此院級專案將直接自學院預算中撥款並扣除相應額度。",
+      "teacherDualApproval": "此校級經費專案在啟用前，需經由院長（DEAN）及財務單位（FINANCE）雙重審核批准。",
+      "teacherDeanApproval": "此院級經費專案在啟用前，需經由院長（DEAN）審核批准。"
     },
     "fields": {
       "name": {

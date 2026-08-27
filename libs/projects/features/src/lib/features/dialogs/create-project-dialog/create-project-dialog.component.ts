@@ -9,11 +9,11 @@ import { MatFormFieldModule, MatHint } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { CreateProjectPayload, Project, ProjectFundingType, ProjectStatus, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
-import { FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { ConfirmDialogData, DialogActionEnum, FacultyId } from '@school-expense-ecosystem/shared/types';
+import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
+import { ConfirmDialogData, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 
 export interface CreateProjectDialogData {
@@ -42,6 +42,19 @@ export class CreateProjectDialogComponent {
   private readonly facultyApiService = inject(FacultyApiService);
   private readonly decimalPipe = inject(DecimalPipe);
   private readonly dialog = inject(MatDialog);
+  private readonly authStore = inject(AuthSignalStore);
+  private readonly translocoService = inject(TranslocoService);
+
+  private readonly WARNING_RULES: Partial<Record<Role, Partial<Record<ProjectFundingType, string>>>> = {
+    [Role.LEVEL_2_DEAN]: {
+      [ProjectFundingType.SCHOOL]: 'createDialog.warnings.deanSchoolApproval',
+      [ProjectFundingType.FACULTY]: 'createDialog.warnings.deanFacultyDeduction',
+    },
+    [Role.LEVEL_3_USER]: {
+      [ProjectFundingType.SCHOOL]: 'createDialog.warnings.teacherDualApproval',
+      [ProjectFundingType.FACULTY]: 'createDialog.warnings.teacherDeanApproval',
+    },
+  };
 
   readonly data = inject<CreateProjectDialogData>(MAT_DIALOG_DATA, { optional: true });
   readonly action = signal<DialogActionEnum>(this.data?.action ?? DialogActionEnum.Create);
@@ -170,7 +183,6 @@ export class CreateProjectDialogComponent {
   onSubmit(): void {
     if (this.form.invalid || this.isSubmitting()) return;
 
-    this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
     // Using getRawValue() ensures values from disabled controls are still captured
@@ -178,6 +190,7 @@ export class CreateProjectDialogComponent {
 
     // 1. Branch Execution: Edit Project Flow
     if (this.isEditMode() && this.data?.project) {
+      this.isSubmitting.set(true);
       const updatePayload: UpdateProjectPayload = {
         name: formValue.name.trim(),
         description: formValue.description?.trim() || null,
@@ -214,16 +227,29 @@ export class CreateProjectDialogComponent {
       endDate: new Date(formValue.endDate).toISOString(),
     };
 
-    this.projectApiService.createProject(payload).subscribe({
-      next: (createdProject) => {
-        this.isSubmitting.set(false);
-        this.dialogRef.close(createdProject);
-      },
-      error: (err) => {
-        this.isSubmitting.set(false);
-        this.errorMessage.set(err?.error?.message || 'Failed to initialize project. Please try again.');
-      },
-    });
+    const warningMessage = this.getConfirmationWarning(payload.type);
+
+    if (warningMessage) {
+      const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '420px',
+        disableClose: true,
+        data: {
+          title: 'Project Submission Notice',
+          message: warningMessage,
+          confirmText: 'Proceed & Create',
+          cancelText: 'Review Form',
+          confirmColor: 'primary',
+          icon: 'help_outline',
+        } as ConfirmDialogData,
+      });
+
+      confirmRef.afterClosed().subscribe((isConfirmed: boolean) => {
+        if (isConfirmed) {
+          this.executeCreateProject(payload);
+        }
+      });
+      return;
+    }
   }
 
   onCancel(): void {
@@ -248,6 +274,30 @@ export class CreateProjectDialogComponent {
       if (isConfirmed) {
         this.dialogRef.close();
       }
+    });
+  }
+
+  private getConfirmationWarning(type: ProjectFundingType): string | null {
+    const role = this.authStore.user()?.role;
+    if (!role) return null;
+
+    const translationKey = this.WARNING_RULES[role]?.[type];
+    return translationKey ? this.translocoService.translate(translationKey, {}, 'project') : null;
+  }
+
+  private executeCreateProject(payload: CreateProjectPayload): void {
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+
+    this.projectApiService.createProject(payload).subscribe({
+      next: (createdProject) => {
+        this.isSubmitting.set(false);
+        this.dialogRef.close(createdProject);
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        this.errorMessage.set(err?.error?.message || 'Failed to initialize project. Please try again.');
+      },
     });
   }
 }
