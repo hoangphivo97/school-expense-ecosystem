@@ -30,7 +30,8 @@
       "/expense": "我的個人申請單",
       "/report": "財務報表中心",
       "/budget-manager": "預算額度管理",
-      "/project-manager": "專案管理"
+      "/project-manager/overview": "專案管理",
+      "/project-manager/events": "活动管理"
     }
   },
   "filter": {

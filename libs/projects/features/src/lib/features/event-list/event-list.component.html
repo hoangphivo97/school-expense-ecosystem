@@ -1,0 +1,192 @@
+<div class="event-list-container" *transloco="let t; read: 'project.eventList'">
+  <lib-filter
+    [mode]="filterModeEnum.PROJECT"
+    [yearsList]="availableYearsSignal()"
+    [value]="filterParams()"
+    (filterChange)="onEventFiltersChanged($event)"
+    [facultiesList]="facultiesListSignal()"
+  >
+    @if (!isStudent()) {
+      <button primaryAction mat-flat-button color="primary" (click)="openCreateEventModal()">
+        <mat-icon>add_circle_outline</mat-icon> {{ t('actions.createEvent') }}
+      </button>
+    }
+  </lib-filter>
+
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden" [seLoading]="isGridDataLoading()">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
+          
+          <!-- Event ID -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.id') }}
+            </th>
+            <td mat-cell *matCellDef="let event" class="py-3 px-4">
+              <span
+                class="event-id-chip"
+                [matTooltip]="t('actions.clickToCopy')"
+                [copyToClipboard]="event.id"
+                copySuccessKey="project.projectList.notifications.copiedToClipboard"
+              >
+                {{ event.id }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Event Name -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.name') }}
+            </th>
+            <td mat-cell *matCellDef="let event" [matTooltip]="event.name" matTooltipPosition="above">
+              <div class="description-clamp-wrapper fw-semibold">{{ event.name }}</div>
+            </td>
+          </ng-container>
+
+          <!-- Faculty -->
+          <ng-container matColumnDef="facultyId">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.facultyId') }}
+            </th>
+            <td mat-cell *matCellDef="let event">
+              {{ event.facultyId | uppercase }}
+            </td>
+          </ng-container>
+
+          <!-- Budget Cap -->
+          <ng-container matColumnDef="budgetCap">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.budgetCap') }}
+            </th>
+            <td mat-cell *matCellDef="let event" class="fw-bold text-dark">
+              {{ event.budgetCap | number: '1.0-0' }} TWD
+            </td>
+          </ng-container>
+
+          <!-- Current Spent -->
+          <ng-container matColumnDef="currentSpent">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.currentSpent') }}
+            </th>
+            <td mat-cell *matCellDef="let event" class="text-secondary">
+              {{ event.currentSpent | number: '1.0-0' }} TWD
+            </td>
+          </ng-container>
+
+          <!-- Timeline -->
+          <ng-container matColumnDef="timeline">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.timeline') }}
+            </th>
+            <td mat-cell *matCellDef="let event">
+              {{ event.startDate | date: 'dd/MM/yyyy' }} - {{ event.endDate | date: 'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <!-- Participants & Quota -->
+          <ng-container matColumnDef="participants">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.participants') }}
+            </th>
+            <td mat-cell *matCellDef="let event" class="py-3 px-4">
+              @if (event.maxParticipants) {
+                <div class="enrollment-container">
+                  <div class="d-flex justify-content-between align-items-center mb-1 small">
+                    <span class="fw-semibold font-monospace" [class.text-danger]="event.isFull">
+                      {{ event.participantCount }}/{{ event.maxParticipants }}
+                    </span>
+                    <span class="text-secondary smaller">{{ event.attendancePercentage }}%</span>
+                  </div>
+
+                  <div class="progress-track">
+                    <div
+                      class="progress-fill"
+                      [style.width.%]="event.attendancePercentage"
+                      [ngClass]="{
+                        'bg-danger': event.isFull,
+                        'bg-warning': (event.attendancePercentage || 0) >= 80 && !event.isFull,
+                        'bg-primary': (event.attendancePercentage || 0) < 80
+                      }"
+                    ></div>
+                  </div>
+                </div>
+              } @else {
+                <div class="d-flex align-items-center gap-1 text-secondary small">
+                  <mat-icon class="fs-6 h-auto w-auto">group</mat-icon>
+                  <span>{{ event.participantCount }}</span>
+                </div>
+              }
+            </td>
+          </ng-container>
+
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.status') }}
+            </th>
+            <td mat-cell *matCellDef="let event">
+              <span class="badge badge-status-variant" [ngClass]="'status-' + event.status">
+                {{ 'project.eventList.statusOptions.' + event.status | transloco }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Action Buttons -->
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header"></th>
+            <td mat-cell *matCellDef="let event" class="action-column" (click)="$event.stopPropagation()">
+              <div class="d-flex align-items-center justify-content-end gap-1">
+                @if (event.canEdit) {
+                  <button
+                    mat-icon-button
+                    color="accent"
+                    [matTooltip]="t('actions.editEvent')"
+                    (click)="openEditModal(event)"
+                    aria-label="Edit Event"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="dynamicDisplayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: dynamicDisplayedColumns"
+            class="clickable-row"
+            (click)="navigateToDetail(row)"
+          ></tr>
+
+          <!-- Empty State -->
+          <tr class="mat-mdc-no-data-row" *matNoDataRow>
+            <td [attr.colspan]="dynamicDisplayedColumns.length">
+              @if (!isGridDataLoading()) {
+                <div class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
+                  <div class="empty-icon-box mb-3">
+                    <mat-icon class="material-icons-outlined text-muted">event_busy</mat-icon>
+                  </div>
+                  <h3 class="empty-title m-0">{{ t('empty.title') }}</h3>
+                  <p class="empty-subtitle text-muted px-3">{{ t('empty.subtitle') }}</p>
+                </div>
+              }
+            </td>
+          </tr>
+        </table>
+
+        <lib-pagination
+          [totalItems]="totalItems()"
+          [pageSize]="pageSize()"
+          [currentPage]="currentPageIndex()"
+          [pageSizeOptions]="[10, 20, 50, 100]"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+        >
+        </lib-pagination>
+      </div>
+    </div>
+  </div>
+</div>

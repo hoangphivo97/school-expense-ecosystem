@@ -1,0 +1,26 @@
+<lib-header></lib-header>
+
+<div class="projects-shell-container" *transloco="let t; read: 'project.projectList'">
+    <div class="tabs-header-wrapper" *transloco="let t; read: 'project.projectList'">
+        <nav mat-tab-nav-bar [tabPanel]="tabPanel" class="routed-tabs">
+            <a mat-tab-link routerLink="/project-manager/overview" routerLinkActive #rlaProject="routerLinkActive"
+                [active]="rlaProject.isActive">
+                <mat-icon class="me-2">folder_open</mat-icon>
+                <span class="fw-semibold">{{ t('tabs.projects') }}</span>
+            </a>
+
+            <a mat-tab-link routerLink="/project-manager/events" routerLinkActive #rlaEvent="routerLinkActive"
+                [active]="rlaEvent.isActive">
+                <mat-icon class="me-2">event</mat-icon>
+                <span class="fw-semibold">{{ t('tabs.events') }}</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Routed Sub-View Viewport -->
+    <mat-tab-nav-panel #tabPanel>
+        <router-outlet></router-outlet>
+    </mat-tab-nav-panel>
+</div>
+
+<lib-footer></lib-footer>

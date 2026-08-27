@@ -1,5 +1,11 @@
 {
   "projectList": {
+    "tabs": {
+      "projects": "Projects",
+      "events": "Events",
+      "eventsPlaceholderTitle": "Event Management Matrix",
+      "eventsPlaceholderSubtitle": "Faculty and school extracurricular activities ledger will be managed here."
+    },
     "actions": {
       "joinByCode": "Join via Code",
       "createProject": "Create Project",
@@ -202,6 +208,33 @@
           }
         }
       }
+    }
+  },
+  "eventList": {
+    "columns": {
+      "id": "Event ID",
+      "name": "Event Name",
+      "facultyId": "Faculty",
+      "budgetCap": "Budget Allocation",
+      "currentSpent": "Disbursed",
+      "timeline": "Schedule Window",
+      "participants": "Attendance / Cap",
+      "status": "Event Status"
+    },
+    "actions": {
+      "createEvent": "Create Event",
+      "editEvent": "Edit Event Details",
+      "clickToCopy": "Click to copy ID"
+    },
+    "statusOptions": {
+      "UPCOMING": "Upcoming",
+      "ONGOING": "Ongoing",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "empty": {
+      "title": "No Events Found",
+      "subtitle": "There are no institutional or faculty events matching the current search parameters."
     }
   }
 }

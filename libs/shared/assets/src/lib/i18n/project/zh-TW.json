@@ -1,5 +1,11 @@
 {
   "projectList": {
+    "tabs": {
+      "projects": "專案計畫",
+      "events": "活動管理",
+      "eventsPlaceholderTitle": "學術與院級活動矩陣",
+      "eventsPlaceholderSubtitle": "學院與校級課外活動及相關預算清冊將在此進行統籌管理。"
+    },
     "actions": {
       "joinByCode": "使用代碼加入",
       "createProject": "新增專案",
@@ -202,6 +208,33 @@
           }
         }
       }
+    }
+  },
+  "eventList": {
+    "columns": {
+      "id": "活動識別碼",
+      "name": "活動名稱",
+      "facultyId": "主辦學院",
+      "budgetCap": "配置預算",
+      "currentSpent": "已核銷額度",
+      "timeline": "活動期程",
+      "participants": "參與名額 / 上限",
+      "status": "活動狀態"
+    },
+    "actions": {
+      "createEvent": "建立活動",
+      "editEvent": "編輯活動資訊",
+      "clickToCopy": "點擊複製識別碼"
+    },
+    "statusOptions": {
+      "UPCOMING": "籌備中",
+      "ONGOING": "進行中",
+      "COMPLETED": "已結束",
+      "CANCELLED": "已取消"
+    },
+    "empty": {
+      "title": "查無活動資料",
+      "subtitle": "目前篩選條件下無任何學院或校級活動紀錄。"
     }
   }
 }

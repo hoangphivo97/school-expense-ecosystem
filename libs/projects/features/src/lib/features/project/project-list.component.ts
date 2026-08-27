@@ -2,7 +2,7 @@ import { Component, OnInit, Signal, computed, inject, signal } from '@angular/co
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogData, DialogActionEnum, FacultyId, FilterMode, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { BaseModalComponent, BaseModalData, ConfirmDialogComponent, CopyToClipboardDirective, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
+import { BaseModalComponent, BaseModalData, ConfirmDialogComponent, CopyToClipboardDirective, FilterComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +15,7 @@ import { Project, ProjectQueryPayload, ProjectStatus } from '@school-expense-eco
 import { CreateProjectDialogComponent } from '../dialogs/create-project-dialog/create-project-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
+import { MatTabsModule } from '@angular/material/tabs';
 
 export interface ProjectViewModel extends Project {
   canApprove: boolean;
@@ -28,7 +29,7 @@ export interface ProjectViewModel extends Project {
   selector: 'lib-project-list',
   templateUrl: './project-list.component.html',
   styleUrls: ['./project-list.component.scss'],
-  imports: [HeaderComponent, FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, FooterComponent, TranslocoModule, MatMenuModule, MatSnackBarModule, CopyToClipboardDirective],
+  imports: [FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslocoModule, MatMenuModule, MatSnackBarModule, CopyToClipboardDirective, MatTabsModule],
   providers: [
     { provide: TRANSLOCO_SCOPE, useValue: 'project' }
   ]
@@ -46,6 +47,7 @@ export class ProjectListComponent implements OnInit {
   readonly currentPageIndex = signal<number>(1);
   readonly filterParams = signal<SharedFilterFields>({});
   readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
+  readonly activeTab = signal<'PROJECT' | 'EVENT'>('PROJECT');
 
   // 2. Computed Query Pipeline
   readonly queryParams = computed<ProjectQueryPayload>(() => {
@@ -298,5 +300,11 @@ export class ProjectListComponent implements OnInit {
         this.projectsResource.reload();
       }
     });
+  }
+
+  onTabChange(tabIndex: number): void {
+    // 0: Projects Tab, 1: Events Tab
+    this.activeTab.set(tabIndex === 0 ? 'PROJECT' : 'EVENT');
+    this.currentPageIndex.set(1);
   }
 }

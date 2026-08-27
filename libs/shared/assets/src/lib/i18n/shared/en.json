@@ -31,7 +31,8 @@
       "/report": "Financial Reports",
       "/budget-manager": "Budget Management",
       "/project-overview": "Project Overview",
-      "/project-manager": "Project Management"
+      "/project-manager/overview": "Project Management",
+      "/project-manager/events":"Event Management"
     }
   },
   "filter": {
