@@ -14,7 +14,7 @@ import {
 import { ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '../..';
+import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '../..';
 
 @Controller('projects-manager')
 @UseGuards(RolesGuard)
@@ -50,7 +50,7 @@ export class ProjectController {
   @HttpCode(HttpStatus.OK)
   async joinByCode(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() joinDto: JoinProjectByCodeDto
+    @Body() joinDto: JoinByCodeDto
   ) {
     return this.projectService.joinProjectByCode(user, joinDto);
   }
@@ -105,7 +105,7 @@ export class ProjectController {
   async generateJoinCode(
     @Param('id') projectId: string,
     @CurrentUser() user: AuthenticatedUser,
-    @Body() generateCodeDto: GenerateProjectJoinCodeDto
+    @Body() generateCodeDto: GenerateJoinCodeDto
   ) {
     return this.projectService.generateNewJoinCode(projectId, user, generateCodeDto);
   }
@@ -118,7 +118,7 @@ export class ProjectController {
   async addStudents(
     @Param('id') projectId: string,
     @CurrentUser() user: AuthenticatedUser,
-    @Body() addStudentsDto: AddStudentsToProjectDto
+    @Body() addStudentsDto: AddParticipantsDto
   ) {
     return this.projectService.addStudents(projectId, user, addStudentsDto);
   }

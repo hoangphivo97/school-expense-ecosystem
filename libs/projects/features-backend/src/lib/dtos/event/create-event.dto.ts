@@ -1,4 +1,3 @@
-// libs/projects/features-backend/src/lib/dtos/create-event.dto.ts
 import { IsEnum, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import { EventFundingType } from '@school-expense-ecosystem/projects/types';

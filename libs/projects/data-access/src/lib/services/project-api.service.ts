@@ -2,7 +2,7 @@ import { HttpClient, HttpParams, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig, ProjectQueryPayload, StudentSummary, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, GenerateJoinCodePayload, JoinByCodePayload, JoinConfig, Project, ProjectQueryPayload, StudentSummary, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 
 @Injectable({
   providedIn: 'root',
@@ -67,14 +67,14 @@ export class ProjectApiService {
   /**
    * Generate or reset invitation join code (Teacher / Dean)
    */
-  generateJoinCode(projectId: string, payload: GenerateJoinCodePayload): Observable<ProjectJoinConfig> {
-    return this.http.post<ProjectJoinConfig>(`${this.apiUrl}/${projectId}/join-code`, payload);
+  generateJoinCode(projectId: string, payload: GenerateJoinCodePayload): Observable<JoinConfig> {
+    return this.http.post<JoinConfig>(`${this.apiUrl}/${projectId}/join-code`, payload);
   }
 
   /**
    * Enroll current student into a project via Join Code
    */
-  joinProjectByCode(payload: JoinProjectByCodePayload): Observable<Project> {
+  joinProjectByCode(payload: JoinByCodePayload): Observable<Project> {
     return this.http.post<Project>(`${this.apiUrl}/join`, payload);
   }
 

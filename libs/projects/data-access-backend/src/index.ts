@@ -6,3 +6,5 @@ export * from './lib/exceptions/event.exception';
 export * from './lib/repositories/abstracts/event.repository';
 export * from './lib/repositories/infrastructure/firebase-event.repository';
 export * from './lib/services/event.service';
+
+export * from './lib/services/shared.service';

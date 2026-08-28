@@ -1,14 +1,7 @@
 // libs/projects/types/src/lib/models/event.interface.ts
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import { EventFundingType, EventStatus } from '../enums/event.enum';
-
-export interface EventJoinConfig {
-  code: string;
-  maxUses?: number;
-  expiresAt?: string;
-  isActive: boolean;
-  createdAt: string;
-}
+import { JoinConfig } from './shared.interface';
 
 export interface Event {
   id: string;
@@ -24,7 +17,7 @@ export interface Event {
   status: EventStatus;
   organizerId: string;
   joinedStudentIds: string[];
-  joinConfig?: EventJoinConfig;
+  joinConfig?: JoinConfig | null;
   createdAt: string;
   updatedAt: string;
 }

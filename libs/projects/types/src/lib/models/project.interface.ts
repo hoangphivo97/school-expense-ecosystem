@@ -1,14 +1,6 @@
 import { FacultyId } from "@school-expense-ecosystem/shared/types";
 import { ProjectFundingType, ProjectStatus } from "../enums/project.enum";
-
-export interface ProjectJoinConfig {
-    code: string;
-    maxUses: number;
-    usedCount: number;
-    startsAt: string;
-    expiresAt: string;
-    createdAt?: string;
-}
+import { JoinConfig } from "./shared.interface";
 
 export interface Project {
     id: string;
@@ -24,7 +16,7 @@ export interface Project {
     mentorId: string;
     startDate: string;
     endDate: string;
-    joinConfig?: ProjectJoinConfig | null;
+    joinConfig?: JoinConfig | null;
     joinedStudentIds: string[];
     createdAt?: string;
     updatedAt?: string;

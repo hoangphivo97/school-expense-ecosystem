@@ -1,17 +1,19 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
+import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
-import { Project, ProjectFundingType, ProjectJoinConfig, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { JoinConfig, Project, ProjectFundingType, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
 import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidDateRangeException, ProjectInvalidJoinCodeException, ProjectInvalidStatusTransitionException, ProjectJoinCapacityReachedException, ProjectJoinCodeExpiredException, ProjectJoinDisabledException, ProjectJoinNotStartedException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException } from '../exceptions/project.exception';
+import { SharedService } from './shared.service';
 
 @Injectable()
 export class ProjectService {
   constructor(
     private readonly projectRepo: ProjectRepository,
     private readonly userRepo: UserRepository,
+    private readonly sharedService: SharedService
   ) { }
 
   async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<Project> {
@@ -138,7 +140,7 @@ export class ProjectService {
     await this.projectRepo.update(projectId, { status: ProjectStatus.ARCHIVED });
   }
 
-  async joinProjectByCode(user: AuthenticatedUser, joinDto: JoinProjectByCodeDto): Promise<Project> {
+  async joinProjectByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<Project> {
     const project = await this.projectRepo.findByJoinCode(joinDto.code);
     if (!project) {
       throw new ProjectInvalidJoinCodeException();
@@ -148,28 +150,10 @@ export class ProjectService {
       throw new ProjectInvalidStatusTransitionException('Cannot join a project that is not currently active.');
     }
 
-    if (!project.joinConfig) {
-      throw new ProjectJoinDisabledException();
-    }
+    // Reuse unified validation from SharedService
+    this.sharedService.validateJoinAttempt(project, joinDto.code, user.uid);
 
-    const now = new Date();
-    if (now < new Date(project.joinConfig.startsAt)) {
-      throw new ProjectJoinNotStartedException(project.joinConfig.startsAt);
-    }
-
-    if (new Date(project.joinConfig.expiresAt) < now) {
-      throw new ProjectJoinCodeExpiredException();
-    }
-
-    if (project.joinedStudentIds.includes(user.uid)) {
-      throw new ProjectStudentAlreadyEnrolledException();
-    }
-
-    if (project.joinConfig.usedCount >= project.joinConfig.maxUses) {
-      throw new ProjectJoinCapacityReachedException();
-    }
-
-    // Add student and increment usedCount in Firestore transaction
+    // Atomically enroll student via Firestore transaction
     return this.projectRepo.enrollStudentViaCode(project.id, user.uid);
   }
 
@@ -183,21 +167,21 @@ export class ProjectService {
     await this.projectRepo.removeStudent(projectId, studentId);
   }
 
-  async addStudents(projectId: string, user: AuthenticatedUser, dto: AddStudentsToProjectDto): Promise<void> {
+  async addStudents(projectId: string, user: AuthenticatedUser, dto: AddParticipantsDto): Promise<void> {
     const project = await this.validateProjectAccess(projectId, user);
 
     if (project.status === ProjectStatus.PENDING_DEAN_APPROVAL) {
       throw new ProjectRosterLockedException();
     }
 
-    await this.projectRepo.addStudentsBulk(projectId, dto.studentIds);
+    await this.projectRepo.addStudentsBulk(projectId, dto.userIds);
   }
 
   async generateNewJoinCode(
     projectId: string,
     user: AuthenticatedUser,
-    dto: GenerateProjectJoinCodeDto
-  ): Promise<ProjectJoinConfig> {
+    dto: GenerateJoinCodeDto
+  ): Promise<JoinConfig> {
     const project = await this.validateProjectAccess(projectId, user);
 
     const startsAt = new Date(dto.startsAt);
@@ -211,16 +195,7 @@ export class ProjectService {
       throw new ProjectInvalidDateRangeException('Expiration date cannot exceed project end date.');
     }
 
-    const code = await this.generateUniqueJoinCode();
-    const joinConfig: ProjectJoinConfig = {
-      code,
-      maxUses: dto.maxUses,
-      usedCount: 0,
-      startsAt: startsAt.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      createdAt: new Date().toISOString(),
-    };
-
+    const joinConfig = this.sharedService.generateConfig(dto);
     await this.projectRepo.updateJoinConfig(projectId, joinConfig);
     return joinConfig;
   }

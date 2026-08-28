@@ -1,9 +1,10 @@
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import { ProjectFundingType, ProjectStatus } from '../enums/project.enum';
+import { JoinConfig } from '../models/shared.interface';
 
 export interface CreateProjectPayload {
   name: string;
-  description?: string;
+  description?: string | null;
   type: ProjectFundingType;
   budgetCap: number;
   initialSpent?: number;
@@ -15,15 +16,9 @@ export interface CreateProjectPayload {
   expiresAt?: string;
 }
 
-export interface UpdateProjectPayload {
-  name?: string;
-  description?: string | null;
-  type?: ProjectFundingType;
-  facultyId?: FacultyId;
-  budgetCap?: number;
-  initialSpent?: number;
-  startDate?: string;
-  endDate?: string;
+export interface UpdateProjectPayload extends Partial<CreateProjectPayload> {
+  status?: ProjectStatus;
+  joinConfig?: JoinConfig | null;
 }
 
 export interface ProjectQueryPayload {
@@ -36,12 +31,3 @@ export interface ProjectQueryPayload {
   studentId?: string;
 }
 
-export interface GenerateJoinCodePayload {
-  maxUses: number;
-  startsAt: string;
-  expiresAt: string;
-}
-
-export interface JoinEntitytByCodePayload {
-  code: string;
-}

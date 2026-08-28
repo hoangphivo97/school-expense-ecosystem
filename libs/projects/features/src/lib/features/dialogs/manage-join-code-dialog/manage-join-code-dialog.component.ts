@@ -3,7 +3,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { GenerateJoinCodePayload, Project, ProjectJoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { GenerateJoinCodePayload, Project, JoinConfig, StudentSummary, JoinCodeStatus } from '@school-expense-ecosystem/projects/types';
 import { CopyToClipboardDirective, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
@@ -17,7 +17,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { toDebouncedSignal } from '@school-expense-ecosystem/shared/utils-frontend';
 import { rxResource } from '@angular/core/rxjs-interop';
-import {MatAutocompleteModule, MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { of } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -27,10 +27,8 @@ export interface ManageJoinCodeDialogData {
 
 export interface ManageJoinCodeDialogResult {
   joinedStudentIds: string[];
-  joinConfig: ProjectJoinConfig | null;
+  joinConfig: JoinConfig | null;
 }
-
-export type JoinCodeStatus = 'SCHEDULED' | 'ACTIVE' | 'FULL' | 'EXPIRED';
 
 @Component({
   selector: 'lib-manage-join-code-dialog',
@@ -62,7 +60,7 @@ export type JoinCodeStatus = 'SCHEDULED' | 'ACTIVE' | 'FULL' | 'EXPIRED';
     { provide: TRANSLOCO_SCOPE, useValue: 'project' },
   ],
 })
-export class ManageJoinCodeDialogComponent implements OnInit{
+export class ManageJoinCodeDialogComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult>);
   private readonly projectApiService = inject(ProjectApiService);
@@ -80,7 +78,7 @@ export class ManageJoinCodeDialogComponent implements OnInit{
   // State Signals
   readonly joinedStudents = signal<StudentSummary[]>([]);
 
-  readonly joinConfig = signal<ProjectJoinConfig | null>(this.data.project.joinConfig ?? null);
+  readonly joinConfig = signal<JoinConfig | null>(this.data.project.joinConfig ?? null);
   readonly isCreatingNew = signal<boolean>(!this.data.project.joinConfig);
 
   readonly minStartDate = new Date();
@@ -99,33 +97,36 @@ export class ManageJoinCodeDialogComponent implements OnInit{
 
   readonly codeStatus = computed<JoinCodeStatus | null>(() => {
     const config = this.joinConfig();
-    if (!config) return null;
+    if (!config || !config.isActive) return null;
 
     const now = new Date();
-    const startsAt = new Date(config.startsAt);
-    const expiresAt = new Date(config.expiresAt);
 
-    if (now < startsAt) return 'SCHEDULED';
-    if (now > expiresAt) return 'EXPIRED';
-    if (config.usedCount >= config.maxUses) return 'FULL';
-    return 'ACTIVE';
+    if (config.startsAt && now < new Date(config.startsAt)) {
+      return JoinCodeStatus.SCHEDULED;
+    }
+
+    if (config.expiresAt && now > new Date(config.expiresAt)) {
+      return JoinCodeStatus.EXPIRED;
+    }
+
+    if (config.maxUses && (config.usedCount ?? this.joinedStudents().length) >= config.maxUses) {
+      return JoinCodeStatus.FULL;
+    }
+
+    return JoinCodeStatus.ACTIVE;
   });
 
 
-  readonly isExpired = computed(() => {
-    const config = this.joinConfig();
-    return config ? new Date(config.expiresAt) < new Date() : false;
-  });
+  readonly isExpired = computed(() => this.codeStatus() === JoinCodeStatus.EXPIRED);
 
-  readonly isFullCapacity = computed(() => {
-    const config = this.joinConfig();
-    return config ? this.joinedStudents().length >= config.maxUses : false;
-  });
+  readonly isFullCapacity = computed(() => this.codeStatus() === JoinCodeStatus.FULL);
 
   readonly capacityPercentage = computed(() => {
     const config = this.joinConfig();
-    if (!config || config.maxUses === 0) return 0;
-    return Math.min(Math.round((config.usedCount / config.maxUses) * 100), 100);
+    if (!config?.maxUses || config.maxUses === 0) return 0;
+
+    const currentUsed = config.usedCount ?? this.joinedStudents().length;
+    return Math.min(Math.round((currentUsed / config.maxUses) * 100), 100);
   });
 
   // Forms
@@ -151,7 +152,7 @@ export class ManageJoinCodeDialogComponent implements OnInit{
       this.isLoadingRoster.set(false);
       return;
     }
-    
+
     this.isLoadingRoster.set(true);
     this.projectApiService.getProjectStudents(this.data.project.id).subscribe({
       next: (students) => {

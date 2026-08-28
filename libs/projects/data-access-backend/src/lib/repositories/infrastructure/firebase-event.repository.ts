@@ -1,15 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { Event, EventQueryPayload, CreateEventPayload, UpdateEventPayload, EventStatus } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
+import { FirebaseBaseRepository } from './firebase-base.repository';
 
 @Injectable()
-export class FirebaseEventRepository extends EventRepository {
-  private readonly collection = admin.firestore().collection('events');
+export class FirebaseEventRepository extends FirebaseBaseRepository<Event> implements EventRepository {
+  constructor(
+    @Inject('FIRESTORE_INSTANCE') db: admin.firestore.Firestore
+  ) {
+    super(db, 'events');
+  }
 
   async findById(id: string): Promise<Event | null> {
     const doc = await this.collection.doc(id).get();
-    return doc.exists ? ({ id: doc.id, ...doc.data() } as Event) : null;
+    if (!doc.exists) return null;
+    return this.mapDocToEvent(doc);
   }
 
   async findMany(query: EventQueryPayload): Promise<{ items: Event[]; total: number }> {
@@ -20,9 +26,21 @@ export class FirebaseEventRepository extends EventRepository {
     if (query.projectId) ref = ref.where('projectId', '==', query.projectId);
 
     const snapshot = await ref.get();
-    const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Event));
+    let items = snapshot.docs.map((d) => this.mapDocToEvent(d));
 
-    return { items, total: items.length };
+    // In-memory search by name
+    if (query.search) {
+      const searchLower = query.search.toLowerCase();
+      items = items.filter((item) => item.name.toLowerCase().includes(searchLower));
+    }
+
+    const total = items.length;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const startIndex = (page - 1) * limit;
+    const paginatedItems = items.slice(startIndex, startIndex + limit);
+
+    return { items: paginatedItems, total };
   }
 
   async create(data: CreateEventPayload & { organizerId: string }): Promise<Event> {
@@ -38,8 +56,8 @@ export class FirebaseEventRepository extends EventRepository {
       budgetCap: data.budgetCap,
       initialSpent: data.initialSpent || 0,
       currentSpent: data.initialSpent || 0,
-      startDate: data.startDate,
-      endDate: data.endDate,
+      startDate: this.formatDate(data.startDate),
+      endDate: this.formatDate(data.endDate),
       status: EventStatus.UPCOMING,
       organizerId: data.organizerId,
       joinedStudentIds: [],
@@ -59,7 +77,44 @@ export class FirebaseEventRepository extends EventRepository {
     return updated!;
   }
 
-  async delete(id: string): Promise<void> {
-    await this.collection.doc(id).delete();
+  async findByJoinCode(code: string): Promise<Event | null> {
+    const snapshot = await this.collection
+      .where('joinConfig.code', '==', code)
+      .where('joinConfig.isActive', '==', true)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return null;
+    return this.mapDocToEvent(snapshot.docs[0]);
+  }
+
+  async addStudent(id: string, studentId: string): Promise<Event> {
+    const docRef = this.collection.doc(id);
+    await docRef.update({
+      joinedStudentIds: admin.firestore.FieldValue.arrayUnion(studentId),
+      updatedAt: new Date().toISOString(),
+    });
+    const updated = await this.findById(id);
+    return updated!;
+  }
+
+  private mapDocToEvent(doc: admin.firestore.DocumentSnapshot): Event {
+    const data = doc.data()!;
+    return {
+      ...data,
+      id: doc.id,
+      startDate: this.formatDate(data['startDate']),
+      endDate: this.formatDate(data['endDate']),
+      createdAt: this.formatDate(data['createdAt']),
+      updatedAt: this.formatDate(data['updatedAt']),
+      joinConfig: data['joinConfig']
+        ? {
+            ...data['joinConfig'],
+            startsAt: this.formatDate(data['joinConfig'].startsAt),
+            expiresAt: this.formatDate(data['joinConfig'].expiresAt),
+            createdAt: this.formatDate(data['joinConfig'].createdAt),
+          }
+        : undefined,
+    } as Event;
   }
 }

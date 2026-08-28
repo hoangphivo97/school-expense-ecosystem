@@ -1,4 +1,4 @@
-import { GenerateJoinCodePayload, JoinEntitytByCodePayload } from '@school-expense-ecosystem/projects/types';
+import { GenerateJoinCodePayload, JoinByCodePayload } from '@school-expense-ecosystem/projects/types';
 import { ArrayMinSize, IsArray, IsISO8601, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
 export class GenerateJoinCodeDto implements GenerateJoinCodePayload {
@@ -13,7 +13,7 @@ export class GenerateJoinCodeDto implements GenerateJoinCodePayload {
   expiresAt!: string;
 }
 
-export class JoinByCodeDto implements JoinEntitytByCodePayload {
+export class JoinByCodeDto implements JoinByCodePayload {
   @IsString()
   @IsNotEmpty()
   code!: string;

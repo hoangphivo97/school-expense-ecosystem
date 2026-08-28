@@ -3,6 +3,7 @@ export enum EventStatus {
   ONGOING = 'ONGOING',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+  ARCHIVED = 'ARCHIVED',
 }
 
 export enum EventFundingType {
