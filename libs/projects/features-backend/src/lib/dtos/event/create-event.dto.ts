@@ -1,8 +1,19 @@
-import { IsEnum, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsPositive,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
-import { EventFundingType } from '@school-expense-ecosystem/projects/types';
+import { CreateEventPayload, EventFundingType } from '@school-expense-ecosystem/projects/types';
 
-export class CreateEventDto {
+export class CreateEventDto implements CreateEventPayload {
   @IsString()
   @IsNotEmpty()
   @MaxLength(150)
@@ -25,20 +36,34 @@ export class CreateEventDto {
   @IsNotEmpty()
   type!: EventFundingType;
 
-  @IsNumber()
-  @Min(1)
+  @IsInt()
+  @IsPositive()
   budgetCap!: number;
 
-  @IsNumber()
+  @IsInt()
   @Min(0)
   @IsOptional()
   initialSpent?: number;
 
-  @IsISO8601()
+  @IsDateString()
   @IsNotEmpty()
   startDate!: string;
 
-  @IsISO8601()
+  @IsDateString()
   @IsNotEmpty()
   endDate!: string;
+
+  // Optional Join Code configuration upon creation
+  @IsOptional()
+  @IsBoolean()
+  generateJoinCode?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxUses?: number;
+
+  @IsOptional()
+  @IsDateString()
+  expiresAt?: string;
 }

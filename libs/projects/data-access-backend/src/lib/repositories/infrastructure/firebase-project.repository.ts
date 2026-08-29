@@ -37,7 +37,7 @@ export class FirestoreProjectRepository
   async findById(id: string): Promise<Project | null> {
     const doc = await this.collection.doc(id).get();
     if (!doc.exists) return null;
-    return this.mapDocToProject(doc);
+    return this.mapDoc(doc);
   }
 
   async findByJoinCode(code: string): Promise<Project | null> {
@@ -48,7 +48,7 @@ export class FirestoreProjectRepository
       .get();
 
     if (snapshot.empty) return null;
-    return this.mapDocToProject(snapshot.docs[0]);
+    return this.mapDoc(snapshot.docs[0]);
   }
 
   async update(id: string, data: Partial<Project>): Promise<void> {
@@ -86,7 +86,7 @@ export class FirestoreProjectRepository
     if (query.studentId) baseQuery = baseQuery.where('joinedStudentIds', 'array-contains', query.studentId);
 
     const snapshot = await baseQuery.get();
-    let items = snapshot.docs.map((doc) => this.mapDocToProject(doc));
+    let items = snapshot.docs.map((doc) => this.mapDoc(doc));
 
     if (query.search) {
       const searchLower = query.search.toLowerCase();
@@ -111,56 +111,7 @@ export class FirestoreProjectRepository
 
   async findProjectsByMentorId(mentorUid: string): Promise<Project[]> {
     const snapshot = await this.collection.where('mentorId', '==', mentorUid).get();
-    return snapshot.docs.map((doc) => this.mapDocToProject(doc));
-  }
-
-  async enrollStudentViaCode(projectId: string, studentId: string): Promise<Project> {
-    const projectRef = this.collection.doc(projectId);
-
-    return this.db.runTransaction(async (transaction) => {
-      const doc = await transaction.get(projectRef);
-      if (!doc.exists) {
-        throw new ProjectNotFoundException(projectId);
-      }
-
-      const project = this.mapDocToProject(doc);
-      const joinConfig = project.joinConfig;
-
-      if (!joinConfig || !joinConfig.isActive) {
-        throw new ProjectJoinDisabledException();
-      }
-
-      const joinedStudentIds = project.joinedStudentIds ?? [];
-      if (joinedStudentIds.includes(studentId)) {
-        throw new ProjectStudentAlreadyEnrolledException();
-      }
-
-      const now = new Date();
-      if (joinConfig.startsAt && now < new Date(joinConfig.startsAt)) {
-        throw new ProjectJoinNotStartedException(joinConfig.startsAt);
-      }
-      if (joinConfig.expiresAt && now > new Date(joinConfig.expiresAt)) {
-        throw new ProjectJoinCodeExpiredException();
-      }
-      if (joinConfig.maxUses && (joinConfig.usedCount || 0) >= joinConfig.maxUses) {
-        throw new ProjectJoinCapacityReachedException();
-      }
-
-      transaction.update(projectRef, {
-        joinedStudentIds: admin.firestore.FieldValue.arrayUnion(studentId),
-        'joinConfig.usedCount': admin.firestore.FieldValue.increment(1),
-        updatedAt: new Date().toISOString(),
-      });
-
-      return {
-        ...project,
-        joinedStudentIds: [...joinedStudentIds, studentId],
-        joinConfig: {
-          ...joinConfig,
-          usedCount: (joinConfig.usedCount || 0) + 1,
-        },
-      };
-    });
+    return snapshot.docs.map((doc) => this.mapDoc(doc));
   }
 
   async createWithFacultyFund(project: Project, departmentFundId: string): Promise<Project> {
@@ -190,7 +141,7 @@ export class FirestoreProjectRepository
     });
   }
 
-  private mapDocToProject(doc: admin.firestore.DocumentSnapshot): Project {
+  protected mapDoc(doc: admin.firestore.DocumentSnapshot): Project {
     const data = doc.data()!;
     return {
       ...data,

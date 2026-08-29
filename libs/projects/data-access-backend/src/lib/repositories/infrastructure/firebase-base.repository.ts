@@ -1,9 +1,17 @@
 import { Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
-import { StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { JoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedException, JoinCodeExpiredException, JoinCodeNotStartedException, StudentAlreadyEnrolledException } from '../../exceptions/join-code.exception';
 
-export abstract class FirebaseBaseRepository<T> {
+export interface JoinableBaseEntity {
+  id: string;
+  joinedStudentIds?: string[];
+  joinConfig?: JoinConfig | null;
+  [key: string]: any;
+}
+
+export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> {
   constructor(
     @Inject('FIRESTORE_INSTANCE') protected readonly db: admin.firestore.Firestore,
     protected readonly collectionName: string
@@ -16,6 +24,8 @@ export abstract class FirebaseBaseRepository<T> {
   protected get usersCollection() {
     return this.db.collection('users');
   }
+
+  protected abstract mapDoc(doc: admin.firestore.DocumentSnapshot): T;
 
   /**
    * Search active student users across the entire ecosystem
@@ -88,5 +98,55 @@ export abstract class FirebaseBaseRepository<T> {
     }
     if (dateVal instanceof Date) return dateVal.toISOString();
     return new Date(dateVal).toISOString();
+  }
+
+  async enrollStudentViaCode(id: string, studentId: string): Promise<T> {
+    const docRef = this.collection.doc(id);
+
+    return this.db.runTransaction(async (transaction) => {
+      const doc = await transaction.get(docRef);
+      if (!doc.exists) {
+        throw new EntityNotFoundException(this.collectionName, id);
+      }
+
+      const entity = this.mapDoc(doc);
+      const joinConfig = entity.joinConfig;
+
+      if (!joinConfig || !joinConfig.isActive) {
+        throw new InvalidJoinCodeException();
+      }
+
+      const joinedStudentIds = entity.joinedStudentIds ?? [];
+      if (joinedStudentIds.includes(studentId)) {
+        throw new StudentAlreadyEnrolledException(studentId);
+      }
+
+      const now = new Date();
+      if (joinConfig.startsAt && now < new Date(joinConfig.startsAt)) {
+        throw new JoinCodeNotStartedException(joinConfig.startsAt);
+      }
+      if (joinConfig.expiresAt && now > new Date(joinConfig.expiresAt)) {
+        throw new JoinCodeExpiredException();
+      }
+      if (joinConfig.maxUses && (joinConfig.usedCount ?? joinedStudentIds.length) >= joinConfig.maxUses) {
+        throw new JoinCapacityReachedException();
+      }
+
+      // Atomically append student ID and increment quota usage
+      transaction.update(docRef, {
+        joinedStudentIds: admin.firestore.FieldValue.arrayUnion(studentId),
+        'joinConfig.usedCount': admin.firestore.FieldValue.increment(1),
+        updatedAt: new Date().toISOString(),
+      });
+
+      return {
+        ...entity,
+        joinedStudentIds: [...joinedStudentIds, studentId],
+        joinConfig: {
+          ...joinConfig,
+          usedCount: (joinConfig.usedCount ?? joinedStudentIds.length) + 1,
+        },
+      };
+    });
   }
 }

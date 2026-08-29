@@ -5,10 +5,12 @@ import {
   UpdateEventDto,
   EventQueryDto,
   GenerateJoinCodeDto,
+  JoinByCodeDto,
 } from '@school-expense-ecosystem/projects/features-backend';
 import { Event, EventStatus } from '@school-expense-ecosystem/projects/types';
-import { EventNotFoundException, InvalidEventStateException } from '../exceptions/event.exception';
+import { EventNotFoundException, InvalidEventJoinCodeException, InvalidEventStateException } from '../exceptions/event.exception';
 import { SharedService } from './shared.service';
+import { AuthenticatedUser } from '@school-expense-ecosystem/shared/types';
 
 @Injectable()
 export class EventService {
@@ -28,7 +30,21 @@ export class EventService {
   }
 
   async createEvent(dto: CreateEventDto, organizerId: string): Promise<Event> {
-    return this.eventRepository.create({ ...dto, organizerId });
+    let joinConfig = null;
+
+    if (dto.generateJoinCode) {
+      joinConfig = this.joinCodeService.generateConfig({
+        maxUses: dto.maxUses,
+        startsAt: dto.startDate,
+        expiresAt: dto.expiresAt ?? dto.endDate,
+      });
+    }
+
+    return this.eventRepository.create({
+      ...dto,
+      organizerId,
+      ...(joinConfig && { joinConfig }),
+    });
   }
 
   async updateEvent(id: string, dto: UpdateEventDto): Promise<Event> {
@@ -42,16 +58,26 @@ export class EventService {
       throw new InvalidEventStateException('generate join code', event.status);
     }
 
+    // Validate date constraints via SharedService
+    this.joinCodeService.validateJoinCodeSchedule(dto, event.endDate);
+
     const joinConfig = this.joinCodeService.generateConfig(dto);
     return this.eventRepository.update(id, { joinConfig });
   }
 
-  async joinEventByCode(id: string, code: string, studentId: string): Promise<Event> {
-    const event = await this.getEventById(id);
-    this.joinCodeService.validateJoinAttempt(event, code, studentId);
+  async joinEventByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<Event> {
+    const event = await this.eventRepository.findByJoinCode(joinDto.code);
+    if (!event) {
+      throw new InvalidEventJoinCodeException();
+    }
 
-    await this.eventRepository.addStudentsBulk(id, [studentId]);
-    return this.getEventById(id);
+    // Prohibit joining cancelled or finished events
+    if (event.status === EventStatus.CANCELLED || event.status === EventStatus.COMPLETED) {
+      throw new InvalidEventStateException('join event', event.status);
+    }
+
+    // Atomically verifies conditions and enrolls student inside Firestore Transaction
+    return this.eventRepository.enrollStudentViaCode(event.id, user.uid);
   }
 
   async searchStudents(query: string) {

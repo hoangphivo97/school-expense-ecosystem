@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import { Event, EventQueryPayload, CreateEventPayload, UpdateEventPayload, EventStatus } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
 import { FirebaseBaseRepository } from './firebase-base.repository';
+import { EventCapacityFullException, EventJoinCodeExpiredException, EventNotFoundException, InvalidEventJoinCodeException, InvalidEventStateException, StudentAlreadyRegisteredException } from '../../exceptions/event.exception';
 
 @Injectable()
 export class FirebaseEventRepository extends FirebaseBaseRepository<Event> implements EventRepository {
@@ -15,7 +16,7 @@ export class FirebaseEventRepository extends FirebaseBaseRepository<Event> imple
   async findById(id: string): Promise<Event | null> {
     const doc = await this.collection.doc(id).get();
     if (!doc.exists) return null;
-    return this.mapDocToEvent(doc);
+    return this.mapDoc(doc);
   }
 
   async findMany(query: EventQueryPayload): Promise<{ items: Event[]; total: number }> {
@@ -26,7 +27,7 @@ export class FirebaseEventRepository extends FirebaseBaseRepository<Event> imple
     if (query.projectId) ref = ref.where('projectId', '==', query.projectId);
 
     const snapshot = await ref.get();
-    let items = snapshot.docs.map((d) => this.mapDocToEvent(d));
+    let items = snapshot.docs.map((d) => this.mapDoc(d));
 
     // In-memory search by name
     if (query.search) {
@@ -85,20 +86,10 @@ export class FirebaseEventRepository extends FirebaseBaseRepository<Event> imple
       .get();
 
     if (snapshot.empty) return null;
-    return this.mapDocToEvent(snapshot.docs[0]);
+    return this.mapDoc(snapshot.docs[0]);
   }
 
-  async addStudent(id: string, studentId: string): Promise<Event> {
-    const docRef = this.collection.doc(id);
-    await docRef.update({
-      joinedStudentIds: admin.firestore.FieldValue.arrayUnion(studentId),
-      updatedAt: new Date().toISOString(),
-    });
-    const updated = await this.findById(id);
-    return updated!;
-  }
-
-  private mapDocToEvent(doc: admin.firestore.DocumentSnapshot): Event {
+  protected mapDoc(doc: admin.firestore.DocumentSnapshot): Event {
     const data = doc.data()!;
     return {
       ...data,

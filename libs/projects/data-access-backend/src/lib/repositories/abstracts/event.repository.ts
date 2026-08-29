@@ -9,4 +9,5 @@ export abstract class EventRepository {
   abstract addStudentsBulk(id: string, studentIds: string[]): Promise<void>;
   abstract removeStudent(id: string, studentUid: string): Promise<void>;
   abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
+  abstract enrollStudentViaCode(eventId: string, studentId: string): Promise<Event>;
 }

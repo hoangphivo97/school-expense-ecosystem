@@ -1,61 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { GenerateJoinCodePayload, JoinConfig } from '@school-expense-ecosystem/projects/types';
-import {
-  EventCapacityFullException,
-  EventJoinCodeExpiredException,
-  InvalidEventJoinCodeException,
-  InvalidEventStateException,
-  StudentAlreadyRegisteredException,
-} from '../exceptions/event.exception';
-
-export interface JoinableEntity {
-  joinedStudentIds: string[];
-  joinConfig?: JoinConfig | null;
-}
 
 @Injectable()
 export class SharedService {
   /**
-   * Generates a 6-character random alphanumeric join config
+   * Generates a secure random code excluding ambiguous characters (0, O, 1, I)
    */
-  generateConfig(dto: GenerateJoinCodePayload) {
-    const generatedCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+  generateCode(length = 6): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = crypto.randomInt(0, chars.length);
+      code += chars.charAt(randomIndex);
+    }
+    return code;
+  }
 
+  /**
+   * Validates scheduling constraints for join codes
+   */
+  validateJoinCodeSchedule(dto: GenerateJoinCodePayload, entityEndDate: string): void {
+    const startsAt = new Date(dto.startsAt);
+    const expiresAt = new Date(dto.expiresAt);
+    const maxEnd = new Date(entityEndDate);
+
+    if (startsAt >= expiresAt) {
+      throw new BadRequestException('Start date must be earlier than expiration date.');
+    }
+    if (expiresAt > maxEnd) {
+      throw new BadRequestException('Expiration date cannot exceed the entity end date.');
+    }
+  }
+
+  /**
+   * Generates a standardized join configuration object
+   */
+  generateConfig(dto: GenerateJoinCodePayload): JoinConfig {
     return {
-      code: generatedCode,
+      code: this.generateCode(6),
       maxUses: dto.maxUses,
       startsAt: dto.startsAt,
       expiresAt: dto.expiresAt,
       isActive: true,
       createdAt: new Date().toISOString(),
     };
-  }
-
-  /**
-   * Validates code matching, expiration, capacity, and duplicate membership
-   */
-  validateJoinAttempt(entity: JoinableEntity, code: string, studentId: string): void {
-    if (!entity.joinConfig || !entity.joinConfig.isActive || entity.joinConfig.code !== code.trim().toUpperCase()) {
-      throw new InvalidEventJoinCodeException();
-    }
-
-    const now = new Date();
-
-    if (entity.joinConfig.startsAt && now < new Date(entity.joinConfig.startsAt)) {
-      throw new InvalidEventStateException('join before start date', entity.joinConfig.startsAt);
-    }
-
-    if (entity.joinConfig.expiresAt && now > new Date(entity.joinConfig.expiresAt)) {
-      throw new EventJoinCodeExpiredException();
-    }
-
-    if (entity.joinConfig.maxUses && (entity.joinedStudentIds?.length || 0) >= entity.joinConfig.maxUses) {
-      throw new EventCapacityFullException();
-    }
-
-    if (entity.joinedStudentIds?.includes(studentId)) {
-      throw new StudentAlreadyRegisteredException(studentId);
-    }
   }
 }

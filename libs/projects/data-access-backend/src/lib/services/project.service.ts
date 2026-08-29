@@ -150,10 +150,7 @@ export class ProjectService {
       throw new ProjectInvalidStatusTransitionException('Cannot join a project that is not currently active.');
     }
 
-    // Reuse unified validation from SharedService
-    this.sharedService.validateJoinAttempt(project, joinDto.code, user.uid);
-
-    // Atomically enroll student via Firestore transaction
+    // Atomically verifies conditions and enrolls student inside Firestore Transaction
     return this.projectRepo.enrollStudentViaCode(project.id, user.uid);
   }
 
@@ -184,16 +181,8 @@ export class ProjectService {
   ): Promise<JoinConfig> {
     const project = await this.validateProjectAccess(projectId, user);
 
-    const startsAt = new Date(dto.startsAt);
-    const expiresAt = new Date(dto.expiresAt);
-    const projectEndDate = new Date(project.endDate);
-
-    if (startsAt >= expiresAt) {
-      throw new ProjectInvalidDateRangeException('Start date must be earlier than expiration date.');
-    }
-    if (expiresAt > projectEndDate) {
-      throw new ProjectInvalidDateRangeException('Expiration date cannot exceed project end date.');
-    }
+    // Validate date constraints via SharedService
+    this.sharedService.validateJoinCodeSchedule(dto, project.endDate);
 
     const joinConfig = this.sharedService.generateConfig(dto);
     await this.projectRepo.updateJoinConfig(projectId, joinConfig);
@@ -320,27 +309,5 @@ export class ProjectService {
       fullName: String(u.fullName || '').trim(),
       email: String(u.email || '').trim(),
     }));
-  }
-
-  private async generateUniqueJoinCode(): Promise<string> {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude ambiguous chars like 0, O, 1, I
-    let code = '';
-    let isUnique = false;
-    let attempts = 0;
-
-    while (!isUnique && attempts < 5) {
-      attempts++;
-      code = Array.from({ length: 6 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
-      const existing = await this.projectRepo.findByJoinCode(code);
-      if (!existing) {
-        isUnique = true;
-      }
-    }
-
-    if (!isUnique) {
-      throw new InternalServerErrorException('Failed to generate a unique invitation code. Please try again.');
-    }
-
-    return code;
   }
 }

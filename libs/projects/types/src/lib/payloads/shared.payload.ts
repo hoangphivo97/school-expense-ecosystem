@@ -1,5 +1,5 @@
 export interface GenerateJoinCodePayload {
-  maxUses: number;
+  maxUses?: number;
   startsAt: string;
   expiresAt: string;
 }
