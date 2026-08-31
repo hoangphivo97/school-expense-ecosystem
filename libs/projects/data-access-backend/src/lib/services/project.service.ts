@@ -5,8 +5,9 @@ import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDt
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { JoinConfig, Project, ProjectFundingType, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
 import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
-import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidDateRangeException, ProjectInvalidJoinCodeException, ProjectInvalidStatusTransitionException, ProjectJoinCapacityReachedException, ProjectJoinCodeExpiredException, ProjectJoinDisabledException, ProjectJoinNotStartedException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException } from '../exceptions/project.exception';
+import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException } from '../exceptions/project.exception';
 import { SharedService } from './shared.service';
+import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 
 @Injectable()
 export class ProjectService {
@@ -143,7 +144,7 @@ export class ProjectService {
   async joinProjectByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<Project> {
     const project = await this.projectRepo.findByJoinCode(joinDto.code);
     if (!project) {
-      throw new ProjectInvalidJoinCodeException();
+      throw new InvalidJoinCodeException();
     }
 
     if (project.status !== ProjectStatus.ACTIVE) {

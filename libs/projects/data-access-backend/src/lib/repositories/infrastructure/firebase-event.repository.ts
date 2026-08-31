@@ -1,16 +1,33 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { Event, EventQueryPayload, CreateEventPayload, UpdateEventPayload, EventStatus } from '@school-expense-ecosystem/projects/types';
+import {
+  Event,
+  EventQueryPayload,
+} from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
 import { FirebaseBaseRepository } from './firebase-base.repository';
-import { EventCapacityFullException, EventJoinCodeExpiredException, EventNotFoundException, InvalidEventJoinCodeException, InvalidEventStateException, StudentAlreadyRegisteredException } from '../../exceptions/event.exception';
+import {
+  EventInitialSpentExceedsCapException,
+  EventNotFoundException,
+} from '../../exceptions/event.exception';
 
 @Injectable()
-export class FirebaseEventRepository extends FirebaseBaseRepository<Event> implements EventRepository {
+export class FirebaseEventRepository
+  extends FirebaseBaseRepository<Event>
+  implements EventRepository {
   constructor(
     @Inject('FIRESTORE_INSTANCE') db: admin.firestore.Firestore
   ) {
     super(db, 'events');
+  }
+
+  private get departmentFundsCollection() {
+    return this.db.collection('department_funds');
+  }
+
+  async create(event: Event): Promise<Event> {
+    await this.collection.doc(event.id).set(event);
+    return event;
   }
 
   async findById(id: string): Promise<Event | null> {
@@ -19,17 +36,55 @@ export class FirebaseEventRepository extends FirebaseBaseRepository<Event> imple
     return this.mapDoc(doc);
   }
 
-  async findMany(query: EventQueryPayload): Promise<{ items: Event[]; total: number }> {
-    let ref: admin.firestore.Query = this.collection;
+  async findByJoinCode(code: string): Promise<Event | null> {
+    const snapshot = await this.collection
+      .where('joinConfig.code', '==', code)
+      .where('joinConfig.isActive', '==', true)
+      .limit(1)
+      .get();
 
-    if (query.facultyId) ref = ref.where('facultyId', '==', query.facultyId);
-    if (query.status) ref = ref.where('status', '==', query.status);
-    if (query.projectId) ref = ref.where('projectId', '==', query.projectId);
+    if (snapshot.empty) return null;
+    return this.mapDoc(snapshot.docs[0]);
+  }
 
-    const snapshot = await ref.get();
+  async update(id: string, data: Partial<Event>): Promise<void> {
+    await this.collection.doc(id).update({
+      ...data,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  async updateSpentCounters(
+    id: string,
+    deltas: { pendingSpentDelta?: number; currentSpentDelta?: number }
+  ): Promise<void> {
+    const updatePayload: Record<string, any> = {
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (deltas.pendingSpentDelta !== undefined && deltas.pendingSpentDelta !== 0) {
+      updatePayload['pendingSpent'] = admin.firestore.FieldValue.increment(deltas.pendingSpentDelta);
+    }
+
+    if (deltas.currentSpentDelta !== undefined && deltas.currentSpentDelta !== 0) {
+      updatePayload['currentSpent'] = admin.firestore.FieldValue.increment(deltas.currentSpentDelta);
+    }
+
+    await this.collection.doc(id).update(updatePayload);
+  }
+
+  async findWithQuery(query: EventQueryPayload): Promise<{ items: Event[]; total: number }> {
+    let baseQuery: admin.firestore.Query = this.collection;
+
+    if (query.facultyId) baseQuery = baseQuery.where('facultyId', '==', query.facultyId);
+    if (query.status) baseQuery = baseQuery.where('status', '==', query.status);
+    if (query.projectId) baseQuery = baseQuery.where('projectId', '==', query.projectId);
+    if (query.organizerId) baseQuery = baseQuery.where('organizerId', '==', query.organizerId);
+    if (query.studentId) baseQuery = baseQuery.where('joinedStudentIds', 'array-contains', query.studentId);
+
+    const snapshot = await baseQuery.get();
     let items = snapshot.docs.map((d) => this.mapDoc(d));
 
-    // In-memory search by name
     if (query.search) {
       const searchLower = query.search.toLowerCase();
       items = items.filter((item) => item.name.toLowerCase().includes(searchLower));
@@ -44,49 +99,38 @@ export class FirebaseEventRepository extends FirebaseBaseRepository<Event> imple
     return { items: paginatedItems, total };
   }
 
-  async create(data: CreateEventPayload & { organizerId: string }): Promise<Event> {
-    const docRef = this.collection.doc();
-    const now = new Date().toISOString();
-
-    const newEvent: Event = {
-      id: docRef.id,
-      name: data.name,
-      description: data.description,
-      facultyId: data.facultyId,
-      type: data.type,
-      budgetCap: data.budgetCap,
-      initialSpent: data.initialSpent || 0,
-      currentSpent: data.initialSpent || 0,
-      startDate: this.formatDate(data.startDate),
-      endDate: this.formatDate(data.endDate),
-      status: EventStatus.UPCOMING,
-      organizerId: data.organizerId,
-      joinedStudentIds: [],
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    await docRef.set(newEvent);
-    return newEvent;
+  async updateJoinConfig(id: string, config: Event['joinConfig']): Promise<void> {
+    await this.collection.doc(id).update({
+      joinConfig: config,
+      updatedAt: new Date().toISOString(),
+    });
   }
 
-  async update(id: string, data: UpdateEventPayload): Promise<Event> {
-    const docRef = this.collection.doc(id);
-    const updateData = { ...data, updatedAt: new Date().toISOString() };
-    await docRef.update(updateData);
-    const updated = await this.findById(id);
-    return updated!;
-  }
+  async createWithFacultyFund(event: Event, departmentFundId: string): Promise<Event> {
+    const fundRef = this.departmentFundsCollection.doc(departmentFundId);
+    const eventRef = this.collection.doc(event.id);
 
-  async findByJoinCode(code: string): Promise<Event | null> {
-    const snapshot = await this.collection
-      .where('joinConfig.code', '==', code)
-      .where('joinConfig.isActive', '==', true)
-      .limit(1)
-      .get();
+    return this.db.runTransaction(async (transaction) => {
+      const fundDoc = await transaction.get(fundRef);
+      if (!fundDoc.exists) {
+        throw new EventNotFoundException(`Department fund ${departmentFundId} not found`);
+      }
 
-    if (snapshot.empty) return null;
-    return this.mapDoc(snapshot.docs[0]);
+      const fundData = fundDoc.data()!;
+      const remainingBudget = Number(fundData['remainingBudget'] || 0);
+
+      if (remainingBudget < event.budgetCap) {
+        throw new EventInitialSpentExceedsCapException();
+      }
+
+      transaction.update(fundRef, {
+        remainingBudget: admin.firestore.FieldValue.increment(-event.budgetCap),
+        updatedAt: new Date().toISOString(),
+      });
+
+      transaction.set(eventRef, event);
+      return event;
+    });
   }
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): Event {
@@ -100,12 +144,12 @@ export class FirebaseEventRepository extends FirebaseBaseRepository<Event> imple
       updatedAt: this.formatDate(data['updatedAt']),
       joinConfig: data['joinConfig']
         ? {
-            ...data['joinConfig'],
-            startsAt: this.formatDate(data['joinConfig'].startsAt),
-            expiresAt: this.formatDate(data['joinConfig'].expiresAt),
-            createdAt: this.formatDate(data['joinConfig'].createdAt),
-          }
-        : undefined,
+          ...data['joinConfig'],
+          startsAt: this.formatDate(data['joinConfig'].startsAt),
+          expiresAt: this.formatDate(data['joinConfig'].expiresAt),
+          createdAt: this.formatDate(data['joinConfig'].createdAt),
+        }
+        : null,
     } as Event;
   }
 }

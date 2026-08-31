@@ -36,4 +36,8 @@ export class ProjectQueryDto implements ProjectQueryPayload {
   @IsOptional()
   @IsString()
   mentorId?: string;
+
+  @IsOptional()
+  @IsString()
+  studentId?: string;
 }

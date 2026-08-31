@@ -9,6 +9,7 @@ export interface Event {
   description?: string;
   facultyId: FacultyId;
   type: EventFundingType;
+  projectId?: string | null;
   budgetCap: number;
   currentSpent: number;
   initialSpent: number;
@@ -20,4 +21,6 @@ export interface Event {
   joinConfig?: JoinConfig | null;
   createdAt: string;
   updatedAt: string;
+  pendingSpent?: number;
+  rejectionReason?: string | null;
 }

@@ -1,43 +1,54 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 
-export class EventNotFoundException extends HttpException {
-  constructor(eventId: string) {
-    super(`Event with ID '${eventId}' not found.`, HttpStatus.NOT_FOUND);
+export class EventNotFoundException extends NotFoundException {
+  constructor(eventId?: string) {
+    super(eventId ? `Event with ID "${eventId}" not found.` : 'Event does not exist.');
   }
 }
 
-export class EventForbiddenException extends HttpException {
-  constructor(action: string) {
-    super(`You do not have permission to ${action} this event.`, HttpStatus.FORBIDDEN);
+export class EventForbiddenException extends ForbiddenException {
+  constructor(action = 'access') {
+    super(`You do not have permission to ${action} this event.`);
   }
 }
 
-export class InvalidEventStateException extends HttpException {
+export class EventApprovalForbiddenException extends ForbiddenException {
+  constructor() {
+    super('Only the Faculty Dean or Finance officers have authority to approve or reject event proposals.');
+  }
+}
+
+export class InvalidEventStateException extends BadRequestException {
   constructor(action: string, status: string) {
-    super(`Cannot ${action} when event status is '${status}'.`, HttpStatus.BAD_REQUEST);
+    super(`Cannot ${action} when event status is "${status}".`);
   }
 }
 
-export class InvalidEventJoinCodeException extends HttpException {
+export class EventInitialSpentExceedsCapException extends BadRequestException {
   constructor() {
-    super('Invalid or inactive event join code.', HttpStatus.BAD_REQUEST);
+    super('Initial spent baseline cannot exceed event budget cap.');
   }
 }
 
-export class EventJoinCodeExpiredException extends HttpException {
+export class EventPendingExpensesArchiveException extends ConflictException {
   constructor() {
-    super('Event join code has expired.', HttpStatus.BAD_REQUEST);
+    super('Cannot archive event with pending expense requests in progress.');
   }
 }
 
-export class EventCapacityFullException extends HttpException {
-  constructor() {
-    super('Event registration capacity is full.', HttpStatus.BAD_REQUEST);
+export class EventActiveFinancialModificationException extends BadRequestException {
+  constructor(field: 'initialSpent' | 'budgetCap') {
+    super(`Cannot modify ${field} directly on an active event.`);
   }
 }
 
-export class StudentAlreadyRegisteredException extends HttpException {
+export class EventStudentNotEnrolledException extends NotFoundException {
   constructor(studentId: string) {
-    super(`Student with ID '${studentId}' has already registered for this event.`, HttpStatus.CONFLICT);
+    super(`Student ${studentId} is not registered in this event.`);
   }
 }

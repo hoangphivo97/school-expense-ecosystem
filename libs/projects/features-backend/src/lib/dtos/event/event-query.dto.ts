@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
-import { EventQueryPayload, EventStatus } from '@school-expense-ecosystem/projects/types';
+import { EventFundingType, EventQueryPayload, EventStatus } from '@school-expense-ecosystem/projects/types';
 
 export class EventQueryDto implements EventQueryPayload {
   @IsOptional()
@@ -32,4 +32,16 @@ export class EventQueryDto implements EventQueryPayload {
   @IsOptional()
   @IsString()
   projectId?: string;
+
+  @IsOptional()
+  @IsString()
+  organizerId?: string;
+
+  @IsOptional()
+  @IsString()
+  studentId?: string;
+
+  @IsOptional()
+  @IsEnum(EventFundingType)
+  type?: EventFundingType;
 }

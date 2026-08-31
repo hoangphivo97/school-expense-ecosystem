@@ -13,11 +13,16 @@ export interface CreateEventPayload {
   initialSpent?: number;
   startDate: string;
   endDate: string;
+  // Optional Join Code Inline Creation
+  generateJoinCode?: boolean;
+  maxUses?: number;
+  expiresAt?: string;
 }
 
 export interface UpdateEventPayload extends Partial<CreateEventPayload> {
   status?: EventStatus;
-  joinConfig?: JoinConfig;
+  joinConfig?: JoinConfig | null;
+  rejectionReason?: string | null;
 }
 
 export interface EventQueryPayload {
@@ -27,4 +32,6 @@ export interface EventQueryPayload {
   facultyId?: FacultyId;
   status?: EventStatus;
   projectId?: string;
+  organizerId?: string;
+  studentId?: string;
 }

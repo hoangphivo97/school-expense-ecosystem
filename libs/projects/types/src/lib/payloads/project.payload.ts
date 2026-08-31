@@ -11,6 +11,7 @@ export interface CreateProjectPayload {
   facultyId: FacultyId;
   startDate: string;
   endDate: string;
+  // Optional Join Code Inline Creation
   generateJoinCode?: boolean;
   maxUses?: number;
   expiresAt?: string;
@@ -19,6 +20,7 @@ export interface CreateProjectPayload {
 export interface UpdateProjectPayload extends Partial<CreateProjectPayload> {
   status?: ProjectStatus;
   joinConfig?: JoinConfig | null;
+  rejectionReason?: string | null;
 }
 
 export interface ProjectQueryPayload {
