@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import {
-  Event,
+  EventItem,
   EventQueryPayload,
 } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
@@ -13,7 +13,7 @@ import {
 
 @Injectable()
 export class FirebaseEventRepository
-  extends FirebaseBaseRepository<Event>
+  extends FirebaseBaseRepository<EventItem>
   implements EventRepository {
   constructor(
     @Inject('FIRESTORE_INSTANCE') db: admin.firestore.Firestore
@@ -25,18 +25,18 @@ export class FirebaseEventRepository
     return this.db.collection('department_funds');
   }
 
-  async create(event: Event): Promise<Event> {
+  async create(event: EventItem): Promise<EventItem> {
     await this.collection.doc(event.id).set(event);
     return event;
   }
 
-  async findById(id: string): Promise<Event | null> {
+  async findById(id: string): Promise<EventItem | null> {
     const doc = await this.collection.doc(id).get();
     if (!doc.exists) return null;
     return this.mapDoc(doc);
   }
 
-  async findByJoinCode(code: string): Promise<Event | null> {
+  async findByJoinCode(code: string): Promise<EventItem | null> {
     const snapshot = await this.collection
       .where('joinConfig.code', '==', code)
       .where('joinConfig.isActive', '==', true)
@@ -47,7 +47,7 @@ export class FirebaseEventRepository
     return this.mapDoc(snapshot.docs[0]);
   }
 
-  async update(id: string, data: Partial<Event>): Promise<void> {
+  async update(id: string, data: Partial<EventItem>): Promise<void> {
     await this.collection.doc(id).update({
       ...data,
       updatedAt: new Date().toISOString(),
@@ -73,7 +73,7 @@ export class FirebaseEventRepository
     await this.collection.doc(id).update(updatePayload);
   }
 
-  async findWithQuery(query: EventQueryPayload): Promise<{ items: Event[]; total: number }> {
+  async findWithQuery(query: EventQueryPayload): Promise<{ items: EventItem[]; total: number }> {
     let baseQuery: admin.firestore.Query = this.collection;
 
     if (query.facultyId) baseQuery = baseQuery.where('facultyId', '==', query.facultyId);
@@ -99,14 +99,14 @@ export class FirebaseEventRepository
     return { items: paginatedItems, total };
   }
 
-  async updateJoinConfig(id: string, config: Event['joinConfig']): Promise<void> {
+  async updateJoinConfig(id: string, config: EventItem['joinConfig']): Promise<void> {
     await this.collection.doc(id).update({
       joinConfig: config,
       updatedAt: new Date().toISOString(),
     });
   }
 
-  async createWithFacultyFund(event: Event, departmentFundId: string): Promise<Event> {
+  async createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem> {
     const fundRef = this.departmentFundsCollection.doc(departmentFundId);
     const eventRef = this.collection.doc(event.id);
 
@@ -133,7 +133,7 @@ export class FirebaseEventRepository
     });
   }
 
-  protected mapDoc(doc: admin.firestore.DocumentSnapshot): Event {
+  protected mapDoc(doc: admin.firestore.DocumentSnapshot): EventItem {
     const data = doc.data()!;
     return {
       ...data,
@@ -150,6 +150,6 @@ export class FirebaseEventRepository
           createdAt: this.formatDate(data['joinConfig'].createdAt),
         }
         : null,
-    } as Event;
+    } as EventItem;
   }
 }

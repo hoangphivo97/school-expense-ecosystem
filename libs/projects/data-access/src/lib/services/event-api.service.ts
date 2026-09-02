@@ -3,14 +3,16 @@ import { HttpClient, HttpParams, httpResource, HttpResourceRef } from '@angular/
 import { Observable } from 'rxjs';
 import {
   CreateEventPayload,
-  Event,
+  EventItem,
   EventQueryPayload,
   GenerateJoinCodePayload,
   JoinByCodePayload,
+  JoinConfig,
   ManageParticipantsPayload,
   StudentSummary,
   UpdateEventPayload,
 } from '@school-expense-ecosystem/projects/types';
+import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 
 @Injectable({
   providedIn: 'root',
@@ -18,91 +20,90 @@ import {
 
 export class EventApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api/events';
+  private readonly baseUrl = inject(API_BASE_URL);
+  private readonly apiUrl = `${this.baseUrl}/api/events`;
 
   /**
    * Fetch paginated list of events with filters
    */
   getEventsResource(
-    querySignal: Signal<EventQueryPayload>
-  ): HttpResourceRef<{ items: Event[]; total: number } | undefined> {
-    return httpResource<{ items: Event[]; total: number }>(() => {
-      const query = querySignal();
-      const params = new URLSearchParams();
+    queryFn?: () => EventQueryPayload | undefined
+  ): HttpResourceRef<{ items: EventItem[]; total: number }> {
+    return httpResource<{ items: EventItem[]; total: number }>(() => {
+      const query = queryFn ? queryFn() : undefined;
+      const params: Record<string, string> = {};
 
-      if (query.page) params.set('page', query.page.toString());
-      if (query.limit) params.set('limit', query.limit.toString());
-      if (query.search) params.set('search', query.search);
-      if (query.facultyId) params.set('facultyId', query.facultyId);
-      if (query.status) params.set('status', query.status);
-      if (query.projectId) params.set('projectId', query.projectId);
+      if (query) {
+        Object.entries(query).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && value !== '') {
+            params[key] = String(value);
+          }
+        });
+      }
 
-      const queryString = params.toString();
-      return queryString ? `${this.baseUrl}?${queryString}` : this.baseUrl;
+      return {
+        url: this.apiUrl,
+        params,
+      };
+    }, {
+      defaultValue: { items: [], total: 0 },
+    });
+  }
+
+  getEventByIdResource(idFn: () => string | null | undefined): HttpResourceRef<EventItem | null> {
+    return httpResource<EventItem | null>(() => {
+      const id = idFn();
+      return id ? `${this.apiUrl}/${id}` : undefined;
+    }, {
+      defaultValue: null,
     });
   }
 
   /**
    * Create a new event
    */
-  createEvent(payload: CreateEventPayload): Observable<Event> {
-    return this.http.post<Event>(this.baseUrl, payload);
+  createEvent(payload: CreateEventPayload): Observable<EventItem> {
+    return this.http.post<EventItem>(this.apiUrl, payload);
   }
 
-  /**
-   * Update event details
-   */
-  updateEvent(id: string, payload: UpdateEventPayload): Observable<Event> {
-    return this.http.patch<Event>(`${this.baseUrl}/${id}`, payload);
+  updateEvent(id: string, payload: UpdateEventPayload): Observable<EventItem> {
+    return this.http.patch<EventItem>(`${this.apiUrl}/${id}`, payload);
   }
 
-  /**
-   * Generate or update join invitation code
-   */
-  generateJoinCode(id: string, payload: GenerateJoinCodePayload): Observable<Event> {
-    return this.http.post<Event>(`${this.baseUrl}/${id}/join-code`, payload);
+  approveEvent(id: string): Observable<EventItem> {
+    return this.http.patch<EventItem>(`${this.apiUrl}/${id}/approve`, {});
   }
 
-  /**
-   * Student join event via code
-   */
-  joinByCode(id: string, payload: JoinByCodePayload): Observable<Event> {
-    return this.http.post<Event>(`${this.baseUrl}/${id}/join`, payload);
+  rejectEvent(id: string, reason: string): Observable<EventItem> {
+    return this.http.patch<EventItem>(`${this.apiUrl}/${id}/reject`, { reason });
   }
 
-  /**
-   * Reject / Cancel event
-   */
-  rejectEvent(id: string, reason: string): Observable<Event> {
-    return this.http.post<Event>(`${this.baseUrl}/${id}/reject`, { reason });
+  archiveEvent(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${id}/archive`, {});
   }
 
-  /**
-   * Soft archive event
-   */
-  archiveEvent(id: string): Observable<Event> {
-    return this.http.patch<Event>(`${this.baseUrl}/${id}/archive`, {});
+  generateJoinCode(id: string, payload: GenerateJoinCodePayload): Observable<JoinConfig> {
+    return this.http.post<JoinConfig>(`${this.apiUrl}/${id}/join-code`, payload);
   }
 
-  /**
-   * Search student accounts for manual roster addition
-   */
+  joinByCode(payload: JoinByCodePayload): Observable<EventItem> {
+    return this.http.post<EventItem>(`${this.apiUrl}/join`, payload);
+  }
+
   searchStudents(query: string): Observable<StudentSummary[]> {
-    const params = new HttpParams().set('q', query);
-    return this.http.get<StudentSummary[]>(`${this.baseUrl}/students/search`, { params });
+    const params = new HttpParams().set('query', query.trim());
+    return this.http.get<StudentSummary[]>(`${this.apiUrl}/students/search`, { params });
   }
 
-  /**
-   * Add students to event manually
-   */
-  addStudents(id: string, payload: ManageParticipantsPayload): Observable<Event> {
-    return this.http.post<Event>(`${this.baseUrl}/${id}/students`, payload);
+  getEventStudents(id: string): Observable<StudentSummary[]> {
+    return this.http.get<StudentSummary[]>(`${this.apiUrl}/${id}/students`);
   }
 
-  /**
-   * Remove a student from event roster
-   */
-  removeStudent(id: string, studentUid: string): Observable<Event> {
-    return this.http.delete<Event>(`${this.baseUrl}/${id}/students/${studentUid}`);
+  addStudents(id: string, payload: ManageParticipantsPayload): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${id}/students`, payload);
+  }
+
+  removeStudent(id: string, studentUid: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}/students/${studentUid}`);
   }
 }

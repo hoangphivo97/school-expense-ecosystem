@@ -19,7 +19,7 @@ import { EventRepository } from '../repositories/abstracts/event.repository';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 import {
-  Event,
+  EventItem,
   EventFundingType,
   EventStatus,
   JoinConfig,
@@ -51,7 +51,7 @@ export class EventService {
   /**
    * Create an event supporting both Standalone and Sub-event (Project-linked) models
    */
-  async createEvent(user: AuthenticatedUser, dto: CreateEventDto): Promise<Event> {
+  async createEvent(user: AuthenticatedUser, dto: CreateEventDto): Promise<EventItem> {
     const facultyPrefix = dto.facultyId.toUpperCase();
     const shortHash = randomBytes(3).toString('hex').toUpperCase();
     const eventId = `EVT-${facultyPrefix}-${shortHash}`;
@@ -75,7 +75,7 @@ export class EventService {
       }
 
       if (parentProject.facultyId !== dto.facultyId) {
-        throw new BadRequestException('Event faculty must match parent project faculty.');
+        throw new BadRequestException('EventItem faculty must match parent project faculty.');
       }
 
       const eventStart = new Date(dto.startDate);
@@ -84,14 +84,14 @@ export class EventService {
       const projectEnd = new Date(parentProject.endDate);
 
       if (eventStart < projectStart || eventEnd > projectEnd) {
-        throw new BadRequestException('Event timeline must stay within the parent project duration.');
+        throw new BadRequestException('EventItem timeline must stay within the parent project duration.');
       }
 
       const availableBudget =
         parentProject.budgetCap - (parentProject.currentSpent + parentProject.pendingSpent);
       if (dto.budgetCap > availableBudget) {
         throw new BadRequestException(
-          `Event budget cap exceeds available project budget headroom (${availableBudget}).`
+          `EventItem budget cap exceeds available project budget headroom (${availableBudget}).`
         );
       }
 
@@ -103,7 +103,7 @@ export class EventService {
         pendingSpentDelta: dto.budgetCap,
       });
     } else {
-      // 2. Case B: Standalone Event (Routes through approval workflow)
+      // 2. Case B: Standalone EventItem (Routes through approval workflow)
       const isSchoolFunded = dto.type === EventFundingType.SCHOOL;
       const isFinance = user.role === Role.LEVEL_1_FINANCE;
       const isDean = user.role === Role.LEVEL_2_DEAN;
@@ -117,7 +117,7 @@ export class EventService {
       }
     }
 
-    const newEvent: Event = {
+    const newEvent: EventItem = {
       id: eventId,
       name: dto.name.trim(),
       description: dto.description ? dto.description.trim() : undefined,
@@ -151,7 +151,7 @@ export class EventService {
   /**
    * Update event details with financial baseline locks
    */
-  async updateEvent(id: string, user: AuthenticatedUser, dto: UpdateEventDto): Promise<Event> {
+  async updateEvent(id: string, user: AuthenticatedUser, dto: UpdateEventDto): Promise<EventItem> {
     const event = await this.validateEventAccess(id, user);
 
     if (
@@ -190,7 +190,7 @@ export class EventService {
       throw new EventInitialSpentExceedsCapException();
     }
 
-    const updateData: Partial<Event> = {
+    const updateData: Partial<EventItem> = {
       ...(dto.name && { name: dto.name.trim() }),
       ...(dto.description !== undefined && { description: dto.description ? dto.description.trim() : undefined }),
       ...(dto.type && { type: dto.type }),
@@ -211,12 +211,12 @@ export class EventService {
   }
 
   /**
-   * Scoped Event Query based on user role and permissions
+   * Scoped EventItem Query based on user role and permissions
    */
   async getEventsForUser(
     user: AuthenticatedUser,
     query?: EventQueryDto
-  ): Promise<{ items: Event[]; total: number }> {
+  ): Promise<{ items: EventItem[]; total: number }> {
     const baseQuery = query ?? {};
 
     // 1. Finance Audit Scope (Global access)
@@ -238,7 +238,7 @@ export class EventService {
     return this.eventRepository.findWithQuery({ ...baseQuery, organizerId: user.uid });
   }
 
-  async getEventById(id: string, user: AuthenticatedUser): Promise<Event> {
+  async getEventById(id: string, user: AuthenticatedUser): Promise<EventItem> {
     return this.validateEventAccess(id, user);
   }
 
@@ -266,7 +266,7 @@ export class EventService {
   /**
    * Student self-registration via code
    */
-  async joinEventByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<Event> {
+  async joinEventByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<EventItem> {
     const event = await this.eventRepository.findByJoinCode(joinDto.code);
     if (!event) {
       throw new InvalidJoinCodeException();
@@ -282,7 +282,7 @@ export class EventService {
   /**
    * Multi-level approval workflow for standalone events
    */
-  async approveEvent(id: string, user: AuthenticatedUser): Promise<Event> {
+  async approveEvent(id: string, user: AuthenticatedUser): Promise<EventItem> {
     const event = await this.validateEventAccess(id, user);
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && event.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
@@ -302,7 +302,7 @@ export class EventService {
       throw new InvalidEventStateException('approve', event.status);
     }
 
-    const updateData: Partial<Event> = {
+    const updateData: Partial<EventItem> = {
       status: nextStatus,
       updatedAt: new Date().toISOString(),
     };
@@ -314,7 +314,7 @@ export class EventService {
   /**
    * Reject or cancel event with required reason
    */
-  async rejectEvent(id: string, user: AuthenticatedUser, dto: RejectEventDto): Promise<Event> {
+  async rejectEvent(id: string, user: AuthenticatedUser, dto: RejectEventDto): Promise<EventItem> {
     const event = await this.validateEventAccess(id, user);
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && event.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
@@ -331,7 +331,7 @@ export class EventService {
       });
     }
 
-    const updateData: Partial<Event> = {
+    const updateData: Partial<EventItem> = {
       status: EventStatus.REJECTED,
       rejectionReason: dto.reason.trim(),
       updatedAt: new Date().toISOString(),
@@ -405,7 +405,7 @@ export class EventService {
   /**
    * Fine-grained Access Control Validation
    */
-  private async validateEventAccess(id: string, user: AuthenticatedUser): Promise<Event> {
+  private async validateEventAccess(id: string, user: AuthenticatedUser): Promise<EventItem> {
     const event = await this.eventRepository.findById(id);
     if (!event) {
       throw new EventNotFoundException(id);

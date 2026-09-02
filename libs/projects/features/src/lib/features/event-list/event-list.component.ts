@@ -7,10 +7,10 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
+import { EventQueryPayload, EventStatus, EventItem} from '@school-expense-ecosystem/projects/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import {
-  ConfirmDialogData,
-  DialogActionEnum,
   FacultyId,
   FilterMode,
   Role,
@@ -25,25 +25,13 @@ import {
   PaginationComponent,
 } from '@school-expense-ecosystem/shared/ui';
 
-export interface EventItem {
-  id: string;
-  name: string;
-  projectId?: string;
-  facultyId: FacultyId;
-  budgetCap: number;
-  currentSpent: number;
-  startDate: string;
-  endDate: string;
-  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
-  participantCount: number;
-  maxParticipants?: number;
-}
-
 export interface EventViewModel extends EventItem {
   canEdit: boolean;
   canManage: boolean;
+  participantCount: number;
+  maxParticipants?: number;
   attendancePercentage?: number;
-  isFull?: boolean;
+  isFull: boolean;
 }
 
 @Component({
@@ -70,6 +58,7 @@ export interface EventViewModel extends EventItem {
 export class EventListComponent {
   private readonly authSignalStore = inject(AuthSignalStore);
   private readonly facultyApiService = inject(FacultyApiService);
+  private readonly eventService = inject(EventApiService)
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
   private readonly translocoService = inject(TranslocoService);
@@ -84,7 +73,20 @@ export class EventListComponent {
   readonly filterParams = signal<SharedFilterFields>({});
   readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
 
-  readonly isGridDataLoading = signal<boolean>(false);
+  readonly queryParams = computed<EventQueryPayload>(() => {
+    const filters = this.filterParams();
+    return {
+      page: this.currentPageIndex(),
+      limit: this.pageSize(),
+      ...(filters.searchTerm ? { search: filters.searchTerm.trim() } : {}),
+      ...(filters.facultyId ? { facultyId: filters.facultyId as FacultyId } : {}),
+      ...(filters.status ? { status: filters.status as EventStatus } : {}),
+    };
+  });
+
+  // Reactive resource call via signal getter
+  readonly eventResource = this.eventService.getEventsResource(() => this.queryParams());
+  readonly isGridDataLoading = this.eventResource.isLoading;
 
   // Dynamic Lookup for faculties
   readonly facultiesListSignal = computed(() =>
@@ -94,30 +96,33 @@ export class EventListComponent {
     }))
   );
 
-  // Reactive Grid Data Pipeline
-  readonly rawEvents = signal<EventItem[]>([]);
-  readonly totalItems = computed(() => this.rawEvents().length);
+  // Derive total items and event records directly from API resource
+  readonly allowedRoles = [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN];
+  readonly events = computed(() => this.eventResource.value().items);
+  readonly totalItems = computed(() => this.eventResource.value().total);
 
   readonly dataSource = computed<EventViewModel[]>(() => {
-    const items = this.rawEvents();
+    const items = this.events();
     const user = this.currentUser();
     if (!user) return [];
 
-    const isPrivileged = [Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN].includes(
-      user.role
-    );
+    const isPrivileged = this.allowedRoles.includes(user.role);
 
     return items.map((event) => {
-      const percentage = event.maxParticipants
-        ? Math.min(Math.round((event.participantCount / event.maxParticipants) * 100), 100)
+      const participantCount = event.joinedStudentIds?.length ?? 0;
+      const maxParticipants = event.joinConfig?.maxUses;
+      const percentage = maxParticipants
+        ? Math.min(Math.round((participantCount / maxParticipants) * 100), 100)
         : undefined;
 
       return {
         ...event,
-        canEdit: isPrivileged || user.userType === UserType.TEACHER,
-        canManage: isPrivileged || user.userType === UserType.TEACHER,
+        participantCount,
+        maxParticipants,
+        canEdit: isPrivileged || (user.userType === UserType.TEACHER && event.organizerId === user.uid),
+        canManage: isPrivileged || (user.userType === UserType.TEACHER && event.organizerId === user.uid),
         attendancePercentage: percentage,
-        isFull: event.maxParticipants ? event.participantCount >= event.maxParticipants : false,
+        isFull: maxParticipants ? participantCount >= maxParticipants : false,
       };
     });
   });

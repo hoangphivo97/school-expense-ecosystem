@@ -7,7 +7,7 @@ import {
 
 export class EventNotFoundException extends NotFoundException {
   constructor(eventId?: string) {
-    super(eventId ? `Event with ID "${eventId}" not found.` : 'Event does not exist.');
+    super(eventId ? `EventItem with ID "${eventId}" not found.` : 'EventItem does not exist.');
   }
 }
 

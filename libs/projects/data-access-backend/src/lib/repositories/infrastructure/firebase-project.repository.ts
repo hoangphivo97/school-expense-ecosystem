@@ -1,16 +1,10 @@
-// ... 1-2 lines above inside firebase-project.repository.ts imports
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ProjectRepository } from '../abstracts/project.repository';
 import { Project, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
 import {
   ProjectInitialSpentExceedsCapException,
-  ProjectJoinCapacityReachedException,
-  ProjectJoinCodeExpiredException,
-  ProjectJoinDisabledException,
-  ProjectJoinNotStartedException,
   ProjectNotFoundException,
-  ProjectStudentAlreadyEnrolledException,
 } from '../../exceptions/project.exception';
 import { FirebaseBaseRepository } from './firebase-base.repository';
 

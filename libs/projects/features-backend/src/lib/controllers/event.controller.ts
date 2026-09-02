@@ -23,14 +23,14 @@ import {
   UpdateEventDto,
 } from '../..';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
-import { Event } from '@school-expense-ecosystem/projects/types';
+import { EventItem } from '@school-expense-ecosystem/projects/types';
 
 @Controller('events')
 @UseGuards(RolesGuard)
 export class EventController {
   constructor(private readonly eventService: EventService) { }
 
-  // 1. Get Event List (Scoped access)
+  // 1. Get EventItem List (Scoped access)
   @Get()
   @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER, UserType.STUDENT)
@@ -38,7 +38,7 @@ export class EventController {
     @CurrentUser() user: AuthenticatedUser,
     @Query() queryDto: EventQueryDto
   ) {
-    return this.eventService.getEvents(queryDto);
+    return this.eventService.getEventsForUser(user, queryDto);
   }
 
   // 2. Search Students for Manual Addition
@@ -56,19 +56,20 @@ export class EventController {
   async joinByCode(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: JoinByCodeDto
-  ): Promise<Event> {
+  ): Promise<EventItem> {
     return this.eventService.joinEventByCode(user, dto);
   }
 
-  // 4. Get Event by ID
+  // 4. Get EventItem by ID
   @Get(':id')
   @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER, UserType.STUDENT)
-  async getEventById(@Param('id') id: string) {
-    return this.eventService.getEventById(id);
+  async getEventById(@Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser) {
+    return this.eventService.getEventById(id, user);
   }
 
-  // 5. Create Event
+  // 5. Create EventItem
   @Post()
   @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
@@ -77,10 +78,10 @@ export class EventController {
     @CurrentUser() currentUser: AuthenticatedUser,
     @Body() createEventDto: CreateEventDto
   ) {
-    return this.eventService.createEvent(createEventDto, currentUser.uid);
+    return this.eventService.createEvent(currentUser, createEventDto);
   }
 
-  // 6. Update Event
+  // 6. Update EventItem
   @Patch(':id')
   @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
@@ -89,10 +90,10 @@ export class EventController {
     @CurrentUser() currentUser: AuthenticatedUser,
     @Body() updateEventDto: UpdateEventDto
   ) {
-    return this.eventService.updateEvent(id, updateEventDto);
+    return this.eventService.updateEvent(id, currentUser, updateEventDto);
   }
 
-  // 7. Soft Archive Event
+  // 7. Soft Archive EventItem
   @Patch(':id/archive')
   @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
@@ -101,7 +102,7 @@ export class EventController {
     @Param('id') id: string,
     @CurrentUser() currentUser: AuthenticatedUser
   ) {
-    return this.eventService.archiveEvent(id, currentUser.uid);
+    return this.eventService.archiveEvent(id, currentUser);
   }
 
   // 8. Generate Join Code
@@ -114,10 +115,10 @@ export class EventController {
     @CurrentUser() currentUser: AuthenticatedUser,
     @Body() dto: GenerateJoinCodeDto
   ) {
-    return this.eventService.generateJoinCode(id, dto, currentUser.uid);
+    return this.eventService.generateJoinCode(id, currentUser, dto);
   }
 
-  // 9. Bulk Add Students to Event Roster
+  // 9. Bulk Add Students to EventItem Roster
   @Post(':id/students')
   @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
@@ -127,10 +128,10 @@ export class EventController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: AddParticipantsDto
   ) {
-    return this.eventService.addStudentsManually(id, dto.userIds);
+    return this.eventService.addStudentsManually(id, user, dto);
   }
 
-  // 10. Remove Student from Event Roster
+  // 10. Remove Student from EventItem Roster
   @Delete(':id/students/:studentId')
   @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
@@ -140,10 +141,10 @@ export class EventController {
     @Param('studentId') studentId: string,
     @CurrentUser() user: AuthenticatedUser
   ) {
-    return this.eventService.removeStudent(id, studentId);
+    return this.eventService.removeStudent(id, studentId, user);
   }
 
-  // 11. Reject / Cancel Event
+  // 11. Reject / Cancel EventItem
   @Patch(':id/reject')
   @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
   @HttpCode(HttpStatus.OK)
@@ -152,6 +153,26 @@ export class EventController {
     @CurrentUser() currentUser: AuthenticatedUser,
     @Body() rejectDto: RejectEventDto
   ) {
-    return this.eventService.rejectEvent(id, rejectDto.reason, currentUser.uid);
+    return this.eventService.rejectEvent(id, currentUser, rejectDto);
+  }
+
+  @Patch(':id/approve')
+  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
+  @HttpCode(HttpStatus.OK)
+  async approve(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.eventService.approveEvent(id, user);
+  }
+
+  @Get(':id/students')
+  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @UserTypes(UserType.TEACHER, UserType.STUDENT)
+  async getEventStudents(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.eventService.getEventStudents(id, user);
   }
 }

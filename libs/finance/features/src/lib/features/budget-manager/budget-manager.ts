@@ -39,7 +39,7 @@ export class BudgetManager {
   //   return state.studentCount * state.quotaPerStudent;
   // });
 
-  // onSubmit(event: Event): void {
+  // onSubmit(event: EventItem): void {
   //   event.preventDefault();
   //   if (this.budgetForm().invalid()) return;
 

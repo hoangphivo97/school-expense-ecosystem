@@ -3,7 +3,7 @@ import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import { EventFundingType, EventStatus } from '../enums/event.enum';
 import { JoinConfig } from './shared.interface';
 
-export interface Event {
+export interface EventItem {
   id: string;
   name: string;
   description?: string;
