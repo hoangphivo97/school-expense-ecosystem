@@ -162,11 +162,31 @@ export class ProjectListComponent implements OnInit {
       disableClose: true,
     });
 
-    dialogRef.afterClosed().subscribe((createdProject) => {
-      if (createdProject) {
-        this.notify.success('project.projectList.notifications.created');
-        this.projectsResource.reload();
+    dialogRef.afterClosed().subscribe((createdProject: Project | undefined) => {
+      if (!createdProject) return;
+
+      const joinCode = createdProject.joinConfig?.code;
+
+      if (joinCode) {
+        // Automatically write join code to clipboard
+        navigator.clipboard.writeText(joinCode).then(() => {
+          this.notify.success('project.projectList.notifications.createdWithCodeCopied', {
+            name: createdProject.name,
+            code: joinCode,
+          });
+        }).catch(() => {
+          this.notify.success('project.projectList.notifications.createdWithCode', {
+            name: createdProject.name,
+            code: joinCode,
+          });
+        });
+      } else {
+        this.notify.success('project.projectList.notifications.createdSuccess', {
+          name: createdProject.name,
+        });
       }
+
+      this.projectsResource.reload();
     });
   }
   navigateToDetail(project: Project): void {

@@ -32,11 +32,13 @@
       "subtitle": "There are no projects available to display in this view."
     },
     "notifications": {
-      "created": "Project has been created successfully.",
       "updated": "Project details updated successfully.",
       "approved": "Project has been approved successfully.",
       "rejected": "Project proposal has been rejected.",
-      "copiedToClipboard": "Project ID copied to clipboard."
+      "copiedToClipboard": "Project ID copied to clipboard.",
+      "createdSuccess": "Project \"{{name}}\" has been created successfully.",
+      "createdWithCode": "Project \"{{name}}\" created successfully! Invitation code: {{code}}",
+      "createdWithCodeCopied": "Project \"{{name}}\" created! Invitation code {{code}} has been copied to clipboard."
     },
     "rejectModal": {
       "title": "Reject Project Proposal",
@@ -85,6 +87,19 @@
       "deanFacultyDeduction": "Creating this Faculty project will directly allocate and deduct funds from the Faculty budget.",
       "teacherDualApproval": "This School-funded project will require approval from both DEAN and FINANCE before activation.",
       "teacherDeanApproval": "This Faculty-funded project will require approval from the DEAN before activation."
+    },
+    "invitationCode": {
+      "toggleTitle": "Instant Invitation Code",
+      "toggleSubtitle": "Generate participation code immediately upon creation",
+      "panelTitle": "Invitation Code Settings",
+      "pendingApprovalNotice": "Code will be pre-configured and activate automatically once approved by Dean/Finance.",
+      "maxUsesLabel": "Maximum Capacity",
+      "maxUsesHint": "Leave empty for unlimited",
+      "maxUsesError": "Capacity must be at least 1",
+      "expiresAtLabel": "Code Expiration Date",
+      "expiresAtHint": "Defaults to project end date",
+      "expiresAtError": "Expiration cannot exceed project end date",
+      "previewNote": "A unique 6-character access code will be minted upon submission."
     },
     "fields": {
       "name": {

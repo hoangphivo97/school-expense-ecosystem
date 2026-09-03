@@ -174,8 +174,8 @@
                     <mat-icon color="primary">qr_code_2</mat-icon>
                   </div>
                   <div>
-                    <h4 class="m-0 fs-6 fw-bold text-dark">Instant Invitation Code</h4>
-                    <p class="m-0 text-muted smaller">Generate participation code immediately upon creation</p>
+                    <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.toggleTitle') }}</h4>
+                    <p class="m-0 text-muted smaller">{{ t('invitationCode.toggleSubtitle') }}</p>
                   </div>
                 </div>
                 <mat-slide-toggle formControlName="generateJoinCode" color="primary"></mat-slide-toggle>
@@ -220,7 +220,7 @@
       <div class="card-header-box d-flex align-items-center justify-content-between border-bottom p-3">
         <div class="d-flex align-items-center gap-2">
           <mat-icon color="primary">settings_suggest</mat-icon>
-          <h4 class="m-0 fs-6 fw-bold text-dark">Invitation Code Settings</h4>
+          <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.panelTitle') }}</h4>
         </div>
         <button mat-icon-button type="button" (click)="form.get('generateJoinCode')?.setValue(false)">
           <mat-icon class="fs-5">close</mat-icon>
@@ -230,25 +230,23 @@
       <div class="card-content-box p-3 d-flex flex-column gap-3" [formGroup]="form">
         @if (!isImmediatelyActive()) {
           <div class="alert alert-info py-2 px-3 m-0 small d-flex align-items-start gap-2">
-            <mat-icon class="fs-6 text-info flex-shrink-0 mt-1" style="width: 18px; height: 18px; font-size: 18px;">
-              info
-            </mat-icon>
-            <span class="lh-sm">Code will be pre-configured and activate automatically once approved by Dean/Finance.</span>
+            <mat-icon class="fs-6 text-info flex-shrink-0 mt-1" style="width: 18px; height: 18px; font-size: 18px;">info</mat-icon>
+            <span class="lh-sm">{{ t('invitationCode.pendingApprovalNotice') }}</span>
           </div>
         }
 
-        <!-- Max Capacity (Optional) -->
+        <!-- Max Capacity -->
         <mat-form-field appearance="outline" class="w-100 custom-field">
-          <mat-label>Maximum Capacity</mat-label>
+          <mat-label>{{ t('invitationCode.maxUsesLabel') }}</mat-label>
           <mat-icon matIconPrefix class="field-icon">group_add</mat-icon>
           <input matInput type="number" formControlName="maxUses" placeholder="Unlimited" min="1" />
-          <mat-hint align="end">Leave empty for unlimited</mat-hint>
-          <mat-error>Capacity must be at least 1</mat-error>
+          <mat-hint align="end">{{ t('invitationCode.maxUsesHint') }}</mat-hint>
+          <mat-error>{{ t('invitationCode.maxUsesError') }}</mat-error>
         </mat-form-field>
 
-        <!-- Expiration Date (Optional, Defaults to End Date) -->
+        <!-- Expiration Date -->
         <mat-form-field appearance="outline" class="w-100 custom-field">
-          <mat-label>Code Expiration Date</mat-label>
+          <mat-label>{{ t('invitationCode.expiresAtLabel') }}</mat-label>
           <input
             matInput
             [matDatepicker]="codeExpirePicker"
@@ -259,15 +257,15 @@
           />
           <mat-datepicker-toggle matIconSuffix [for]="codeExpirePicker"></mat-datepicker-toggle>
           <mat-datepicker #codeExpirePicker></mat-datepicker>
-          <mat-hint align="end">Defaults to project end date</mat-hint>
+          <mat-hint align="end">{{ t('invitationCode.expiresAtHint') }}</mat-hint>
           @if (form.errors?.['invalidJoinCodeExpiration']) {
-            <mat-error>Expiration cannot exceed project end date</mat-error>
+            <mat-error>{{ t('invitationCode.expiresAtError') }}</mat-error>
           }
         </mat-form-field>
 
         <div class="code-preview-card mt-auto p-3 rounded-3 text-center">
           <mat-icon class="preview-icon text-muted mb-1">lock_open</mat-icon>
-          <p class="preview-text small text-muted m-0">A unique 6-character access code will be minted upon submission.</p>
+          <p class="preview-text small text-muted m-0">{{ t('invitationCode.previewNote') }}</p>
         </div>
       </div>
     </div>

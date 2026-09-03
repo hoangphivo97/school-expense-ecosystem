@@ -32,11 +32,13 @@
       "subtitle": "目前尚無符合條件或可顯示的專案清單。"
     },
     "notifications": {
-      "created": "專案已成功建立。",
       "updated": "專案內容已成功更新。",
       "approved": "專案已成功核准。",
       "rejected": "專案申請已被拒絕。",
-      "copiedToClipboard": "專案編號已複製至剪貼簿。"
+      "createdSuccess": "專案「{{name}}」已成功建立。",
+      "createdWithCode": "專案「{{name}}」建立成功！邀請碼：{{code}}",
+      "createdWithCodeCopied": "專案「{{name}}」已建立！邀請碼 {{code}} 已複製至剪貼簿。",
+      "copiedToClipboard": "已複製至剪貼簿！"
     },
     "rejectModal": {
       "title": "拒絕專案申請",
@@ -85,6 +87,19 @@
       "deanFacultyDeduction": "建立此院級專案將直接自學院預算中撥款並扣除相應額度。",
       "teacherDualApproval": "此校級經費專案在啟用前，需經由院長（DEAN）及財務單位（FINANCE）雙重審核批准。",
       "teacherDeanApproval": "此院級經費專案在啟用前，需經由院長（DEAN）審核批准。"
+    },
+    "invitationCode": {
+      "toggleTitle": "即時邀請碼",
+      "toggleSubtitle": "建立專案時立即產生參與代碼",
+      "panelTitle": "邀請碼設定",
+      "pendingApprovalNotice": "邀請碼將預先配置，並於院長／財務處審核通過後自動啟用。",
+      "maxUsesLabel": "人數上限",
+      "maxUsesHint": "留空代表無限制",
+      "maxUsesError": "人數上限至少需為 1",
+      "expiresAtLabel": "邀請碼到期日",
+      "expiresAtHint": "預設為專案結束日期",
+      "expiresAtError": "到期日不得晚於專案結束日期",
+      "previewNote": "送出表單後，系統將自動產生一組 6 位數專屬邀請代碼。"
     },
     "fields": {
       "name": {
