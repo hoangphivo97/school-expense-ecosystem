@@ -43,6 +43,15 @@ export class ProjectService {
       throw new ProjectInitialSpentExceedsCapException();
     }
 
+    let joinConfig = null;
+    if (dto.generateJoinCode) {
+      joinConfig = this.sharedService.generateConfig({
+        maxUses: dto.maxUses,
+        startsAt: new Date(dto.startDate).toISOString(),
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt).toISOString() : new Date(dto.endDate).toISOString(),
+      });
+    }
+
     const newProject: Project = {
       id: projectId,
       name: dto.name,
@@ -58,7 +67,7 @@ export class ProjectService {
       startDate: new Date(dto.startDate).toISOString(),
       endDate: new Date(dto.endDate).toISOString(),
       joinedStudentIds: [],
-      joinConfig: null,
+      joinConfig: joinConfig,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
