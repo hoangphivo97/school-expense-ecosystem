@@ -15,6 +15,7 @@ import { CreateProjectPayload, Project, ProjectFundingType, ProjectStatus, Updat
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { ConfirmDialogData, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 export interface CreateProjectDialogData {
   facultyId?: FacultyId;
@@ -25,7 +26,7 @@ export interface CreateProjectDialogData {
 
 @Component({
   selector: 'lib-create-project-dialog',
-  imports: [MatDialogModule, MatIconModule, MatHint, MatFormFieldModule, MatSelectModule, ReactiveFormsModule, MatDatepickerModule, MatInputModule, MatButtonModule, TranslocoModule, FormErrorPipe],
+  imports: [MatDialogModule, MatIconModule, MatHint, MatFormFieldModule, MatSelectModule, ReactiveFormsModule, MatDatepickerModule, MatInputModule, MatButtonModule, TranslocoModule, FormErrorPipe, MatSlideToggleModule],
   templateUrl: './create-project-dialog.component.html',
   styleUrl: './create-project-dialog.component.scss',
   providers: [
@@ -71,6 +72,13 @@ export class CreateProjectDialogComponent {
 
   readonly isFacultiesLoading = this.facultyApiService.facultiesResource.isLoading;
 
+  readonly isImmediatelyActive = computed(() => {
+    const role = this.authStore.user()?.role;
+    const type = this.form?.get('type')?.value as ProjectFundingType;
+    if (role === Role.LEVEL_1_FINANCE) return true;
+    return type !== ProjectFundingType.SCHOOL;
+  });
+
   readonly form: FormGroup = this.fb.group(
     {
       name: ['', [Validators.required, Validators.maxLength(150)]],
@@ -81,11 +89,42 @@ export class CreateProjectDialogComponent {
       initialSpent: [0, [Validators.min(0)]],
       startDate: [new Date(), [Validators.required]],
       endDate: [null, [Validators.required]],
+      // Join code optional controls
+      generateJoinCode: [false],
+      maxUses: [null, [Validators.min(1)]],
+      expiresAt: [null],
     },
-    { validators: [this.validateDateRange, this.validateInitialSpent] }
+    { validators: [this.validateDateRange, this.validateInitialSpent, this.validateJoinCodeSchedule] }
   );
 
   constructor() {
+    const initialJoinCodeState = Boolean(this.form.get('generateJoinCode')?.value);
+    this.updateDialogLayout(initialJoinCodeState);
+
+    // Clean-up pattern: Clear values & reset errors when toggle is turned off
+    this.form.get('generateJoinCode')?.valueChanges.subscribe((enabled: boolean) => {
+      this.updateDialogLayout(Boolean(enabled));
+      if (enabled) {
+        // Auto-fill expiration date with project's end date as default
+        const projectEndDate = this.form.get('endDate')?.value;
+        if (projectEndDate && !this.form.get('expiresAt')?.value) {
+          this.form.patchValue({ expiresAt: projectEndDate }, { emitEvent: false });
+        }
+      } else {
+        this.form.patchValue({ maxUses: null, expiresAt: null }, { emitEvent: false });
+        this.form.get('maxUses')?.setErrors(null);
+        this.form.get('expiresAt')?.setErrors(null);
+        this.form.updateValueAndValidity();
+      }
+    });
+
+    // Keep join code expiration in sync when project end date changes
+    this.form.get('endDate')?.valueChanges.subscribe((newEndDate) => {
+      if (this.form.get('generateJoinCode')?.value && newEndDate) {
+        this.form.patchValue({ expiresAt: newEndDate }, { emitEvent: false });
+      }
+    });
+
     if (this.data?.project) {
       const project = this.data.project;
       this.form.patchValue({
@@ -134,6 +173,27 @@ export class CreateProjectDialogComponent {
     }
     return null;
   }
+
+  private validateJoinCodeSchedule(control: AbstractControl): ValidationErrors | null {
+  const generateCode = control.get('generateJoinCode')?.value;
+  if (!generateCode) return null;
+
+  const expiresAtVal = control.get('expiresAt')?.value;
+  const endDateVal = control.get('endDate')?.value;
+
+  if (expiresAtVal && endDateVal) {
+    const expiresAt = new Date(expiresAtVal);
+    const endDate = new Date(endDateVal);
+    
+    expiresAt.setHours(23, 59, 59, 999);
+    endDate.setHours(23, 59, 59, 999);
+
+    if (expiresAt > endDate) {
+      return { invalidJoinCodeExpiration: true };
+    }
+  }
+  return null;
+}
 
   // Custom Validator: Ensure initialSpent <= budgetCap
   private validateInitialSpent(control: AbstractControl): ValidationErrors | null {
@@ -184,8 +244,6 @@ export class CreateProjectDialogComponent {
     if (this.form.invalid || this.isSubmitting()) return;
 
     this.errorMessage.set(null);
-
-    // Using getRawValue() ensures values from disabled controls are still captured
     const formValue = this.form.getRawValue();
 
     // 1. Branch Execution: Edit Project Flow
@@ -216,6 +274,7 @@ export class CreateProjectDialogComponent {
     }
 
     // 2. Branch Execution: Create Project Flow
+    const isJoinCodeEnabled = Boolean(formValue.generateJoinCode);
     const payload: CreateProjectPayload = {
       name: formValue.name.trim(),
       description: formValue.description?.trim() || undefined,
@@ -225,6 +284,12 @@ export class CreateProjectDialogComponent {
       initialSpent: Number(formValue.initialSpent || 0),
       startDate: new Date(formValue.startDate).toISOString(),
       endDate: new Date(formValue.endDate).toISOString(),
+      generateJoinCode: isJoinCodeEnabled,
+      // Strip join settings completely if toggle is off
+      ...(isJoinCodeEnabled && {
+        maxUses: formValue.maxUses ? Number(formValue.maxUses) : undefined,
+        expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : undefined,
+      }),
     };
 
     const warningMessage = this.getConfirmationWarning(payload.type);
@@ -250,6 +315,8 @@ export class CreateProjectDialogComponent {
       });
       return;
     }
+
+    this.executeCreateProject(payload);
   }
 
   onCancel(): void {
@@ -299,5 +366,9 @@ export class CreateProjectDialogComponent {
         this.errorMessage.set(err?.error?.message || 'Failed to initialize project. Please try again.');
       },
     });
+  }
+
+  private updateDialogLayout(isExpanded: boolean): void {
+    this.dialogRef.updateSize(isExpanded ? '1020px' : '600px');
   }
 }

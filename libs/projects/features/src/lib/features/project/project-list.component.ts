@@ -153,7 +153,8 @@ export class ProjectListComponent implements OnInit {
 
   openCreateProjectModal(): void {
     const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
-      width: '700px',
+      panelClass: 'floating-multi-modal-panel',
+      width: 'auto',
       data: {
         facultyId: this.currentUser()?.facultyId,
         action: DialogActionEnum.Create
