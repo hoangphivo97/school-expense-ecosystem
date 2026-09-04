@@ -88,7 +88,7 @@ export class EventService {
       }
 
       const availableBudget =
-        parentProject.budgetCap - (parentProject.currentSpent + parentProject.pendingSpent);
+        parentProject.budgetCap - (parentProject.currentSpent + (parentProject.pendingSpent ?? 0));
       if (dto.budgetCap > availableBudget) {
         throw new BadRequestException(
           `EventItem budget cap exceeds available project budget headroom (${availableBudget}).`

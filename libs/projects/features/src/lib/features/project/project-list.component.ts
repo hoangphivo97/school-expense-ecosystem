@@ -11,13 +11,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { Project, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { CreateProjectDialogComponent } from '../dialogs/create-project-dialog/create-project-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { MatTabsModule } from '@angular/material/tabs';
+import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 
-export interface ProjectViewModel extends Project {
+export interface ProjectViewModel extends ProjectItem {
   canApprove: boolean;
   canReject: boolean;
   canEdit: boolean;
@@ -82,22 +83,18 @@ export class ProjectListComponent implements OnInit {
       const isMentor = user.uid === project.mentorId;
       const isAdmin = user.role === Role.LEVEL_0_ADMIN;
 
-      const enrolledCount = project.joinedStudentIds?.length || 0;
-      const maxUses = project.joinConfig?.maxUses;
-      const enrollmentPercentage = maxUses ? Math.min(Math.round((enrolledCount / maxUses) * 100), 100) : undefined;
-      const isEnrollmentFull = maxUses ? enrolledCount >= maxUses : false;
+      const capacityMetrics = calculateActivityCapacity(project);
 
       return {
         ...project,
+        ...capacityMetrics,
         canApprove: isPending && isDeanOrFinance,
         canReject: isPending && isDeanOrFinance,
         canEdit: !isLocked && (isMentor || isFacultyDean || isFinance || isAdmin),
-        enrollmentPercentage,
-        isEnrollmentFull,
       };
     });
   });
-  readonly totalItems = computed(() => this.projectsResource.value().total);
+  readonly totalItems = computed(() => this.projectsResource.value()?.total ?? 0);
 
   // Auth Context Signals
   readonly currentUser = this.authSignalStore.user;
@@ -130,7 +127,7 @@ export class ProjectListComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  canManageJoinCode(project: Project): boolean {
+  canManageJoinCode(project: ProjectItem): boolean {
     const user = this.currentUser();
     if (!user) return false;
     // Mentors or admins can configure invitation codes for active projects
@@ -162,7 +159,7 @@ export class ProjectListComponent implements OnInit {
       disableClose: true,
     });
 
-    dialogRef.afterClosed().subscribe((createdProject: Project | undefined) => {
+    dialogRef.afterClosed().subscribe((createdProject: ProjectItem | undefined) => {
       if (!createdProject) return;
 
       const joinCode = createdProject.joinConfig?.code;
@@ -189,7 +186,7 @@ export class ProjectListComponent implements OnInit {
       this.projectsResource.reload();
     });
   }
-  navigateToDetail(project: Project): void {
+  navigateToDetail(project: ProjectItem): void {
     this.dialog.open(CreateProjectDialogComponent, {
       width: '700px',
       data: {
@@ -200,7 +197,7 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  canEditProject(project: Project): boolean {
+  canEditProject(project: ProjectItem): boolean {
     const user = this.currentUser();
     if (!user) return false;
 
@@ -214,17 +211,20 @@ export class ProjectListComponent implements OnInit {
     return isMentor || isDean || isFinanceOrAdmin;
   }
 
-  canApproveProject(project: Project): boolean {
+  canApproveProject(project: ProjectItem): boolean {
     const user = this.currentUser();
-    if (!user || project.status !== ProjectStatus.PENDING_DEAN_APPROVAL) return false;
+    if (!user) return false;
+
+    const isDeanPending = project.status === ProjectStatus.PENDING_DEAN_APPROVAL;
+    const isFinancePending = project.status === ProjectStatus.PENDING_FINANCE_APPROVAL;
 
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && user.facultyId === project.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
 
-    return isFacultyDean || isFinance;
+    return (isDeanPending && isFacultyDean) || (isFinancePending && isFinance);
   }
 
-  onApproveProject(project: Project): void {
+  onApproveProject(project: ProjectItem): void {
     const confirmData: ConfirmDialogData = {
       title: this.translocoService.translate('project.projectList.approveModal.title'),
       message: this.translocoService.translate('project.projectList.approveModal.message', { name: project.name }),
@@ -255,7 +255,7 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  openEditModal(project: Project): void {
+  openEditModal(project: ProjectItem): void {
     const dialogRef = this.dialog.open(CreateProjectDialogComponent, {
       width: '700px',
       data: {
@@ -273,11 +273,11 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  canRejectProject(project: Project): boolean {
+  canRejectProject(project: ProjectItem): boolean {
     return this.canApproveProject(project);
   }
 
-  onRejectProject(project: Project): void {
+  onRejectProject(project: ProjectItem): void {
     const modalData: BaseModalData = {
       title: this.translocoService.translate('project.projectList.rejectModal.title'),
       message: this.translocoService.translate('project.projectList.rejectModal.message', { name: project.name }),
@@ -309,7 +309,7 @@ export class ProjectListComponent implements OnInit {
     // Open student join code input dialog logic
   }
 
-  openJoinCodeModal(project: Project): void {
+  openJoinCodeModal(project: ProjectItem): void {
     const dialogRef = this.dialog.open(ManageJoinCodeDialogComponent, {
       width: '540px',
       data: { project },

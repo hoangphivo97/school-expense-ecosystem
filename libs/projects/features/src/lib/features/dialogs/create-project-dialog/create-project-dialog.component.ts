@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { CreateProjectPayload, Project, ProjectFundingType, ProjectStatus, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, ProjectItem, ProjectFundingType, ProjectStatus, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { ConfirmDialogData, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
@@ -21,7 +21,7 @@ export interface CreateProjectDialogData {
   facultyId?: FacultyId;
   availableFaculties?: { id: FacultyId; name: string }[];
   action: DialogActionEnum
-  project?: Project;
+  project?: ProjectItem;
 }
 
 @Component({
@@ -246,7 +246,7 @@ export class CreateProjectDialogComponent {
     this.errorMessage.set(null);
     const formValue = this.form.getRawValue();
 
-    // 1. Branch Execution: Edit Project Flow
+    // 1. Branch Execution: Edit ProjectItem Flow
     if (this.isEditMode() && this.data?.project) {
       this.isSubmitting.set(true);
       const updatePayload: UpdateProjectPayload = {
@@ -273,7 +273,7 @@ export class CreateProjectDialogComponent {
       return;
     }
 
-    // 2. Branch Execution: Create Project Flow
+    // 2. Branch Execution: Create ProjectItem Flow
     const isJoinCodeEnabled = Boolean(formValue.generateJoinCode);
     const payload: CreateProjectPayload = {
       name: formValue.name.trim(),
@@ -284,12 +284,13 @@ export class CreateProjectDialogComponent {
       initialSpent: Number(formValue.initialSpent || 0),
       startDate: new Date(formValue.startDate).toISOString(),
       endDate: new Date(formValue.endDate).toISOString(),
-      generateJoinCode: isJoinCodeEnabled,
-      // Strip join settings completely if toggle is off
-      ...(isJoinCodeEnabled && {
-        maxUses: formValue.maxUses ? Number(formValue.maxUses) : undefined,
-        expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : undefined,
-      }),
+      // Encapsulate join code settings into nested object matching BaseActivityPayload contract
+      joinCodeConfig: isJoinCodeEnabled
+        ? {
+            maxUses: formValue.maxUses ? Number(formValue.maxUses) : undefined,
+            expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : undefined,
+          }
+        : undefined,
     };
 
     const warningMessage = this.getConfirmationWarning(payload.type);
@@ -299,7 +300,7 @@ export class CreateProjectDialogComponent {
         width: '420px',
         disableClose: true,
         data: {
-          title: 'Project Submission Notice',
+          title: 'ProjectItem Submission Notice',
           message: warningMessage,
           confirmText: 'Proceed & Create',
           cancelText: 'Review Form',

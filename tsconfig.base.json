@@ -159,6 +159,9 @@
       ],
       "@school-expense-ecosystem/projects/types": [
         "./libs/projects/types/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/utils": [
+        "./libs/projects/utils/src/index.ts"
       ]
     }
   },

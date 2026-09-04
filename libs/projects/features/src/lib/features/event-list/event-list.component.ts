@@ -8,7 +8,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventQueryPayload, EventStatus, EventItem} from '@school-expense-ecosystem/projects/types';
+import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel } from '@school-expense-ecosystem/projects/types';
+import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import {
   FacultyId,
@@ -25,13 +26,8 @@ import {
   PaginationComponent,
 } from '@school-expense-ecosystem/shared/ui';
 
-export interface EventViewModel extends EventItem {
-  canEdit: boolean;
+export interface EventViewModel extends EventItem, BaseActivityViewModel {
   canManage: boolean;
-  participantCount: number;
-  maxParticipants?: number;
-  attendancePercentage?: number;
-  isFull: boolean;
 }
 
 @Component({
@@ -98,8 +94,8 @@ export class EventListComponent {
 
   // Derive total items and event records directly from API resource
   readonly allowedRoles = [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN];
-  readonly events = computed(() => this.eventResource.value().items);
-  readonly totalItems = computed(() => this.eventResource.value().total);
+  readonly events = computed(() => this.eventResource.value()?.items ?? []);
+  readonly totalItems = computed(() => this.eventResource.value()?.total ?? 0);
 
   readonly dataSource = computed<EventViewModel[]>(() => {
     const items = this.events();
@@ -109,20 +105,13 @@ export class EventListComponent {
     const isPrivileged = this.allowedRoles.includes(user.role);
 
     return items.map((event) => {
-      const participantCount = event.joinedStudentIds?.length ?? 0;
-      const maxParticipants = event.joinConfig?.maxUses;
-      const percentage = maxParticipants
-        ? Math.min(Math.round((participantCount / maxParticipants) * 100), 100)
-        : undefined;
+      const capacityMetrics = calculateActivityCapacity(event);
 
       return {
         ...event,
-        participantCount,
-        maxParticipants,
+        ...capacityMetrics,
         canEdit: isPrivileged || (user.userType === UserType.TEACHER && event.organizerId === user.uid),
         canManage: isPrivileged || (user.userType === UserType.TEACHER && event.organizerId === user.uid),
-        attendancePercentage: percentage,
-        isFull: maxParticipants ? participantCount >= maxParticipants : false,
       };
     });
   });

@@ -36,3 +36,16 @@ export interface StudentSummary {
     fullName: string;
     email: string;
 }
+
+export interface ActivityCapacityMetrics {
+  participantCount: number;
+  maxParticipants?: number;
+  enrollmentPercentage?: number;
+  isCapacityFull: boolean;
+}
+
+export interface BaseActivityViewModel extends ActivityCapacityMetrics {
+  canEdit: boolean;
+  canApprove?: boolean;
+  canReject?: boolean;
+}

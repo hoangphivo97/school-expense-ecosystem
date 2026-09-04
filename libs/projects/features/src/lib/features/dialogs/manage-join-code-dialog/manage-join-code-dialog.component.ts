@@ -3,7 +3,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { GenerateJoinCodePayload, Project, JoinConfig, StudentSummary, JoinCodeStatus } from '@school-expense-ecosystem/projects/types';
+import { GenerateJoinCodePayload, ProjectItem, JoinConfig, StudentSummary, JoinCodeStatus } from '@school-expense-ecosystem/projects/types';
 import { CopyToClipboardDirective, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
@@ -22,7 +22,7 @@ import { of } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 export interface ManageJoinCodeDialogData {
-  project: Project;
+  project: ProjectItem;
 }
 
 export interface ManageJoinCodeDialogResult {
