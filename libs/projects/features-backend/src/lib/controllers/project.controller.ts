@@ -37,7 +37,7 @@ export class ProjectController {
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.CREATED)
-  async create(
+  async createProject(
     @CurrentUser() user: AuthenticatedUser,
     @Body() createProjectDto: CreateProjectDto
   ) {
@@ -77,7 +77,7 @@ export class ProjectController {
   @Patch(':id')
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
-  async update(
+  async updateProject(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
     @Body() updateDto: UpdateProjectDto
@@ -90,7 +90,7 @@ export class ProjectController {
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.OK)
-  async archive(
+  async archiveProject(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser
   ) {
@@ -150,7 +150,7 @@ export class ProjectController {
   @Patch(':id/approve')
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
   @HttpCode(HttpStatus.OK)
-  async approve(
+  async approveProject(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser
   ) {
@@ -161,7 +161,7 @@ export class ProjectController {
   @Patch(':id/reject')
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
   @HttpCode(HttpStatus.OK)
-  async reject(
+  async rejectProject(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
     @Body() rejectDto?: RejectProjectDto

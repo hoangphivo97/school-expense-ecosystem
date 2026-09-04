@@ -1,26 +1,8 @@
 import { ProjectFundingType, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
-import { FacultyId } from '@school-expense-ecosystem/shared/types';
-import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { BaseActivityQueryDto } from '../shared/base-activity.dto';
 
-export class ProjectQueryDto implements ProjectQueryPayload {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit?: number = 10;
-
-  @IsOptional()
-  @IsString()
-  search?: string;
-
+export class ProjectQueryDto extends BaseActivityQueryDto implements ProjectQueryPayload {
   @IsOptional()
   @IsEnum(ProjectStatus)
   status?: ProjectStatus;
@@ -30,14 +12,6 @@ export class ProjectQueryDto implements ProjectQueryPayload {
   type?: ProjectFundingType;
 
   @IsOptional()
-  @IsEnum(FacultyId)
-  facultyId?: FacultyId;
-
-  @IsOptional()
   @IsString()
   mentorId?: string;
-
-  @IsOptional()
-  @IsString()
-  studentId?: string;
 }

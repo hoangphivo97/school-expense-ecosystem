@@ -1,69 +1,14 @@
-import {
-  IsBoolean,
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsPositive,
-  IsString,
-  MaxLength,
-  Min,
-} from 'class-validator';
-import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import { CreateEventPayload, EventFundingType } from '@school-expense-ecosystem/projects/types';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { BaseActivityDto } from '../shared/base-activity.dto';
 
-export class CreateEventDto implements CreateEventPayload {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(150)
-  name!: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(500)
-  description?: string;
-
-  @IsString()
-  @IsOptional()
-  projectId?: string;
-
-  @IsEnum(FacultyId)
-  @IsNotEmpty()
-  facultyId!: FacultyId;
-
+export class CreateEventDto extends BaseActivityDto implements CreateEventPayload {
   @IsEnum(EventFundingType)
   @IsNotEmpty()
   type!: EventFundingType;
 
-  @IsInt()
-  @IsPositive()
-  budgetCap!: number;
-
-  @IsInt()
-  @Min(0)
+  // Optional reference linking event under a parent project scope
   @IsOptional()
-  initialSpent?: number;
-
-  @IsDateString()
-  @IsNotEmpty()
-  startDate!: string;
-
-  @IsDateString()
-  @IsNotEmpty()
-  endDate!: string;
-
-  // Optional Join Code configuration upon creation
-  @IsOptional()
-  @IsBoolean()
-  generateJoinCode?: boolean;
-
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  maxUses?: number;
-
-  @IsOptional()
-  @IsDateString()
-  expiresAt?: string;
+  @IsString()
+  projectId?: string;
 }

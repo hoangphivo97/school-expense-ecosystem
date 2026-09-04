@@ -32,7 +32,7 @@ export class EventController {
 
   // 1. Get EventItem List (Scoped access)
   @Get()
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER, UserType.STUDENT)
   async getEvents(
     @CurrentUser() user: AuthenticatedUser,
@@ -43,7 +43,7 @@ export class EventController {
 
   // 2. Search Students for Manual Addition
   @Get('students/search')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   async searchStudents(@Query('query') query: string) {
     return this.eventService.searchStudents(query);
@@ -62,16 +62,17 @@ export class EventController {
 
   // 4. Get EventItem by ID
   @Get(':id')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER, UserType.STUDENT)
-  async getEventById(@Param('id') id: string,
+  async getEventById(
+    @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser) {
     return this.eventService.getEventById(id, user);
   }
 
   // 5. Create EventItem
   @Post()
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.CREATED)
   async createEvent(
@@ -83,7 +84,7 @@ export class EventController {
 
   // 6. Update EventItem
   @Patch(':id')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   async updateEvent(
     @Param('id') id: string,
@@ -95,10 +96,10 @@ export class EventController {
 
   // 7. Soft Archive EventItem
   @Patch(':id/archive')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.OK)
-  async archive(
+  async archiveEvent(
     @Param('id') id: string,
     @CurrentUser() currentUser: AuthenticatedUser
   ) {
@@ -107,7 +108,7 @@ export class EventController {
 
   // 8. Generate Join Code
   @Post(':id/join-code')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.OK)
   async generateJoinCode(
@@ -120,7 +121,7 @@ export class EventController {
 
   // 9. Bulk Add Students to EventItem Roster
   @Post(':id/students')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.OK)
   async addStudents(
@@ -133,7 +134,7 @@ export class EventController {
 
   // 10. Remove Student from EventItem Roster
   @Delete(':id/students/:studentId')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeStudent(
@@ -146,7 +147,7 @@ export class EventController {
 
   // 11. Reject / Cancel EventItem
   @Patch(':id/reject')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
   @HttpCode(HttpStatus.OK)
   async rejectEvent(
     @Param('id') id: string,
@@ -157,9 +158,9 @@ export class EventController {
   }
 
   @Patch(':id/approve')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
   @HttpCode(HttpStatus.OK)
-  async approve(
+  async approveEvent(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser
   ) {
@@ -167,7 +168,7 @@ export class EventController {
   }
 
   @Get(':id/students')
-  @Roles(Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER, UserType.STUDENT)
   async getEventStudents(
     @Param('id') id: string,
