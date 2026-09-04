@@ -117,6 +117,10 @@ export class EventService {
       }
     }
 
+    const joinConfig = dto.joinCodeConfig
+      ? this.sharedService.generateInlineConfig(dto.joinCodeConfig, dto.startDate, dto.endDate)
+      : null;
+
     const newEvent: EventItem = {
       id: eventId,
       name: dto.name.trim(),
@@ -131,7 +135,7 @@ export class EventService {
       status: initialStatus,
       organizerId: user.uid,
       joinedStudentIds: [],
-      joinConfig: null,
+      joinConfig: joinConfig,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       startDate: new Date(dto.startDate).toISOString(),

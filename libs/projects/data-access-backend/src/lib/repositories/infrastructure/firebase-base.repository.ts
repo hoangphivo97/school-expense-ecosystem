@@ -30,6 +30,82 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> {
   /**
    * Search active student users across the entire ecosystem
    */
+
+  async create(entity: T): Promise<T> {
+    await this.collection.doc(entity.id).set(entity);
+    return entity;
+  }
+
+  async findById(id: string): Promise<T | null> {
+    const doc = await this.collection.doc(id).get();
+    if (!doc.exists) return null;
+    return this.mapDoc(doc);
+  }
+
+  async findByJoinCode(code: string): Promise<T | null> {
+    const snapshot = await this.collection
+      .where('joinConfig.code', '==', code)
+      .where('joinConfig.isActive', '==', true)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return null;
+    return this.mapDoc(snapshot.docs[0]);
+  }
+
+  async update(id: string, data: Partial<T>): Promise<void> {
+    await this.collection.doc(id).update({
+      ...data,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  async updateJoinConfig(id: string, config: T['joinConfig']): Promise<void> {
+    await this.collection.doc(id).update({
+      joinConfig: config,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  async updateSpentCounters(
+    id: string,
+    deltas: { pendingSpentDelta?: number; currentSpentDelta?: number }
+  ): Promise<void> {
+    const updatePayload: Record<string, any> = {
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (deltas.pendingSpentDelta !== undefined && deltas.pendingSpentDelta !== 0) {
+      updatePayload['pendingSpent'] = admin.firestore.FieldValue.increment(deltas.pendingSpentDelta);
+    }
+
+    if (deltas.currentSpentDelta !== undefined && deltas.currentSpentDelta !== 0) {
+      updatePayload['currentSpent'] = admin.firestore.FieldValue.increment(deltas.currentSpentDelta);
+    }
+
+    await this.collection.doc(id).update(updatePayload);
+  }
+
+  protected mapBaseFields(doc: admin.firestore.DocumentSnapshot): Record<string, any> {
+    const data = doc.data()!;
+    return {
+      ...data,
+      id: doc.id,
+      startDate: this.formatDate(data['startDate']),
+      endDate: this.formatDate(data['endDate']),
+      createdAt: this.formatDate(data['createdAt']),
+      updatedAt: this.formatDate(data['updatedAt']),
+      joinConfig: data['joinConfig']
+        ? {
+            ...data['joinConfig'],
+            startsAt: this.formatDate(data['joinConfig'].startsAt),
+            expiresAt: this.formatDate(data['joinConfig'].expiresAt),
+            createdAt: this.formatDate(data['joinConfig'].createdAt),
+          }
+        : null,
+    };
+  }
+
   async searchStudents(query: string, limitCount = 20): Promise<StudentSummary[]> {
     const normalizedQuery = query.toLowerCase().trim();
     if (!normalizedQuery) return [];

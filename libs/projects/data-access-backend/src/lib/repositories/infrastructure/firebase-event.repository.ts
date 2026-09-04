@@ -25,54 +25,6 @@ export class FirebaseEventRepository
     return this.db.collection('department_funds');
   }
 
-  async create(event: EventItem): Promise<EventItem> {
-    await this.collection.doc(event.id).set(event);
-    return event;
-  }
-
-  async findById(id: string): Promise<EventItem | null> {
-    const doc = await this.collection.doc(id).get();
-    if (!doc.exists) return null;
-    return this.mapDoc(doc);
-  }
-
-  async findByJoinCode(code: string): Promise<EventItem | null> {
-    const snapshot = await this.collection
-      .where('joinConfig.code', '==', code)
-      .where('joinConfig.isActive', '==', true)
-      .limit(1)
-      .get();
-
-    if (snapshot.empty) return null;
-    return this.mapDoc(snapshot.docs[0]);
-  }
-
-  async update(id: string, data: Partial<EventItem>): Promise<void> {
-    await this.collection.doc(id).update({
-      ...data,
-      updatedAt: new Date().toISOString(),
-    });
-  }
-
-  async updateSpentCounters(
-    id: string,
-    deltas: { pendingSpentDelta?: number; currentSpentDelta?: number }
-  ): Promise<void> {
-    const updatePayload: Record<string, any> = {
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (deltas.pendingSpentDelta !== undefined && deltas.pendingSpentDelta !== 0) {
-      updatePayload['pendingSpent'] = admin.firestore.FieldValue.increment(deltas.pendingSpentDelta);
-    }
-
-    if (deltas.currentSpentDelta !== undefined && deltas.currentSpentDelta !== 0) {
-      updatePayload['currentSpent'] = admin.firestore.FieldValue.increment(deltas.currentSpentDelta);
-    }
-
-    await this.collection.doc(id).update(updatePayload);
-  }
-
   async findWithQuery(query: EventQueryPayload): Promise<{ items: EventItem[]; total: number }> {
     let baseQuery: admin.firestore.Query = this.collection;
 
@@ -97,13 +49,6 @@ export class FirebaseEventRepository
     const paginatedItems = items.slice(startIndex, startIndex + limit);
 
     return { items: paginatedItems, total };
-  }
-
-  async updateJoinConfig(id: string, config: EventItem['joinConfig']): Promise<void> {
-    await this.collection.doc(id).update({
-      joinConfig: config,
-      updatedAt: new Date().toISOString(),
-    });
   }
 
   async createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem> {
@@ -134,22 +79,6 @@ export class FirebaseEventRepository
   }
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): EventItem {
-    const data = doc.data()!;
-    return {
-      ...data,
-      id: doc.id,
-      startDate: this.formatDate(data['startDate']),
-      endDate: this.formatDate(data['endDate']),
-      createdAt: this.formatDate(data['createdAt']),
-      updatedAt: this.formatDate(data['updatedAt']),
-      joinConfig: data['joinConfig']
-        ? {
-          ...data['joinConfig'],
-          startsAt: this.formatDate(data['joinConfig'].startsAt),
-          expiresAt: this.formatDate(data['joinConfig'].expiresAt),
-          createdAt: this.formatDate(data['joinConfig'].createdAt),
-        }
-        : null,
-    } as EventItem;
+    return this.mapBaseFields(doc) as EventItem;
   }
 }

@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
-import { JoinConfig, Project, ProjectFundingType, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
 import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException } from '../exceptions/project.exception';
 import { SharedService } from './shared.service';
@@ -17,7 +17,7 @@ export class ProjectService {
     private readonly sharedService: SharedService
   ) { }
 
-  async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<Project> {
+  async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<ProjectItem> {
     const isSchoolFunded = dto.type === ProjectFundingType.SCHOOL;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
     const isDean = user.role === Role.LEVEL_2_DEAN;
@@ -43,16 +43,11 @@ export class ProjectService {
       throw new ProjectInitialSpentExceedsCapException();
     }
 
-    let joinConfig = null;
-    if (dto.generateJoinCode) {
-      joinConfig = this.sharedService.generateConfig({
-        maxUses: dto.maxUses,
-        startsAt: new Date(dto.startDate).toISOString(),
-        expiresAt: dto.expiresAt ? new Date(dto.expiresAt).toISOString() : new Date(dto.endDate).toISOString(),
-      });
-    }
+    const joinConfig = dto.joinCodeConfig
+      ? this.sharedService.generateInlineConfig(dto.joinCodeConfig, dto.startDate, dto.endDate)
+      : null;
 
-    const newProject: Project = {
+    const newProject: ProjectItem = {
       id: projectId,
       name: dto.name,
       description: dto.description,
@@ -81,7 +76,7 @@ export class ProjectService {
     return this.projectRepo.create(newProject);
   }
 
-  async updateProject(projectId: string, user: AuthenticatedUser, dto: UpdateProjectDto): Promise<Project> {
+  async updateProject(projectId: string, user: AuthenticatedUser, dto: UpdateProjectDto): Promise<ProjectItem> {
     const project = await this.validateProjectAccess(projectId, user);
 
     if (project.status === ProjectStatus.ARCHIVED || project.status === ProjectStatus.COMPLETED) {
@@ -116,7 +111,7 @@ export class ProjectService {
       throw new ProjectInitialSpentExceedsCapException();
     }
 
-    const updateData: Partial<Project> = {
+    const updateData: Partial<ProjectItem> = {
       ...(dto.name && { name: dto.name.trim() }),
       ...(dto.description !== undefined && { description: dto.description ? dto.description.trim() : null }),
       ...(dto.type && { type: dto.type }),
@@ -143,14 +138,14 @@ export class ProjectService {
       throw new ProjectAlreadyArchivedException();
     }
 
-    if (project.pendingSpent > 0) {
+    if ((project.pendingSpent ?? 0) > 0) {
       throw new ProjectPendingExpensesArchiveException();
     }
 
     await this.projectRepo.update(projectId, { status: ProjectStatus.ARCHIVED });
   }
 
-  async joinProjectByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<Project> {
+  async joinProjectByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<ProjectItem> {
     const project = await this.projectRepo.findByJoinCode(joinDto.code);
     if (!project) {
       throw new InvalidJoinCodeException();
@@ -199,14 +194,14 @@ export class ProjectService {
     return joinConfig;
   }
 
-  async findById(projectId: string, user: AuthenticatedUser): Promise<Project> {
+  async findById(projectId: string, user: AuthenticatedUser): Promise<ProjectItem> {
     return this.validateProjectAccess(projectId, user);
   }
 
   async getProjectsForUser(
     user: AuthenticatedUser,
     query?: ProjectQueryDto
-  ): Promise<{ items: Project[]; total: number }> {
+  ): Promise<{ items: ProjectItem[]; total: number }> {
     const baseQuery = query ?? {};
 
     // 1. Level 1 (Finance): Global Auditing Scope
@@ -228,10 +223,10 @@ export class ProjectService {
     return this.projectRepo.findWithQuery({ ...baseQuery, mentorId: user.uid });
   }
 
-  private async validateProjectAccess(projectId: string, user: AuthenticatedUser): Promise<Project> {
+  private async validateProjectAccess(projectId: string, user: AuthenticatedUser): Promise<ProjectItem> {
     const project = await this.projectRepo.findById(projectId);
     if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
+      throw new NotFoundException(`ProjectItem with ID ${projectId} not found`);
     }
 
     const isFinanceOfficer = user.role === Role.LEVEL_1_FINANCE;
@@ -246,7 +241,7 @@ export class ProjectService {
     return project;
   }
 
-  async approveProject(projectId: string, user: AuthenticatedUser): Promise<Project> {
+  async approveProject(projectId: string, user: AuthenticatedUser): Promise<ProjectItem> {
     const project = await this.validateProjectAccess(projectId, user);
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && project.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
@@ -263,10 +258,10 @@ export class ProjectService {
       if (!isFinance) throw new ProjectApprovalForbiddenException();
       nextStatus = ProjectStatus.ACTIVE;
     } else {
-      throw new ProjectInvalidStatusTransitionException('Project is not in a pending approval state.');
+      throw new ProjectInvalidStatusTransitionException('ProjectItem is not in a pending approval state.');
     }
 
-    const updateData: Partial<Project> = {
+    const updateData: Partial<ProjectItem> = {
       status: nextStatus,
       updatedAt: new Date().toISOString(),
     };
@@ -275,7 +270,7 @@ export class ProjectService {
     return { ...project, ...updateData };
   }
 
-  async rejectProject(projectId: string, user: AuthenticatedUser, dto?: RejectProjectDto): Promise<Project> {
+  async rejectProject(projectId: string, user: AuthenticatedUser, dto?: RejectProjectDto): Promise<ProjectItem> {
     const project = await this.validateProjectAccess(projectId, user);
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && project.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
@@ -284,11 +279,15 @@ export class ProjectService {
       throw new ProjectApprovalForbiddenException();
     }
 
-    if (project.status !== ProjectStatus.PENDING_DEAN_APPROVAL) {
+    const isPendingApproval =
+      project.status === ProjectStatus.PENDING_DEAN_APPROVAL ||
+      project.status === ProjectStatus.PENDING_FINANCE_APPROVAL;
+
+    if (!isPendingApproval) {
       throw new ProjectInvalidStatusTransitionException('Only projects pending approval can be rejected.');
     }
 
-    const updateData: Partial<Project> = {
+    const updateData: Partial<ProjectItem> = {
       status: ProjectStatus.REJECTED,
       rejectionReason: dto?.reason?.trim() || null,
       updatedAt: new Date().toISOString(),

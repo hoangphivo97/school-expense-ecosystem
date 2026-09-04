@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ProjectRepository } from '../abstracts/project.repository';
-import { Project, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
+import { ProjectItem, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
 import {
   ProjectInitialSpentExceedsCapException,
   ProjectNotFoundException,
@@ -10,7 +10,7 @@ import { FirebaseBaseRepository } from './firebase-base.repository';
 
 @Injectable()
 export class FirestoreProjectRepository
-  extends FirebaseBaseRepository<Project>
+  extends FirebaseBaseRepository<ProjectItem>
   implements ProjectRepository
 {
   constructor(
@@ -23,55 +23,7 @@ export class FirestoreProjectRepository
     return this.db.collection('department_funds');
   }
 
-  async create(project: Project): Promise<Project> {
-    await this.collection.doc(project.id).set(project);
-    return project;
-  }
-
-  async findById(id: string): Promise<Project | null> {
-    const doc = await this.collection.doc(id).get();
-    if (!doc.exists) return null;
-    return this.mapDoc(doc);
-  }
-
-  async findByJoinCode(code: string): Promise<Project | null> {
-    const snapshot = await this.collection
-      .where('joinConfig.code', '==', code)
-      .where('joinConfig.isActive', '==', true)
-      .limit(1)
-      .get();
-
-    if (snapshot.empty) return null;
-    return this.mapDoc(snapshot.docs[0]);
-  }
-
-  async update(id: string, data: Partial<Project>): Promise<void> {
-    await this.collection.doc(id).update({
-      ...data,
-      updatedAt: new Date().toISOString(),
-    });
-  }
-
-  async updateSpentCounters(
-    id: string,
-    deltas: { pendingSpentDelta?: number; currentSpentDelta?: number }
-  ): Promise<void> {
-    const updatePayload: Record<string, any> = {
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (deltas.pendingSpentDelta !== undefined && deltas.pendingSpentDelta !== 0) {
-      updatePayload['pendingSpent'] = admin.firestore.FieldValue.increment(deltas.pendingSpentDelta);
-    }
-
-    if (deltas.currentSpentDelta !== undefined && deltas.currentSpentDelta !== 0) {
-      updatePayload['currentSpent'] = admin.firestore.FieldValue.increment(deltas.currentSpentDelta);
-    }
-
-    await this.collection.doc(id).update(updatePayload);
-  }
-
-  async findWithQuery(query: ProjectQueryPayload): Promise<{ items: Project[]; total: number }> {
+  async findWithQuery(query: ProjectQueryPayload): Promise<{ items: ProjectItem[]; total: number }> {
     let baseQuery: admin.firestore.Query = this.collection;
 
     if (query.facultyId) baseQuery = baseQuery.where('facultyId', '==', query.facultyId);
@@ -96,19 +48,12 @@ export class FirestoreProjectRepository
     return { items: paginatedItems, total };
   }
 
-  async updateJoinConfig(id: string, config: Project['joinConfig']): Promise<void> {
-    await this.collection.doc(id).update({
-      joinConfig: config,
-      updatedAt: new Date().toISOString(),
-    });
-  }
-
-  async findProjectsByMentorId(mentorUid: string): Promise<Project[]> {
+  async findProjectsByMentorId(mentorUid: string): Promise<ProjectItem[]> {
     const snapshot = await this.collection.where('mentorId', '==', mentorUid).get();
     return snapshot.docs.map((doc) => this.mapDoc(doc));
   }
 
-  async createWithFacultyFund(project: Project, departmentFundId: string): Promise<Project> {
+  async createWithFacultyFund(project: ProjectItem, departmentFundId: string): Promise<ProjectItem> {
     const fundRef = this.departmentFundsCollection.doc(departmentFundId);
     const projectRef = this.collection.doc(project.id);
 
@@ -135,23 +80,7 @@ export class FirestoreProjectRepository
     });
   }
 
-  protected mapDoc(doc: admin.firestore.DocumentSnapshot): Project {
-    const data = doc.data()!;
-    return {
-      ...data,
-      id: doc.id,
-      startDate: this.formatDate(data['startDate']),
-      endDate: this.formatDate(data['endDate']),
-      createdAt: this.formatDate(data['createdAt']),
-      updatedAt: this.formatDate(data['updatedAt']),
-      joinConfig: data['joinConfig']
-        ? {
-            ...data['joinConfig'],
-            startsAt: this.formatDate(data['joinConfig'].startsAt),
-            expiresAt: this.formatDate(data['joinConfig'].expiresAt),
-            createdAt: this.formatDate(data['joinConfig'].createdAt),
-          }
-        : null,
-    } as Project;
+  protected mapDoc(doc: admin.firestore.DocumentSnapshot): ProjectItem {
+    return this.mapBaseFields(doc) as ProjectItem;
   }
 }
