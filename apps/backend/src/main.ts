@@ -43,7 +43,7 @@ export const api = onRequest(
   {
     region: 'asia-east1',
     memory: '1GiB',
-    minInstances: 1
+    minInstances: 0
   },
   async (req, res) => {
     const server = await bootstrapServer();

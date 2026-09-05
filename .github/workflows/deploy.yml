@@ -41,17 +41,7 @@ jobs:
       - name: Derive appropriate SHAs for affected commands
         uses: nrwl/nx-set-shas@v4
 
-      - name: Bump Version & Update Changelog
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          npx standard-version --releaseCommitMessageFormat "chore(release): {{currentTag}} [skip ci]"
-
       - name: Deploy Affected Applications Only
         env:
           NODE_OPTIONS: "--max-old-space-size=6144"
         run: yarn nx affected -t deploy --token "${{ secrets.FIREBASE_TOKEN }}"
-
-      - name: Push Changelog
-        run: |
-          git push --follow-tags origin main
