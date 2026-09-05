@@ -1,273 +1,40 @@
-<div class="multi-modal-wrapper" *transloco="let t; read: 'project.createDialog'">
-  <!-- Window 1: Main Project Card -->
-  <div class="primary-modal-card">
-    <div class="modal-header-box d-flex align-items-center">
-      <div class="title-icon-wrapper me-3">
-        <mat-icon color="primary">{{ isDetailMode() ? 'folder_open' : 'create_new_folder' }}</mat-icon>
-      </div>
-      <div class="title-text-group d-flex flex-column">
-        <h2 class="main-title-text m-0">
-          {{ isDetailMode() ? t('detailTitle') : (isEditMode() ? t('editTitle') : t('title')) }}
-        </h2>
-        <p class="sub-title-text m-0">
-          {{ isDetailMode() ? t('detailSubtitle') : t('subtitle') }}
-        </p>
-      </div>
-    </div>
-
-    <mat-dialog-content class="custom-content">
-      <form [formGroup]="form" class="w-100 py-2">
-        @if (errorMessage()) {
-          <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-            <mat-icon class="fs-5 w-auto h-auto text-danger flex-shrink-0">error_outline</mat-icon>
-            <span>{{ errorMessage() }}</span>
+<lib-activity-form-layout
+  [form]="form"
+  [faculties]="faculties()"
+  [isFacultiesLoading]="isFacultiesLoading()"
+  [isSubmitting]="isSubmitting()"
+  [isDetailMode]="isDetailMode()"
+  [isEditMode]="isEditMode()"
+  [isImmediatelyActive]="isImmediatelyActive()"
+  [errorMessage]="errorMessage()"
+  translocoScope="project.createDialog"
+  [fundingTypeSlot]="projectFundingTpl"
+  (submitForm)="onSubmit()"
+  (cancelForm)="onCancel()"
+  (amountInput)="onInputAmount($event.event, $event.controlName)"
+>
+  <!-- Slot: Project Funding Type Selector -->
+  <ng-template #projectFundingTpl>
+    <mat-form-field appearance="outline" class="w-100 custom-field" [formGroup]="form">
+      <mat-label>{{ 'project.createDialog.fields.type.label' | transloco }}</mat-label>
+      <mat-select formControlName="type">
+        <mat-select-trigger>
+          <div class="d-flex align-items-center gap-2">
+            <mat-icon class="fs-6 h-auto w-auto field-icon">account_balance</mat-icon>
+            <span class="selected-value">
+              {{ 'shared.filter.options.projectType.' + form.get('type')?.value | transloco }}
+            </span>
           </div>
+        </mat-select-trigger>
+        @for (type of fundingTypes; track type) {
+          <mat-option [value]="type">
+            {{ 'shared.filter.options.projectType.' + type | transloco }}
+          </mat-option>
         }
-
-        @if (form.errors?.['invalidDateRange'] && (form.get('endDate')?.touched || form.get('startDate')?.touched)) {
-          <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-            <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
-            <span>{{ t('warnings.invalidDateRange') }}</span>
-          </div>
-        }
-
-        @if (form.errors?.['initialSpentExceedsBudget'] && (form.get('initialSpent')?.touched || form.get('budgetCap')?.touched)) {
-          <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-            <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
-            <span>{{ t('warnings.initialSpentExceedsBudget') }}</span>
-          </div>
-        }
-
-        <div class="row g-4 m-0">
-          <!-- Project Name -->
-          <div class="col-12">
-            <mat-form-field appearance="outline" class="w-100 custom-field">
-              <mat-label>{{ t('fields.name.label') }}</mat-label>
-              <mat-icon matIconPrefix class="field-icon">folder_special</mat-icon>
-              <input matInput formControlName="name" [placeholder]="t('fields.name.placeholder')" maxlength="150" />
-              <mat-error>
-                {{ form.get('name')?.errors | formError: {
-                  required: t('fields.name.errors.required'),
-                  maxlength: t('fields.name.errors.maxlength')
-                } }}
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Funding Type -->
-          <div class="col-md-6">
-            <mat-form-field appearance="outline" class="w-100 custom-field">
-              <mat-label>{{ t('fields.type.label') }}</mat-label>
-              <mat-select formControlName="type">
-                <mat-select-trigger>
-                  <div class="d-flex align-items-center gap-2">
-                    <mat-icon class="fs-6 h-auto w-auto field-icon">account_balance</mat-icon>
-                    <span class="selected-value">
-                      {{ 'shared.filter.options.projectType.' + form.get('type')?.value | transloco }}
-                    </span>
-                  </div>
-                </mat-select-trigger>
-                @for (type of fundingTypes; track type) {
-                  <mat-option [value]="type">
-                    {{ 'shared.filter.options.projectType.' + type | transloco }}
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-error>{{ form.get('type')?.errors | formError: { required: t('fields.type.errors.required') } }}</mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Faculty / Department -->
-          <div class="col-md-6">
-            <mat-form-field appearance="outline" class="w-100 custom-field">
-              <mat-label>{{ t('fields.faculty.label') }}</mat-label>
-              <mat-select formControlName="facultyId" panelClass="faculty-dropdown-panel">
-                <mat-select-trigger>
-                  <div class="d-flex align-items-center gap-2">
-                    <mat-icon class="fs-6 h-auto w-auto field-icon">school</mat-icon>
-                    <span class="selected-value">{{ form.get('facultyId')?.value }}</span>
-                  </div>
-                </mat-select-trigger>
-                @if (isFacultiesLoading()) {
-                  <mat-option disabled>{{ t('fields.faculty.loading') }}</mat-option>
-                }
-                @for (faculty of faculties(); track faculty.id) {
-                  <mat-option [value]="faculty.id">{{ faculty.name }} ({{ faculty.id }})</mat-option>
-                }
-              </mat-select>
-              <mat-error>{{ form.get('facultyId')?.errors | formError: { required: t('fields.faculty.errors.required') } }}</mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Budget Cap -->
-          <div class="col-md-6">
-            <mat-form-field appearance="outline" class="w-100 custom-field amount-field">
-              <mat-label>{{ t('fields.budgetCap.label') }}</mat-label>
-              <mat-icon matIconPrefix class="field-icon">payments</mat-icon>
-              <span matTextSuffix class="currency-suffix">TWD</span>
-              <input matInput formControlName="budgetCap" (input)="onInputAmount($event, 'budgetCap')" placeholder="0" />
-              <mat-error>
-                {{ form.get('budgetCap')?.errors | formError: {
-                  required: t('fields.budgetCap.errors.required'),
-                  min: t('fields.budgetCap.errors.min')
-                } }}
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Initial Committed Spent -->
-          <div class="col-md-6">
-            <mat-form-field appearance="outline" class="w-100 custom-field amount-field">
-              <mat-label>{{ t('fields.initialSpent.label') }}</mat-label>
-              <mat-icon matIconPrefix class="field-icon">account_balance_wallet</mat-icon>
-              <span matTextSuffix class="currency-suffix">TWD</span>
-              <input matInput formControlName="initialSpent" (input)="onInputAmount($event, 'initialSpent')" placeholder="0" />
-              <mat-hint align="end" class="fw-medium">{{ t('fields.initialSpent.hint') }}</mat-hint>
-              <mat-error>
-                {{ form.get('initialSpent')?.errors | formError: { 
-                  min: t('fields.initialSpent.errors.min'),
-                  initialSpentExceedsBudget: t('warnings.initialSpentExceedsBudget')
-                } }}
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Start Date -->
-          <div class="col-md-6">
-            <mat-form-field appearance="outline" class="w-100 custom-field">
-              <mat-label>{{ t('fields.startDate.label') }}</mat-label>
-              <input matInput [matDatepicker]="startPicker" formControlName="startDate" [max]="form.get('endDate')?.value" readonly />
-              <mat-datepicker-toggle matIconSuffix [for]="startPicker" [disabled]="form.get('startDate')?.disabled"></mat-datepicker-toggle>
-              <mat-datepicker #startPicker [disabled]="form.get('startDate')?.disabled"></mat-datepicker>
-              <mat-error>{{ form.get('startDate')?.errors | formError: { required: t('fields.startDate.errors.required') } }}</mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- End Date -->
-          <div class="col-md-6">
-            <mat-form-field appearance="outline" class="w-100 custom-field">
-              <mat-label>{{ t('fields.endDate.label') }}</mat-label>
-              <input matInput [matDatepicker]="endPicker" formControlName="endDate" [min]="form.get('startDate')?.value" readonly />
-              <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-              <mat-datepicker #endPicker></mat-datepicker>
-              <mat-error>{{ form.get('endDate')?.errors | formError: { required: t('fields.endDate.errors.required') } }}</mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Description -->
-          <div class="col-12">
-            <mat-form-field appearance="outline" class="w-100 custom-field">
-              <mat-label>{{ t('fields.description.label') }}</mat-label>
-              <mat-icon matIconPrefix class="field-icon refined-textarea-icon">notes</mat-icon>
-              <textarea matInput rows="3" formControlName="description" [placeholder]="t('fields.description.placeholder')" maxlength="500"></textarea>
-              <mat-hint align="end">{{ form.get('description')?.value?.length || 0 }} / 500</mat-hint>
-              <mat-error>{{ form.get('description')?.errors | formError: { maxlength: t('fields.description.errors.maxlength') } }}</mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Inline Join Code Toggle -->
-          @if (!isDetailMode() && !isEditMode()) {
-            <div class="col-12">
-              <div class="expandable-join-box p-3 rounded-4 d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <div class="join-icon-avatar">
-                    <mat-icon color="primary">qr_code_2</mat-icon>
-                  </div>
-                  <div>
-                    <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.toggleTitle') }}</h4>
-                    <p class="m-0 text-muted smaller">{{ t('invitationCode.toggleSubtitle') }}</p>
-                  </div>
-                </div>
-                <mat-slide-toggle formControlName="generateJoinCode" color="primary"></mat-slide-toggle>
-              </div>
-            </div>
-          }
-        </div>
-      </form>
-    </mat-dialog-content>
-
-    <!-- Modal Actions Footer -->
-    <mat-dialog-actions align="end" class="modal-footer px-4 pb-4 pt-2">
-      @if (isDetailMode()) {
-        <button mat-flat-button color="primary" type="button" class="px-4" (click)="onCancel()">
-          {{ t('actions.close') }}
-        </button>
-      } @else {
-        <button mat-button type="button" class="cancel-btn" (click)="onCancel()" [disabled]="isSubmitting()">
-          {{ t('actions.cancel') }}
-        </button>
-
-        <button
-          mat-flat-button
-          color="primary"
-          type="button"
-          class="submit-btn px-4 ms-2"
-          [disabled]="form.invalid || isSubmitting()"
-          (click)="onSubmit()"
-        >
-          <mat-icon class="me-2" [class.spinning]="isSubmitting()">
-            {{ isSubmitting() ? 'sync' : 'save' }}
-          </mat-icon>
-          <span>{{ isSubmitting() ? t('actions.submitting') : (isEditMode() ? t('actions.update') : t('actions.submit')) }}</span>
-        </button>
-      }
-    </mat-dialog-actions>
-  </div>
-
-  <!-- Window 2: Secondary Floating Modal for Invitation Code -->
-  @if (form.get('generateJoinCode')?.value && !isDetailMode() && !isEditMode()) {
-    <div class="secondary-modal-card">
-      <div class="card-header-box d-flex align-items-center justify-content-between border-bottom p-3">
-        <div class="d-flex align-items-center gap-2">
-          <mat-icon color="primary">settings_suggest</mat-icon>
-          <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.panelTitle') }}</h4>
-        </div>
-        <button mat-icon-button type="button" (click)="form.get('generateJoinCode')?.setValue(false)">
-          <mat-icon class="fs-5">close</mat-icon>
-        </button>
-      </div>
-
-      <div class="card-content-box p-3 d-flex flex-column gap-3" [formGroup]="form">
-        @if (!isImmediatelyActive()) {
-          <div class="alert alert-info py-2 px-3 m-0 small d-flex align-items-start gap-2">
-            <mat-icon class="fs-6 text-info flex-shrink-0 mt-1" style="width: 18px; height: 18px; font-size: 18px;">info</mat-icon>
-            <span class="lh-sm">{{ t('invitationCode.pendingApprovalNotice') }}</span>
-          </div>
-        }
-
-        <!-- Max Capacity -->
-        <mat-form-field appearance="outline" class="w-100 custom-field">
-          <mat-label>{{ t('invitationCode.maxUsesLabel') }}</mat-label>
-          <mat-icon matIconPrefix class="field-icon">group_add</mat-icon>
-          <input matInput type="number" formControlName="maxUses" placeholder="Unlimited" min="1" />
-          <mat-hint align="end">{{ t('invitationCode.maxUsesHint') }}</mat-hint>
-          <mat-error>{{ t('invitationCode.maxUsesError') }}</mat-error>
-        </mat-form-field>
-
-        <!-- Expiration Date -->
-        <mat-form-field appearance="outline" class="w-100 custom-field">
-          <mat-label>{{ t('invitationCode.expiresAtLabel') }}</mat-label>
-          <input
-            matInput
-            [matDatepicker]="codeExpirePicker"
-            formControlName="expiresAt"
-            [min]="form.get('startDate')?.value"
-            [max]="form.get('endDate')?.value"
-            readonly
-          />
-          <mat-datepicker-toggle matIconSuffix [for]="codeExpirePicker"></mat-datepicker-toggle>
-          <mat-datepicker #codeExpirePicker></mat-datepicker>
-          <mat-hint align="end">{{ t('invitationCode.expiresAtHint') }}</mat-hint>
-          @if (form.errors?.['invalidJoinCodeExpiration']) {
-            <mat-error>{{ t('invitationCode.expiresAtError') }}</mat-error>
-          }
-        </mat-form-field>
-
-        <div class="code-preview-card mt-auto p-3 rounded-3 text-center">
-          <mat-icon class="preview-icon text-muted mb-1">lock_open</mat-icon>
-          <p class="preview-text small text-muted m-0">{{ t('invitationCode.previewNote') }}</p>
-        </div>
-      </div>
-    </div>
-  }
-</div>
+      </mat-select>
+      <mat-error>
+        {{ form.get('type')?.errors | formError: { required: 'project.createDialog.fields.type.errors.required' | transloco } }}
+      </mat-error>
+    </mat-form-field>
+  </ng-template>
+</lib-activity-form-layout>

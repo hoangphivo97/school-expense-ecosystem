@@ -1,0 +1,70 @@
+<lib-activity-form-layout
+  [form]="form"
+  [faculties]="faculties()"
+  [isFacultiesLoading]="isFacultiesLoading()"
+  [isSubmitting]="isSubmitting()"
+  [isDetailMode]="isDetailMode()"
+  [isEditMode]="isEditMode()"
+  [isImmediatelyActive]="isImmediatelyActive()"
+  [errorMessage]="errorMessage()"
+  translocoScope="event.createDialog"
+  [fundingTypeSlot]="eventFundingTpl"
+  [extraFieldsSlot]="parentProjectTpl"
+  (submitForm)="onSubmit()"
+  (cancelForm)="onCancel()"
+  (amountInput)="onInputAmount($event.event, $event.controlName)"
+>
+  <!-- Slot 1: Event Funding Type -->
+  <ng-template #eventFundingTpl>
+    <mat-form-field appearance="outline" class="w-100 custom-field" [formGroup]="form">
+      <mat-label>{{ 'event.createDialog.fields.type.label' | transloco }}</mat-label>
+      <mat-select formControlName="type">
+        <mat-select-trigger>
+          <div class="d-flex align-items-center gap-2">
+            <mat-icon class="fs-6 h-auto w-auto field-icon">account_balance</mat-icon>
+            <span>{{ 'shared.filter.options.eventType.' + form.get('type')?.value | transloco }}</span>
+          </div>
+        </mat-select-trigger>
+        @for (type of fundingTypes; track type) {
+          <mat-option [value]="type">
+            {{ 'shared.filter.options.eventType.' + type | transloco }}
+          </mat-option>
+        }
+      </mat-select>
+      <mat-error>{{ form.get('type')?.errors | formError: { required: 'event.createDialog.fields.type.errors.required' | transloco } }}</mat-error>
+    </mat-form-field>
+  </ng-template>
+
+  <!-- Slot 2: Parent Project Selector (Conditional on PROJECT funding type) -->
+  <ng-template #parentProjectTpl>
+    <mat-form-field appearance="outline" class="w-100 custom-field" [formGroup]="form">
+      <mat-label>{{ 'event.createDialog.fields.parentProject.label' | transloco }}</mat-label>
+      <mat-icon matIconPrefix class="field-icon">account_tree</mat-icon>
+      <mat-select formControlName="projectId">
+        <!-- Option for Standalone Event -->
+        <mat-option [value]="null">
+          <span class="text-muted">{{ 'event.createDialog.fields.parentProject.none' | transloco }}</span>
+        </mat-option>
+
+        @if (isProjectsLoading()) {
+          <mat-option disabled>{{ 'event.createDialog.fields.parentProject.loading' | transloco }}</mat-option>
+        }
+        @for (project of availableProjects(); track project.id) {
+          @let availableHeadroom = project.budgetCap - (project.currentSpent + (project.pendingSpent ?? 0));
+          <mat-option [value]="project.id">
+            <div class="w-100">
+              <span class="fw-medium">{{ project.name }}</span>
+              <span class="text-muted">
+                {{ 'event.createDialog.fields.parentProject.headroom' | transloco }}: {{ availableHeadroom | number }} TWD
+              </span>
+            </div>
+          </mat-option>
+        }
+      </mat-select>
+      <mat-hint align="end">{{ 'event.createDialog.fields.parentProject.hint' | transloco }}</mat-hint>
+      <mat-error>
+        {{ form.get('budgetCap')?.errors | formError: { parentBudgetExceeded: 'event.createDialog.fields.parentProject.errors.budgetExceeded' | transloco } }}
+      </mat-error>
+    </mat-form-field>
+  </ng-template>
+</lib-activity-form-layout>

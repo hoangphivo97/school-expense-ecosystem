@@ -163,6 +163,12 @@
       "submitting": "Creating...",
       "close": "Close",
       "update": "Save Changes"
+    },
+    "discardModal": {
+      "title": "Discard Changes",
+      "message": "You have unsaved changes in this project. Are you sure you want to discard them?",
+      "confirm": "Discard",
+      "cancel": "Keep Editing"
     }
   },
   "manageMembersDialog": {

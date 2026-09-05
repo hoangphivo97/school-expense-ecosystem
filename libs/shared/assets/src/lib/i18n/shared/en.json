@@ -32,7 +32,7 @@
       "/budget-manager": "Budget Management",
       "/project-overview": "Project Overview",
       "/project-manager/overview": "Project Management",
-      "/project-manager/events":"Event Management"
+      "/project-manager/events": "Event Management"
     }
   },
   "filter": {
@@ -81,20 +81,26 @@
         "REJECTED": "Rejected"
       },
       "projectType": {
-          "ALL": "All Types",
-          "SCHOOL": "School Funded",
-          "FACULTY": "Faculty Funded",
-          "OUTSOURCE": "External / Outsource"
-        },
+        "ALL": "All Types",
+        "SCHOOL": "School Funded",
+        "FACULTY": "Faculty Funded",
+        "OUTSOURCE": "External / Outsource"
+      },
       "projectStatus": {
-          "ALL": "All Statuses",
-          "ACTIVE": "Active",
-          "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
-          "PENDING_FINANCE_APPROVAL": "Pending Finance Approval",
-          "REJECTED": "Rejected",
-          "COMPLETED": "Completed",
-          "ARCHIVED": "Archived"
-        },
+        "ALL": "All Statuses",
+        "ACTIVE": "Active",
+        "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
+        "PENDING_FINANCE_APPROVAL": "Pending Finance Approval",
+        "REJECTED": "Rejected",
+        "COMPLETED": "Completed",
+        "ARCHIVED": "Archived"
+      },
+      "eventType": {
+        "SCHOOL": "School Funded",
+        "FACULTY": "Faculty Funded",
+        "PROJECT": "Project Funded",
+        "OUTSOURCE": "Outsourced / External"
+      },
       "months": {
         "ALL": "All Months",
         "1": "January",

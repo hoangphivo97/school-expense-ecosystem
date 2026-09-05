@@ -12,6 +12,7 @@ import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel } from
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import {
+  DialogActionEnum,
   FacultyId,
   FilterMode,
   Role,
@@ -25,6 +26,7 @@ import {
   NotificationService,
   PaginationComponent,
 } from '@school-expense-ecosystem/shared/ui';
+import { CreateEventDialogComponent } from '../dialogs/create-event-dialog/create-event-dialog.component';
 
 export interface EventViewModel extends EventItem, BaseActivityViewModel {
   canManage: boolean;
@@ -143,7 +145,42 @@ export class EventListComponent {
   }
 
   openCreateEventModal(): void {
-    // Open create event dialog modal logic
+    const dialogRef = this.dialog.open(CreateEventDialogComponent, {
+      panelClass: 'floating-multi-modal-panel',
+      width: 'auto',
+      data: {
+        facultyId: this.currentUser()?.facultyId,
+        action: DialogActionEnum.Create
+      },
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((createEvent: EventItem | undefined) => {
+      if (!createEvent) return;
+
+      const joinCode = createEvent.joinConfig?.code;
+
+      if (joinCode) {
+        // Automatically write join code to clipboard
+        navigator.clipboard.writeText(joinCode).then(() => {
+          this.notify.success('project.projectList.notifications.createdWithCodeCopied', {
+            name: createEvent.name,
+            code: joinCode,
+          });
+        }).catch(() => {
+          this.notify.success('project.projectList.notifications.createdWithCode', {
+            name: createEvent.name,
+            code: joinCode,
+          });
+        });
+      } else {
+        this.notify.success('project.projectList.notifications.createdSuccess', {
+          name: createEvent.name,
+        });
+      }
+
+      this.eventResource.reload();
+    });
   }
 
   navigateToDetail(event: EventItem): void {

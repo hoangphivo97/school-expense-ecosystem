@@ -1,0 +1,112 @@
+{
+  "createDialog": {
+    "title": "Create New Event",
+    "subtitle": "Define event budget limits, funding type, and schedule",
+    "editTitle": "Edit Event",
+    "detailTitle": "Event Details",
+    "detailSubtitle": "View event configuration and financial baseline",
+    "warnings": {
+      "dialogTitle": "Event Submission Notice",
+      "invalidDateRange": "End date must be greater than or equal to start date.",
+      "initialSpentExceedsBudget": "Initial spent amount cannot exceed the budget cap.",
+      "deanSchoolApproval": "School-funded events created by the Dean require final review and approval by the Finance Office.",
+      "deanFacultyDeduction": "Faculty-funded events will encumber budget directly from the department fund balance upon creation.",
+      "teacherDualApproval": "School-funded events initiated by teachers require review by the Dean followed by the Finance Office.",
+      "teacherDeanApproval": "Faculty-funded events submitted by teachers require review and approval by the Dean."
+    },
+    "fields": {
+      "name": {
+        "label": "Event Name",
+        "placeholder": "e.g., Annual Tech Symposium 2026",
+        "errors": {
+          "required": "Event name is required",
+          "maxlength": "Event name cannot exceed 150 characters"
+        }
+      },
+      "type": {
+        "label": "Funding Type",
+        "errors": {
+          "required": "Funding type is required"
+        }
+      },
+      "parentProject": {
+      "label": "Parent Project Sponsor (Optional)",
+      "none": "None (Standalone Event)",
+      "hint": "Optionally link to an active project to encumber its budget",
+      "loading": "Loading available projects...",
+      "headroom": "budget",
+      "errors": {
+        "budgetExceeded": "Event budget exceeds parent project headroom"
+      }
+    },
+      "faculty": {
+        "label": "Faculty / Department",
+        "loading": "Loading faculties...",
+        "errors": {
+          "required": "Faculty is required"
+        }
+      },
+      "budgetCap": {
+        "label": "Budget Cap",
+        "errors": {
+          "required": "Budget cap is required",
+          "min": "Budget cap must be greater than 0"
+        }
+      },
+      "initialSpent": {
+        "label": "Initial Committed Spent",
+        "hint": "Historical or pre-committed expenses",
+        "errors": {
+          "min": "Initial spent cannot be negative"
+        }
+      },
+      "startDate": {
+        "label": "Start Date",
+        "errors": {
+          "required": "Start date is required"
+        }
+      },
+      "endDate": {
+        "label": "End Date",
+        "errors": {
+          "required": "End date is required"
+        }
+      },
+      "description": {
+        "label": "Event Scope & Description",
+        "placeholder": "Brief description of the event agenda and objectives...",
+        "errors": {
+          "maxlength": "Description cannot exceed 500 characters"
+        }
+      }
+    },
+    "invitationCode": {
+      "toggleTitle": "Instant Invitation Code",
+      "toggleSubtitle": "Generate participation code immediately upon creation",
+      "panelTitle": "Invitation Code Settings",
+      "pendingApprovalNotice": "Code will be pre-configured and activate automatically once approved by Dean/Finance.",
+      "maxUsesLabel": "Maximum Capacity",
+      "maxUsesHint": "Leave empty for unlimited",
+      "maxUsesError": "Maximum capacity must be at least 1",
+      "expiresAtLabel": "Code Expiration Date",
+      "expiresAtHint": "Defaults to event end date",
+      "expiresAtError": "Expiration date cannot exceed event end date",
+      "previewNote": "A unique 6-character access code will be minted upon submission."
+    },
+    "actions": {
+      "close": "Close",
+      "cancel": "Cancel",
+      "submit": "Create Event",
+      "update": "Update Event",
+      "submitting": "Submitting...",
+      "proceed": "Proceed & Create",
+      "review": "Review Form"
+    },
+    "discardModal": {
+      "title": "Discard Changes",
+      "message": "You have unsaved changes in this event. Are you sure you want to discard them?",
+      "confirm": "Discard",
+      "cancel": "Keep Editing"
+    }
+  }
+}

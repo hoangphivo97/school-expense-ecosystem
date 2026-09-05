@@ -1,0 +1,112 @@
+{
+  "createDialog": {
+    "title": "建立新活動",
+    "subtitle": "設定活動預算上限、經費來源類型與活動時程",
+    "editTitle": "編輯活動",
+    "detailTitle": "活動詳情",
+    "detailSubtitle": "查看活動配置與財務基準資料",
+    "warnings": {
+      "dialogTitle": "活動提交確認提醒",
+      "invalidDateRange": "結束日期必須大於或等於開始日期。",
+      "initialSpentExceedsBudget": "初期已支用金額不可超過活動預算上限。",
+      "deanSchoolApproval": "由院長發起之校級補助活動，建立後需由財務處進行最終審核。",
+      "deanFacultyDeduction": "院系自籌活動在建立後，將直接自系所基金餘額中預扣相應額度。",
+      "teacherDualApproval": "教師發起之校級補助活動，需先經院長初審通過，再送交財務處複審。",
+      "teacherDeanApproval": "教師發起之院系補助活動，提交後需經院長審核核准。"
+    },
+    "fields": {
+      "name": {
+        "label": "活動名稱",
+        "placeholder": "例如：2026年度資訊科技研討會",
+        "errors": {
+          "required": "活動名稱為必填項目",
+          "maxlength": "活動名稱長度不可超過 150 個字元"
+        }
+      },
+      "type": {
+        "label": "經費來源類型",
+        "errors": {
+          "required": "必須選擇經費來源類型"
+        }
+      },
+      "parentProject": {
+        "label": "所屬母專案（選填）",
+        "none": "無（獨立活動）",
+        "hint": "可選擇連結至進行中專案以扣抵其預算額度",
+        "loading": "正在載入可用專案列表...",
+        "headroom": "可用預算額度",
+        "errors": {
+          "budgetExceeded": "活動預算已超過所選母專案之剩餘額度"
+        }
+      },
+      "faculty": {
+        "label": "學院 / 系所",
+        "loading": "正在載入系所資料...",
+        "errors": {
+          "required": "必須選擇所屬學院 / 系所"
+        }
+      },
+      "budgetCap": {
+        "label": "預算上限",
+        "errors": {
+          "required": "預算上限為必填項目",
+          "min": "預算上限金額必須大於 0"
+        }
+      },
+      "initialSpent": {
+        "label": "初期已承諾支出",
+        "hint": "歷史支出或預先承諾支用金額",
+        "errors": {
+          "min": "初期支出金額不可小於 0"
+        }
+      },
+      "startDate": {
+        "label": "開始日期",
+        "errors": {
+          "required": "請選擇活動開始日期"
+        }
+      },
+      "endDate": {
+        "label": "結束日期",
+        "errors": {
+          "required": "請選擇活動結束日期"
+        }
+      },
+      "description": {
+        "label": "活動範疇與說明",
+        "placeholder": "請簡要說明活動內容、目標與主要規劃...",
+        "errors": {
+          "maxlength": "活動說明長度不可超過 500 個字元"
+        }
+      }
+    },
+    "invitationCode": {
+      "toggleTitle": "即時生成邀請代碼",
+      "toggleSubtitle": "於活動建立時同步產生活動報名代碼",
+      "panelTitle": "邀請碼設定",
+      "pendingApprovalNotice": "此邀請碼將預先設定，待院長或財務處核准活動後自動生效啟用。",
+      "maxUsesLabel": "名額上限",
+      "maxUsesHint": "留空表示不限制參與名額",
+      "maxUsesError": "參與名額上限至少需為 1",
+      "expiresAtLabel": "邀請碼有效截止日期",
+      "expiresAtHint": "預設與活動結束日期相同",
+      "expiresAtError": "有效截止日期不得晚於活動結束日期",
+      "previewNote": "表單提交成功後，系統將自動派發專屬的 6 碼英數代碼。"
+    },
+    "actions": {
+      "close": "關閉",
+      "cancel": "取消",
+      "submit": "建立活動",
+      "update": "儲存變更",
+      "submitting": "送出中...",
+      "proceed": "確認並送出",
+      "review": "返回修改"
+    },
+    "discardModal": {
+      "title": "放棄未儲存變更",
+      "message": "此表單尚有未儲存的變更內容，確定要直接放棄離開嗎？",
+      "confirm": "確認放棄",
+      "cancel": "繼續編輯"
+    }
+  }
+}

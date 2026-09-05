@@ -59,6 +59,12 @@
         "LEVEL_2_DEAN": "院長 / 系主任",
         "LEVEL_3_USER": "一般使用者"
       },
+      "eventType": {
+        "SCHOOL": "校級補助",
+        "FACULTY": "院系自籌",
+        "PROJECT": "專案資助",
+        "OUTSOURCE": "委外 / 產學外部合作"
+      },
       "userTypes": {
         "ALL": "所有使用者類型",
         "STUDENT": "在校學生",
