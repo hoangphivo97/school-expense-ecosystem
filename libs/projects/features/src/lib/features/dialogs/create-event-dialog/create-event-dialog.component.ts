@@ -26,10 +26,10 @@ import {
   ProjectStatus,
   UpdateEventPayload,
 } from '@school-expense-ecosystem/projects/types';
+import { ActivityFormLayoutComponent } from '@school-expense-ecosystem/projects/ui';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { ConfirmDialogData, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
-import { ActivityFormLayoutComponent } from '../activity-form-layout/activity-form-layout.component';
 
 export interface CreateEventDialogData {
   facultyId?: FacultyId;

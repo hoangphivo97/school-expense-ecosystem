@@ -1,4 +1,4 @@
-import { Component, input, Input, output, TemplateRef } from '@angular/core';
+import { Component, input, output, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';

@@ -1,0 +1,30 @@
+@if (max()) {
+  <div class="enrollment-container">
+    <!-- Header: Ratio and Percentage Labels -->
+    <div class="d-flex justify-content-between align-items-center mb-1 small">
+      <span class="fw-semibold font-monospace" [class.text-danger]="resolvedIsFull()">
+        {{ current() }}/{{ max() }}
+      </span>
+      <span class="text-secondary smaller">{{ resolvedPercentage() }}%</span>
+    </div>
+
+    <!-- Dynamic Capacity Progress Track -->
+    <div class="progress-track">
+      <div
+        class="progress-fill"
+        [style.width.%]="resolvedPercentage()"
+        [ngClass]="{
+          'bg-danger': resolvedIsFull(),
+          'bg-warning': resolvedPercentage() >= 80 && !resolvedIsFull(),
+          'bg-primary': resolvedPercentage() < 80
+        }"
+      ></div>
+    </div>
+  </div>
+} @else {
+  <!-- Uncapped/Standalone Participant Indicator -->
+  <div class="fallback-container d-flex align-items-center gap-1 text-secondary small">
+    <mat-icon class="fs-6 h-auto w-auto">{{ fallbackIcon() }}</mat-icon>
+    <span>{{ current() }}</span>
+  </div>
+}

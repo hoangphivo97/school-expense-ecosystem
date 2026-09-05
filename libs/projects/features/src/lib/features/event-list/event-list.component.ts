@@ -27,6 +27,7 @@ import {
   PaginationComponent,
 } from '@school-expense-ecosystem/shared/ui';
 import { CreateEventDialogComponent } from '../dialogs/create-event-dialog/create-event-dialog.component';
+import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
 
 export interface EventViewModel extends EventItem, BaseActivityViewModel {
   canManage: boolean;
@@ -47,6 +48,7 @@ export interface EventViewModel extends EventItem, BaseActivityViewModel {
     PaginationComponent,
     LoadingDirective,
     CopyToClipboardDirective,
+    ActivityCapacityProgressComponent
   ],
   templateUrl: './event-list.component.html',
   styleUrl: './event-list.component.scss',

@@ -17,6 +17,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
+import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
 
 export interface ProjectViewModel extends ProjectItem {
   canApprove: boolean;
@@ -30,7 +31,9 @@ export interface ProjectViewModel extends ProjectItem {
   selector: 'lib-project-list',
   templateUrl: './project-list.component.html',
   styleUrls: ['./project-list.component.scss'],
-  imports: [FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslocoModule, MatMenuModule, MatSnackBarModule, CopyToClipboardDirective, MatTabsModule],
+  imports: [FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslocoModule, MatMenuModule, MatSnackBarModule, CopyToClipboardDirective, MatTabsModule,
+    ActivityCapacityProgressComponent
+  ],
   providers: [
     { provide: TRANSLOCO_SCOPE, useValue: 'project' }
   ]

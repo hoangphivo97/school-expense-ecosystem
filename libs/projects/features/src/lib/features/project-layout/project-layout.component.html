@@ -1,7 +1,7 @@
 <lib-header></lib-header>
 
 <div class="projects-shell-container" *transloco="let t; read: 'project.projectList'">
-    <div class="tabs-header-wrapper" *transloco="let t; read: 'project.projectList'">
+    <div class="tabs-header-wrapper">
         <nav mat-tab-nav-bar [tabPanel]="tabPanel" class="routed-tabs">
             <a mat-tab-link routerLink="/project-manager/overview" routerLinkActive #rlaProject="routerLinkActive"
                 [active]="rlaProject.isActive">
