@@ -389,97 +389,192 @@ graph TB
   
 ```mermaid
 erDiagram
+    %% ========================================================
+    %% IDENTITY & MEMBERSHIP MANAGEMENT
+    %% ========================================================
     USERS {
         string id PK "uid (Firebase Auth)"
-        string username "Optional"
-        string fullName "Required"
-        string role "Role Enum: STUDENT | TEACHER | DEAN | FINANCE | ADMIN"
+        string userCode UK "Unique Academic/Staff ID"
+        string fullName "Legal Name"
         string email "Institutional Email"
-        string facultyId "FacultyId Enum"
-        string userType "UserType Enum"
-        string userCode "Unique Academic/Staff ID"
-        string dateOfBirth "Required"
-        string status "UserStatus Enum"
-        date createdAt "ISO String Timestamp"
-        string reason "Onboarding Rejection Reason"
+        string role "Role: ADMIN | FINANCE_OFFICER | FACULTY_DEAN | END_USER"
+        string userType "UserType: STUDENT | TEACHER | STAFF"
+        string facultyId "FacultyId: FIT | FBE | FLL | FET | FAD | FLA"
+        string status "UserStatus: PENDING | ACTIVE | REJECTED | SUSPENDED"
+        string createdAt "ISO String"
     }
 
-    EXPENSES {
-        string id PK "Auto-generated Document UUID"
-        string expenseCode UK "EXP-[FACULTY]-[MMYY]-[CRYPTO]"
+    ACTIVITY_MEMBERS {
+        string id PK "Auto-generated UUID"
+        string activityType "Type: PROJECT | EVENT"
+        string activityId FK "Links to PROJECTS.id or EVENTS.id"
         string userId FK "Links to USERS.id"
-        string requesterCode "userCode at submission"
-        string requesterName "fullName at submission"
+        string roleInActivity "ActivityRole: LEADER | ADVISOR_TEACHER | MEMBER"
+        string joinCodeId FK "Nullable: Links to JOIN_CODES.id"
+        string joinedAt "ISO String"
+    }
+
+    JOIN_CODES {
+        string id PK "Auto-generated UUID"
+        string code UK "Alphanumeric Code"
+        string activityType "Type: PROJECT | EVENT"
+        string activityId FK "Links to PROJECTS.id or EVENTS.id"
+        string createdById FK "Links to USERS.id"
+        number maxQuota "Capacity Limit"
+        number currentCount "Current Registrations"
+        string status "JoinCodeStatus: SCHEDULED | ACTIVE | FULL | EXPIRED"
+        string validFrom "ISO String"
+        string validUntil "ISO String"
+    }
+
+    %% ========================================================
+    %% PROJECT & EVENT ENTITIES
+    %% ========================================================
+    PROJECTS {
+        string id PK "Auto-generated UUID"
+        string projectCode UK "PRJ-[FACULTY]-[YY]-[CRYPTO]"
+        string title "Project Display Name"
+        string ownerId FK "Creator (USERS.id)"
         string facultyId "FacultyId Enum"
-        number amount "Reimbursement Value (TWD)"
-        string purpose "Statement of Purpose"
-        string description "Detailed Field Notes"
-        string status "ExpenseStatus Enum"
-        string paidMethod "PaidMethod Enum"
-        string date "Target Appointment / Expense Date (Timestamp)"
-        string appointmentStatus "AppointmentStatus Enum"
-        array_string proofUrls "Cloud Storage References"
-        string requesterType "UserType Enum"
-        string rejectReason "Optional"
-        string createdAt "ISO String Timestamp"
-        string updatedAt "ISO String Timestamp"
+        string fundingType "ProjectFundingType: SCHOOL | FACULTY | OUTSOURCE"
+        string status "ProjectStatus: DRAFT | PENDING_DEAN_APPROVAL | PENDING_FINANCE_APPROVAL | ACTIVE | COMPLETED | REJECTED"
+        number totalBudget "TWD Total Allocated Budget"
+        number holdBalance "TWD Reserved For In-Flight Procurements"
+        number spentBalance "TWD Realized / Settled Expenditures"
+        number availableBalance "totalBudget - holdBalance - spentBalance"
+        string createdAt "ISO String"
+        string updatedAt "ISO String"
+    }
+
+    EVENTS {
+        string id PK "Auto-generated UUID"
+        string eventCode UK "EVT-[FACULTY]-[YY]-[CRYPTO]"
+        string title "Event Display Name"
+        string organizerId FK "Creator (USERS.id)"
+        string projectId FK "Nullable: Parent Project (if fundingType = PROJECT)"
+        string facultyId "FacultyId Enum"
+        string fundingType "EventFundingType: SCHOOL | FACULTY | OUTSOURCE | PROJECT"
+        string status "EventStatus: PENDING_DEAN_APPROVAL | PENDING_FINANCE_APPROVAL | UPCOMING | ONGOING | COMPLETED | REJECTED"
+        number totalBudget "TWD Event Budget Cap"
+        number holdBalance "TWD Reserved For In-Flight Procurements"
+        number spentBalance "TWD Realized Expenditures"
+        number availableBalance "Spendable Balance"
+        string createdAt "ISO String"
+        string updatedAt "ISO String"
+    }
+
+    %% ========================================================
+    %% 2-PHASE EXPENSE & PROCUREMENT MANAGEMENT
+    %% ========================================================
+    EXPENSES {
+        string id PK "Auto-generated UUID"
+        string expenseCode UK "EXP-[FACULTY]-[MMYY]-[CRYPTO]"
+        string requesterId FK "Applicant (USERS.id - Must be Activity Member)"
+        string activityType "Scope: PROJECT | EVENT"
+        string activityId FK "Links to PROJECTS.id or EVENTS.id"
+        string advisorTeacherId FK "Nullable: Supervising Teacher (USERS.id)"
+        string status "ExpenseStatus: DRAFT | PENDING_TEACHER_REVIEW | PENDING_DEAN_APPROVAL | AUTHORIZED_FOR_PURCHASE | PENDING_FINANCE_APPROVAL | PENDING_DISBURSEMENT | DISBURSED | REVISION_REQUIRED | REJECTED"
+        number totalEstimatedAmount "Sum of procurement items (Phase 1)"
+        number totalActualAmount "Nullable: Sum of actual receipts (Phase 2)"
+        number varianceAmount "totalActualAmount - totalEstimatedAmount"
+        string purpose "Procurement Business Rationale"
+        string paidMethod "PaidMethod: CASH | BANK_TRANSFER"
+        string cashAppointmentDate "Scheduled Counter Appointment Date"
+        string payoutBatchId FK "Nullable: Links to PAYOUT_BATCHES.id"
+        array_string receiptProofUrls "Taiwan GUI Scan or Stamped Paper Proofs"
+        string rejectReason "Optional audit decline notes"
+        string createdAt "ISO String"
+        string updatedAt "ISO String"
+    }
+
+    PROCUREMENT_ITEMS {
+        string id PK "Auto-generated Item UUID"
+        string expenseId FK "Links to EXPENSES.id"
+        string itemName "Descriptive Item Name / Specs"
+        number quantity "Planned Purchase Units"
+        number estimatedUnitPrice "Estimated Unit Price (TWD)"
+        number estimatedSubtotal "quantity * estimatedUnitPrice"
+        string purposeNote "Why this item is necessary"
+        number actualUnitPrice "Nullable: Actual Unit Price (TWD)"
+        number actualSubtotal "Nullable: actualUnitPrice * quantity"
+    }
+
+    INVOICE_REGISTRY {
+        string id PK "Auto-generated UUID"
+        string invoiceNumber UK "e-GUI 10-char alphanumeric (e.g. AB-12345678)"
+        string invoiceDate UK "GUI Issuance Date (Compound unique key)"
+        string buyerTaxId "Must match School VAT: 04126516"
+        number totalAmount "Decoded Amount from Hex (TWD)"
+        string expenseId FK "Enforces 1:1 binding to EXPENSES.id"
+        string uploadedById FK "Links to USERS.id"
+        string rawQrLeft "Raw decoded 77-byte standard QR string"
+        string rawQrRight "Raw decoded auxiliary QR string"
+        string createdAt "ISO String"
     }
 
     EXPENSE_AUDIT_LOGS {
         string id PK "Auto-generated Log UUID"
         string expenseId FK "Links to EXPENSES.id"
-        string expenseCode "Cached for fast global lookup"
-        string actorId FK "Links to USERS.id"
-        string actorCode "Actor employee/student code"
-        string actorName "Actor full name"
-        string actorRole "Role Enum at time of action"
-        string actorType "UserType Enum at time of action"
-        string action "AuditAction: SUBMIT | RESUBMIT | APPROVE | REJECT | DISBURSE"
-        string status "Resulting ExpenseStatus Enum"
-        string rejectReason "Mandatory on REJECT operations"
-        string createdAt "ISO String Timestamp"
-        string facultyId "FacultyId Enum"
+        string actorId FK "Actor (USERS.id)"
+        string actorRole "Actor Role at execution"
+        string action "AuditAction: DRAFT_SUBMIT | TEACHER_REVIEW | DEAN_APPROVE | RECEIPT_UPLOAD | FINANCE_APPROVE | REJECT | DISBURSE"
+        string previousStatus "ExpenseStatus Enum"
+        string newStatus "ExpenseStatus Enum"
+        string comments "Audit findings / variance explanations"
+        string createdAt "ISO String"
     }
 
-    PAYOUTS {
-        string id PK "payoutId (Auto-generated UUID)"
-        string payoutCode UK "PAY-[MMYY]-[CRYPTO]"
-        array_string targetExpenses "Array of linked Expense IDs"
-        string payoutDate "Reconciliation Date"
-        string payoutType "PaidMethod Enum"
-        string proofUrl "Master Bank Receipt PDF URL"
-        string reason "Reconciliation Notes"
-        string status "PayoutStatus Enum"
-        string createdAt "ISO String Timestamp"
-        string updatedAt "ISO String Timestamp"
+    %% ========================================================
+    %% TREASURY & PAYOUT DISBURSEMENT
+    %% ========================================================
+    FACULTY_BUDGETS {
+        string id PK "Document ID equals facultyId or SCHOOL_TREASURY"
+        string facultyId "FacultyId: FIT | FBE | FLL | FET | FAD | FLA"
+        number totalAllocation "School Allocated Annual Budget"
+        number allocatedToProjects "Portion committed to Projects"
+        number spentAmount "Actual Disbursed to date"
+        number availableBalance "Unallocated Faculty Reserve"
+        string fiscalYear "e.g. 2026-2027"
+        string updatedAt "ISO String"
     }
 
-    BUDGET_CAPS {
-        string id PK "Document ID equals facultyId"
-        number totalBudget "Total Static Envelope"
-        number frozenAmount "Encumbered Funds"
-        number availableAmount "Spendable Balance"
-        string createdAt "ISO String Timestamp"
-        string updatedAt "ISO String Timestamp"
+    PAYOUT_BATCHES {
+        string id PK "Auto-generated Batch UUID"
+        string batchCode UK "BATCH-[YYMMDD]-[CRYPTO]"
+        string payoutType "PaidMethod: BANK_TRANSFER | CASH_DESK"
+        number totalDisbursedAmount "Cumulative sum of linked expenses"
+        number itemCount "Total number of settled expense requests"
+        string masterProofUrl "Bank Wire Reconciliation PDF"
+        string status "BatchStatus: CREATED | EXPORTED | RECONCILED | REJECTED"
+        string createdAt "ISO String"
+        string updatedAt "ISO String"
     }
 
-    ADMIN_LOGS {
-        string id PK "Auto-generated Log UUID"
-        string actorId FK "Links to USERS.id (ADMIN UID)"
-        string actorCode "Admin employee code"
-        string actorName "Admin full name"
-        string action "AdminAction: USER_APPROVE | USER_REJECT | USER_STATUS_CHANGE"
-        string targetUserId "UID of the affected user being managed"
-        string description "Semantic detail"
-        string createdAt "ISO String Timestamp"
-    }
+    %% ========================================================
+    %% DOMAIN RELATIONSHIPS
+    %% ========================================================
+    USERS ||--o{ PROJECTS : "creates_or_owns"
+    USERS ||--o{ EVENTS : "organizes"
+    USERS ||--o{ ACTIVITY_MEMBERS : "participates_as"
+    USERS ||--o{ EXPENSES : "submits_procurement"
+    USERS ||--o{ EXPENSE_AUDIT_LOGS : "records_action"
 
-    USERS ||--o{ EXPENSES : "submits"
-    EXPENSES ||--o{ EXPENSE_AUDIT_LOGS : "generates"
-    USERS ||--o{ EXPENSE_AUDIT_LOGS : "performs"
-    BUDGET_CAPS ||--o{ EXPENSES : "allocates_funds_for"
-    PAYOUTS ||--o{ EXPENSES : "reconciles_and_disburses"
-    USERS ||--o{ ADMIN_LOGS : "executes_user_administrative_action"
+    PROJECTS ||--o{ ACTIVITY_MEMBERS : "enrolls"
+    EVENTS ||--o{ ACTIVITY_MEMBERS : "enrolls"
+    PROJECTS ||--o{ JOIN_CODES : "generates_access_code"
+    EVENTS ||--o{ JOIN_CODES : "generates_access_code"
+    JOIN_CODES ||--o{ ACTIVITY_MEMBERS : "redeemed_by"
+
+    PROJECTS ||--o{ EVENTS : "funds_child_event"
+    FACULTY_BUDGETS ||--o{ PROJECTS : "allocates_budget_cap"
+
+    PROJECTS ||--o{ EXPENSES : "funds_expense_request"
+    EVENTS ||--o{ EXPENSES : "funds_expense_request"
+    EXPENSES ||--|{ PROCUREMENT_ITEMS : "contains_line_items"
+    EXPENSES ||--o| INVOICE_REGISTRY : "verified_by_e_invoice"
+    EXPENSES ||--o{ EXPENSE_AUDIT_LOGS : "tracks_audit_trail"
+    
+    PAYOUT_BATCHES ||--o{ EXPENSES : "settles_and_disburses"
 ```
 
 </details>
