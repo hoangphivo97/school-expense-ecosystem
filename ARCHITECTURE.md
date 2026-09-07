@@ -590,27 +590,38 @@ graph TD
     classDef phase3 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
     classDef phase4 fill:#fff8e1,stroke:#ffb300,stroke-width:1.5px;
 
-    %% Phases
-    subgraph P1 ["🌱 PHASE 1: CLIENT-SIDE MONOLITH (13 Oct 2024 - May 27, 2025)"]
-        M1["- Developed purely on Frontend using Angular 18<br/>- Utilized direct client-to-database integration with Firebase<br/>- Implemented basic personal Expense CRUD and native Firebase Auth"]
+    %% ========================================================
+    %% PHASE 1: LEGACY FOUNDATION
+    %% ========================================================
+    subgraph P1 ["🌱 PHASE 1: CLIENT-SIDE MONOLITH (Oct 2024 - May 2025)"]
+        M1["- Single Angular 18 Single-Page Application (SPA)<br/>- Direct client-to-database integration via Firebase Web SDK<br/>- Basic personal flat expense CRUD and client-side validation<br/>- Native Firebase Auth with email/password"]
     end
 
-    subgraph P2 ["🔧 PHASE 2: WORKSPACE OVERHAUL & MODERNIZATION (Jul 5, 2025 - Jun 5, 2026)"]
-        M2["- Migrated codebase to an Nx Monorepo workspace ('micro-expense-tracker-personal')<br/>- Added NestJS backend layer operating on a hybrid MongoDB + Firebase infrastructure<br/>- Fabricated core UI elements and integrated initial React-wrapped SVG Chart components<br/>- <b>Late-Phase Architectural Shifts:</b> Dropped MongoDB; upgraded to Angular 22; shifted RxJS to native Signals; built Abstraction Layers"]
+    %% ========================================================
+    %% PHASE 2: ARCHITECTURAL RE-PLATFORMING
+    %% ========================================================
+    subgraph P2 ["🔧 PHASE 2: WORKSPACE OVERHAUL & MODERNIZATION (Jul 2025 - Jun 2026)"]
+        M2["- Migrated to Nx Monorepo workspace ('micro-expense-tracker-personal')<br/>- Built modular NestJS backend operating on a hybrid persistence layer<br/>- Integrated React-wrapped SVG Chart components into Angular Host<br/>- <b>Late Architectural Pivots:</b> Dropped MongoDB in favor of Unified Firestore; migrated RxJS to Angular Signals; established Data Abstraction Layers (Repository Pattern)"]
     end
 
-    subgraph P3 ["🎯 PHASE 3: INSTITUTIONAL ECOSYSTEM PIVOT (Jun 6, 2026 - Present)"]
-        M3["- Spawned current 'school-expense-ecosystem' repo; refactored scope to University Budget Management<br/>- Enforced Monorepo boundaries using explicit Nx Dependency Tags (project.json)<br/>- Hardened full-stack security via JWT Custom Claims, NestJS Throttling, and Firebase App Check<br/>- Fully deprecated Akita state management in favor of native Angular Signals Store<br/>- Engineered multi-role workflows, onboarding/rejection pipelines, and Admin user provisioning<br/>- <i>Isolated the decoupled Report charts for downstream synchronization</i>"]
+    %% ========================================================
+    %% PHASE 3: INSTITUTIONAL CONTEXT & ACTIVITY GOVERNANCE
+    %% ========================================================
+    subgraph P3 ["🎯 PHASE 3: INSTITUTIONAL ECOSYSTEM & ACTIVITY CONTEXT (Jun 2026 - Present)"]
+        M3["- Initialized 'school-expense-ecosystem' repo scoped for University Governance<br/>- <b>Projects & Events Bounded Context:</b> Built hierarchical activity models (Project -> Child Events) and dynamic funding types (SCHOOL, FACULTY, OUTSOURCE)<br/>- <b>Membership & Join-Code Engine:</b> Built invite quota management and ActivityMembershipGuard for contextual access control<br/>- <b>Enterprise Security:</b> Hardened JWT Custom Claims (Role + UserType + Faculty), NestJS Throttling, and Firebase App Check<br/>- <b>Admin Provisioning:</b> Full multi-tier onboarding, rejection audit trails, and Angular Signals Stores"]
     end
 
-    subgraph P4 ["🚀 PHASE 4: ENTERPRISE HARDENING, LOCALIZATION & QA (Planned / Future Backlog)"]
-        M4["- <b>1. Expense Specification Alignment:</b> Refine core validation to intercept duplicate tax invoices and verify vendor compliance data<br/>- <b>2. Downstream Report Refactoring:</b> Re-engineer Report Chart bindings to seamlessly consume finalized institutional Expense schemas<br/>- <b>3. Budget Ledger & Payout Realization:</b> Code transactional ledger workflows and state machines to manage atomic balance freezing and bulk bank reconciliations<br/>- <b>4. Cash Payout Appointment Scheduling:</b> Build capacity-controlled slot booking components and background Midnight Cron Jobs to release expired slots<br/>- <b>5. Cross-Border Internationalization & Localization (i18n):</b> Integrate Angular i18n / Transloco to support Traditional Chinese (zh-TW) and localize currency formats (TWD) for Taiwanese academic standards<br/>- <b>6. Automated Testing Suite:</b> Write Jest unit/integration tests for NestJS controllers and Cypress E2E test scripts for multi-role workflows"]
+    %% ========================================================
+    %% PHASE 4: 2-PHASE PROCUREMENT, SETTLEMENT & ENTERPRISE QA
+    %% ========================================================
+    subgraph P4 ["🚀 PHASE 4: TWO-PHASE PROCUREMENT, LEDGER SETTLEMENT & QA (Target Backlog)"]
+        M4["- <b>1. Two-Phase Procurement State Machine:</b> Refactor CreateExpenseModal to support dynamic itemized lists (qty, est. price) without receipt; enforce Teacher Draft Review -> Dean Cap Approval<br/>- <b>2. Taiwan e-GUI Engine & Invoice Registry:</b> Build async OpenCV/ZBar worker; decode 77-byte standard QR, parse Hex-to-Dec amounts, and enforce compound UNIQUE (invoiceNumber, invoiceDate)<br/>- <b>3. Two-Phase Budget Reservation Ledger:</b> Implement DB transactions to hold estimated funds at Dean approval, settle actual cost at Finance audit, and auto-release variance delta (Est - Actual)<br/>- <b>4. High-Concurrency Payout Module:</b> Build atomic counter slot booking (Quota < 100) via atomic SQL/Firestore transactions; create Midnight Cron Job for missed appointments; batch wire transfer export<br/>- <b>5. Downstream Sync & Localization:</b> Wire Signal-based Report charts to read activity-backed expense items; finalize Transloco i18n (zh-TW/en) and TWD formatting<br/>- <b>6. Full-Stack Test Suite:</b> Comprehensive Jest unit tests for NestJS controllers/services and Cypress E2E coverage for multi-role approval flows (Student -> Teacher -> Dean -> Finance)"]
     end
 
     %% Flow Links
     M1 -->|Complete Engineering Re-write| M2
     M2 -->|Domain Scope Expansion| M3
-    M3 -->|System Hardening Pipeline| M4
+    M3 -->|Procurement & Settlement Pipeline| M4
 
     %% Apply Styles
     class M1 phase1;
@@ -619,18 +630,34 @@ graph TD
     class M4 phase4;
 ```
 </details>
-<details>
   
-<summary><b>6.  Functional Access Control Matrix (RBAC) (Click to expand)</b></summary>
+<details open>
+<summary><b>6. Functional Access Control Matrix (RBAC & ABAC) (Click to expand)</b></summary>
 
-| Menu Item | Student | Staff (Requester) | Teacher (Reviewer) | Faculty Dean | Architectural Responsibility & Business Rules |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **Dashboard** | ✅ | ✅ | ✅ | ✅ | General landing workspace for tracking personal claim timelines and operational metrics. |
-| **My Expenses** | ✅ | ✅ | ✅ | ✅ | Personal reimbursement management. Students are capped at 2,000 TWD, while Staff/Teachers are capped at 10,000 TWD per claim. |
-| **Approval Center** | ❌ | ❌ | ✅ | ✅ | **Teachers:** Review initial student submissions (`PENDING_TEACHER_REVIEW`).<br>**Deans:** Review faculty-wide logs (`PENDING_DEAN_APPROVAL`). |
-| **Budget Manager** | ❌ | ❌ | ❌ | ✅ | Departmental annual fiscal allocation tracking. Excluded from Teachers and Staff to prevent ledger manipulation. |
-| **Financial Reports** | ❌ | ❌ | ❌ | ✅ | Strategic expense analytics and data visualization across the faculty domain for institutional audits. |
-| **User Directory** | ❌ | ❌ | ❌ | ❌ | Identity management view. Strictly isolated to the System Administrator. |
+| Menu Item / Feature | Student | Staff (Requester) | Teacher (Supervisor) | Faculty Dean | Finance Officer | Admin | Architectural Responsibility & Technical Business Rules |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Dashboard** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅(Only User Related) | Centralized dashboard tailored to user scope: tracking personal claim lifecycles (Student/Staff), pending approval queues (Teacher/Dean/Finance), and real-time ledger balance alerts. |
+| **Projects & Events Workspace** | 👁️ *(Member/Join)* | ✅ *(Create/Manage)* | ✅ *(Create/Manage)* | ✅ *(Create/Approve)* | 👁️ *(Audit/Cap View)* | ❌ | • **Student:** View public activities and redeem `JoinCode` to become an active member.<br>• **Staff/Teacher:** Create and manage Projects/Events. Child event budgets are constrained by `available_balance` of the parent Project.<br>• **Dean:** Approve internal faculty projects (`FACULTY`). Submits `SCHOOL` funding projects to Finance review.<br>• **Finance:** Verify and commit institutional funds for `SCHOOL` projects and events. |
+| **Procurement & Expense Requests** | ✅ *(Enrolled Activity)* | ✅ *(Enrolled Activity)* | ✅ *(Enrolled Activity)* | ✅ *(Activity Owner)* ❌ | ❌ | **Two-Phase Procurement Lifecycle:**<br>• **Phase 1 (Pre-Procurement Draft):** Requester must belong to an active Project/Event. Submit an itemized draft (`ProcurementItem[]`: name, quantity, estimated unit price). Bill upload is strictly disabled at this stage.<br>• **Phase 2 (Settlement):** Post-purchase upload of Taiwan e-GUI invoice once authorized (`AUTHORIZED_FOR_PURCHASE`), populating `totalActualAmount` and calculating `varianceAmount`. |
+| **Approval Center** | ❌ | ❌ | ✅ *(Draft Review)* | ✅ *(Dean Cap Auth)* | ✅ *(Finance Audit)* | 👁️ *(Audit Trail Only)* | **Tiered Governance Pipeline:**<br>• **Teacher (Advisor):** Preliminary review of items and purchase rationale (`PENDING_TEACHER_REVIEW`).<br>• **Dean:** Departmental budget check and automated fund hold (`PENDING_DEAN_APPROVAL` ➔ hold `totalEstimatedAmount`).<br>• **Finance:** Final e-GUI invoice verification against pre-approved item list, settlement, and delta unfreezing (`PENDING_FINANCE_APPROVAL` ➔ `PENDING_DISBURSEMENT`). |
+| **Payout & Settlement Desk** | 🎫 *(Book Slot Only)* | 🎫 *(Book Slot Only)* | ❌ | ❌ | ✅ *(Disburse & Batch Wire)* | ❌ | • **Student/Staff:** Book counter cash disbursement appointment slots (capped at quota < 100/day).<br>• **Finance Officer:** Review physical e-GUI bill, stamp "PAID", upload cash receipt photo, or export bulk wire files for bank portal upload and manage partial/total failure reconciliation. |
+| **Budget Manager** | ❌ | ❌ | ❌ | ✅ *(Faculty Ledger)* | ✅ *(School Treasury)* | 👁️ *(Read-only)* | Enterprise ledger management.<br>• **Dean:** Track departmental allocation, committed reserves (`holdBalance`), and realized expenses (`spentBalance`) across faculty projects.<br>• **Finance:** Master treasury governance (`SCHOOL_TREASURY`), reallocating funding pools across faculties and institutional initiatives. |
+| **Financial Reports** | ❌ | ❌ | ❌ | ✅ *(Faculty Scope)* | ✅ *(University Scope)* | ❌ | Strategic analytics covering budget-vs-actual variance, itemized breakdowns, and funding channel metrics (`SCHOOL`, `FACULTY`, `OUTSOURCE`) for annual audits. |
+| **User Directory & Provisioning** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ *(Super Admin)* | Identity and access lifecycle management. Manage onboarding requests, evaluate rejection reasons, suspend accounts (`SUSPENDED`), and maintain structural roles (`Role`, `UserType`, `FacultyId`). |
 
 
+
+---
+
+### Technical Enforcement Specifications
+
+*   **Hybrid RBAC & ABAC Architecture:**
+    *   **Coarse-grained RBAC:** Evaluated at route entry via NestJS `RolesGuard` against custom JWT claims (`Role.LEVEL_1_FINANCE`, `Role.LEVEL_2_DEAN`, etc.).
+    *   **Fine-grained ABAC:** Evaluated at domain services via `ActivityMembershipGuard`. Enforces that requesters maintain an active record in `ACTIVITY_MEMBERS` under the target Project/Event before any procurement action is accepted.
+*   **Advisor Teacher Context Boundary:**
+    *   Only the assigned `ADVISOR_TEACHER` of the linked Project or Event can execute the `PENDING_TEACHER_REVIEW` transition. Teachers cannot review requests outside their direct supervisory scope.
+*   **Two-Phase Ledger Isolation (Budget Reservation Pattern):**
+    *   **Phase 1 Reservation:** When a Dean approves a procurement draft, a database transaction sets `holdBalance += totalEstimatedAmount` and decrements `availableBalance` to prevent double-spending.
+    *   **Phase 2 Settlement:** Upon Finance settlement, `holdBalance -= totalEstimatedAmount`, `spentBalance += totalActualAmount`, and any remaining surplus `(totalEstimatedAmount - totalActualAmount)` is immediately restored to `availableBalance`.
 </details>
+
