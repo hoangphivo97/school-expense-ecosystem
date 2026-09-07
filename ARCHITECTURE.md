@@ -73,156 +73,115 @@ class Start,End_Active,End_Block,End_Blacklist,End_Purged,End_Pending_Screen ter
   
 ```mermaid
 flowchart TD
-%% Define Pure Business Logic Styles
+%% Style definitions
 classDef action fill:#ffffff,stroke:#37474f,stroke-width:1.5px;
 classDef state fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,stroke-dasharray: 4 4;
 classDef condition fill:#eceff1,stroke:#455a64,stroke-width:1.5px;
 classDef success fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-classDef log fill:#e0f7fa,stroke:#00838f,stroke-width:1.5px;
+classDef reject fill:#ffebee,stroke:#c62828,stroke-width:1.5px;
 
-%% Pre-define Centralized State Node to avoid parser conflicts
-ST_Rejected((State:<br/>REJECTED))
-
-subgraph Request_Lifecycle_Module ["📑 UNIFIED EXPENSE REQUEST LIFECYCLE (State Machine)"]
-    Start([🚀 Start: Student Creates Request]) --> Act_SubBudget
-    Act_SubBudget["Submit Request Form<br/>(Input Project ID & Estimated TWD - No Invoice)"] --> ST_PendingPreAuth
-    ST_PendingPreAuth(("State:<br/>PENDING_PRE_AUTH")) --> Decision_PreAuth
+%% ==========================================
+%% SUBGRAPH 1: PROJECT & EVENT MODULE
+%% ==========================================
+subgraph Project_Event_Module ["🏢 PROJECT & EVENT CREATION & BUDGET ALLOCATION"]
+    PE_Start([🚀 Create Project / Event]) --> PE_TypeCheck{"Entity Type?"}
     
-    %% Phase 1: Pre-Approval Validation
-    Decision_PreAuth{"Advisor / Dean Review:<br/>Verify Project Budget Cap"}
-    Decision_PreAuth -->|"Reject"| Log_PreAuthReject["Create AuditLogEntry<br/>action: BUDGET_REJECT & capture reason"] --> Act_SetPreAuthReject["System: Set Status to BUDGET_REJECTED"] --> ST_BudgetRejected(("State:<br/>BUDGET_REJECTED"))
+    %% Project Path
+    PE_TypeCheck -->|"PROJECT"| P_FundCheck{"Funding Type?"}
+    P_FundCheck -->|"OUTSOURCE"| P_Active["Set ACTIVE (Zero School Cap)"]
+    P_FundCheck -->|"FACULTY"| P_DeanReview{"Dean Review"}
+    P_FundCheck -->|"SCHOOL"| P_CreatorCheck{"Creator Role?"}
     
-    Decision_PreAuth -->|"Approve"| Log_PreAuthApprove["Create AuditLogEntry<br/>action: BUDGET_APPROVE"] --> ST_BudgetApproved(("State:<br/>BUDGET_PRE_APPROVED"))
+    P_CreatorCheck -->|"Is DEAN"| ST_Proj_FinAuth(("State:<br/>PENDING_FINANCE_APPROVAL"))
+    P_CreatorCheck -->|"Is TEACHER/STAFF"| ST_Proj_DeanAuth(("State:<br/>PENDING_DEAN_APPROVAL"))
     
-    %% Phase 2: Invoice Upload to the SAME Request Object
-    ST_BudgetApproved --> Act_UploadReceipt
-    Act_UploadReceipt["Student Uploads Receipt Image<br/>to this Pre-Approved Request"] --> Act_ScanQR
-    Act_ScanQR["OpenCV / ZBar Engine:<br/>Scan & Count QR Codes from Image"] --> Decision_QRGeometry
+    ST_Proj_DeanAuth --> P_DeanReview
+    P_DeanReview -->|"Reject"| ST_Proj_Reject(("State: REJECTED"))
+    P_DeanReview -->|"Approve"| ST_Proj_FinAuth
     
-    %% Phase 3: Automated Rule Engine (Non-AI Filters)
-    Decision_QRGeometry{"Rule 1 Check:<br/>Exactly 2 QR Codes Detected?"}
-    Decision_QRGeometry -->|"No"| Act_FixImage["Prompt Error: Blurry Image or Invalid Layout"] --> Act_UploadReceipt
+    ST_Proj_FinAuth --> P_FinReview{"Finance Audit &<br/>Budget Allocation"}
+    P_FinReview -->|"Reject"| ST_Proj_Reject
+    P_FinReview -->|"Approve"| P_LockFund["DB Transaction:<br/>Allocate School Budget Balance"] --> ST_Proj_Active(("State:<br/>ACTIVE"))
     
-    Decision_QRGeometry -->|"Yes"| Log_QRSuccess["Create AuditLogEntry<br/>action: QR_DECODED"] --> Act_SliceQR
-    Act_SliceQR["String Slicing Engine:<br/>Extract buyer_tax_id from index [37:45]"] --> Decision_TaxID
-    
-    Decision_TaxID{"Rule 2 Check:<br/>Verify School Tax ID 04126516?"}
-    Decision_TaxID -->|"Invalid / 00000000"| Log_TaxReject["Create AuditLogEntry<br/>action: REJECT (Invalid Tax ID)"] --> Act_SetTaxReject["System: Set Status to REJECTED"]
-    
-    Decision_TaxID -->|"Valid"| Decision_AmountCheck{"Rule 3 Check:<br/>Scanned Amount <= Pre-Approved Budget?"}
-    Decision_AmountCheck -->|"No"| Log_AmountReject["Create AuditLogEntry<br/>action: REJECT (Budget Exceeded)"] --> Act_SetAmtReject["System: Set Status to REJECTED"]
-    
-    %% Phase 4: Final Auditing Phase
-    Decision_AmountCheck -->|"Yes"| Act_Freeze["DB Transaction:<br/>Freeze Final TWD Amount from Project"] --> ST_PendingFinanceApproval(("State:<br/>PENDING_FINANCE_APPROVAL"))
-    
-    ST_PendingFinanceApproval --> Decision_Finance{"Finance Audit:<br/>Review Scanned Metadata vs Original Image"}
-    Decision_Finance -->|"Reject / Fraud"| Log_FinReject["Create AuditLogEntry<br/>action: REJECT & capture rejectReason"] --> Act_SetFinReject["System: Set Status to REJECTED"] --> Act_FinUnfreeze["DB Transaction: Unfreeze TWD Balance"]
-    
-    Decision_Finance -->|"Approve"| Log_FinApprove["Create AuditLogEntry<br/>action: APPROVE ➔ Ready for Payout"] --> Act_ReadyForPayout["Lock Document Data & Queue for Payout"]
+    %% Event Path
+    PE_TypeCheck -->|"EVENT"| E_Binding{"Is Linked to Project?"}
+    E_Binding -->|"Yes (PROJECT Fund)"| E_CapCheck{"Check Parent Project<br/>Available Balance"}
+    E_CapCheck -->|"Exceeds"| ST_Proj_Reject
+    E_CapCheck -->|"Valid"| E_DeanCheck{"Dean Approval"}
+    E_Binding -->|"No (SCHOOL / FACULTY)"| P_FundCheck
+    E_DeanCheck -->|"Approve"| ST_Event_Active(("State: ACTIVE / UPCOMING"))
 end
 
-subgraph Payout_Module ["🏦 PAYOUT MODULE (Manual Reconciliation & Execution)"]
-    ST_PendingDisbursement(("State:<br/>PENDING_DISBURSEMENT"))
-    Act_ReadyForPayout -->|"System Sync: Set Status to PENDING_DISBURSEMENT"| ST_PendingDisbursement
+%% ==========================================
+%% SUBGRAPH 2: REFUND REQUEST LIFECYCLE (2 PHASES)
+%% ==========================================
+subgraph Refund_Request_Lifecycle ["📑 PROCUREMENT & REFUND STATE MACHINE"]
+    Req_Start([🧑‍🎓 Student/Staff Creates Request]) --> Guard_Member{"Guard Check:<br/>User belongs to<br/>Active Project/Event?"}
+    Guard_Member -->|"No"| Act_Deny["403 Forbidden: Join Project First"]
     
-    ST_PendingDisbursement --> Decision_PayoutMethod
-    Decision_PayoutMethod{"Finance Officer Action:<br/>Select Strategy PaidMethod"}
+    Guard_Member -->|"Yes"| Act_DraftItems["Fill Procurement Form:<br/>1. Input List of Items (Qty, Est. Price)<br/>2. Compute Total Estimated TWD"]
+    Act_DraftItems --> Act_SubmitDraft["Submit Request"] --> ST_PendingDraft(("State:<br/>PENDING_TEACHER_REVIEW"))
     
-    %% ==========================================
-    %% AUTOMATED CASH PROCESSING WITH CRON JOB
-    %% ==========================================
-    Decision_PayoutMethod -->|"PaidMethod.CASH"| Act_CheckSlot
-    Act_CheckSlot["Student opens UI Modal:<br/>Fetches available dates from payout-slots"] --> Decision_Quota
+    %% Phase 1: Teacher Draft Approval
+    ST_PendingDraft --> Decision_Teacher{"Teacher / Advisor Review:<br/>Are items valid & reasonable?"}
+    Decision_Teacher -->|"Reject / Modify"| ST_DraftRevise(("State:<br/>REVISION_REQUIRED"))
+    ST_DraftRevise --> Act_DraftItems
     
-    Decision_Quota{"Is Selected Date<br/>Quota < 100?"}
-    Decision_Quota -->|"No: Slot Full"| Act_CheckSlot
+    %% Phase 2: Dean Approval & Budget Hold
+    Decision_Teacher -->|"Approve"| ST_PendingDean(("State:<br/>PENDING_DEAN_APPROVAL"))
+    ST_PendingDean --> Decision_Dean{"Dean Review:<br/>Check Activity Budget Cap"}
+    Decision_Dean -->|"Reject"| ST_Req_Reject(("State:<br/>BUDGET_REJECTED"))
     
-    Decision_Quota -->|"Yes: Slot Available"| Act_BookSlot
-    Act_BookSlot["DB Transaction:<br/>Increment currentCount & Bind date to Request"] --> Act_WaitDay
+    Decision_Dean -->|"Approve"| Act_HoldBudget["DB Transaction:<br/>Hold Estimated Budget on Activity<br/>(hold_balance += EstAmount)"]
+    Act_HoldBudget --> ST_AuthPurchase(("State:<br/>AUTHORIZED_FOR_PURCHASE"))
     
-    Act_WaitDay["Wait for Scheduled Appointment Date"] --> Decision_Attendance
-    Decision_Attendance{"Lifecycle Event Audit:<br/>Trigger Condition Type?"}
+    %% Phase 3: Student Purchases & Bill Upload
+    ST_AuthPurchase --> Act_StudentBuy["🏃 Student Purchases Physical Items<br/>Obtains Taiwan e-GUI Invoice"]
+    Act_StudentBuy --> Act_UploadInvoice["Student Uploads Bill &<br/>Updates Actual Spent Amount"]
     
-    %% AUTOMATED RESET LOOP VIA MIDNIGHT CRON JOB
-    Decision_Attendance -->|"Midnight Cron: Past & Unpaid"| Act_CronReset
-    Act_CronReset["Automated Midnight Cron Job:<br/>Reset appointmentStatus to MISSED & Unlock User"] --> Act_CheckSlot
+    Act_UploadInvoice --> Act_eGUIEngine["e-GUI Engine Scan:<br/>1. Verify Unique (Inv_No, Date)<br/>2. School Tax ID 04126516 Check<br/>3. Hex-to-Dec Amount Parsing"]
     
-    %% Process if student arrived within the day
-    Decision_Attendance -->|"Manual: Student Present Within Slot"| Act_VerifyPaper
-    Act_VerifyPaper["Verify Original Physical GUI Invoice"] --> Act_StampPaper
-    Act_StampPaper["Stamp '已核銷 - PAID' on Physical Bill"] --> Act_UploadCashProof
+    Act_eGUIEngine --> Decision_BillValid{"Bill Valid &<br/>Actual <= Estimated?"}
+    Decision_BillValid -->|"Mismatch / Exceeded"| Act_FlagVariance["Flag Variance for Finance Audit"] --> ST_PendingAudit
+    Decision_BillValid -->|"Pass Valid"| ST_PendingAudit(("State:<br/>PENDING_FINANCE_APPROVAL"))
     
-    Act_UploadCashProof["Upload Photo of Stamped Invoice to proofUrls"] --> Act_ManualCashPaid
-    Act_ManualCashPaid["Click 'Confirm Cash Paid' on Payout Page"] --> Log_CashPaid
-    Log_CashPaid["Create AuditLogEntry<br/>action: DISBURSE"] --> Act_SyncDisbursed
-    
-    %% ==========================================
-    %% BRANCH: BANK TRANSFER PROCESSING (WITH FAILURE PROOF UPLOADS)
-    %% ==========================================
-    Decision_PayoutMethod -->|"PaidMethod.BANK_TRANSFER"| Act_CreateBatch
-    Act_CreateBatch["Select Multiple Requests ➔ Create Batch Record"] --> Act_ExportBank
-    Act_ExportBank["Export Batch File & Manually Upload to Bank Portal"] --> Log_BatchExport
-    Log_BatchExport["Log: Batch Exported with linked requestIds"] --> Act_ReviewOffline
-    Act_ReviewOffline["Finance Officer: Reviews Offline Bank Report"] --> Decision_ManualRecon
-    
-    Decision_ManualRecon{"Manual Reconciliation View:<br/>Finance Officer Updates Status"}
-    
-    %% Scenario 1: All Successful
-    Decision_ManualRecon -->|"All Successful"| Act_UploadMasterReceipt
-    Act_UploadMasterReceipt["Upload Master Bank Receipt PDF to Batch proofUrls"] --> Act_MarkBatchPaid
-    Act_MarkBatchPaid["Click 'Mark Batch as Paid'"] --> Log_BatchSuccess
-    Log_BatchSuccess["Create AuditLogEntry for All Items<br/>action: DISBURSE & Inherit Receipt"] --> Act_SyncDisbursed
-    
-    %% Scenario 2: Total Failure
-    Decision_ManualRecon -->|"Total Failure"| Act_UploadTotalFailProof
-    Act_UploadTotalFailProof["Upload Bank Failure Report/Error Statement to Batch proofUrls"] --> Act_RejectBatch
-    Act_RejectBatch["Click 'Reject Batch'"] --> Log_BatchFail
-    Log_BatchFail["Log: Batch Canceled & Capture rejectReason"] --> Act_SyncAllRejected
-    Act_SyncAllRejected["System Sync: Set Request Status to REJECTED<br/>➔ Append final AuditLogEntry with rejectReason"] --> Act_BatchUnfreeze
-    Act_BatchUnfreeze["DB Transaction: Unfreeze TWD Balance for All Items"]
-    
-    %% Scenario 3: Partial Failure
-    Decision_ManualRecon -->|"Partial Failure"| Act_UploadPartialFailProof
-    Act_UploadPartialFailProof["Upload Bank Statement detailing failed line-items to Batch proofUrls"] --> Act_LineAudit
-    Act_LineAudit["Isolate Failed Requests on Payout View"] --> Act_MarkFailedItems
-    
-    Act_MarkFailedItems["Click 'Mark Selected as Failed'"] --> Log_LineFail
-    Log_LineFail["Create AuditLogEntry for Lines<br/>action: REJECT & capture rejectReason"] --> Act_SyncLineRejected
-    Act_SyncLineRejected["System Sync: Set Failed Line-Items Status to REJECTED<br/>➔ Append final AuditLogEntry with rejectReason"] --> Act_LineUnfreeze
-    Act_LineUnfreeze["DB Transaction: Unfreeze TWD Balance for Failed Lines"]
-    
-    %% Partial Failure Branch - Success Items Line Logic
-    Act_LineAudit --> Act_UploadPartialReceipt
-    Act_UploadPartialReceipt["Upload Master Bank Receipt PDF for Successful Part"] --> Act_MarkSuccessItems
-    Act_MarkSuccessItems["Click 'Mark Remaining as Paid'"] --> Log_LineSuccess
-    Log_LineSuccess["Create AuditLogEntry for Lines<br/>action: DISBURSE & Inherit Receipt"] --> Act_SyncDisbursed
+    %% Phase 4: Finance Settlement
+    ST_PendingAudit --> Decision_Finance{"Finance Final Audit:<br/>1. Verify Items vs Invoice<br/>2. Audit Variance"}
+    Decision_Finance -->|"Fraud / Invalid"| Act_ReleaseHold["DB Transaction: Unfreeze Hold"] --> ST_Req_Reject
+    Decision_Finance -->|"Approve"| Act_ReconcileBudget["DB Transaction:<br/>1. Release Delta: (Est - Actual)<br/>2. Deduct Actual TWD from Project Balance"]
+    Act_ReconcileBudget --> ST_PendingDisburse(("State:<br/>PENDING_DISBURSEMENT"))
 end
 
-%% Cross-Module State Sync Hooks
-ST_Disbursed(("State:<br/>DISBURSED"))
-End_Success([🏁 End: Request Closed])
-Act_SyncDisbursed["System Sync: Set Request Status to DISBURSED<br/>➔ Append final AuditLogEntry"] --> ST_Disbursed --> End_Success
+%% ==========================================
+%% SUBGRAPH 3: PAYOUT ENGINE
+%% ==========================================
+subgraph Payout_Module ["🏦 PAYOUT EXECUTION"]
+    ST_PendingDisburse --> Decision_PayMethod{"Payout Method"}
+    
+    %% CASH
+    Decision_PayMethod -->|"CASH"| Act_BookAtomicSlot["Atomic DB Lock Booking<br/>(Quota < 100)"]
+    Act_BookAtomicSlot --> ST_CashBooked(("State: CASH_SLOT_BOOKED"))
+    ST_CashBooked --> Act_CashDesk["Present Paper Bill at Counter<br/>➔ Stamp 'PAID' ➔ Disburse Cash"] --> ST_Disbursed
+    
+    %% BANK TRANSFER
+    Decision_PayMethod -->|"BANK_TRANSFER"| Act_BatchTransfer["Export Bank Wire Batch"]
+    Act_BatchTransfer --> Decision_BankRecon{"Bank Recon Report"}
+    Decision_BankRecon -->|"Success"| ST_Disbursed(("State:<br/>DISBURSED"))
+    Decision_BankRecon -->|"Failed"| ST_BankFail(("State: PAYMENT_FAILED"))
+    ST_BankFail --> Act_FixBank["Student Updates Bank Details"] --> ST_PendingDisburse
+end
 
-%% Linear mapping to prevent Mermaid Array Length limits & handle routing
-Act_SetTaxReject --> ST_Rejected
-Act_SetAmtReject --> ST_Rejected
-Act_FinUnfreeze --> ST_Rejected
-Act_BatchUnfreeze --> ST_Rejected
-Act_LineUnfreeze --> ST_Rejected
+ST_Disbursed --> End_Success([🏁 End: Activity Ledger Closed])
 
-%% Intelligent Loopback: Reuse the hard-won budget pre-approval state
-Act_Clone["UX Rule: Student Clones Request to Fix Details<br/>➔ Copy Text Metadata & Purge old broken receipt proofUrls"]
-ST_Rejected --> Act_Clone --> ST_BudgetApproved
+%% Connections & States
+ST_Req_Reject --> ST_FinalReject((State: REJECTED))
 
-Act_CloneBudget["Fix Pre-Approval Details & Resubmit"]
-ST_BudgetRejected --> Act_CloneBudget --> Start
-
-%% Apply Styling Classes
-class Act_SubBudget,Act_SetPreAuthReject,Act_UploadReceipt,Act_ScanQR,Act_FixImage,Act_SliceQR,Act_SetTaxReject,Act_SetAmtReject,Act_Freeze,Act_SetFinReject,Act_FinUnfreeze,Act_ReadyForPayout,Act_CheckSlot,Act_BookSlot,Act_WaitDay,Act_CronReset,Act_VerifyPaper,Act_StampPaper,Act_UploadCashProof,Act_ManualCashPaid,Act_CreateBatch,Act_ExportBank,Act_ReviewOffline,Act_UploadMasterReceipt,Act_MarkBatchPaid,Act_UploadTotalFailProof,Act_RejectBatch,Act_SyncAllRejected,Act_BatchUnfreeze,Act_UploadPartialFailProof,Act_LineAudit,Act_MarkFailedItems,Act_SyncLineRejected,Act_LineUnfreeze,Act_UploadPartialReceipt,Act_MarkSuccessItems,Act_SyncDisbursed,Act_Clone,Act_CloneBudget action;
-class ST_PendingPreAuth,ST_BudgetRejected,ST_BudgetApproved,ST_PendingFinanceApproval,ST_PendingDisbursement,ST_Rejected,ST_Disbursed state;
-class Decision_PreAuth,Decision_QRGeometry,Decision_TaxID,Decision_AmountCheck,Decision_Finance,Decision_PayoutMethod,Decision_Quota,Decision_Attendance,Decision_ManualRecon condition;
-class End_Success success;
-class Log_PreAuthReject,Log_PreAuthApprove,Log_QRSuccess,Log_TaxReject,Log_AmountReject,Log_FinReject,Log_FinApprove,Log_CashPaid,Log_BatchExport,Log_BatchSuccess,Log_BatchFail,Log_LineFail,Log_LineSuccess log;
+%% Styling
+class Act_DraftItems,Act_SubmitDraft,Act_HoldBudget,Act_StudentBuy,Act_UploadInvoice,Act_eGUIEngine,Act_FlagVariance,Act_ReconcileBudget,Act_BookAtomicSlot,Act_CashDesk,Act_BatchTransfer,Act_FixBank,P_LockFund,P_Active action;
+class ST_Proj_DeanAuth,ST_Proj_FinAuth,ST_Proj_Active,ST_Event_Active,ST_PendingDraft,ST_PendingDean,ST_AuthPurchase,ST_PendingAudit,ST_PendingDisburse,ST_CashBooked,ST_BankFail,ST_DraftRevise state;
+class Decision_Teacher,Decision_Dean,Decision_BillValid,Decision_Finance,Decision_PayMethod,Decision_BankRecon,P_FundCheck,P_CreatorCheck,P_DeanReview,P_FinReview,E_Binding,E_CapCheck,E_DeanCheck,Guard_Member condition;
+class ST_Disbursed,End_Success success;
+class ST_Req_Reject,ST_FinalReject,ST_Proj_Reject,Act_Deny,Act_ReleaseHold reject;
 
 ```
 
