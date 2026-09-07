@@ -197,144 +197,190 @@ graph TB
     classDef backend fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px;
     classDef shared fill:#fffde7,stroke:#fbc02d,stroke-width:1.5px;
     classDef infra fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
-    
-    %% STRICT DATA ABSTRACTION LAYER CLASS (The Interface/Repository boundaries)
     classDef data_abstraction fill:#e0f2f1,stroke:#004d40,stroke-width:2.5px;
-    
-    %% Styled specifically for planned components to signal Phase 2 Roadmap
     classDef planned fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1.5px,stroke-dasharray: 5 5;
+    classDef highlight fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
 
-    subgraph Workspace_Monorepo ["📦 NX MONOREPO WORKSPACE BOUNDARY (Enterprise Scale)"]
-        
-        %% --- FRONTEND CONTEXTS LAYER ---
+    subgraph Workspace_Monorepo ["📦 NX MONOREPO WORKSPACE (Enterprise Domain-Driven Design)"]
+
+        %% ========================================================
+        %% FRONTEND CONTEXTS LAYER
+        %% ========================================================
         subgraph FE_Layer ["🖥️ FRONTEND LAYER (Domain-Driven Micro-Frontends)"]
             App_Shell["mfe-shell-angular<br/>(Angular Host Application)"]
             App_Remote["mfe-remote-react<br/>(React Remote Application)"]
-            
-            subgraph Expense_FE ["📦 EXPENSES BOUNDED CONTEXT"]
-                FE_Exp_Feature["features<br/>(Smart Components / List & Modals)"]
-                FE_Exp_DA["data-access<br/>(State Management & Angular Services)"]
+
+            %% Context: Projects & Events
+            subgraph Projects_FE ["📦 PROJECTS & EVENTS CONTEXT (libs/projects/*)"]
+                FE_Proj_Feature["features<br/>• CreateProjectDialog<br/>• CreateEventDialog<br/>• JoinCodeDialog / Manage"]
+                FE_Proj_DA["data-access<br/>(ProjectApiService & EventApiService)"]
+                FE_Proj_UI["ui & utils<br/>(ActivityCapacityProgress & Layouts)"]
             end
-            
-            subgraph Payout_FE ["📦 PAYOUT BOUNDED CONTEXT (Planned - Phase 2)"]
-                FE_Pay_Feature["features<br/>(Batch Management Dashboard)"]
-                FE_Pay_DA["data-access<br/>(Reconciliation Services)"]
+
+            %% Context: Expenses
+            subgraph Expense_FE ["📦 EXPENSES CONTEXT (libs/expenses/*)"]
+                FE_Exp_Feature["features<br/>• CreateExpenseModal (Item List & Est TWD)<br/>• InvoiceSettlementModal (e-GUI Scan)<br/>• ExpenseReviewModal (Teacher/Dean/Fin)"]
+                FE_Exp_DA["data-access<br/>(ExpenseService & ExpenseSignalStore)"]
             end
-            
-            subgraph Auth_FE ["📦 AUTH BOUNDED CONTEXT"]
-                FE_Auth_Feature["features<br/>(Login & Route Guards)"]
-                FE_Auth_DA["data-access<br/>(Signals Store / Auth State)"]
+
+            %% Context: Finance
+            subgraph Finance_FE ["📦 FINANCE CONTEXT (libs/finance/*)"]
+                FE_Fin_Feature["features<br/>(BudgetManager / Ledger Overview)"]
+                FE_Fin_DA["data-access<br/>(BudgetApiService)"]
             end
-            
-            subgraph Finance_FE ["📦 FINANCE BOUNDED CONTEXT"]
-                FE_Fin_Feature["features<br/>(Budget Manager Components)"]
-                FE_Fin_DA["data-access<br/>(Budget HTTP Services)"]
+
+            %% Context: Auth
+            subgraph Auth_FE ["📦 AUTH CONTEXT (libs/auth/*)"]
+                FE_Auth_Feature["features<br/>(Login, RegisterModal, Onboarding)"]
+                FE_Auth_DA["data-access<br/>(AuthSignalStore & ActiveUserGuard)"]
+            end
+
+            %% Context: Payout (Phase 2)
+            subgraph Payout_FE ["📦 PAYOUT CONTEXT (Planned - Phase 2)"]
+                FE_Pay_Feature["features<br/>(Batch Wire & Counter Cash Dashboard)"]
+                FE_Pay_DA["data-access<br/>(ReconciliationService)"]
             end
         end
 
-        %% --- BACKEND CONTEXTS LAYER ---
-        subgraph BE_Layer ["⚙️ APPLICATION LOGIC LAYER (NestJS Backend - apps/backend)"]
-            subgraph Expense_BE ["📦 EXPENSES BACKEND DOMAIN"]
-                BE_Exp_Ctrl["features-backend<br/>(Expense Controller Layer)"]
-                BE_Exp_Service["data-access-backend<br/>(Domain Services & Tx Logic)"]
-                BE_Exp_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Repository Interface Contract]"]
+        %% ========================================================
+        %% BACKEND CONTEXTS LAYER
+        %% ========================================================
+        subgraph BE_Layer ["⚙️ APPLICATION LOGIC LAYER (NestJS Core - apps/backend)"]
+
+            %% Backend: Projects & Events
+            subgraph Projects_BE ["📦 PROJECTS & EVENTS DOMAIN (libs/projects/*)"]
+                BE_Proj_Ctrl["features-backend<br/>(ProjectController & EventController)"]
+                BE_Proj_Service["data-access-backend<br/>(ProjectService, EventService & SharedService)"]
+                BE_Proj_Guard["guards-backend<br/>(ActivityMembershipGuard & CapGuard)"]
+                BE_Proj_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>ProjectRepo & EventRepo Contracts]"]
             end
-            
-            subgraph Payout_BE ["📦 PAYOUT BACKEND DOMAIN (Planned - Phase 2)"]
-                BE_Pay_Ctrl["features-backend<br/>(Payout Batch Controller)"]
-                BE_Pay_Service["data-access-backend<br/>(Bulk Transfer & PDF Parsing Logic)"]
-                BE_Pay_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Storage Repository Contract]"]
+
+            %% Backend: Expenses
+            subgraph Expense_BE ["📦 EXPENSES DOMAIN (libs/expenses/*)"]
+                BE_Exp_Ctrl["features-backend<br/>(ExpenseController)"]
+                BE_Exp_Service["data-access-backend<br/>(Two-Phase Reservation & Variance Logic)"]
+                BE_Exp_Guard["guards-backend<br/>(ExpenseReviewGuard & CapGuard)"]
+                BE_Exp_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>ExpenseRepository Contract]"]
             end
-            
-            subgraph Auth_BE ["📦 AUTH BACKEND DOMAIN"]
-                BE_Auth_Ctrl["features-backend<br/>(Auth Controller & JWT Guards)"]
-                BE_Auth_Service["data-access-backend<br/>(Session & Claims Services)"]
-                BE_Auth_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Identity Provider Interface]"]
+
+            %% Backend: Finance
+            subgraph Finance_BE ["📦 FINANCE DOMAIN (libs/finance/*)"]
+                BE_Fin_Ctrl["features-backend<br/>(BudgetController & FacultyController)"]
+                BE_Fin_Service["data-access-backend<br/>(School Treasury & Ledger Service)"]
+                BE_Fin_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Faculty & BudgetRepo Contract]"]
             end
-            
-            subgraph Finance_BE ["📦 FINANCE BACKEND DOMAIN"]
-                BE_Fin_Ctrl["features-backend<br/>(Budget Controller Layer)"]
-                BE_Fin_Service["data-access-backend<br/>(TWD Budget Allocation Logic)"]
-                BE_Fin_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Budget Repository Contract]"]
+
+            %% Backend: Auth
+            subgraph Auth_BE ["📦 AUTH DOMAIN (libs/auth/*)"]
+                BE_Auth_Ctrl["features-backend<br/>(AuthController & RolesGuard)"]
+                BE_Auth_Service["data-access-backend<br/>(Session & Token Claims Service)"]
+                BE_Auth_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>Identity & UserRepo Contract]"]
+            end
+
+            %% Backend: Payout (Phase 2)
+            subgraph Payout_BE ["📦 PAYOUT DOMAIN (Planned - Phase 2)"]
+                BE_Pay_Ctrl["features-backend<br/>(PayoutBatchController)"]
+                BE_Pay_Service["data-access-backend<br/>(AtomicSlotBooking & BankRecon)"]
+                BE_Pay_Repo["data-access-backend<br/>[DATA ABSTRACTION LAYER:<br/>PayoutStorage Contract]"]
             end
         end
 
-        %% --- SHARED KERNEL ---
+        %% ========================================================
+        %% SHARED KERNEL
+        %% ========================================================
         subgraph Shared_Kernel ["💛 SHARED KERNEL (libs/shared/*)"]
-            Shared_UI["ui & ui-react<br/>(Design System / DarkModeToggle)"]
-            Shared_Tokens["tokens<br/>(Injection Tokens & Configuration)"]
-            Shared_Types["types<br/>(Global Enums & Shared Interfaces)"]
+            Shared_Types["types<br/>(ProjectStatus, EventStatus, FundingType,<br/>UserType, Role, ExpenseStatus)"]
+            Shared_Tokens["tokens<br/>(InjectionTokens & AppConfigs)"]
+            Shared_UI["ui & ui-react<br/>(Shared Modal, Breadcrumb, DarkMode)"]
+            Shared_Guards["guards-backend<br/>(JwtAuthGuard, RolesDecorator, AppCheckGuard)"]
         end
     end
 
-    %% --- INFRASTRUCTURE ADAPTERS LAYER (Can be easily swapped out thanks to Repositories)
-    subgraph Infrastructure ["🗄️ INFRASTRUCTURE ADAPTERS LAYER (Swappable Providers)"]
-        FB_Auth["Firebase Authentication Adapter<br/>(Identity Service Gateway)"]
-        Firestore[("Firebase Firestore Adapter<br/>(NoSQL Bounded Collections)")]
-        Storage[("Firebase Cloud Storage Adapter<br/>(GUI Receipts & Master PDFs)")]
-        BankBOT[["Bank of Taiwan App<br/>(Offline File-Based Clearing)"]]
+    %% ========================================================
+    %% INFRASTRUCTURE ADAPTERS LAYER
+    %% ========================================================
+    subgraph Infrastructure ["🗄️ INFRASTRUCTURE ADAPTERS LAYER (Storage & External Systems)"]
+        FB_Auth["Firebase Authentication<br/>(Identity Service Gateway)"]
+        Firestore[("Cloud Firestore<br/>• projects & events<br/>• expenses (items, est, actual)<br/>• budgets & invoices_registry")]
+        Storage[("Cloud Storage Bucket<br/>(e-GUI Invoices & Stamped Cash Proofs)")]
+        BankBOT[["Bank of Taiwan Portal<br/>(Offline File-Based Clearing)"]]
     end
 
-    %% Core Internal Backend Connections (Decoupled via Repositories)
-    BE_Exp_Ctrl --> BE_Exp_Service
-    BE_Exp_Service -->|"Calls Interface"| BE_Exp_Repo
-    BE_Auth_Ctrl --> BE_Auth_Service
-    BE_Auth_Service -->|"Calls Interface"| BE_Auth_Repo
-    BE_Fin_Ctrl --> BE_Fin_Service
-    BE_Fin_Service -->|"Calls Interface"| BE_Fin_Repo
-    BE_Pay_Ctrl --> BE_Pay_Service
-    BE_Pay_Service -->|"Calls Interface"| BE_Pay_Repo
+    %% ========================================================
+    %% COMPONENT LINKAGES & DATA FLOWS
+    %% ========================================================
 
-    %% Frontend Apps Dependencies
-    App_Shell -->|"Injects Features"| FE_Exp_Feature
-    App_Shell -->|"Injects Features"| FE_Auth_Feature
-    App_Shell -->|"Injects Features"| FE_Fin_Feature
-    App_Shell -->|"Injects Features (Future)"| FE_Pay_Feature
-    App_Remote -->|"Exposes Layout Feature"| App_Shell
-    
-    %% Tactical Layering Connections (Feature -> Data Access)
+    %% Frontend Integrations
+    App_Shell --> FE_Proj_Feature
+    App_Shell --> FE_Exp_Feature
+    App_Shell --> FE_Fin_Feature
+    App_Shell --> FE_Auth_Feature
+    App_Shell -.-> FE_Pay_Feature
+    App_Remote -->|"Exposes Header/Theme Layout"| App_Shell
+
+    FE_Proj_Feature --> FE_Proj_DA
+    FE_Proj_Feature --> FE_Proj_UI
     FE_Exp_Feature --> FE_Exp_DA
-    FE_Auth_Feature --> FE_Auth_DA
+    FE_Exp_Feature -.->|"Query User Active Memberships"| FE_Proj_DA
     FE_Fin_Feature --> FE_Fin_DA
+    FE_Auth_Feature --> FE_Auth_DA
     FE_Pay_Feature --> FE_Pay_DA
-    
-    %% REST API Network Boundaries
-    FE_Exp_DA -->|"HTTPS REST API<br/>(JWT + App Check)"| BE_Exp_Ctrl
-    FE_Auth_DA -->|"HTTPS REST API<br/>(JWT + App Check)"| BE_Auth_Ctrl
-    FE_Fin_DA -->|"HTTPS REST API<br/>(JWT + App Check)"| BE_Fin_Ctrl
-    FE_Pay_DA -->|"HTTPS REST API (Future)"| BE_Pay_Ctrl
-    
-    %% Core Async Communication between Domains (Decoupling)
-    BE_Exp_Service -.->|"Triggers State Mutation Event"| BE_Pay_Ctrl
-    
-    %% Infrastructure Adapters Implementations (Bound STRICTLY to Repositories, NOT Services)
-    BE_Exp_Repo -->|"Plugs Into"| Firestore
-    BE_Exp_Repo -->|"Plugs Into"| Storage
-    BE_Fin_Repo -->|"Plugs Into"| Firestore
-    BE_Pay_Repo -.->|"Plugs Into"| Storage
-    BE_Auth_Repo -->|"Plugs Into"| FB_Auth
-    FE_Auth_DA -.->|"Direct Client Verification"| FB_Auth
-    
-    %% Shared Kernel Core Connections
-    Shared_Types -.->|"Provides Contracts"| FE_Exp_DA
-    Shared_Types -.->|"Provides Contracts"| BE_Exp_Ctrl
-    Shared_UI -.->|"Provides Presentation Atoms"| App_Shell
 
-    %% External System Boundary
-    BE_Fin_Ctrl -.->|"Generates Batch Export Excel"| BankBOT
-    BE_Pay_Service -.->|"Processes Bank Transfers (Future)"| BankBOT
+    %% Frontend to Backend (REST APIs)
+    FE_Proj_DA -->|"HTTPS / REST (JWT + AppCheck)"| BE_Proj_Ctrl
+    FE_Exp_DA -->|"HTTPS / REST (JWT + AppCheck)"| BE_Exp_Ctrl
+    FE_Fin_DA -->|"HTTPS / REST (JWT + AppCheck)"| BE_Fin_Ctrl
+    FE_Auth_DA -->|"HTTPS / REST (JWT + AppCheck)"| BE_Auth_Ctrl
+    FE_Pay_DA -.->|"HTTPS / REST (Future)"| BE_Pay_Ctrl
 
-    %% Apply DDD Architecture Styles to Nodes
-    class App_Shell,App_Remote,FE_Exp_Feature,FE_Exp_DA,FE_Auth_Feature,FE_Auth_DA,FE_Fin_Feature,FE_Fin_DA client;
-    class BE_Exp_Ctrl,BE_Exp_Service,BE_Auth_Ctrl,BE_Auth_Service,BE_Fin_Ctrl,BE_Fin_Service backend;
-    class Shared_UI,Shared_Tokens,Shared_Types shared;
+    %% Backend Controller to Service
+    BE_Proj_Ctrl --> BE_Proj_Guard --> BE_Proj_Service
+    BE_Exp_Ctrl --> BE_Exp_Guard --> BE_Exp_Service
+    BE_Fin_Ctrl --> BE_Fin_Service
+    BE_Auth_Ctrl --> BE_Auth_Service
+    BE_Pay_Ctrl --> BE_Pay_Service
+
+    %% Cross-Domain Domain Service Orchestration (Business Logic)
+    BE_Proj_Service -->|"SCHOOL Funding: Request Budget Alloc"| BE_Fin_Service
+    BE_Exp_Service -->|"Phase 1: Hold Estimated Cap"| BE_Proj_Service
+    BE_Exp_Service -->|"Phase 2: Settle & Unfreeze Delta"| BE_Proj_Service
+    BE_Exp_Service -.->|"Queue Ready for Payout"| BE_Pay_Service
+
+    %% Service to Repository Contract (Data Abstraction)
+    BE_Proj_Service --> BE_Proj_Repo
+    BE_Exp_Service --> BE_Exp_Repo
+    BE_Fin_Service --> BE_Fin_Repo
+    BE_Auth_Service --> BE_Auth_Repo
+    BE_Pay_Service --> BE_Pay_Repo
+
+    %% Repository Contracts to Infrastructure
+    BE_Proj_Repo --> Firestore
+    BE_Exp_Repo --> Firestore
+    BE_Exp_Repo --> Storage
+    BE_Fin_Repo --> Firestore
+    BE_Auth_Repo --> FB_Auth
+    BE_Auth_Repo --> Firestore
+    BE_Pay_Repo --> Firestore
+    BE_Pay_Repo --> Storage
+
+    %% Shared Types Distribution
+    Shared_Types -.-> BE_Proj_Ctrl
+    Shared_Types -.-> BE_Exp_Ctrl
+    Shared_Types -.-> FE_Proj_DA
+    Shared_Types -.-> FE_Exp_DA
+
+    %% External Systems
+    BE_Fin_Ctrl -.->|"Generate Batch Export"| BankBOT
+    BE_Pay_Service -.->|"Reconcile Transfer Statement"| BankBOT
+
+    %% Class Assignments
+    class App_Shell,App_Remote,FE_Proj_Feature,FE_Proj_DA,FE_Proj_UI,FE_Exp_Feature,FE_Exp_DA,FE_Fin_Feature,FE_Fin_DA,FE_Auth_Feature,FE_Auth_DA client;
+    class BE_Proj_Ctrl,BE_Proj_Service,BE_Proj_Guard,BE_Exp_Ctrl,BE_Exp_Service,BE_Exp_Guard,BE_Fin_Ctrl,BE_Fin_Service,BE_Auth_Ctrl,BE_Auth_Service backend;
+    class Shared_Types,Shared_Tokens,Shared_UI,Shared_Guards shared;
     class FB_Auth,Firestore,Storage,BankBOT infra;
-    
-    %% HIGHLIGHTING THE ACTUAL DATA ABSTRACTION LAYER (THE REPOSITORIES CONTRACTS)
-    class BE_Exp_Repo,BE_Auth_Repo,BE_Fin_Repo data_abstraction;
-    
-    %% Apply Planned Roadmap Styles (Overriding for Phase 2 components)
+    class BE_Proj_Repo,BE_Exp_Repo,BE_Fin_Repo,BE_Auth_Repo data_abstraction;
     class FE_Pay_Feature,FE_Pay_DA,BE_Pay_Ctrl,BE_Pay_Service,BE_Pay_Repo planned;
+    class Projects_FE,Projects_BE highlight;
 ```
 
 </details>
