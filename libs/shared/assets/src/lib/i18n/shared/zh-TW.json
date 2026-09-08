@@ -86,13 +86,24 @@
         "REJECTED": "駁回申請"
       },
       "projectStatus": {
-        "ALL": "所有專案狀態",
-        "ACTIVE": "執行中",
-        "PENDING_DEAN_APPROVAL": "待院系審查",
-        "PENDING_FINANCE_APPROVAL": "待主計處審核",
-        "REJECTED": "已駁回",
+        "ALL": "全部",
+        "DRAFT": "草稿",
+        "PENDING_DEAN_APPROVAL": "待系主任審批",
+        "PENDING_FINANCE_APPROVAL": "待財務處審批",
+        "ACTIVE": "進行中",
         "COMPLETED": "已結案",
-        "ARCHIVED": "已封存"
+        "ARCHIVED": "已歸檔",
+        "REJECTED": "已駁回"
+      },
+      "eventStatus": {
+        "PENDING_DEAN_APPROVAL": "待系主任審批",
+        "PENDING_FINANCE_APPROVAL": "待財務處審批",
+        "UPCOMING": "即將開始",
+        "ONGOING": "進行中",
+        "COMPLETED": "已結束",
+        "CANCELLED": "已取消",
+        "ARCHIVED": "已歸檔",
+        "REJECTED": "已駁回"
       },
       "projectType": {
         "ALL": "所有經費來源",
@@ -122,5 +133,8 @@
     "itemsPerPage": "每页条数：",
     "prevPage": "前往上一页",
     "nextPage": "前往下一页"
+  },
+  "capacity": {
+    "unlimited": "無名額限制（自由開放參與）"
   }
 }

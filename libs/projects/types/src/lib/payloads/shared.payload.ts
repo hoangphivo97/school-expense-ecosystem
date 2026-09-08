@@ -1,7 +1,7 @@
 import { FacultyId } from "@school-expense-ecosystem/shared/types";
 
 export interface GenerateJoinCodePayload {
-  maxUses?: number;
+  maxUses?: number | null;
   startsAt: string;
   expiresAt: string;
 }
@@ -24,7 +24,7 @@ export interface BaseActivityPayload<TFundingType> {
   startDate: string;
   endDate: string;
   // Optional Join Code Inline Creation
-  joinCodeConfig?: CreateJoinCodeConfig;
+  joinCodeConfig?: CreateJoinCodeConfig | null;
 }
 
 export interface BaseActivityQueryPayload<TStatus> {
@@ -37,6 +37,6 @@ export interface BaseActivityQueryPayload<TStatus> {
 }
 
 export interface CreateJoinCodeConfig {
-  maxUses?: number;
-  expiresAt?: string;
+  maxUses?: number | null;
+  expiresAt?: string | null;
 }

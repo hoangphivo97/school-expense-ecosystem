@@ -39,7 +39,7 @@ export class SharedService {
   generateConfig(dto: GenerateJoinCodePayload): JoinConfig {
     return {
       code: this.generateCode(6),
-      maxUses: dto.maxUses,
+      maxUses: dto.maxUses ?? null,
       startsAt: dto.startsAt,
       expiresAt: dto.expiresAt,
       isActive: true,
@@ -64,7 +64,7 @@ export class SharedService {
 
     return {
       code: this.generateCode(6),
-      maxUses: config.maxUses,
+      maxUses: config.maxUses ?? null,
       startsAt,
       expiresAt,
       isActive: true,

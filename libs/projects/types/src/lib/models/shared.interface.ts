@@ -3,7 +3,7 @@ import { FacultyId } from "@school-expense-ecosystem/shared/types";
 export interface JoinConfig {
   code: string;
   isActive: boolean;
-  maxUses?: number;
+  maxUses?: number | null;
   usedCount?: number;
   startsAt?: string;   // ISO 8601
   expiresAt?: string;  // ISO 8601
@@ -39,7 +39,7 @@ export interface StudentSummary {
 
 export interface ActivityCapacityMetrics {
   participantCount: number;
-  maxParticipants?: number;
+  maxParticipants?: number | null;
   enrollmentPercentage?: number;
   isCapacityFull: boolean;
 }

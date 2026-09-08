@@ -87,19 +87,30 @@
         "OUTSOURCE": "External / Outsource"
       },
       "projectStatus": {
-        "ALL": "All Statuses",
-        "ACTIVE": "Active",
+        "ALL": "All",
+        "DRAFT": "Draft",
         "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
         "PENDING_FINANCE_APPROVAL": "Pending Finance Approval",
-        "REJECTED": "Rejected",
+        "ACTIVE": "Active",
         "COMPLETED": "Completed",
-        "ARCHIVED": "Archived"
+        "ARCHIVED": "Archived",
+        "REJECTED": "Rejected"
       },
       "eventType": {
         "SCHOOL": "School Funded",
         "FACULTY": "Faculty Funded",
         "PROJECT": "Project Funded",
         "OUTSOURCE": "Outsourced / External"
+      },
+      "eventStatus": {
+        "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
+        "PENDING_FINANCE_APPROVAL": "Pending Finance Approval",
+        "UPCOMING": "Upcoming",
+        "ONGOING": "Ongoing",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "ARCHIVED": "Archived",
+        "REJECTED": "Rejected"
       },
       "months": {
         "ALL": "All Months",
@@ -115,6 +126,14 @@
         "10": "October",
         "11": "November",
         "12": "December"
+      },
+      "joinCode": {
+        "status": {
+          "SCHEDULED": "Scheduled",
+          "ACTIVE": "Active",
+          "FULL": "Full / Quota Reached",
+          "EXPIRED": "Expired"
+        }
       }
     }
   },
@@ -123,5 +142,8 @@
     "itemsPerPage": "Items per page:",
     "prevPage": "Go to previous page",
     "nextPage": "Go to next page"
+  },
+  "capacity": {
+    "unlimited": "Unlimited capacity (No quota limit)"
   }
 }

@@ -369,10 +369,10 @@ export class CreateEventDialogComponent {
       endDate: new Date(formValue.endDate).toISOString(),
       joinCodeConfig: isJoinCodeEnabled
         ? {
-            maxUses: formValue.maxUses ? Number(formValue.maxUses) : undefined,
-            expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : undefined,
+            maxUses: formValue.maxUses ? Number(formValue.maxUses) : null,
+            expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : null,
           }
-        : undefined,
+        : null,
     };
 
     const warningMessage = this.getConfirmationWarning(payload.type);

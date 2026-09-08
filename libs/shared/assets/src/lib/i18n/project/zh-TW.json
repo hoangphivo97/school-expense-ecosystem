@@ -241,12 +241,6 @@
       "editEvent": "編輯活動資訊",
       "clickToCopy": "點擊複製識別碼"
     },
-    "statusOptions": {
-      "UPCOMING": "籌備中",
-      "ONGOING": "進行中",
-      "COMPLETED": "已結束",
-      "CANCELLED": "已取消"
-    },
     "empty": {
       "title": "查無活動資料",
       "subtitle": "目前篩選條件下無任何學院或校級活動紀錄。"

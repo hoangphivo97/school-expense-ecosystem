@@ -24,22 +24,22 @@ body {
     margin: 0 auto;
 
     .project-events-tabs {
-        ::ng-deep {
-          .mat-mdc-tab-header {
-            border-bottom: 1px solid #e2e8f0;
-            margin-bottom: 1rem;
-          }
+      ::ng-deep {
+        .mat-mdc-tab-header {
+          border-bottom: 1px solid #e2e8f0;
+          margin-bottom: 1rem;
+        }
 
-          .mat-mdc-tab .mdc-tab__text-label {
-            font-size: 0.95rem;
-            color: var(--text-secondary, #64748b);
-          }
+        .mat-mdc-tab .mdc-tab__text-label {
+          font-size: 0.95rem;
+          color: var(--text-secondary, #64748b);
+        }
 
-          .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
-            color: var(--mat-sys-primary, #673ab7);
-          }
+        .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+          color: var(--mat-sys-primary, #673ab7);
         }
       }
+    }
 
     ::ng-deep {
       .mat-mdc-table {
@@ -138,13 +138,19 @@ body {
 
       // Define color registry mapping each ProjectStatus token configuration
       $project-statuses: (
-        'ACTIVE': (bg: #ecfdf5, text: #065f46, border: #a7f3d0),
-        // Success Emerald Green
+        'DRAFT': (bg: #f8fafc, text: #64748b, border: #cbd5e1),
+        // Slate Neutral
         'PENDING_DEAN_APPROVAL': (bg: #fff7ed, text: #c2410c, border: #fed7aa),
         // Attention Orange
+        'PENDING_FINANCE_APPROVAL': (bg: #faf5ff, text: #7e22ce, border: #e9d5ff),
+        // High-level Purple
+        'ACTIVE': (bg: #ecfdf5, text: #065f46, border: #a7f3d0),
+        // Success Emerald Green
         'COMPLETED': (bg: #f0f9ff, text: #0369a1, border: #bae6fd),
         // Operational Sky Blue
-        'ARCHIVED': (bg: #f1f5f9, text: #475569, border: #cbd5e1) // Slate Neutral Gray
+        'ARCHIVED': (bg: #f1f5f9, text: #475569, border: #cbd5e1),
+        // Slate Muted Gray
+        'REJECTED': (bg: #fff1f2, text: #be123c, border: #fecdd3) // Danger Rose Red
       );
 
     // Iterate dynamically through the registry map to generate style variants

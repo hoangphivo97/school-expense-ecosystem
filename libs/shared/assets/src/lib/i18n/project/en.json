@@ -247,12 +247,6 @@
       "editEvent": "Edit Event Details",
       "clickToCopy": "Click to copy ID"
     },
-    "statusOptions": {
-      "UPCOMING": "Upcoming",
-      "ONGOING": "Ongoing",
-      "COMPLETED": "Completed",
-      "CANCELLED": "Cancelled"
-    },
     "empty": {
       "title": "No Events Found",
       "subtitle": "There are no institutional or faculty events matching the current search parameters."

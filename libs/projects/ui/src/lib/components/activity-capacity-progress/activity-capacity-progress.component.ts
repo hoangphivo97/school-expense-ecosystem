@@ -1,14 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
   selector: 'lib-activity-capacity-progress',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, MatTooltipModule, TranslocoModule],
   templateUrl: './activity-capacity-progress.component.html',
   styleUrl: './activity-capacity-progress.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: 'shared' }]
 })
 export class ActivityCapacityProgressComponent {
   // Required participant/enrolled count
