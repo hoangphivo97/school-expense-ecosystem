@@ -133,4 +133,8 @@ export abstract class BaseUpdateActivityDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  expectedUpdatedAt!: string;
 }

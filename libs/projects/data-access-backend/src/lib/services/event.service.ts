@@ -46,7 +46,7 @@ export class EventService {
     private readonly projectRepository: ProjectRepository,
     private readonly userRepository: UserRepository,
     private readonly sharedService: SharedService
-  ) {}
+  ) { }
 
   /**
    * Create an event supporting both Standalone and Sub-event (Project-linked) models
@@ -158,11 +158,13 @@ export class EventService {
   async updateEvent(id: string, user: AuthenticatedUser, dto: UpdateEventDto): Promise<EventItem> {
     const event = await this.validateEventAccess(id, user);
 
-    if (
-      event.status === EventStatus.ARCHIVED ||
-      event.status === EventStatus.COMPLETED ||
-      event.status === EventStatus.CANCELLED
-    ) {
+    // 1. Guard editable lifecycle statuses
+    const editableStatuses = [
+      EventStatus.PENDING_DEAN_APPROVAL,
+      EventStatus.PENDING_FINANCE_APPROVAL,
+      EventStatus.UPCOMING,
+    ];
+    if (!editableStatuses.includes(event.status)) {
       throw new InvalidEventStateException('modify', event.status);
     }
 
@@ -176,16 +178,16 @@ export class EventService {
       }
     }
 
-    const isDeanOrFinance = user.role === Role.LEVEL_2_DEAN || user.role === Role.LEVEL_1_FINANCE;
-    const isExtendingSchoolEvent =
-      event.type === EventFundingType.SCHOOL &&
-      dto.endDate &&
-      new Date(dto.endDate) > new Date(event.endDate);
+    const isFinanceOrAdmin = user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_0_ADMIN;
+    const isDean = user.role === Role.LEVEL_2_DEAN;
 
-    const nextStatus =
-      !isDeanOrFinance && isExtendingSchoolEvent
-        ? EventStatus.PENDING_DEAN_APPROVAL
-        : event.status;
+    // 2. Determine target status: Trigger re-approval if modifying an UPCOMING event
+    let nextStatus = event.status;
+    if (event.status === EventStatus.UPCOMING && !isFinanceOrAdmin) {
+      if (event.type === EventFundingType.SCHOOL) {
+        nextStatus = isDean ? EventStatus.PENDING_FINANCE_APPROVAL : EventStatus.PENDING_DEAN_APPROVAL;
+      }
+    }
 
     const newInitialSpent = dto.initialSpent !== undefined ? Number(dto.initialSpent) : event.initialSpent;
     const targetBudgetCap = dto.budgetCap !== undefined ? Number(dto.budgetCap) : event.budgetCap;
@@ -194,24 +196,25 @@ export class EventService {
       throw new EventInitialSpentExceedsCapException();
     }
 
+    const { expectedUpdatedAt, ...cleanDto } = dto;
+
     const updateData: Partial<EventItem> = {
-      ...(dto.name && { name: dto.name.trim() }),
-      ...(dto.description !== undefined && { description: dto.description ? dto.description.trim() : undefined }),
-      ...(dto.type && { type: dto.type }),
-      ...(dto.facultyId && { facultyId: dto.facultyId }),
-      ...(dto.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
-      ...(dto.initialSpent !== undefined && {
+      ...(cleanDto.name && { name: cleanDto.name.trim() }),
+      ...(cleanDto.description !== undefined && { description: cleanDto.description ? cleanDto.description.trim() : undefined }),
+      ...(cleanDto.type && { type: cleanDto.type }),
+      ...(cleanDto.facultyId && { facultyId: cleanDto.facultyId }),
+      ...(cleanDto.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
+      ...(cleanDto.initialSpent !== undefined && {
         initialSpent: newInitialSpent,
         currentSpent: newInitialSpent,
       }),
-      ...(dto.startDate && { startDate: new Date(dto.startDate).toISOString() }),
-      ...(dto.endDate && { endDate: new Date(dto.endDate).toISOString() }),
+      ...(cleanDto.startDate && { startDate: new Date(cleanDto.startDate).toISOString() }),
+      ...(cleanDto.endDate && { endDate: new Date(cleanDto.endDate).toISOString() }),
       status: nextStatus,
-      updatedAt: new Date().toISOString(),
     };
 
-    await this.eventRepository.update(id, updateData);
-    return { ...event, ...updateData };
+    // 3. Commit update atomically with Optimistic Locking check
+    return this.eventRepository.updateWithOptimisticLock(id, updateData, expectedUpdatedAt);
   }
 
   /**
@@ -312,7 +315,15 @@ export class EventService {
     };
 
     await this.eventRepository.update(id, updateData);
-    return { ...event, ...updateData };
+    return this.eventRepository.transitionStatus(
+      id,
+      nextStatus,
+      [event.status],
+      {
+        approvedBy: user.uid,
+        approvedAt: new Date().toISOString(),
+      }
+    );
   }
 
   /**
@@ -342,7 +353,15 @@ export class EventService {
     };
 
     await this.eventRepository.update(id, updateData);
-    return { ...event, ...updateData };
+    return this.eventRepository.transitionStatus(
+      id,
+      EventStatus.REJECTED,
+      [EventStatus.PENDING_DEAN_APPROVAL, EventStatus.PENDING_FINANCE_APPROVAL, EventStatus.UPCOMING],
+      {
+        rejectionReason: dto.reason.trim(),
+        rejectedBy: user.uid,
+      }
+    );
   }
 
   /**

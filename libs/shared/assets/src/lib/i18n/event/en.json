@@ -30,15 +30,15 @@
         }
       },
       "parentProject": {
-      "label": "Parent Project Sponsor (Optional)",
-      "none": "None (Standalone Event)",
-      "hint": "Optionally link to an active project to encumber its budget",
-      "loading": "Loading available projects...",
-      "headroom": "budget",
-      "errors": {
-        "budgetExceeded": "Event budget exceeds parent project headroom"
-      }
-    },
+        "label": "Parent Project Sponsor (Optional)",
+        "none": "None (Standalone Event)",
+        "hint": "Optionally link to an active project to encumber its budget",
+        "loading": "Loading available projects...",
+        "headroom": "budget",
+        "errors": {
+          "budgetExceeded": "Event budget exceeds parent project headroom"
+        }
+      },
       "faculty": {
         "label": "Faculty / Department",
         "loading": "Loading faculties...",
@@ -107,6 +107,14 @@
       "message": "You have unsaved changes in this event. Are you sure you want to discard them?",
       "confirm": "Discard",
       "cancel": "Keep Editing"
+    },
+    "editModal": {
+      "reapprovalWarning": {
+        "title": "Re-approval Required",
+        "message": "Event \"{{name}}\" has already been approved. Modifying its details will reset its status and require approval again. Do you want to proceed?",
+        "confirm": "Acknowledge & Edit",
+        "cancel": "Keep Existing"
+      }
     }
   }
 }

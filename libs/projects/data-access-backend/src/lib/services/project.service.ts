@@ -111,24 +111,25 @@ export class ProjectService {
       throw new ProjectInitialSpentExceedsCapException();
     }
 
+    const { expectedUpdatedAt, ...cleanDto } = dto;
+
     const updateData: Partial<ProjectItem> = {
-      ...(dto.name && { name: dto.name.trim() }),
-      ...(dto.description !== undefined && { description: dto.description ? dto.description.trim() : null }),
-      ...(dto.type && { type: dto.type }),
-      ...(dto.facultyId && { facultyId: dto.facultyId }),
-      ...(dto.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
-      ...(dto.initialSpent !== undefined && {
+      ...(cleanDto.name && { name: cleanDto.name.trim() }),
+      ...(cleanDto.description !== undefined && { description: cleanDto.description ? cleanDto.description.trim() : null }),
+      ...(cleanDto.type && { type: cleanDto.type }),
+      ...(cleanDto.facultyId && { facultyId: cleanDto.facultyId }),
+      ...(cleanDto.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
+      ...(cleanDto.initialSpent !== undefined && {
         initialSpent: newInitialSpent,
         currentSpent: newInitialSpent, // Sync initial baseline to current spent
       }),
-      ...(dto.startDate && { startDate: new Date(dto.startDate).toISOString() }),
-      ...(dto.endDate && { endDate: new Date(dto.endDate).toISOString() }),
+      ...(cleanDto.startDate && { startDate: new Date(cleanDto.startDate).toISOString() }),
+      ...(cleanDto.endDate && { endDate: new Date(cleanDto.endDate).toISOString() }),
       status: nextStatus,
       updatedAt: new Date().toISOString(),
     };
 
-    await this.projectRepo.update(projectId, updateData);
-    return { ...project, ...updateData };
+    return this.projectRepo.updateWithOptimisticLock(projectId, updateData, expectedUpdatedAt);
   }
 
   async archiveProject(projectId: string, user: AuthenticatedUser): Promise<void> {
@@ -261,13 +262,15 @@ export class ProjectService {
       throw new ProjectInvalidStatusTransitionException('ProjectItem is not in a pending approval state.');
     }
 
-    const updateData: Partial<ProjectItem> = {
-      status: nextStatus,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.projectRepo.update(projectId, updateData);
-    return { ...project, ...updateData };
+    return this.projectRepo.transitionStatus(
+      projectId,
+      nextStatus,
+      [project.status],
+      {
+        approvedBy: user.uid,
+        approvedAt: new Date().toISOString(),
+      }
+    );
   }
 
   async rejectProject(projectId: string, user: AuthenticatedUser, dto?: RejectProjectDto): Promise<ProjectItem> {
@@ -287,14 +290,15 @@ export class ProjectService {
       throw new ProjectInvalidStatusTransitionException('Only projects pending approval can be rejected.');
     }
 
-    const updateData: Partial<ProjectItem> = {
-      status: ProjectStatus.REJECTED,
-      rejectionReason: dto?.reason?.trim() || null,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.projectRepo.update(projectId, updateData);
-    return { ...project, ...updateData };
+    return this.projectRepo.transitionStatus(
+      projectId,
+      ProjectStatus.REJECTED,
+      [ProjectStatus.PENDING_DEAN_APPROVAL, ProjectStatus.PENDING_FINANCE_APPROVAL],
+      {
+        rejectionReason: dto?.reason?.trim() || null,
+        rejectedBy: user.uid,
+      }
+    );
   }
 
   async searchStudents(query: string): Promise<StudentSummary[]> {

@@ -20,6 +20,7 @@ import {
   UserType,
 } from '@school-expense-ecosystem/shared/types';
 import {
+  ConfirmDialogComponent,
   CopyToClipboardDirective,
   FilterComponent,
   LoadingDirective,
@@ -106,16 +107,29 @@ export class EventListComponent {
     const user = this.currentUser();
     if (!user) return [];
 
-    const isPrivileged = this.allowedRoles.includes(user.role);
-
     return items.map((event) => {
       const capacityMetrics = calculateActivityCapacity(event);
+
+      // 1. Role-based permissions: Finance/Admin sit globally, Dean is faculty-scoped, Organizer manages their own
+      const isFacultyDean = user.role === Role.LEVEL_2_DEAN && user.facultyId === event.facultyId;
+      const isFinanceOrAdmin = user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_0_ADMIN;
+      const isOrganizer = user.userType === UserType.TEACHER && event.organizerId === user.uid;
+      const hasPermission = isFinanceOrAdmin || isFacultyDean || isOrganizer;
+
+      // 2. Lifecycle status constraints: Only allow edits during pending approvals or prior to execution (Upcoming)
+      const isEditableStatus = [
+        EventStatus.PENDING_DEAN_APPROVAL,
+        EventStatus.PENDING_FINANCE_APPROVAL,
+        EventStatus.UPCOMING,
+      ].includes(event.status);
+
+      const canEdit = hasPermission && isEditableStatus;
 
       return {
         ...event,
         ...capacityMetrics,
-        canEdit: isPrivileged || (user.userType === UserType.TEACHER && event.organizerId === user.uid),
-        canManage: isPrivileged || (user.userType === UserType.TEACHER && event.organizerId === user.uid),
+        canEdit: canEdit,
+        canManage: hasPermission,
       };
     });
   });
@@ -186,10 +200,62 @@ export class EventListComponent {
   }
 
   navigateToDetail(event: EventItem): void {
-    // Open detail inspection modal logic
+    this.dialog.open(CreateEventDialogComponent, {
+      width: '700px',
+      data: {
+        action: DialogActionEnum.Detail,
+        event,
+        facultyId: event.facultyId,
+      },
+      disableClose: false,
+    });
   }
 
   openEditModal(event: EventItem): void {
-    // Open edit dialog modal logic
+    const proceedWithEdit = () => {
+      const dialogRef = this.dialog.open(CreateEventDialogComponent, {
+        width: '700px',
+        data: {
+          action: DialogActionEnum.Edit,
+          event,
+          facultyId: event.facultyId,
+        },
+        disableClose: true,
+      });
+
+      dialogRef.afterClosed().subscribe((updatedEvent: EventItem | undefined) => {
+        if (updatedEvent) {
+          this.notify.success('project.projectList.notifications.updated');
+          this.eventResource.reload();
+        }
+      });
+    };
+
+    // Warn users that modifying an already approved Upcoming event resets it for re-approval
+    if (event.status === EventStatus.UPCOMING) {
+      const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '440px',
+        data: {
+          title: this.translocoService.translate('event.editModal.reapprovalWarning.title'),
+          message: this.translocoService.translate('event.editModal.reapprovalWarning.message', {
+            name: event.name,
+          }),
+          confirmText: this.translocoService.translate('event.editModal.reapprovalWarning.confirm'),
+          cancelText: this.translocoService.translate('event.editModal.reapprovalWarning.cancel'),
+          confirmColor: 'warn',
+          icon: 'warning',
+        },
+        disableClose: true,
+      });
+
+      confirmRef.afterClosed().subscribe((isConfirmed: boolean) => {
+        if (isConfirmed) {
+          proceedWithEdit();
+        }
+      });
+      return;
+    }
+
+    proceedWithEdit();
   }
 }

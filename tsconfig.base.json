@@ -156,7 +156,13 @@
       "@school-expense-ecosystem/projects/utils": [
         "./libs/projects/utils/src/index.ts"
       ],
-      "@school-expense-ecosystem/projects/ui": ["./libs/projects/ui/src/index.ts"]
+      "@school-expense-ecosystem/projects/ui": [
+        "./libs/projects/ui/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/data-access-backend": [
+        "./libs/shared/data-access-backend/src/index.ts"
+      ],
+      "shared-guards-frontend": ["./libs/shared/guards-frontend/src/index.ts"]
     }
   },
   "exclude": [

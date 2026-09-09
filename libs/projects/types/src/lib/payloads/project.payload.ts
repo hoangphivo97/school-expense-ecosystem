@@ -8,6 +8,7 @@ export interface UpdateProjectPayload extends Partial<CreateProjectPayload> {
   status?: ProjectStatus;
   joinConfig?: JoinConfig | null;
   rejectionReason?: string | null;
+  expectedUpdatedAt: string;
 }
 
 export interface ProjectQueryPayload extends BaseActivityQueryPayload<ProjectStatus> {

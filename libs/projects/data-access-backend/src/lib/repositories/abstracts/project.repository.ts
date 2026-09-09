@@ -19,4 +19,19 @@ export abstract class ProjectRepository {
   abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
   abstract enrollStudentViaCode(projectId: string, studentId: string): Promise<ProjectItem>;
   abstract createWithFacultyFund(project: ProjectItem, departmentFundId: string): Promise<ProjectItem>;
+  abstract updateWithOptimisticLock(
+    id: string,
+    data: Partial<ProjectItem>,
+    expectedUpdatedAt: string
+  ): Promise<ProjectItem>;
+
+  /**
+   * Atomic state machine transition contract
+   */
+  abstract transitionStatus(
+    id: string,
+    targetStatus: string,
+    allowedCurrentStatuses: string[],
+    additionalData?: Record<string, any>
+  ): Promise<ProjectItem>;
 }

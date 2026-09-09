@@ -19,4 +19,23 @@ export abstract class EventRepository {
   abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
   abstract enrollStudentViaCode(eventId: string, studentId: string): Promise<EventItem>;
   abstract createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem>;
+
+  /**
+   * Optimistic Concurrency Control update contract
+   */
+  abstract updateWithOptimisticLock(
+    id: string,
+    data: Partial<EventItem>,
+    expectedUpdatedAt: string
+  ): Promise<EventItem>;
+
+  /**
+   * Atomic state machine transition contract
+   */
+  abstract transitionStatus(
+    id: string,
+    targetStatus: string,
+    allowedCurrentStatuses: string[],
+    additionalData?: Record<string, any>
+  ): Promise<EventItem>;
 }

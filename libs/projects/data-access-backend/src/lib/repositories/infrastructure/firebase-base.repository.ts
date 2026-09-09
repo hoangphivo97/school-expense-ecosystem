@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import { UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { JoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/types';
 import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedException, JoinCodeExpiredException, JoinCodeNotStartedException, StudentAlreadyEnrolledException } from '../../exceptions/join-code.exception';
+import { BaseFirestoreRepository } from '@school-expense-ecosystem/shared/data-access-backend';
 
 export interface JoinableBaseEntity {
   id: string;
@@ -11,36 +12,17 @@ export interface JoinableBaseEntity {
   [key: string]: any;
 }
 
-export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> {
-  constructor(
-    @Inject('FIRESTORE_INSTANCE') protected readonly db: admin.firestore.Firestore,
-    protected readonly collectionName: string
-  ) {}
-
-  protected get collection() {
-    return this.db.collection(this.collectionName);
-  }
+export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> extends BaseFirestoreRepository<T> {
 
   protected get usersCollection() {
     return this.db.collection('users');
   }
 
-  protected abstract mapDoc(doc: admin.firestore.DocumentSnapshot): T;
+  protected abstract override mapDoc(doc: admin.firestore.DocumentSnapshot): T;
 
   /**
    * Search active student users across the entire ecosystem
    */
-
-  async create(entity: T): Promise<T> {
-    await this.collection.doc(entity.id).set(entity);
-    return entity;
-  }
-
-  async findById(id: string): Promise<T | null> {
-    const doc = await this.collection.doc(id).get();
-    if (!doc.exists) return null;
-    return this.mapDoc(doc);
-  }
 
   async findByJoinCode(code: string): Promise<T | null> {
     const snapshot = await this.collection
@@ -97,11 +79,11 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> {
       updatedAt: this.formatDate(data['updatedAt']),
       joinConfig: data['joinConfig']
         ? {
-            ...data['joinConfig'],
-            startsAt: this.formatDate(data['joinConfig'].startsAt),
-            expiresAt: this.formatDate(data['joinConfig'].expiresAt),
-            createdAt: this.formatDate(data['joinConfig'].createdAt),
-          }
+          ...data['joinConfig'],
+          startsAt: this.formatDate(data['joinConfig'].startsAt),
+          expiresAt: this.formatDate(data['joinConfig'].expiresAt),
+          createdAt: this.formatDate(data['joinConfig'].createdAt),
+        }
         : null,
     };
   }
@@ -176,6 +158,34 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> {
     return new Date(dateVal).toISOString();
   }
 
+  private validateJoinEligibility(entity: T, studentId: string): { currentUses: number } {
+    const joinConfig = entity.joinConfig;
+
+    if (!joinConfig || !joinConfig.isActive) {
+      throw new InvalidJoinCodeException();
+    }
+
+    const joinedStudentIds = entity.joinedStudentIds ?? [];
+    if (joinedStudentIds.includes(studentId)) {
+      throw new StudentAlreadyEnrolledException(studentId);
+    }
+
+    const now = new Date();
+    if (joinConfig.startsAt && now < new Date(joinConfig.startsAt)) {
+      throw new JoinCodeNotStartedException(joinConfig.startsAt);
+    }
+    if (joinConfig.expiresAt && now > new Date(joinConfig.expiresAt)) {
+      throw new JoinCodeExpiredException();
+    }
+
+    const currentUses = joinConfig.usedCount ?? 0;
+    if (joinConfig.maxUses && currentUses >= joinConfig.maxUses) {
+      throw new JoinCapacityReachedException();
+    }
+
+    return { currentUses };
+  }
+
   async enrollStudentViaCode(id: string, studentId: string): Promise<T> {
     const docRef = this.collection.doc(id);
 
@@ -186,42 +196,31 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> {
       }
 
       const entity = this.mapDoc(doc);
-      const joinConfig = entity.joinConfig;
+      const { currentUses } = this.validateJoinEligibility(entity, studentId);
 
-      if (!joinConfig || !joinConfig.isActive) {
-        throw new InvalidJoinCodeException();
-      }
+      const nextUsedCount = currentUses + 1;
+      const isCapacityExhausted = Boolean(
+        entity.joinConfig?.maxUses && nextUsedCount >= entity.joinConfig.maxUses
+      );
+      const timestampIso = new Date().toISOString();
 
-      const joinedStudentIds = entity.joinedStudentIds ?? [];
-      if (joinedStudentIds.includes(studentId)) {
-        throw new StudentAlreadyEnrolledException(studentId);
-      }
-
-      const now = new Date();
-      if (joinConfig.startsAt && now < new Date(joinConfig.startsAt)) {
-        throw new JoinCodeNotStartedException(joinConfig.startsAt);
-      }
-      if (joinConfig.expiresAt && now > new Date(joinConfig.expiresAt)) {
-        throw new JoinCodeExpiredException();
-      }
-      if (joinConfig.maxUses && (joinConfig.usedCount ?? joinedStudentIds.length) >= joinConfig.maxUses) {
-        throw new JoinCapacityReachedException();
-      }
-
-      // Atomically append student ID and increment quota usage
+      // Atomically append participant and synchronize usage counter
       transaction.update(docRef, {
         joinedStudentIds: admin.firestore.FieldValue.arrayUnion(studentId),
-        'joinConfig.usedCount': admin.firestore.FieldValue.increment(1),
-        updatedAt: new Date().toISOString(),
+        'joinConfig.usedCount': nextUsedCount,
+        'joinConfig.isActive': !isCapacityExhausted, // Automatically close code once limit is reached
+        updatedAt: timestampIso,
       });
 
       return {
         ...entity,
-        joinedStudentIds: [...joinedStudentIds, studentId],
+        joinedStudentIds: [...(entity.joinedStudentIds ?? []), studentId],
         joinConfig: {
-          ...joinConfig,
-          usedCount: (joinConfig.usedCount ?? joinedStudentIds.length) + 1,
+          ...entity.joinConfig!,
+          usedCount: nextUsedCount,
+          isActive: !isCapacityExhausted,
         },
+        updatedAt: timestampIso, // Synchronize returned model with optimistic lock timestamp
       };
     });
   }

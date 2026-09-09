@@ -17,6 +17,7 @@ import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { DialogError } from '@school-expense-ecosystem/shared/types';
 import { provideAppCheck, initializeAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check';
 import { provideTranslocoConfig } from './transloco.provider';
+import { errorInterceptor } from 'shared-guards-frontend';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -47,7 +48,7 @@ export const appConfig: ApplicationConfig = {
     provideFirestore(() => getFirestore()),
     importProvidersFrom(MatDialogModule),
     provideHttpClient(
-      withInterceptors([authInterceptor, appCheckInterceptor])),
+      withInterceptors([authInterceptor, appCheckInterceptor, errorInterceptor])),
     provideStore(),
     provideRouter(routes, withEnabledBlockingInitialNavigation()),
     provideTranslocoConfig()

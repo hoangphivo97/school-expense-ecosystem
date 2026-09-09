@@ -10,6 +10,7 @@ export interface UpdateEventPayload extends Partial<CreateEventPayload> {
   status?: EventStatus;
   joinConfig?: JoinConfig | null;
   rejectionReason?: string | null;
+  expectedUpdatedAt: string;
 }
 
 export interface EventQueryPayload extends BaseActivityQueryPayload<EventStatus> {
