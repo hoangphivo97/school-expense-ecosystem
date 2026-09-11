@@ -227,7 +227,7 @@ export class EventService {
     const baseQuery = query ?? {};
 
     // 1. Finance Audit Scope (Global access)
-    if (user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_0_ADMIN) {
+    if (user.role === Role.LEVEL_1_FINANCE) {
       return this.eventRepository.findWithQuery(baseQuery);
     }
 
@@ -294,6 +294,10 @@ export class EventService {
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && event.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
 
+    if (event.organizerId === user.uid) {
+      throw new ForbiddenException('You cannot approve an event proposal where you are the organizer.');
+    }
+
     let nextStatus: EventStatus;
 
     if (event.status === EventStatus.PENDING_DEAN_APPROVAL) {
@@ -309,12 +313,6 @@ export class EventService {
       throw new InvalidEventStateException('approve', event.status);
     }
 
-    const updateData: Partial<EventItem> = {
-      status: nextStatus,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.eventRepository.update(id, updateData);
     return this.eventRepository.transitionStatus(
       id,
       nextStatus,
@@ -346,13 +344,6 @@ export class EventService {
       });
     }
 
-    const updateData: Partial<EventItem> = {
-      status: EventStatus.REJECTED,
-      rejectionReason: dto.reason.trim(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.eventRepository.update(id, updateData);
     return this.eventRepository.transitionStatus(
       id,
       EventStatus.REJECTED,
@@ -434,14 +425,13 @@ export class EventService {
       throw new EventNotFoundException(id);
     }
 
-    const isGlobalAuditor =
-      user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_0_ADMIN;
+    const isFinance = user.role === Role.LEVEL_1_FINANCE;
     const isOrganizer = event.organizerId === user.uid;
     const isEnrolledStudent = event.joinedStudentIds.includes(user.uid);
     const isFacultyDean =
       user.role === Role.LEVEL_2_DEAN && event.facultyId === user.facultyId;
 
-    if (!isGlobalAuditor && !isOrganizer && !isEnrolledStudent && !isFacultyDean) {
+    if (!isFinance && !isOrganizer && !isEnrolledStudent && !isFacultyDean) {
       throw new EventForbiddenException();
     }
 

@@ -24,5 +24,11 @@ export const DemoAccountArr: DemoAccount[] = [
         email: 'teacher.demo@ntust.edu.tw',
         password: 'DemoPassword123',
         description: 'Submits educational expense reimbursement requests and tracks individual research laboratory budget allocations. Authorizes initial student reimbursement claims within their specific faculty perimeter.'
+    },
+    {
+        role: 'Finance',
+        email: 'finance.officer@ntust.edu.tw',
+        password: 'School@123456',
+        description: 'School Finance Officer responsible for university-wide financial oversight, auditing, and final budget approval for school-funded projects and events.'
     }
 ];

@@ -12,6 +12,7 @@ import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel } from
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import {
+  ConfirmDialogData,
   DialogActionEnum,
   FacultyId,
   FilterMode,
@@ -27,11 +28,14 @@ import {
   NotificationService,
   PaginationComponent,
 } from '@school-expense-ecosystem/shared/ui';
-import { CreateEventDialogComponent } from '../dialogs/create-event-dialog/create-event-dialog.component';
 import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
+import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/create-event-dialog.component';
+import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 
 export interface EventViewModel extends EventItem, BaseActivityViewModel {
   canManage: boolean;
+  canApprove: boolean;
+  canManageJoinCode: boolean;
 }
 
 @Component({
@@ -112,9 +116,9 @@ export class EventListComponent {
 
       // 1. Role-based permissions: Finance/Admin sit globally, Dean is faculty-scoped, Organizer manages their own
       const isFacultyDean = user.role === Role.LEVEL_2_DEAN && user.facultyId === event.facultyId;
-      const isFinanceOrAdmin = user.role === Role.LEVEL_1_FINANCE || user.role === Role.LEVEL_0_ADMIN;
+      const isFinance = user.role === Role.LEVEL_1_FINANCE;
       const isOrganizer = user.userType === UserType.TEACHER && event.organizerId === user.uid;
-      const hasPermission = isFinanceOrAdmin || isFacultyDean || isOrganizer;
+      const hasPermission = isFinance || isFacultyDean || isOrganizer;
 
       // 2. Lifecycle status constraints: Only allow edits during pending approvals or prior to execution (Upcoming)
       const isEditableStatus = [
@@ -124,12 +128,22 @@ export class EventListComponent {
       ].includes(event.status);
 
       const canEdit = hasPermission && isEditableStatus;
+      const isDeanPending = event.status === EventStatus.PENDING_DEAN_APPROVAL;
+      const isFinancePending = event.status === EventStatus.PENDING_FINANCE_APPROVAL;
+      const canApprove =
+        (isDeanPending && isFacultyDean) ||
+        (isFinancePending && isFinance);
+      const isRecruitingStatus =
+        event.status === EventStatus.UPCOMING || event.status === EventStatus.ONGOING;
+      const canManageJoinCode = hasPermission && isRecruitingStatus;
 
       return {
         ...event,
         ...capacityMetrics,
-        canEdit: canEdit,
+        canEdit,
         canManage: hasPermission,
+        canApprove,
+        canManageJoinCode
       };
     });
   });
@@ -257,5 +271,52 @@ export class EventListComponent {
     }
 
     proceedWithEdit();
+  }
+
+  openJoinCodeModal(event: EventItem): void {
+    const dialogRef = this.dialog.open(ManageJoinCodeDialogComponent, {
+      width: '540px',
+      data: { event },
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((result?: ManageJoinCodeDialogResult) => {
+      if (result) {
+        this.eventResource.reload();
+      }
+    });
+  }
+
+  onApproveEvent(event: EventItem): void {
+    const confirmData: ConfirmDialogData = {
+      title: this.translocoService.translate('project.projectList.approveModal.title'),
+      message: this.translocoService.translate('project.projectList.approveModal.message', {
+        name: event.name,
+      }),
+      confirmText: this.translocoService.translate('project.projectList.approveModal.confirm'),
+      cancelText: this.translocoService.translate('project.projectList.approveModal.cancel'),
+      confirmColor: 'primary',
+      icon: 'check_circle',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: confirmData,
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((isConfirmed: boolean) => {
+      if (!isConfirmed) return;
+
+      this.eventService.approveEvent(event.id).subscribe({
+        next: () => {
+          this.notify.success('project.projectList.notifications.approved');
+          this.eventResource.reload();
+        },
+        error: (err) => {
+          this.notify.error(err?.error?.errorMsg || 'Failed to approve event proposal.');
+        },
+      });
+    });
   }
 }

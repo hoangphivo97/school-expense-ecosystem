@@ -247,6 +247,10 @@ export class ProjectService {
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && project.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
 
+    if (project.mentorId === user.uid) {
+      throw new ForbiddenException('You cannot approve a project proposal where you are the mentor.');
+    }
+
     let nextStatus: ProjectStatus;
 
     if (project.status === ProjectStatus.PENDING_DEAN_APPROVAL) {

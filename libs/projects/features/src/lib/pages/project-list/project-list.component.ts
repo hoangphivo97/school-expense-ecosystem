@@ -12,12 +12,12 @@ import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/tran
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
-import { CreateProjectDialogComponent } from '../dialogs/create-project-dialog/create-project-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
+import { CreateProjectDialogComponent } from '../../dialogs/create-project-dialog/create-project-dialog.component';
+import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 
 export interface ProjectViewModel extends ProjectItem {
   canApprove: boolean;

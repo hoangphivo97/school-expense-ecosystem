@@ -108,7 +108,7 @@ export class EventController {
 
   // 8. Generate Join Code
   @Post(':id/join-code')
-  @Roles(Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.OK)
   async generateJoinCode(
@@ -159,7 +159,6 @@ export class EventController {
 
   @Patch(':id/approve')
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
-  @HttpCode(HttpStatus.OK)
   async approveEvent(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser

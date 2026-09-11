@@ -99,8 +99,8 @@ export class EventApiService {
     return this.http.get<StudentSummary[]>(`${this.apiUrl}/${id}/students`);
   }
 
-  addStudents(id: string, payload: ManageParticipantsPayload): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${id}/students`, payload);
+  addStudents(id: string, studentIds: string[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${id}/students`, { studentIds });
   }
 
   removeStudent(id: string, studentUid: string): Observable<void> {

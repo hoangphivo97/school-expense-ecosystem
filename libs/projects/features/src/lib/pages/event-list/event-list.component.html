@@ -110,6 +110,30 @@
                   <mat-icon>edit</mat-icon>
                 </button>
                 }
+
+                @if (event.canManageJoinCode) {
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    [matTooltip]="t('actions.manageJoinCode')"
+                    (click)="openJoinCodeModal(event)"
+                    aria-label="Manage Join Code"
+                  >
+                    <mat-icon>qr_code</mat-icon>
+                  </button>
+                }
+
+                @if (event.canApprove) {
+                <button
+                  mat-icon-button
+                  color="primary"
+                  [matTooltip]="t('actions.approve') || 'Approve'"
+                  (click)="onApproveEvent(event)"
+                  aria-label="Approve Event"
+                >
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+                }
               </div>
             </td>
           </ng-container>

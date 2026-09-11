@@ -1,8 +1,8 @@
 import { Routes } from "@angular/router";
-import { ProjectListComponent } from "./features/project/project-list.component";
-import { ProjectLayoutComponent } from "./features/project-layout/project-layout.component";
-import { EventListComponent } from "./features/event-list/event-list.component";
 import { Role } from "@school-expense-ecosystem/shared/types";
+import { EventListComponent } from "./pages/event-list/event-list.component";
+import { ProjectListComponent } from "./pages/project-list/project-list.component";
+import { ProjectLayoutComponent } from "./layouts/project-layout/project-layout.component";
 
 export const PROJECT_ROUTES: Routes = [
   {
