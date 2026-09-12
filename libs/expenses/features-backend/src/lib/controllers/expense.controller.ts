@@ -8,6 +8,7 @@ import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/sha
 import { CreateExpenseDto, UpdateExpenseDto } from '@school-expense-ecosystem/expenses/data-access-backend';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExpenseCapGuard, ExpenseReviewGuard } from '@school-expense-ecosystem/expenses/guards-backend';
+import { ExpenseAnalyticsQueryDto } from '../dtos/analytics-query.dto';
 
 
 @Controller('expenses')
@@ -29,20 +30,10 @@ export class ExpenseController {
   @Get('analytics')
   async getAnalytics(
     @CurrentUser() user: AuthenticatedUser,
-    @Query('year') year?: string,
-    @Query('month') month?: string
+    @Query() query: ExpenseAnalyticsQueryDto
   ) {
 
-    const { role, facultyId } = user;
-    const filterYear = year ? parseInt(year, 10) : undefined;
-    const filterMonth = month ? parseInt(month, 10) : undefined;
-
-    return this.expenseBackendService.getExpenseAnalytics({
-      role,
-      facultyId,
-      year: filterYear,
-      month: filterMonth
-    });
+    return this.expenseBackendService.getExpenseAnalytics(user, query);
   }
 
   @Get('years')

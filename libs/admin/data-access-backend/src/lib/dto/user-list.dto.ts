@@ -62,7 +62,7 @@ export class UpdateUserDto implements UpdateUserInput {
   @IsOptional()
   @IsNotEmpty({ message: 'Faculty isolation node cannot be updated to an empty string.' })
   @IsEnum(FacultyId, { message: 'Target facaulty mutation out of system boundaries.' })
-  facultyId?: FacultyId;
+  facultyId?: FacultyId | null;
 
   @IsOptional()
   @IsDateString({}, { message: 'dateOfBirth must be a valid ISO date string' })

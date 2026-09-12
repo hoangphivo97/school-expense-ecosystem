@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse } from '@school-expense-ecosystem/auth/types';
-import { DemoAccount, UserBase } from '@school-expense-ecosystem/shared/types';
+import { DemoAccount, Role, UserBase, UserType } from '@school-expense-ecosystem/shared/types';
 import { ErrorModalService, FormErrorSignalPipe } from '@school-expense-ecosystem/shared/ui';
 import { MatCardModule } from '@angular/material/card';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
@@ -20,6 +20,10 @@ import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';
 import { MatInputModule } from '@angular/material/input';
 import { email, form, FormField, required, submit } from '@angular/forms/signals';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+
+export interface DemoAccountViewModel extends DemoAccount {
+  translationKey: string;
+}
 
 @Component({
   selector: 'lib-login',
@@ -59,23 +63,23 @@ export class LoginComponent {
 
   // Modern UI architecture: Using Signals for lightweight, reactive state tracking
   readonly isAdminMode = signal<boolean>(false);
-  readonly selectedAccount = signal<DemoAccount | null>(null);
+  readonly selectedAccount = signal<DemoAccountViewModel | null>(null);
 
-  readonly demoAccounts: DemoAccount[] = DemoAccountArr;
+  readonly demoAccounts: DemoAccountViewModel[] = DemoAccountArr.map((acc) => {
+    let key = 'sysadmin';
+    if (acc.role === Role.LEVEL_1_FINANCE) {
+      key = 'finance';
+    } else if (acc.role === Role.LEVEL_2_DEAN) {
+      key = 'dean';
+    } else if (acc.role === Role.LEVEL_3_USER) {
+      key = acc.userType === UserType.STUDENT ? 'student' : 'teacher';
+    }
 
-  protected readonly roleTranslationMap: Record<string, string> = {
-    'DEAN': 'dean',
-    'Student': 'student',
-    'System Administrator': 'sysadmin',
-    'Teacher': 'teacher'
-  };
-
-  protected readonly descriptionTranslationMap: Record<string, string> = {
-    'DEAN': 'dean',
-    'Student': 'student',
-    'System Administrator': 'sysadmin',
-    'Teacher': 'teacher'
-  };
+    return {
+      ...acc,
+      translationKey: key,
+    };
+  });
 
   // Dedicated Form configuration for the hidden Admin Console fallback
   protected readonly adminModel = signal({
@@ -99,7 +103,7 @@ export class LoginComponent {
     }
   }
 
-  onRoleSelectionChanged(account: DemoAccount | null): void {
+  onRoleSelectionChanged(account: DemoAccountViewModel | null): void {
     this.selectedAccount.set(account);
 
     if (account) {

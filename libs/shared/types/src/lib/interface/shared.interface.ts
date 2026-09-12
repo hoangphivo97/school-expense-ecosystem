@@ -48,10 +48,11 @@ export interface UserBase {
 }
 
 export interface DemoAccount {
-  role: string;
+  role: Role;
   email: string;
   password: string;
   description: string;
+  userType?: UserType;
 }
 
 export type SharedFilterParams = SharedFilterFields;

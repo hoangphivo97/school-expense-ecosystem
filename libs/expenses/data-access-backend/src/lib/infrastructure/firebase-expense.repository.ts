@@ -105,8 +105,8 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
   ): T {
     let query = baseQuery;
     if (
-      (user.role === Role.LEVEL_3_USER && user.userType === UserType.TEACHER) ||
-      user.role === Role.LEVEL_2_DEAN
+      ((user.role === Role.LEVEL_3_USER && user.userType === UserType.TEACHER) ||
+        user.role === Role.LEVEL_2_DEAN) && user.facultyId
     ) {
       query = query.where('facultyId', '==', user.facultyId) as T;
     }
@@ -265,7 +265,7 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
 
     const total = expenses.reduce((sum, e) => sum + e.amount, 0);
     const count = expenses.length;
-    const max = count > 0 ? Math.max(...expenses.map(e => e.amount)) : 0;
+    const max = expenses.reduce((currentMax, e) => (e.amount > currentMax ? e.amount : currentMax), 0);
 
     // 1. Pie Chart
     const pieMap: Record<string, number> = {};

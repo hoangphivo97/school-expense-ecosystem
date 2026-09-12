@@ -16,7 +16,9 @@ import * as admin from 'firebase-admin';
             }),
           });
         }
-        return admin.firestore();
+        const firestore = admin.firestore();
+        firestore.settings({ ignoreUndefinedProperties: true})
+        return firestore;
       },
     },
   ],

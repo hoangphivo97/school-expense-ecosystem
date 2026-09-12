@@ -31,21 +31,31 @@ export class FirestoreProjectRepository
     if (query.mentorId) baseQuery = baseQuery.where('mentorId', '==', query.mentorId);
     if (query.studentId) baseQuery = baseQuery.where('joinedStudentIds', 'array-contains', query.studentId);
 
-    const snapshot = await baseQuery.get();
-    let items = snapshot.docs.map((doc) => this.mapDoc(doc));
-
+    // Push search filter and index sorting down to database level
     if (query.search) {
-      const searchLower = query.search.toLowerCase();
-      items = items.filter((p) => p.name.toLowerCase().includes(searchLower));
+      const term = query.search.trim();
+      baseQuery = baseQuery
+        .where('name', '>=', term)
+        .where('name', '<=', term + '\uf8ff')
+        .orderBy('name');
+    } else {
+      baseQuery = baseQuery.orderBy('createdAt', 'desc');
     }
 
-    const total = items.length;
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
-    const startIndex = (page - 1) * limit;
-    const paginatedItems = items.slice(startIndex, startIndex + limit);
+    const offset = (page - 1) * limit;
 
-    return { items: paginatedItems, total };
+    // Execute paginated slice and metadata count aggregation concurrently
+    const [snapshot, countSnapshot] = await Promise.all([
+      baseQuery.offset(offset).limit(limit).get(),
+      baseQuery.count().get(),
+    ]);
+
+    const items = snapshot.docs.map((doc) => this.mapDoc(doc));
+    const total = countSnapshot.data().count;
+
+    return { items, total };
   }
 
   async findProjectsByMentorId(mentorUid: string): Promise<ProjectItem[]> {

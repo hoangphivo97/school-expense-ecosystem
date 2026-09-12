@@ -32,7 +32,8 @@
     </mat-card-content>
 
     <mat-card-footer class="footer-center">
-      <button type="button" mat-button class="toggle-mode-btn" [disabled]="authService.isLoggingInWithGoogle()" (click)="toggleAdminMode(true)">
+      <button type="button" mat-button class="toggle-mode-btn" [disabled]="authService.isLoggingInWithGoogle()"
+        (click)="toggleAdminMode(true)">
         {{ 'auth.toggleAdmin' | transloco }}
         <fa-icon [icon]="faArrowRight" size="xs"></fa-icon>
       </button>
@@ -52,7 +53,7 @@
           <mat-select (selectionChange)="onRoleSelectionChanged($event.value)">
             <mat-option [value]="null">{{ 'auth.manualInput' | transloco }}</mat-option>
             @for (acc of demoAccounts; track acc.email) {
-            <mat-option [value]="acc">{{ 'auth.roles.' + roleTranslationMap[acc.role] | transloco }}</mat-option>
+            <mat-option [value]="acc">{{ 'auth.roles.' + acc.translationKey | transloco }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
@@ -63,9 +64,9 @@
         <p class="banner-notice">{{ 'auth.sandboxNotice' | transloco }}</p>
         <div class="banner-role">
           <fa-icon [icon]="faShieldHalved" class="icon-warn"></fa-icon>
-          {{ 'auth.roles.' + roleTranslationMap[activeAccount.role] | transloco }}{{ 'auth.sandboxScopeSuffix' | transloco }}
+          {{ 'auth.roles.' + activeAccount.translationKey | transloco }}{{ 'auth.sandboxScopeSuffix' | transloco }}
         </div>
-        <p class="banner-desc">{{ 'auth.descriptions.' + descriptionTranslationMap[activeAccount.role] | transloco }}</p>
+        <p class="banner-desc">{{ 'auth.descriptions.' + activeAccount.translationKey | transloco }}</p>
       </div>
       }
 
@@ -108,7 +109,8 @@
     </mat-card-content>
 
     <mat-card-footer class="footer-center">
-      <button type="button" mat-button color="primary" class="back-portal-btn" [disabled]="authService.isLoggingInWithEmail()" (click)="toggleAdminMode(false)">
+      <button type="button" mat-button color="primary" class="back-portal-btn"
+        [disabled]="authService.isLoggingInWithEmail()" (click)="toggleAdminMode(false)">
         <fa-icon [icon]="faArrowLeft" size="xs"></fa-icon>
         {{ 'auth.backPortal' | transloco }}
       </button>

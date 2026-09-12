@@ -5,6 +5,7 @@ import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/sha
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { ExpenseAmountLimitExceededException, ExpenseInvalidDisbursementActionException, ExpenseMissingRejectionReasonException, ExpenseNotFoundException, ExpenseWorkflowLockedException } from './exceptions/expense.exception';
 import { randomBytes } from 'crypto';
+import { ExpenseAnalyticsQueryDto } from '@school-expense-ecosystem/expenses/feature-backend';
 
 @Injectable()
 export class ExpenseBackendService {
@@ -175,7 +176,20 @@ export class ExpenseBackendService {
     return this.expenseRepo.findAvailableYears(userId);
   }
 
-  async getExpenseAnalytics(filter: AnalyticsFilters): Promise<ExpenseAnalyticsDto> {
-    return this.expenseRepo.getAnalytics(filter);
+  async getExpenseAnalytics(
+    user: AuthenticatedUser,
+    query: ExpenseAnalyticsQueryDto
+  ): Promise<ExpenseAnalyticsDto> {
+    // Admin and Finance oversee university-wide metrics; Dean is scoped to their faculty
+    const isGlobalRole =
+      user.role === Role.LEVEL_0_ADMIN || user.role === Role.LEVEL_1_FINANCE;
+    const targetFacultyId = isGlobalRole ? undefined : (user.facultyId ?? undefined);
+
+    return this.expenseRepo.getAnalytics({
+      role: user.role,
+      facultyId: targetFacultyId,
+      year: query.year,
+      month: query.month,
+    });
   }
 }

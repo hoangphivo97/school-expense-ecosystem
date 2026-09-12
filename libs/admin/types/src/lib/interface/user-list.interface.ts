@@ -17,7 +17,7 @@ export interface CreateUserInput {
   userCode: string;
   role: Role;
   userType?: UserType;
-  facultyId?: FacultyId;
+  facultyId?: FacultyId | null;
   createdBy?: string;
   dateOfBirth?: string;
 }
@@ -26,7 +26,7 @@ export interface UpdateUserInput {
   fullName?: string;
   role?: Role;
   userType?: UserType;
-  facultyId?: FacultyId;
+  facultyId?: FacultyId | null;
   dateOfBirth?: string;
 }
 
