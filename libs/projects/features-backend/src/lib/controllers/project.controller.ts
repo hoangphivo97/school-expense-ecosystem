@@ -13,8 +13,12 @@ import {
 } from '@nestjs/common';
 import { ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
-import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '../..';
+import { type AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
+import { CreateProjectDto} from '../dtos/project/create-project.dto';
+import { ProjectQueryDto } from '../dtos/project/project-query.dto';
+import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/shared/manage-members.dto';
+import { UpdateProjectDto } from '../dtos/project/update-project.dto';
+import { RejectProjectDto } from '../dtos/project/reject-project.dto';
 
 @Controller('projects-manager')
 @UseGuards(RolesGuard)

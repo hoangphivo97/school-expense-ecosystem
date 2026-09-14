@@ -13,17 +13,13 @@ import {
 } from '@nestjs/common';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { EventService } from '@school-expense-ecosystem/projects/data-access-backend';
-import {
-  AddParticipantsDto,
-  CreateEventDto,
-  EventQueryDto,
-  GenerateJoinCodeDto,
-  JoinByCodeDto,
-  RejectEventDto,
-  UpdateEventDto,
-} from '../..';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
 import { EventItem } from '@school-expense-ecosystem/projects/types';
+import { EventQueryDto } from '../dtos/event/event-query.dto';
+import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/shared/manage-members.dto';
+import { CreateEventDto } from '../dtos/event/create-event.dto';
+import { UpdateEventDto } from '../dtos/event/update-event.dto';
+import { RejectEventDto } from '../dtos/event/reject-event.dto';
 
 @Controller('events')
 @UseGuards(RolesGuard)

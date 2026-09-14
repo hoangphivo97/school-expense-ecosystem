@@ -64,11 +64,19 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       const targetQueryStr = this.formatYearMonth(filters.year, filters.month);
       query = query.where('filterYearMonth', '==', targetQueryStr) as T;
     } else if (filters.year) {
-      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
-      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
-      query = query
-        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
-        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear)) as T;
+      if (filters.searchTerm) {
+        // Bypass multi-field inequality conflict by treating the entire year as an equality array matching filterYearMonth
+        const allMonthsInYear = Array.from({ length: 12 }, (_, i) =>
+          this.formatYearMonth(filters.year!, i + 1)
+        );
+        query = query.where('filterYearMonth', 'in', allMonthsInYear) as T;
+      } else {
+        const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
+        const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
+        query = query
+          .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
+          .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear)) as T;
+      }
     }
 
     if (filters.searchTerm) {
@@ -240,20 +248,17 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     }
 
     if (filters.year && filters.month) {
-      const startOfMonth = new Date(`${filters.year}-${String(filters.month).padStart(2, '0')}-01T00:00:00.000Z`);
-      const endOfMonth = new Date(filters.year, filters.month, 0, 23, 59, 59, 999);
-      query = query
-        .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfMonth))
-        .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfMonth));
+      const targetQueryStr = this.formatYearMonth(filters.year, filters.month);
+      query = query.where('filterYearMonth', '==', targetQueryStr);
     } else if (filters.year) {
-      const startOfYear = new Date(`${filters.year}-01-01T00:00:00.000Z`);
-      const endOfYear = new Date(`${filters.year}-12-31T23:59:59.999Z`);
+      const startOfYear = new Date(Date.UTC(filters.year, 0, 1, 0, 0, 0, 0));
+      const endOfYear = new Date(Date.UTC(filters.year, 11, 31, 23, 59, 59, 999));
       query = query
         .where('date', '>=', admin.firestore.Timestamp.fromDate(startOfYear))
         .where('date', '<=', admin.firestore.Timestamp.fromDate(endOfYear));
     }
 
-    const snapshot = await query.get();
+    const snapshot = await query.select('amount', 'paidMethod', 'paid', 'date').get();
     const expenses = snapshot.docs.map(doc => {
       const data = doc.data();
       return {

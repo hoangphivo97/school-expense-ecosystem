@@ -25,6 +25,8 @@ import {
   JoinConfig,
   ProjectStatus,
   StudentSummary,
+  PaginatedEventResult,
+  EventQueryPayload,
 } from '@school-expense-ecosystem/projects/types';
 import {
   EventActiveFinancialModificationException,
@@ -223,8 +225,11 @@ export class EventService {
   async getEventsForUser(
     user: AuthenticatedUser,
     query?: EventQueryDto
-  ): Promise<{ items: EventItem[]; total: number }> {
-    const baseQuery = query ?? {};
+  ): Promise<PaginatedEventResult> {
+    const baseQuery: EventQueryPayload = {
+      ...query,
+      limit: query?.limit ?? 10,
+    };
 
     // 1. Finance Audit Scope (Global access)
     if (user.role === Role.LEVEL_1_FINANCE) {

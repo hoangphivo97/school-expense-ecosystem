@@ -1,4 +1,4 @@
-import { ProjectItem, ProjectQueryPayload, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { PaginatedProjectResult, ProjectItem, ProjectQueryPayload, StudentSummary } from '@school-expense-ecosystem/projects/types';
 
 export abstract class ProjectRepository {
   abstract create(project: ProjectItem): Promise<ProjectItem>;
@@ -15,7 +15,7 @@ export abstract class ProjectRepository {
     deltas: { pendingSpentDelta?: number; currentSpentDelta?: number }
   ): Promise<void>;
 
-  abstract findWithQuery(query: ProjectQueryPayload): Promise<{ items: ProjectItem[]; total: number }>;
+  abstract findWithQuery(query: ProjectQueryPayload): Promise<PaginatedProjectResult>;
   abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
   abstract enrollStudentViaCode(projectId: string, studentId: string): Promise<ProjectItem>;
   abstract createWithFacultyFund(project: ProjectItem, departmentFundId: string): Promise<ProjectItem>;

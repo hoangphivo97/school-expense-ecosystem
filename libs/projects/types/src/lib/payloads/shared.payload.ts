@@ -1,4 +1,4 @@
-import { FacultyId } from "@school-expense-ecosystem/shared/types";
+import { FacultyId, CursorPaginationParams } from "@school-expense-ecosystem/shared/types";
 
 export interface GenerateJoinCodePayload {
   maxUses?: number | null;
@@ -27,9 +27,8 @@ export interface BaseActivityPayload<TFundingType> {
   joinCodeConfig?: CreateJoinCodeConfig | null;
 }
 
-export interface BaseActivityQueryPayload<TStatus> {
+export interface BaseActivityQueryPayload<TStatus> extends CursorPaginationParams{
   page?: number;
-  limit?: number;
   search?: string;
   facultyId?: FacultyId;
   status?: TStatus;

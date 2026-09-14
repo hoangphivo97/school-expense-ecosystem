@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ProjectRepository } from '../abstracts/project.repository';
-import { ProjectItem, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
+import { PaginatedProjectResult, ProjectItem, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
 import {
   ProjectInitialSpentExceedsCapException,
   ProjectNotFoundException,
@@ -11,8 +11,7 @@ import { FirebaseBaseRepository } from './firebase-base.repository';
 @Injectable()
 export class FirestoreProjectRepository
   extends FirebaseBaseRepository<ProjectItem>
-  implements ProjectRepository
-{
+  implements ProjectRepository {
   constructor(
     @Inject('FIRESTORE_INSTANCE') db: admin.firestore.Firestore
   ) {
@@ -23,7 +22,7 @@ export class FirestoreProjectRepository
     return this.db.collection('department_funds');
   }
 
-  async findWithQuery(query: ProjectQueryPayload): Promise<{ items: ProjectItem[]; total: number }> {
+  async findWithQuery(query: ProjectQueryPayload): Promise<PaginatedProjectResult> {
     let baseQuery: admin.firestore.Query = this.collection;
 
     if (query.facultyId) baseQuery = baseQuery.where('facultyId', '==', query.facultyId);
@@ -42,20 +41,28 @@ export class FirestoreProjectRepository
       baseQuery = baseQuery.orderBy('createdAt', 'desc');
     }
 
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
-    const offset = (page - 1) * limit;
+    const countQuery = baseQuery;
 
-    // Execute paginated slice and metadata count aggregation concurrently
+    if (query.pageToken) {
+      const startDoc = await this.collection.doc(query.pageToken).get();
+      if (startDoc.exists) {
+        baseQuery = baseQuery.startAfter(startDoc);
+      }
+    }
+
+    const safeLimit = Math.min(100, Math.max(1, parseInt(String(query.limit), 10) || 10));
+
     const [snapshot, countSnapshot] = await Promise.all([
-      baseQuery.offset(offset).limit(limit).get(),
-      baseQuery.count().get(),
+      baseQuery.limit(safeLimit).get(),
+      countQuery.count().get(),
     ]);
 
     const items = snapshot.docs.map((doc) => this.mapDoc(doc));
-    const total = countSnapshot.data().count;
+    const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    const nextPageToken = lastDoc ? lastDoc.id : null;
+    const totalItems = countSnapshot.data().count;
 
-    return { items, total };
+    return { items, nextPageToken, totalItems };
   }
 
   async findProjectsByMentorId(mentorUid: string): Promise<ProjectItem[]> {

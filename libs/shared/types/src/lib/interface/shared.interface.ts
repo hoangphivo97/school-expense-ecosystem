@@ -21,9 +21,9 @@ export interface FilterUserParams extends BaseFilterParams {
   facultyId?: FacultyId;
 }
 
-export interface UserRequestFilters extends FilterUserParams, PaginationParams { }
+export interface UserRequestFilters extends FilterUserParams, CursorPaginationParams { }
 
-export interface PaginationParams {
+export interface CursorPaginationParams {
   limit: number;
   pageToken?: string;
 }

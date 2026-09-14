@@ -68,6 +68,10 @@ export abstract class BaseActivityDto {
 
 export abstract class BaseActivityQueryDto {
   @IsOptional()
+  @IsString()
+  pageToken?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
@@ -78,7 +82,7 @@ export abstract class BaseActivityQueryDto {
   @IsInt()
   @Min(1)
   @Max(100)
-  limit?: number = 10;
+  limit: number = 10;
 
   @IsOptional()
   @IsString()

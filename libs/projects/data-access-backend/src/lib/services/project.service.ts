@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
-import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary, ProjectQueryPayload, PaginatedProjectResult } from '@school-expense-ecosystem/projects/types';
 import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException } from '../exceptions/project.exception';
 import { SharedService } from './shared.service';
@@ -202,8 +202,11 @@ export class ProjectService {
   async getProjectsForUser(
     user: AuthenticatedUser,
     query?: ProjectQueryDto
-  ): Promise<{ items: ProjectItem[]; total: number }> {
-    const baseQuery = query ?? {};
+  ): Promise<PaginatedProjectResult> {
+    const baseQuery: ProjectQueryPayload = {
+      ...query,
+      limit: query?.limit ?? 10,
+    };
 
     // 1. Level 1 (Finance): Global Auditing Scope
     if (user.role === Role.LEVEL_1_FINANCE) {

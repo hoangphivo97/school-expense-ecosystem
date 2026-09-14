@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import {
   EventItem,
   EventQueryPayload,
+  PaginatedEventResult,
 } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
 import { FirebaseBaseRepository } from './firebase-base.repository';
@@ -25,7 +26,7 @@ export class FirebaseEventRepository
     return this.db.collection('department_funds');
   }
 
-  async findWithQuery(query: EventQueryPayload): Promise<{ items: EventItem[]; total: number }> {
+  async findWithQuery(query: EventQueryPayload): Promise<PaginatedEventResult> {
     let baseQuery: admin.firestore.Query = this.collection;
 
     if (query.facultyId) baseQuery = baseQuery.where('facultyId', '==', query.facultyId);
@@ -45,20 +46,29 @@ export class FirebaseEventRepository
       baseQuery = baseQuery.orderBy('createdAt', 'desc');
     }
 
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
-    const offset = (page - 1) * limit;
+    const countQuery = baseQuery;
 
-    // Execute paginated slice and metadata count aggregation concurrently
+    if (query.pageToken) {
+      const startDoc = await this.collection.doc(query.pageToken).get();
+      if (startDoc.exists) {
+        baseQuery = baseQuery.startAfter(startDoc);
+      }
+    }
+
+    const safeLimit = Math.min(100, Math.max(1, parseInt(String(query.limit), 10) || 10));
+
     const [snapshot, countSnapshot] = await Promise.all([
-      baseQuery.offset(offset).limit(limit).get(),
-      baseQuery.count().get(),
+      baseQuery.limit(safeLimit).get(),
+      countQuery.count().get(),
     ]);
 
-    const items = snapshot.docs.map((d) => this.mapDoc(d));
-    const total = countSnapshot.data().count;
 
-    return { items, total };
+    const items = snapshot.docs.map((doc) => this.mapDoc(doc));
+    const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    const nextPageToken = lastDoc ? lastDoc.id : null;
+    const totalItems = countSnapshot.data().count;
+
+    return { items, nextPageToken, totalItems };
   }
   async createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem> {
     const fundRef = this.departmentFundsCollection.doc(departmentFundId);
