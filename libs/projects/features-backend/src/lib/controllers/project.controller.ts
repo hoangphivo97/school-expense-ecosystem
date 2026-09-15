@@ -20,7 +20,7 @@ import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/
 import { UpdateProjectDto } from '../dtos/project/update-project.dto';
 import { RejectProjectDto } from '../dtos/project/reject-project.dto';
 
-@Controller('projects-manager')
+@Controller('projects')
 @UseGuards(RolesGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }

@@ -10,7 +10,7 @@ import { CreateProjectPayload, GenerateJoinCodePayload, JoinByCodePayload, JoinC
 export class ProjectApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = inject(API_BASE_URL);
-  private readonly apiUrl = `${this.baseUrl}/api/projects-manager`;
+  private readonly apiUrl = `${this.baseUrl}/api/projects`;
 
   /**
    * Fetch context-aware project list (Finance, Dean, Teacher, or Student)
