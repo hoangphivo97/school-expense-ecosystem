@@ -9,6 +9,7 @@ import { TranslocoTestingModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { ProjectFundingType, ProjectItem, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { ProjectListComponent, ProjectViewModel } from './project-list.component';
+import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 
 describe('ProjectListComponent', () => {
   let component: ProjectListComponent;
@@ -42,12 +43,13 @@ describe('ProjectListComponent', () => {
 
   beforeEach(async () => {
     // 1. Initialize reactive mock signals
-    mockUserSignal = signal<AuthenticatedUser | null>({
-      uid: 'dean-uid-01',
-      role: Role.LEVEL_2_DEAN,
-      userType: UserType.TEACHER,
-      facultyId: FacultyId.FIT,
-    });
+    mockUserSignal = signal<AuthenticatedUser | null>(
+      createMockAuthenticatedUser({
+        role: Role.LEVEL_2_DEAN,
+        facultyId: FacultyId.FIT,
+        userType: UserType.TEACHER
+      })
+    );
 
     mockProjectsResourceSignal = signal({
       items: [dummyProject],
@@ -125,12 +127,13 @@ describe('ProjectListComponent', () => {
 
     it('should revoke approval rights if project belongs to a different faculty', () => {
       // Switch Dean faculty to foreign faculty
-      mockUserSignal.set({
-        uid: 'foreign-dean',
-        role: Role.LEVEL_2_DEAN,
-        userType: UserType.TEACHER,
-        facultyId: FacultyId.FEE, // Different Faculty
-      });
+      mockUserSignal.set(
+        createMockAuthenticatedUser({
+          role: Role.LEVEL_2_DEAN,
+          facultyId: FacultyId.FET,
+          userType: UserType.TEACHER,
+        })
+      );
       fixture.detectChanges();
 
       const viewModels = component.dataSource();
@@ -139,12 +142,13 @@ describe('ProjectListComponent', () => {
     });
 
     it('should identify student user type correctly via isStudent signal', () => {
-      mockUserSignal.set({
-        uid: 'student-01',
-        role: Role.LEVEL_3_USER,
-        userType: UserType.STUDENT,
-        facultyId: FacultyId.FIT,
-      });
+      mockUserSignal.set(
+        createMockAuthenticatedUser({
+          role: Role.LEVEL_3_USER,
+          facultyId: FacultyId.FIT,
+          userType: UserType.STUDENT,
+        })
+      );
       fixture.detectChanges();
 
       expect(component.isStudent()).toBe(true);
@@ -197,12 +201,13 @@ describe('ProjectListComponent', () => {
     describe('Header Actions (Student vs Non-Student)', () => {
       it('should render "Join by Code" button and hide "Create Project" button for Student', () => {
         // Set state to Student
-        mockUserSignal.set({
-          uid: 'student-01',
-          role: Role.LEVEL_3_USER,
-          userType: UserType.STUDENT,
-          facultyId: FacultyId.FIT,
-        });
+        mockUserSignal.set(
+          createMockAuthenticatedUser({
+            role: Role.LEVEL_3_USER,
+            facultyId: FacultyId.FIT,
+            userType: UserType.STUDENT,
+          })
+        );
         fixture.detectChanges();
 
         const hostElement: HTMLElement = fixture.nativeElement;
@@ -214,12 +219,13 @@ describe('ProjectListComponent', () => {
 
       it('should render "Create Project" button and hide "Join by Code" for Teacher/Dean', () => {
         // Set state to Dean / Teacher
-        mockUserSignal.set({
-          uid: 'dean-01',
-          role: Role.LEVEL_2_DEAN,
-          userType: UserType.TEACHER,
-          facultyId: FacultyId.FIT,
-        });
+        mockUserSignal.set(
+          createMockAuthenticatedUser({
+            role: Role.LEVEL_2_DEAN,
+            facultyId: FacultyId.FIT,
+            userType: UserType.TEACHER
+          })
+        );
         fixture.detectChanges();
 
         const hostElement: HTMLElement = fixture.nativeElement;
@@ -232,12 +238,13 @@ describe('ProjectListComponent', () => {
     describe('Grid Row Actions (Permissions Matrix)', () => {
       it('should render Approve and Reject buttons when user is Dean of the same faculty and project is pending', () => {
         // Dean of FIT viewing a PENDING_DEAN_APPROVAL project of FIT
-        mockUserSignal.set({
-          uid: 'dean-fit',
-          role: Role.LEVEL_2_DEAN,
-          userType: UserType.TEACHER,
-          facultyId: FacultyId.FIT,
-        });
+        mockUserSignal.set(
+          createMockAuthenticatedUser({
+            role: Role.LEVEL_2_DEAN,
+            facultyId: FacultyId.FIT,
+            userType: UserType.TEACHER
+          })
+        );
         fixture.detectChanges();
 
         const hostElement: HTMLElement = fixture.nativeElement;
@@ -252,12 +259,13 @@ describe('ProjectListComponent', () => {
 
       it('should NOT render Approve and Reject buttons if Dean belongs to a different faculty', () => {
         // Dean of FEE viewing project belonging to FIT
-        mockUserSignal.set({
-          uid: 'dean-fee',
-          role: Role.LEVEL_2_DEAN,
-          userType: UserType.TEACHER,
-          facultyId: FacultyId.FEE,
-        });
+        mockUserSignal.set(
+          createMockAuthenticatedUser({
+            role: Role.LEVEL_2_DEAN,
+            facultyId: FacultyId.FET,
+            userType: UserType.TEACHER,
+          })
+        );
         fixture.detectChanges();
 
         const hostElement: HTMLElement = fixture.nativeElement;
@@ -275,12 +283,13 @@ describe('ProjectListComponent', () => {
           items: [{ ...dummyProject, status: ProjectStatus.ACTIVE, mentorId: 'teacher-01' }],
           total: 1,
         });
-        mockUserSignal.set({
-          uid: 'teacher-01',
-          role: Role.LEVEL_3_USER,
-          userType: UserType.TEACHER,
-          facultyId: FacultyId.FIT,
-        });
+        mockUserSignal.set(
+          createMockAuthenticatedUser({
+            role: Role.LEVEL_3_USER,
+            facultyId: FacultyId.FIT,
+            userType: UserType.TEACHER
+          })
+        );
         fixture.detectChanges();
 
         const hostElement: HTMLElement = fixture.nativeElement;

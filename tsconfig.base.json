@@ -10,7 +10,10 @@
     "importHelpers": true,
     "target": "es2022",
     "module": "commonjs",
-    "lib": ["es2020", "dom"],
+    "lib": [
+      "es2020",
+      "dom"
+    ],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
@@ -31,7 +34,9 @@
       "@school-expense-ecosystem/auth/data-access": [
         "./libs/auth/data-access/src/index.ts"
       ],
-      "@school-expense-ecosystem/shared/ui": ["./libs/shared/ui/src/index.ts"],
+      "@school-expense-ecosystem/shared/ui": [
+        "./libs/shared/ui/src/index.ts"
+      ],
       "@school-expense-ecosystem/auth/features": [
         "./libs/auth/features/src/index.ts"
       ],
@@ -68,7 +73,9 @@
       "@school-expense-ecosystem/dashboard/features": [
         "./libs/dashboard/features/src/index.ts"
       ],
-      "@school-expense-ecosystem/auth/ui": ["./libs/auth/ui/src/index.ts"],
+      "@school-expense-ecosystem/auth/ui": [
+        "./libs/auth/ui/src/index.ts"
+      ],
       "@school-expense-ecosystem/admin/features-backend": [
         "./libs/admin/features-backend/src/index.ts"
       ],
@@ -162,7 +169,12 @@
       "@school-expense-ecosystem/shared/data-access-backend": [
         "./libs/shared/data-access-backend/src/index.ts"
       ],
-      "shared-guards-frontend": ["./libs/shared/guards-frontend/src/index.ts"]
+      "@school-expense-ecosystem/shared/guards-frontend": [
+        "./libs/shared/guards-frontend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/test-utils": [
+        "./libs/shared/test-utils/src/index.ts"
+      ]
     }
   },
   "exclude": [
@@ -170,7 +182,6 @@
     "dist",
     ".angular",
     ".cache",
-    "tmp",
-    "**/*.spec.ts"
+    "tmp"
   ]
 }
