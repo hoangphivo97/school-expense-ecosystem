@@ -22,6 +22,17 @@ export class FirestoreProjectRepository
     return this.db.collection('department_funds');
   }
 
+  private applyPrefixSearch(
+    query: admin.firestore.Query,
+    field: string | admin.firestore.FieldPath,
+    term: string
+  ): admin.firestore.Query {
+    return query
+      .where(field, '>=', term)
+      .where(field, '<=', `${term}\uf8ff`)
+      .orderBy(field);
+  }
+
   async findWithQuery(query: ProjectQueryPayload): Promise<PaginatedProjectResult> {
     let baseQuery: admin.firestore.Query = this.collection;
 
@@ -33,10 +44,12 @@ export class FirestoreProjectRepository
     // Push search filter and index sorting down to database level
     if (query.search) {
       const term = query.search.trim();
-      baseQuery = baseQuery
-        .where('name', '>=', term)
-        .where('name', '<=', term + '\uf8ff')
-        .orderBy('name');
+      const isIdSearch = /^PRJ/i.test(term);
+
+      const searchField = isIdSearch ? admin.firestore.FieldPath.documentId() : 'name';
+      const normalizedTerm = isIdSearch ? term.toUpperCase() : term;
+
+      baseQuery = this.applyPrefixSearch(baseQuery, searchField, normalizedTerm);
     } else {
       baseQuery = baseQuery.orderBy('createdAt', 'desc');
     }
