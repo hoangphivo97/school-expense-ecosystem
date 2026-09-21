@@ -20,6 +20,17 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> exten
 
   protected abstract override mapDoc(doc: admin.firestore.DocumentSnapshot): T;
 
+  protected applyPrefixSearch(
+    query: admin.firestore.Query,
+    field: string | admin.firestore.FieldPath,
+    term: string
+  ): admin.firestore.Query {
+    return query
+      .where(field, '>=', term)
+      .where(field, '<=', `${term}\uf8ff`)
+      .orderBy(field);
+  }
+
   /**
    * Search active student users across the entire ecosystem
    */
