@@ -17,7 +17,7 @@ import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { DialogError } from '@school-expense-ecosystem/shared/types';
 import { provideAppCheck, initializeAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check';
 import { provideTranslocoConfig } from './transloco.provider';
-import { errorInterceptor } from 'shared-guards-frontend';
+import { errorInterceptor } from '@school-expense-ecosystem/shared/guards-frontend';
 
 export const appConfig: ApplicationConfig = {
   providers: [

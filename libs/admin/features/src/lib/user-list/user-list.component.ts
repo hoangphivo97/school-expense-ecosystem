@@ -96,8 +96,8 @@ export class UserListComponent {
   readonly processingUserId = signal<string | null>(null);
 
   readonly pageSize = signal<number>(10);
-  readonly currentPageIndex = signal<number>(0);
-  private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
+  readonly currentPageIndex = signal<number>(1);
+  private readonly pageTokens = signal<Record<number, string>>({ 1: '' });
   readonly UserStatusEnum = UserStatus;
 
   readonly isAdmin = computed(() => this.authStore.user()?.role === Role.LEVEL_0_ADMIN);
@@ -176,8 +176,8 @@ export class UserListComponent {
       this.activeFilters()
 
       untracked(() => {
-        this.currentPageIndex.set(0);
-        this.pageTokens.set({ 0: '' });
+        this.currentPageIndex.set(1);
+        this.pageTokens.set({ 1: '' });
       });
     });
   }
@@ -189,8 +189,8 @@ export class UserListComponent {
   onPageSizeChange(newSize: number): void {
     this.pageSize.set(newSize);
     
-    this.currentPageIndex.set(0);
-    this.pageTokens.set({ 0: '' });
+    this.currentPageIndex.set(1);
+    this.pageTokens.set({ 1: '' });
   }
 
   triggerRefresh(): void {
