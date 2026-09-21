@@ -41,7 +41,7 @@ async function bootstrapServer() {
 
 export const api = onRequest(
   {
-    region: 'asia-east1',
+    region: 'us-central1',
     memory: '1GiB',
     minInstances: 0
   },
