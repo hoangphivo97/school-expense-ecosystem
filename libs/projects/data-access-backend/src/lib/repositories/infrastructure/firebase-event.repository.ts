@@ -26,17 +26,6 @@ export class FirebaseEventRepository
     return this.db.collection('department_funds');
   }
 
-  private applyPrefixSearch(
-    query: admin.firestore.Query,
-    field: string | admin.firestore.FieldPath,
-    term: string
-  ): admin.firestore.Query {
-    return query
-      .where(field, '>=', term)
-      .where(field, '<=', `${term}\uf8ff`)
-      .orderBy(field);
-  }
-
   async findWithQuery(query: EventQueryPayload): Promise<PaginatedEventResult> {
     let baseQuery: admin.firestore.Query = this.collection;
 
