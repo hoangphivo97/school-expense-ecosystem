@@ -1,7 +1,7 @@
 export default {
-  displayName: 'projects-features',
+  displayName: 'projects-ui',
   preset: '../../../jest.preset.js',
-  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$|@ngneat|flat)'],
+  coverageDirectory: '../../../coverage/libs/projects/ui',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
       'jest-preset-angular',
@@ -11,8 +11,8 @@ export default {
       },
     ],
   },
+  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$|@ngneat|flat)'],
   moduleFileExtensions: ['ts', 'js', 'html', 'mjs'],
-  coverageDirectory: '../../../coverage/libs/projects/features',
   setupFilesAfterEnv: ['<rootDir>/../../../apps/mfe-shell-angular/setup-jest.ts'],
   testMatch: ['<rootDir>/src/**/*.spec.ts'],
 };

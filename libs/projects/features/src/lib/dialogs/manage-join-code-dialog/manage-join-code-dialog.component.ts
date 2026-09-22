@@ -152,6 +152,7 @@ export class ManageJoinCodeDialogComponent implements OnInit {
 
     this.api.removeMember(studentId).subscribe({
       next: () => {
+        this.isMemberMutating.set(false);
         this.joinedStudents.update((list) => list.filter((s) => s.id !== studentId));
         this.hasMutated = true;
       },

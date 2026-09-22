@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -43,7 +43,6 @@ export interface CreateEventDialogData {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatSelectModule,
     MatIconModule,

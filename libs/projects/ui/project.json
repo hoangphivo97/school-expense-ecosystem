@@ -1,5 +1,5 @@
 {
-  "name": "project-ui",
+  "name": "projects-ui",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/projects/ui/src",
   "prefix": "lib",
