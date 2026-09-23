@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BudgetBackendService, } from '@school-expense-ecosystem/finance/data-access-backend';
 import { ProjectController } from './controllers/project.controller';
-import { EventRepository, EventService, FirebaseEventRepository, FirestoreProjectRepository, ProjectRepository, ProjectService, SharedService } from '@school-expense-ecosystem/projects/data-access-backend';
+import { EventRepository, EventService, FirebaseEventRepository, FirestoreProjectRepository, JoinCodeService, ProjectRepository, ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { UserListBackendModule } from '@school-expense-ecosystem/admin/features-backend';
 import { EventController } from './controllers/event.controller';
 
@@ -13,7 +13,7 @@ import { EventController } from './controllers/event.controller';
   providers: [BudgetBackendService,
     ProjectService,
     EventService,
-    SharedService,
+    JoinCodeService,
     {
       provide: ProjectRepository,
       useClass: FirestoreProjectRepository

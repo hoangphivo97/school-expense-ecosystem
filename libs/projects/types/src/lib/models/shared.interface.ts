@@ -31,10 +31,10 @@ export interface BaseActivityItem<TFundingType, TStatus> {
 }
 
 export interface StudentSummary {
-    id: string;
-    studentCode: string;
-    fullName: string;
-    email: string;
+  id: string;
+  studentCode: string;
+  fullName: string;
+  email: string;
 }
 
 export interface ActivityCapacityMetrics {
@@ -48,4 +48,29 @@ export interface BaseActivityViewModel extends ActivityCapacityMetrics {
   canEdit: boolean;
   canApprove?: boolean;
   canReject?: boolean;
+}
+
+export type JoinContextType = 'PROJECT' | 'EVENT';
+
+export interface JoinCodeDialogData {
+  context: JoinContextType;
+}
+
+export interface JoinCodeDialogResult {
+  success: boolean;
+  context: JoinContextType;
+  entityId?: string;
+}
+
+export interface EnrolledActivitySummary {
+  id: string;
+  name: string;
+  description?: string | null;
+  type: string;
+  status: string;
+  facultyId: FacultyId;
+  startDate: string;
+  endDate: string;
+  joinedStudentIds: string[];
+  updatedAt: string;
 }

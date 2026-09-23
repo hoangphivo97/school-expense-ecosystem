@@ -1,11 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
-import { SharedService } from './shared.service';
+import { JoinCodeService } from './join-code.service';
 
-describe('SharedService', () => {
-  let service: SharedService;
+
+describe('JoinCodeService', () => {
+  let service: JoinCodeService;
 
   beforeEach(() => {
-    service = new SharedService();
+    service = new JoinCodeService();
   });
 
   describe('generateCode', () => {

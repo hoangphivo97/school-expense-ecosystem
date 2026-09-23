@@ -6,7 +6,7 @@ import { UserRepository } from '@school-expense-ecosystem/admin/features-backend
 import { EventRepository } from '../repositories/abstracts/event.repository';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { EventService } from './event.service';
-import { SharedService } from './shared.service';
+import { JoinCodeService } from './join-code.service';
 
 describe('EventService', () => {
   let service: EventService;
@@ -34,7 +34,7 @@ describe('EventService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EventService,
-        SharedService,
+        JoinCodeService,
         { provide: EventRepository, useValue: mockEventRepo },
         { provide: ProjectRepository, useValue: mockProjectRepo },
         { provide: UserRepository, useValue: mockUserRepo },

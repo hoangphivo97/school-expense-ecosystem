@@ -3,18 +3,19 @@ import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
-import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary, ProjectQueryPayload, PaginatedProjectResult } from '@school-expense-ecosystem/projects/types';
+import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary, ProjectQueryPayload, PaginatedProjectResult, EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
 import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException } from '../exceptions/project.exception';
-import { SharedService } from './shared.service';
+import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
+import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
 
 @Injectable()
 export class ProjectService {
   constructor(
     private readonly projectRepo: ProjectRepository,
     private readonly userRepo: UserRepository,
-    private readonly sharedService: SharedService
+    private readonly joinCodeService: JoinCodeService
   ) { }
 
   async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<ProjectItem> {
@@ -44,7 +45,7 @@ export class ProjectService {
     }
 
     const joinConfig = dto.joinCodeConfig
-      ? this.sharedService.generateInlineConfig(dto.joinCodeConfig, dto.startDate, dto.endDate)
+      ? this.joinCodeService.generateInlineConfig(dto.joinCodeConfig, dto.startDate, dto.endDate)
       : null;
 
     const newProject: ProjectItem = {
@@ -146,18 +147,25 @@ export class ProjectService {
     await this.projectRepo.update(projectId, { status: ProjectStatus.ARCHIVED });
   }
 
-  async joinProjectByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<ProjectItem> {
+  async joinProjectByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<EnrolledActivitySummary> {
     const project = await this.projectRepo.findByJoinCode(joinDto.code);
     if (!project) {
       throw new InvalidJoinCodeException();
     }
 
-    if (project.status !== ProjectStatus.ACTIVE) {
-      throw new ProjectInvalidStatusTransitionException('Cannot join a project that is not currently active.');
+    if (project.type === ProjectFundingType.FACULTY && user.facultyId !== project.facultyId) {
+      throw new ForbiddenException('Faculty-funded projects only accept students from the same department.');
     }
 
-    // Atomically verifies conditions and enrolls student inside Firestore Transaction
-    return this.projectRepo.enrollStudentViaCode(project.id, user.uid);
+    // Atomically verifies conditions, code token, and ACTIVE status inside Firestore Transaction
+    const enrolled = await this.projectRepo.enrollStudentViaCode(
+      project.id,
+      user.uid,
+      joinDto.code,
+      [ProjectStatus.ACTIVE]
+    );
+
+    return toEnrolledActivitySummary(enrolled);
   }
 
   async removeStudent(projectId: string, studentId: string, user: AuthenticatedUser): Promise<void> {
@@ -187,10 +195,10 @@ export class ProjectService {
   ): Promise<JoinConfig> {
     const project = await this.validateProjectAccess(projectId, user);
 
-    // Validate date constraints via SharedService
-    this.sharedService.validateJoinCodeSchedule(dto, project.endDate);
+    // Validate date constraints via joinCodeService
+    this.joinCodeService.validateJoinCodeSchedule(dto, project.endDate);
 
-    const joinConfig = this.sharedService.generateConfig(dto);
+    const joinConfig = this.joinCodeService.generateConfig(dto);
     await this.projectRepo.updateJoinConfig(projectId, joinConfig);
     return joinConfig;
   }
@@ -323,11 +331,6 @@ export class ProjectService {
 
     const users = await this.userRepo.findByIds(studentIds);
 
-    return users.map((u) => ({
-      id: u.uid || (u as any).id,
-      studentCode: String(u.userCode || '').trim(),
-      fullName: String(u.fullName || '').trim(),
-      email: String(u.email || '').trim(),
-    }));
+    return toStudentSummaryList(users);
   }
 }

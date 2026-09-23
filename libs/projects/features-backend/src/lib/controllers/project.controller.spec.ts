@@ -2,10 +2,11 @@ import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/comm
 import { Test, TestingModule } from '@nestjs/testing';
 import * as supertest from 'supertest';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { PaginatedProjectResult, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { EnrolledActivitySummary, PaginatedProjectResult, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { ProjectController } from './project.controller';
 import { ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { AuthGuard } from '@nestjs/passport';
+import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 const request = require('supertest');
 
 describe('ProjectController (HTTP Integration)', () => {
@@ -15,16 +16,14 @@ describe('ProjectController (HTTP Integration)', () => {
   const mockProjectService = {
     getProjectsForUser: jest.fn(),
     approveProject: jest.fn(),
+    joinProjectByCode: jest.fn(),
   };
 
   beforeAll(async () => {
     // Default user context for authenticated requests
-    mockCurrentUser = {
+    mockCurrentUser = createMockAuthenticatedUser({
       uid: 'dean-user-01',
-      role: Role.LEVEL_2_DEAN,
-      userType: UserType.TEACHER,
-      facultyId: FacultyId.FIT,
-    };
+    });
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [ProjectController],
@@ -154,6 +153,79 @@ describe('ProjectController (HTTP Integration)', () => {
 
       expect(mockProjectService.approveProject).toHaveBeenCalledWith(targetProjectId, mockCurrentUser);
       expect(response.body.status).toBe(ProjectStatus.ACTIVE);
+    });
+  });
+
+  describe('POST /projects/join (Student Enrollment via Code)', () => {
+    beforeEach(() => {
+      // Re-assign request context with Student credentials
+      mockCurrentUser = createMockAuthenticatedUser({
+        uid: 'student-user-01',
+        userCode: 'STU_FIT_01',
+        role: Role.LEVEL_3_USER,
+        userType: UserType.STUDENT,
+      });
+    });
+
+    afterEach(() => {
+      // Restore default Dean context
+      mockCurrentUser = createMockAuthenticatedUser({
+        uid: 'dean-user-01',
+      });
+    });
+
+    it('should enroll student and return 200 with sanitized summary', async () => {
+      const mockSummary: EnrolledActivitySummary = {
+        id: 'PRJ-FIT-001',
+        name: 'AI Capstone',
+        description: 'Capstone project',
+        type: ProjectFundingType.FACULTY,
+        status: ProjectStatus.ACTIVE,
+        facultyId: FacultyId.FIT,
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+        joinedStudentIds: ['dean-user-01'],
+        updatedAt: new Date().toISOString(),
+      };
+
+      mockProjectService.joinProjectByCode.mockResolvedValueOnce(mockSummary);
+
+      const response = await request(app.getHttpServer())
+        .post('/projects/join')
+        .send({ code: 'PRJ-9821' })
+        .expect(200);
+
+      expect(mockProjectService.joinProjectByCode).toHaveBeenCalledWith(
+        mockCurrentUser,
+        expect.objectContaining({ code: 'PRJ-9821' })
+      );
+      expect(response.body).toEqual(mockSummary);
+      // Ensure sensitive internal financial baselines are not leaked to student
+      expect(response.body.budgetCap).toBeUndefined();
+      expect(response.body.currentSpent).toBeUndefined();
+    });
+
+    it('should trim and uppercase code via Transform pipe', async () => {
+      mockProjectService.joinProjectByCode.mockResolvedValueOnce({ id: 'PRJ-FIT-001' });
+
+      await request(app.getHttpServer())
+        .post('/projects/join')
+        .send({ code: '  prj-9821  ' })
+        .expect(200);
+
+      expect(mockProjectService.joinProjectByCode).toHaveBeenCalledWith(
+        mockCurrentUser,
+        expect.objectContaining({ code: 'PRJ-9821' })
+      );
+    });
+
+    it('should reject with 400 when code is shorter than 6 characters', async () => {
+      await request(app.getHttpServer())
+        .post('/projects/join')
+        .send({ code: 'SHORT' })
+        .expect(400);
+
+      expect(mockProjectService.joinProjectByCode).not.toHaveBeenCalled();
     });
   });
 });

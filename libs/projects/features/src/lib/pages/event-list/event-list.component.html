@@ -5,6 +5,10 @@
     <button primaryAction mat-flat-button color="primary" (click)="openCreateEventModal()">
       <mat-icon>add</mat-icon> {{ t('actions.createEvent') }}
     </button>
+    } @else{
+    <button primaryAction mat-flat-button color="primary" (click)="openJoinEventDialog()">
+      <mat-icon>vpn_key</mat-icon> {{ t('actions.joinByCode') }}
+    </button>
     }
   </lib-filter>
 
@@ -112,25 +116,15 @@
                 }
 
                 @if (event.canManageJoinCode) {
-                  <button
-                    mat-icon-button
-                    color="primary"
-                    [matTooltip]="t('actions.manageJoinCode')"
-                    (click)="openJoinCodeModal(event)"
-                    aria-label="Manage Join Code"
-                  >
-                    <mat-icon>qr_code</mat-icon>
-                  </button>
+                <button mat-icon-button color="primary" [matTooltip]="t('actions.manageJoinCode')"
+                  (click)="openJoinCodeModal(event)" aria-label="Manage Join Code">
+                  <mat-icon>qr_code</mat-icon>
+                </button>
                 }
 
                 @if (event.canApprove) {
-                <button
-                  mat-icon-button
-                  color="primary"
-                  [matTooltip]="t('actions.approve') || 'Approve'"
-                  (click)="onApproveEvent(event)"
-                  aria-label="Approve Event"
-                >
+                <button mat-icon-button color="primary" [matTooltip]="t('actions.approve') || 'Approve'"
+                  (click)="onApproveEvent(event)" aria-label="Approve Event">
                   <mat-icon>check_circle</mat-icon>
                 </button>
                 }

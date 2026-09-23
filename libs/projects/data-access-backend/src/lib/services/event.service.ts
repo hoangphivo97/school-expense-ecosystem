@@ -27,6 +27,7 @@ import {
   StudentSummary,
   PaginatedEventResult,
   EventQueryPayload,
+  EnrolledActivitySummary,
 } from '@school-expense-ecosystem/projects/types';
 import {
   EventActiveFinancialModificationException,
@@ -38,8 +39,9 @@ import {
   EventStudentNotEnrolledException,
   InvalidEventStateException,
 } from '../exceptions/event.exception';
-import { SharedService } from './shared.service';
+import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
+import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
 
 @Injectable()
 export class EventService {
@@ -47,7 +49,7 @@ export class EventService {
     private readonly eventRepository: EventRepository,
     private readonly projectRepository: ProjectRepository,
     private readonly userRepository: UserRepository,
-    private readonly sharedService: SharedService
+    private readonly joinCodeService: JoinCodeService
   ) { }
 
   /**
@@ -120,7 +122,7 @@ export class EventService {
     }
 
     const joinConfig = dto.joinCodeConfig
-      ? this.sharedService.generateInlineConfig(dto.joinCodeConfig, dto.startDate, dto.endDate)
+      ? this.joinCodeService.generateInlineConfig(dto.joinCodeConfig, dto.startDate, dto.endDate)
       : null;
 
     const newEvent: EventItem = {
@@ -268,9 +270,9 @@ export class EventService {
       throw new InvalidEventStateException('generate join code', event.status);
     }
 
-    this.sharedService.validateJoinCodeSchedule(dto, event.endDate);
+    this.joinCodeService.validateJoinCodeSchedule(dto, event.endDate);
 
-    const joinConfig = this.sharedService.generateConfig(dto);
+    const joinConfig = this.joinCodeService.generateConfig(dto);
     await this.eventRepository.updateJoinConfig(id, joinConfig);
     return joinConfig;
   }
@@ -278,17 +280,24 @@ export class EventService {
   /**
    * Student self-registration via code
    */
-  async joinEventByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<EventItem> {
+  async joinEventByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<EnrolledActivitySummary> {
     const event = await this.eventRepository.findByJoinCode(joinDto.code);
     if (!event) {
       throw new InvalidJoinCodeException();
     }
 
-    if (event.status !== EventStatus.UPCOMING && event.status !== EventStatus.ONGOING) {
-      throw new InvalidEventStateException('join event', event.status);
+    if (event.type === EventFundingType.FACULTY && user.facultyId !== event.facultyId) {
+      throw new ForbiddenException('Faculty-funded events only accept students from the same department.');
     }
 
-    return this.eventRepository.enrollStudentViaCode(event.id, user.uid);
+    const enrolled = await this.eventRepository.enrollStudentViaCode(
+      event.id,
+      user.uid,
+      joinDto.code,
+      [EventStatus.ONGOING, EventStatus.UPCOMING]
+    );
+
+    return toEnrolledActivitySummary(enrolled);
   }
 
   /**
@@ -387,12 +396,7 @@ export class EventService {
 
     const users = await this.userRepository.findByIds(studentIds);
 
-    return users.map((u) => ({
-      id: u.uid || (u as any).id,
-      studentCode: String(u.userCode || '').trim(),
-      fullName: String(u.fullName || '').trim(),
-      email: String(u.email || '').trim(),
-    }));
+    return toStudentSummaryList(users);
   }
 
   async addStudentsManually(id: string, user: AuthenticatedUser, dto: AddParticipantsDto): Promise<void> {

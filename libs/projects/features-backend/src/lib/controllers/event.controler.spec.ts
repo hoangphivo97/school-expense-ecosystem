@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as supertest from 'supertest';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import {
+  EnrolledActivitySummary,
   EventFundingType,
   EventItem,
   EventStatus,
@@ -10,6 +11,7 @@ import {
 } from '@school-expense-ecosystem/projects/types';
 import { EventController } from './event.controller';
 import { EventService } from '@school-expense-ecosystem/projects/data-access-backend';
+import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 const request = require('supertest');
 
 describe('EventController (HTTP Integration)', () => {
@@ -21,15 +23,13 @@ describe('EventController (HTTP Integration)', () => {
     createEvent: jest.fn(),
     approveEvent: jest.fn(),
     rejectEvent: jest.fn(),
+    joinEventByCode: jest.fn(),
   };
 
   beforeAll(async () => {
-    mockCurrentUser = {
+    mockCurrentUser = createMockAuthenticatedUser({
       uid: 'dean-user-01',
-      role: Role.LEVEL_2_DEAN,
-      userType: UserType.TEACHER,
-      facultyId: FacultyId.FIT,
-    };
+    });
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [EventController],
@@ -209,6 +209,65 @@ describe('EventController (HTTP Integration)', () => {
         expect.objectContaining(rejectDto)
       );
       expect(response.body.status).toBe(EventStatus.REJECTED);
+    });
+  });
+
+  describe('POST /events/join (Student Self-Enrollment via Code)', () => {
+    beforeEach(() => {
+      // Switch request context to Student credentials
+      mockCurrentUser = createMockAuthenticatedUser({
+        uid: 'student-user-01',
+        userCode: 'STU_FIT_01',
+        role: Role.LEVEL_3_USER,
+        userType: UserType.STUDENT,
+      });
+    });
+
+    afterEach(() => {
+      // Restore default Dean context
+      mockCurrentUser = createMockAuthenticatedUser({
+        uid: 'dean-user-01',
+      });
+    });
+
+    it('should enroll student and return 200 with sanitized summary', async () => {
+      const mockSummary: EnrolledActivitySummary = {
+        id: 'EVT-FIT-001',
+        name: 'Cloud Computing Workshop',
+        description: 'Hands-on AWS Lab',
+        type: EventFundingType.FACULTY,
+        status: EventStatus.UPCOMING,
+        facultyId: FacultyId.FIT,
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+        joinedStudentIds: ['dean-user-01'],
+        updatedAt: new Date().toISOString(),
+      };
+
+      mockEventService.joinEventByCode.mockResolvedValueOnce(mockSummary);
+
+      const response = await request(app.getHttpServer())
+        .post('/events/join')
+        .send({ code: 'EVT-4512' })
+        .expect(200);
+
+      expect(mockEventService.joinEventByCode).toHaveBeenCalledWith(
+        mockCurrentUser,
+        expect.objectContaining({ code: 'EVT-4512' })
+      );
+      expect(response.body).toEqual(mockSummary);
+      // Ensure budget and pending expenses are stripped from response
+      expect(response.body.budgetCap).toBeUndefined();
+      expect(response.body.pendingSpent).toBeUndefined();
+    });
+
+    it('should reject with 400 when code is empty or missing', async () => {
+      await request(app.getHttpServer())
+        .post('/events/join')
+        .send({})
+        .expect(400);
+
+      expect(mockEventService.joinEventByCode).not.toHaveBeenCalled();
     });
   });
 });

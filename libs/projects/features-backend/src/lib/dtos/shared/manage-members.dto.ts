@@ -1,4 +1,5 @@
 import { GenerateJoinCodePayload, JoinByCodePayload, ManageParticipantsPayload } from '@school-expense-ecosystem/projects/types';
+import { Transform } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsDateString, IsInt, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, Length, Min } from 'class-validator';
 
 export class GenerateJoinCodeDto implements GenerateJoinCodePayload {
@@ -17,7 +18,8 @@ export class GenerateJoinCodeDto implements GenerateJoinCodePayload {
 export class JoinByCodeDto implements JoinByCodePayload {
   @IsString()
   @IsNotEmpty()
-  @Length(6, 10)
+  @Length(6, 12)
+  @Transform(({ value }) => typeof value === 'string' ? value.trim().toUpperCase() : value)
   code!: string;
 }
 

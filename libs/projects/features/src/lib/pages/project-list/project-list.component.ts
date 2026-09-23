@@ -11,13 +11,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { JoinCodeDialogResult, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateProjectDialogComponent } from '../../dialogs/create-project-dialog/create-project-dialog.component';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
+import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
 
 export interface ProjectViewModel extends ProjectItem {
   canApprove: boolean;
@@ -308,8 +309,17 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  openJoinByCodeModal(): void {
-    // Open student join code input dialog logic
+  openJoinByCodeDialog(): void {
+    const dialogRef = this.dialog.open(JoinCodeDialogComponent, {
+      width: '420px',
+      data: { context: 'PROJECT' },
+    });
+
+    dialogRef.afterClosed().subscribe((result: JoinCodeDialogResult | undefined) => {
+      if (result?.success) {
+        this.projectsResource.reload();
+      }
+    });
   }
 
   openJoinCodeModal(project: ProjectItem): void {

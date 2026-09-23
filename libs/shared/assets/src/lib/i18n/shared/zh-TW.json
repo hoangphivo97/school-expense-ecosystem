@@ -136,5 +136,19 @@
   },
   "capacity": {
     "unlimited": "無名額限制（自由開放參與）"
+  },
+  "joinDialog": {
+    "project": {
+      "title": "加入專案",
+      "subtitle": "請輸入指導老師或專案負責人提供的邀請代碼以加入專案。",
+      "codeLabel": "專案邀請碼",
+      "codePlaceholder": "例如：PRJ-9821"
+    },
+    "event": {
+      "title": "參與活動",
+      "subtitle": "請輸入活動代碼以完成登記與簽到手續。",
+      "codeLabel": "活動邀請碼",
+      "codePlaceholder": "例如：EVT-4512"
+    }
   }
 }

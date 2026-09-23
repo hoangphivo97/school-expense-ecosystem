@@ -243,6 +243,7 @@
       "status": "Event Status"
     },
     "actions": {
+      "joinByCode": "Join via Code",
       "createEvent": "Create Event",
       "editEvent": "Edit Event Details",
       "clickToCopy": "Click to copy ID"

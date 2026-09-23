@@ -14,7 +14,7 @@ import {
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { EventService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
-import { EventItem } from '@school-expense-ecosystem/projects/types';
+import { EnrolledActivitySummary, EventItem } from '@school-expense-ecosystem/projects/types';
 import { EventQueryDto } from '../dtos/event/event-query.dto';
 import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/shared/manage-members.dto';
 import { CreateEventDto } from '../dtos/event/create-event.dto';
@@ -52,7 +52,7 @@ export class EventController {
   async joinByCode(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: JoinByCodeDto
-  ): Promise<EventItem> {
+  ): Promise<EnrolledActivitySummary> {
     return this.eventService.joinEventByCode(user, dto);
   }
 

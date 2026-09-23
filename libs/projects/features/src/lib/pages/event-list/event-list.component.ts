@@ -8,7 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel } from '@school-expense-ecosystem/projects/types';
+import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult } from '@school-expense-ecosystem/projects/types';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import {
@@ -31,6 +31,7 @@ import {
 import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/create-event-dialog.component';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
+import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
 
 export interface EventViewModel extends EventItem, BaseActivityViewModel {
   canManage: boolean;
@@ -282,6 +283,19 @@ export class EventListComponent {
 
     dialogRef.afterClosed().subscribe((result?: ManageJoinCodeDialogResult) => {
       if (result) {
+        this.eventResource.reload();
+      }
+    });
+  }
+
+  openJoinEventDialog(): void {
+    const dialogRef = this.dialog.open(JoinCodeDialogComponent, {
+      width: '420px',
+      data: { context: 'EVENT' },
+    });
+
+    dialogRef.afterClosed().subscribe((result: JoinCodeDialogResult | undefined) => {
+      if (result?.success) {
         this.eventResource.reload();
       }
     });

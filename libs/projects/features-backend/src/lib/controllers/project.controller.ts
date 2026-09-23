@@ -14,11 +14,12 @@ import {
 import { ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
 import { type AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { CreateProjectDto} from '../dtos/project/create-project.dto';
+import { CreateProjectDto } from '../dtos/project/create-project.dto';
 import { ProjectQueryDto } from '../dtos/project/project-query.dto';
 import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/shared/manage-members.dto';
 import { UpdateProjectDto } from '../dtos/project/update-project.dto';
 import { RejectProjectDto } from '../dtos/project/reject-project.dto';
+import { EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
 
 @Controller('projects')
 @UseGuards(RolesGuard)
@@ -55,7 +56,7 @@ export class ProjectController {
   async joinByCode(
     @CurrentUser() user: AuthenticatedUser,
     @Body() joinDto: JoinByCodeDto
-  ) {
+  ): Promise<EnrolledActivitySummary> {
     return this.projectService.joinProjectByCode(user, joinDto);
   }
 

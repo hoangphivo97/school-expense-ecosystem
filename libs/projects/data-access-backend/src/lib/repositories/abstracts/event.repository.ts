@@ -1,4 +1,4 @@
-import { EventItem, EventQueryPayload, CreateEventPayload, UpdateEventPayload, StudentSummary, PaginatedEventResult } from '@school-expense-ecosystem/projects/types';
+import { EventItem, EventQueryPayload, StudentSummary, PaginatedEventResult, EventStatus } from '@school-expense-ecosystem/projects/types';
 
 export abstract class EventRepository {
   abstract create(event: EventItem): Promise<EventItem>;
@@ -17,7 +17,7 @@ export abstract class EventRepository {
 
   abstract findWithQuery(query: EventQueryPayload): Promise<PaginatedEventResult>;
   abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
-  abstract enrollStudentViaCode(eventId: string, studentId: string): Promise<EventItem>;
+  abstract enrollStudentViaCode(eventId: string, studentId: string, expectedCode: string, allowedStatuses: EventStatus[]): Promise<EventItem>;
   abstract createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem>;
 
   /**

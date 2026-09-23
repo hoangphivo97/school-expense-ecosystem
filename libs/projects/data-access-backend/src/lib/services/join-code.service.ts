@@ -3,7 +3,7 @@ import * as crypto from 'crypto';
 import { CreateJoinCodeConfig, GenerateJoinCodePayload, JoinConfig } from '@school-expense-ecosystem/projects/types';
 
 @Injectable()
-export class SharedService {
+export class JoinCodeService {
   /**
    * Generates a secure random code excluding ambiguous characters (0, O, 1, I)
    */
@@ -40,10 +40,11 @@ export class SharedService {
     return {
       code: this.generateCode(6),
       maxUses: dto.maxUses ?? null,
-      startsAt: dto.startsAt,
-      expiresAt: dto.expiresAt,
+      startsAt: new Date(dto.startsAt).toISOString(),
+      expiresAt: new Date(dto.expiresAt).toISOString(),
       isActive: true,
       createdAt: new Date().toISOString(),
+      usedCount: 0,
     };
   }
 
@@ -65,6 +66,7 @@ export class SharedService {
     return {
       code: this.generateCode(6),
       maxUses: config.maxUses ?? null,
+      usedCount: 0,
       startsAt,
       expiresAt,
       isActive: true,

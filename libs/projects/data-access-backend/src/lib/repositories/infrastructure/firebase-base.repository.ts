@@ -5,14 +5,14 @@ import { JoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/t
 import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedException, JoinCodeExpiredException, JoinCodeNotStartedException, StudentAlreadyEnrolledException } from '../../exceptions/join-code.exception';
 import { BaseFirestoreRepository } from '@school-expense-ecosystem/shared/data-access-backend';
 
-export interface JoinableBaseEntity {
+export interface JoinableEntity<TStatus extends string = string> {
   id: string;
+  status?: TStatus;
   joinedStudentIds?: string[];
   joinConfig?: JoinConfig | null;
-  [key: string]: any;
 }
 
-export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> extends BaseFirestoreRepository<T> {
+export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, TStatus extends string = string> extends BaseFirestoreRepository<T> {
 
   protected get usersCollection() {
     return this.db.collection('users');
@@ -100,40 +100,49 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> exten
   }
 
   async searchStudents(query: string, limitCount = 20): Promise<StudentSummary[]> {
-    const normalizedQuery = query.toLowerCase().trim();
-    if (!normalizedQuery) return [];
+    const trimmed = query.trim();
+    if (trimmed.length < 2) return [];
 
-    const snapshot = await this.usersCollection
+    const baseQuery = this.usersCollection
       .where('userType', '==', UserType.STUDENT)
-      .where('status', '==', UserStatus.ACTIVE)
-      .limit(100)
+      .where('status', '==', UserStatus.ACTIVE);
+
+    const codeSnapshot = await this.applyPrefixSearch(baseQuery, 'userCode', trimmed.toUpperCase())
+      .limit(limitCount)
       .get();
 
-    const matchedStudents: StudentSummary[] = [];
+    const matchedMap = new Map<string, StudentSummary>();
 
-    for (const doc of snapshot.docs) {
+    for (const doc of codeSnapshot.docs) {
       const data = doc.data();
-      const userCode = String(data['userCode'] || '').trim();
-      const fullName = String(data['fullName'] || '').trim();
-      const email = String(data['email'] || '').trim();
+      matchedMap.set(doc.id, {
+        id: doc.id,
+        studentCode: String(data['userCode'] || '').trim(),
+        fullName: String(data['fullName'] || '').trim(),
+        email: String(data['email'] || '').trim(),
+      });
+    }
 
-      if (
-        fullName.toLowerCase().includes(normalizedQuery) ||
-        userCode.toLowerCase().includes(normalizedQuery) ||
-        email.toLowerCase().includes(normalizedQuery)
-      ) {
-        matchedStudents.push({
-          id: doc.id,
-          studentCode: userCode,
-          fullName: fullName,
-          email: email,
-        });
+    if (matchedMap.size < limitCount) {
+      const remainingQuota = limitCount - matchedMap.size;
+      const emailSnapshot = await this.applyPrefixSearch(baseQuery, 'email', trimmed.toLowerCase())
+        .limit(remainingQuota)
+        .get();
 
-        if (matchedStudents.length >= limitCount) break;
+      for (const doc of emailSnapshot.docs) {
+        if (!matchedMap.has(doc.id)) {
+          const data = doc.data();
+          matchedMap.set(doc.id, {
+            id: doc.id,
+            studentCode: String(data['userCode'] || '').trim(),
+            fullName: String(data['fullName'] || '').trim(),
+            email: String(data['email'] || '').trim(),
+          });
+        }
       }
     }
 
-    return matchedStudents;
+    return Array.from(matchedMap.values());
   }
 
   /**
@@ -169,13 +178,16 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> exten
     return new Date(dateVal).toISOString();
   }
 
-  private validateJoinEligibility(entity: T, studentId: string): { currentUses: number } {
-    const joinConfig = entity.joinConfig;
-
-    if (!joinConfig || !joinConfig.isActive) {
+  private validateJoinEligibility(entity: T, studentId: string, expectedCode: string, allowedStatuses: TStatus[]): { currentUses: number } {
+    if (!entity.status || !allowedStatuses.includes(entity.status)) {
       throw new InvalidJoinCodeException();
     }
 
+    const joinConfig = entity.joinConfig;
+
+    if (!joinConfig || !joinConfig.isActive || joinConfig.code !== expectedCode) {
+      throw new InvalidJoinCodeException();
+    }
     const joinedStudentIds = entity.joinedStudentIds ?? [];
     if (joinedStudentIds.includes(studentId)) {
       throw new StudentAlreadyEnrolledException(studentId);
@@ -197,7 +209,7 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> exten
     return { currentUses };
   }
 
-  async enrollStudentViaCode(id: string, studentId: string): Promise<T> {
+  async enrollStudentViaCode(id: string, studentId: string, expectedCode: string, allowedStatuses: TStatus[]): Promise<T> {
     const docRef = this.collection.doc(id);
 
     return this.db.runTransaction(async (transaction) => {
@@ -207,19 +219,15 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> exten
       }
 
       const entity = this.mapDoc(doc);
-      const { currentUses } = this.validateJoinEligibility(entity, studentId);
+      const { currentUses } = this.validateJoinEligibility(entity, studentId, expectedCode, allowedStatuses);
 
       const nextUsedCount = currentUses + 1;
-      const isCapacityExhausted = Boolean(
-        entity.joinConfig?.maxUses && nextUsedCount >= entity.joinConfig.maxUses
-      );
       const timestampIso = new Date().toISOString();
 
       // Atomically append participant and synchronize usage counter
       transaction.update(docRef, {
         joinedStudentIds: admin.firestore.FieldValue.arrayUnion(studentId),
         'joinConfig.usedCount': nextUsedCount,
-        'joinConfig.isActive': !isCapacityExhausted, // Automatically close code once limit is reached
         updatedAt: timestampIso,
       });
 
@@ -229,9 +237,8 @@ export abstract class FirebaseBaseRepository<T extends JoinableBaseEntity> exten
         joinConfig: {
           ...entity.joinConfig!,
           usedCount: nextUsedCount,
-          isActive: !isCapacityExhausted,
         },
-        updatedAt: timestampIso, // Synchronize returned model with optimistic lock timestamp
+        updatedAt: timestampIso,
       };
     });
   }

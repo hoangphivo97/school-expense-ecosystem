@@ -145,5 +145,19 @@
   },
   "capacity": {
     "unlimited": "Unlimited capacity (No quota limit)"
+  },
+  "joinDialog": {
+    "project": {
+      "title": "Join Project",
+      "subtitle": "Enter the invitation code provided by your instructor or coordinator to participate.",
+      "codeLabel": "Project Invitation Code",
+      "codePlaceholder": "E.g. PRJ-9821"
+    },
+    "event": {
+      "title": "Join Event",
+      "subtitle": "Enter the event join code to register and verify your attendance.",
+      "codeLabel": "Event Join Code",
+      "codePlaceholder": "E.g. EVT-4512"
+    }
   }
 }

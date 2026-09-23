@@ -5,12 +5,12 @@ import { ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/pro
 import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { ProjectService } from './project.service';
-import { SharedService } from './shared.service';
+import { JoinCodeService } from './join-code.service';
 
 describe('ProjectService', () => {
   let service: ProjectService;
   let projectRepo: jest.Mocked<ProjectRepository>;
-  let sharedService: SharedService;
+  let joinCodeService: JoinCodeService;
 
   const mockProjectRepo = {
     findWithQuery: jest.fn(),
@@ -28,7 +28,7 @@ describe('ProjectService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProjectService,
-        SharedService,
+        JoinCodeService,
         { provide: ProjectRepository, useValue: mockProjectRepo },
         { provide: UserRepository, useValue: mockUserRepo },
       ],
@@ -36,7 +36,7 @@ describe('ProjectService', () => {
 
     service = module.get<ProjectService>(ProjectService);
     projectRepo = module.get(ProjectRepository);
-    sharedService = module.get<SharedService>(SharedService);
+    joinCodeService = module.get<JoinCodeService>(JoinCodeService);
     jest.clearAllMocks();
   });
 

@@ -7,7 +7,7 @@
     [facultiesList]="facultiesListSignal()"
   >
     @if (isStudent()) {
-      <button primaryAction mat-flat-button color="primary" (click)="openJoinByCodeModal()">
+      <button primaryAction mat-flat-button color="primary" (click)="openJoinByCodeDialog()">
         <mat-icon>vpn_key</mat-icon> {{ t('actions.joinByCode') }}
       </button>
     } @else {
