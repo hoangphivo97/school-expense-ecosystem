@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.11](https://github.com/hoangphivo97/school-expense-ecosystem/compare/v0.0.10...v0.0.11) (2026-09-24)
+
+
+### Features
+
+* add event management functionality with repository and service implementations ([1519c82](https://github.com/hoangphivo97/school-expense-ecosystem/commit/1519c82548db2d7a0c40779b6db770d16f03d77d))
+* add Jest configuration and setup for unit testing, including test files and mocks ([f6a7ea8](https://github.com/hoangphivo97/school-expense-ecosystem/commit/f6a7ea83ddea4547dd3beb0219e38cfe3c9ff30e))
+* add join code configuration to project creation logic ([377d931](https://github.com/hoangphivo97/school-expense-ecosystem/commit/377d9318571bb694574c1b7d7ff39f5105b126fa))
+* add project list component with styling and functionality ([335ace5](https://github.com/hoangphivo97/school-expense-ecosystem/commit/335ace5b90c11ff2be4a5d5fc8ad511eb72f0300))
+* add unit tests for ProjectService and SharedService ([751e5fc](https://github.com/hoangphivo97/school-expense-ecosystem/commit/751e5fc7aecdcc15ecf1044e216100b670843bb8))
+* **dialogs:** refactor create and manage join code dialogs ([c3b2f88](https://github.com/hoangphivo97/school-expense-ecosystem/commit/c3b2f88d4bd1fab8dca0fc1afdf6462124add40c))
+* enhance create project dialog with join code options and improve modal styling ([1719ed3](https://github.com/hoangphivo97/school-expense-ecosystem/commit/1719ed347f6f05e88c35f63447e703e77fdee691))
+* enhance event and project list components with reactive state management and user permissions in unit test ([24303a6](https://github.com/hoangphivo97/school-expense-ecosystem/commit/24303a65e12926390f765afa718066bed531d23f))
+* enhance event and project management with improved status handling and UI updates ([fb469bb](https://github.com/hoangphivo97/school-expense-ecosystem/commit/fb469bbd572c7586b85eb6e45978bfc740115b7e))
+* enhance project creation dialog with approval warnings and translations ([45d8df0](https://github.com/hoangphivo97/school-expense-ecosystem/commit/45d8df097676e3f81bae66bce8d03f609b2b37ab))
+* enhance project creation dialog with internationalization for invitation code features and update notifications ([764310e](https://github.com/hoangphivo97/school-expense-ecosystem/commit/764310e061c130171982bf3fd568355d1261c33d))
+* enhance user and expense management with analytics and role updates ([807da2d](https://github.com/hoangphivo97/school-expense-ecosystem/commit/807da2de6d21dfaf0630e05e8559cfc59e43ea1d))
+* implement cursor-based pagination and enhance query parameters across event and project repositories ([a5e9e8f](https://github.com/hoangphivo97/school-expense-ecosystem/commit/a5e9e8f6f4929ac9249a720f717a63cc87e4ae89))
+* implement event enrollment via join code and enhance event management features ([ce382ce](https://github.com/hoangphivo97/school-expense-ecosystem/commit/ce382cedbb88700cc633fc046c9098ac8571fa6e))
+* Implement join code functionality for events and projects ([e578570](https://github.com/hoangphivo97/school-expense-ecosystem/commit/e578570139fd257eb788bab0695ddd2334ea4912))
+* implement join code management and streamline event/project repository methods ([6a64a02](https://github.com/hoangphivo97/school-expense-ecosystem/commit/6a64a02786427b5322c5db3b98e1140d570c984f))
+* implement project and event management layout with routing and localization ([2d786aa](https://github.com/hoangphivo97/school-expense-ecosystem/commit/2d786aaf17ccbcad145aae7794d8a8cd6fb94916))
+* integrate error interceptor and enhance optimistic locking in repositories ([d618eb4](https://github.com/hoangphivo97/school-expense-ecosystem/commit/d618eb4eb8ebb66acde1fde34b296e42c152f9d2))
+* move applyPrefixSearch method to FirebaseBaseRepository for reuse in event and project repositories ([c509f2a](https://github.com/hoangphivo97/school-expense-ecosystem/commit/c509f2a35dddf65f789f9492b0b9fa078477a908))
+* Refactor create project dialog and add event creation functionality ([d841a5a](https://github.com/hoangphivo97/school-expense-ecosystem/commit/d841a5a76ce29bbcda6a852073017c267ccfa479))
+* refactor event and project DTOs to extend base activity models and streamline validation logic ([1aba0c2](https://github.com/hoangphivo97/school-expense-ecosystem/commit/1aba0c249de8d324f09df43773388bfdab1d76de))
+* refactor event and project interfaces to extend base activity models and streamline payload structures ([66ccef2](https://github.com/hoangphivo97/school-expense-ecosystem/commit/66ccef2490bbf479b46079ffdaa068181b585a13))
+* Refactor join code dialog and manage join code dialog for improved functionality and validation ([cff930e](https://github.com/hoangphivo97/school-expense-ecosystem/commit/cff930ef3a4c5f8fc4809d79941f596d5ae7756f))
+* refactor project and event models to use ProjectItem and enhance activity capacity calculations ([122048f](https://github.com/hoangphivo97/school-expense-ecosystem/commit/122048fd2cb4b4e7ae922842f522d04ec8aab318))
+* Refactor project and event services to unify join code handling ([e481a92](https://github.com/hoangphivo97/school-expense-ecosystem/commit/e481a927e9294e9482b41b923528fae89ef30624))
+* refactor search logic in FirebaseEventRepository and FirestoreProjectRepository to use a reusable applyPrefixSearch method ([71c6ddf](https://github.com/hoangphivo97/school-expense-ecosystem/commit/71c6ddf71fb00132ef9632226b94cb585e4b9e6b))
+* rename Event to EventItem and update related references across services, repositories, and components ([4348a54](https://github.com/hoangphivo97/school-expense-ecosystem/commit/4348a5411c9658cad949420145de0a8b82544a70))
+* restructure project and event DTOs, add event management types and interfaces ([e005b83](https://github.com/hoangphivo97/school-expense-ecosystem/commit/e005b8390d216d60f4a534caf5974c46f8fbec39))
+* **tests:** enhance JoinCodeDialogComponent tests with additional validation and API interaction scenarios ([540a191](https://github.com/hoangphivo97/school-expense-ecosystem/commit/540a1916a4fffbea334f4d292b9532b98a16bdc5))
+* **ui:** introduce ActivityCapacityProgress and ActivityFormLayout components ([4bbd46d](https://github.com/hoangphivo97/school-expense-ecosystem/commit/4bbd46dc237e980639540e63efb794d0e544d3e7))
+* update pagination logic to start from page 1 and adjust navigation controls accordingly ([67ba410](https://github.com/hoangphivo97/school-expense-ecosystem/commit/67ba4105804073110001deb17133b95214348803))
+
+
+### Bug Fixes
+
+* remove version bump and changelog update steps from deployment workflow ([83b8a13](https://github.com/hoangphivo97/school-expense-ecosystem/commit/83b8a13a73b6d7086a5de299f6ac47fa143a49ba))
+
 ### 0.0.10 (2026-08-26)
 
 
