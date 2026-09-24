@@ -8,7 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult } from '@school-expense-ecosystem/projects/types';
+import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData } from '@school-expense-ecosystem/projects/types';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import {
@@ -30,7 +30,7 @@ import {
 } from '@school-expense-ecosystem/shared/ui';
 import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/create-event-dialog.component';
-import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
+import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogData, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
 
 export interface EventViewModel extends EventItem, BaseActivityViewModel {
@@ -275,11 +275,14 @@ export class EventListComponent {
   }
 
   openJoinCodeModal(event: EventItem): void {
-    const dialogRef = this.dialog.open(ManageJoinCodeDialogComponent, {
-      width: '540px',
-      data: { event },
-      disableClose: true,
-    });
+    const dialogRef = this.dialog.open<
+      ManageJoinCodeDialogComponent,
+      ManageJoinCodeDialogData,
+      ManageJoinCodeDialogResult>(ManageJoinCodeDialogComponent, {
+        width: '540px',
+        data: { entity: event, type: "EVENT" },
+        disableClose: true,
+      });
 
     dialogRef.afterClosed().subscribe((result?: ManageJoinCodeDialogResult) => {
       if (result) {
@@ -289,10 +292,13 @@ export class EventListComponent {
   }
 
   openJoinEventDialog(): void {
-    const dialogRef = this.dialog.open(JoinCodeDialogComponent, {
-      width: '420px',
-      data: { context: 'EVENT' },
-    });
+    const dialogRef = this.dialog.open<
+      JoinCodeDialogComponent,
+      JoinCodeDialogData,
+      JoinCodeDialogResult>(JoinCodeDialogComponent, {
+        width: '420px',
+        data: { context: 'EVENT' },
+      });
 
     dialogRef.afterClosed().subscribe((result: JoinCodeDialogResult | undefined) => {
       if (result?.success) {

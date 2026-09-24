@@ -8,33 +8,33 @@
   </div>
 
   @if (errorMessage()) {
-    <div class="alert alert-danger py-2 px-3 mb-3 small">
-      {{ errorMessage() }}
-    </div>
+  <div class="alert alert-danger py-2 px-3 mb-3 small">
+    {{ errorMessage() }}
+  </div>
   }
 
-  <form [formGroup]="joinForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content class="space-y-4">
     <mat-form-field appearance="outline" class="w-100 mb-2">
       <mat-label>{{ t(contextMeta().translocoKey + '.codeLabel') }}</mat-label>
       <mat-icon matIconPrefix class="text-secondary">vpn_key</mat-icon>
-      <input
-        matInput
-        formControlName="code"
-        (input)="onCodeInput($event)"
-        [placeholder]="t(contextMeta().translocoKey + '.codePlaceholder')"
-        class="font-monospace text-uppercase"
-        maxlength="12"
-      />
+      <input matInput [formField]="joinForm.code" (input)="onCodeInput($event)"
+        [placeholder]="t(contextMeta().translocoKey + '.codePlaceholder')" class="font-monospace text-uppercase" />
+      @if (joinForm.code().touched() && joinForm.code().invalid()) {
+      <mat-error>{{ joinForm.code().errors()[0]?.message }}</mat-error>
+      }
     </mat-form-field>
 
     <mat-dialog-actions align="end" class="gap-2 p-0 mt-3">
       <button mat-button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
         {{ t('common.cancel') }}
       </button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="joinForm.invalid || isSubmitting()">
-        <mat-icon *ngIf="isSubmitting()" class="spinning me-1">sync</mat-icon>
+      <button mat-flat-button color="primary" type="button" (click)="onSubmit()"
+        [disabled]="joinForm().invalid() || isSubmitting()">
+        @if (isSubmitting()) {
+        <mat-icon class="spinning me-1">sync</mat-icon>
+        }
         <span>{{ isSubmitting() ? t('common.joining') : t('common.confirm') }}</span>
       </button>
     </mat-dialog-actions>
-  </form>
+  </mat-dialog-content>
 </div>

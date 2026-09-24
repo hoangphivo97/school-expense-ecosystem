@@ -11,13 +11,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { JoinCodeDialogResult, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { JoinCodeDialogData, JoinCodeDialogResult, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateProjectDialogComponent } from '../../dialogs/create-project-dialog/create-project-dialog.component';
-import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
+import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogData, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
 
 export interface ProjectViewModel extends ProjectItem {
@@ -310,7 +310,11 @@ export class ProjectListComponent implements OnInit {
   }
 
   openJoinByCodeDialog(): void {
-    const dialogRef = this.dialog.open(JoinCodeDialogComponent, {
+    const dialogRef = this.dialog.open<
+      JoinCodeDialogComponent,
+      JoinCodeDialogData,
+      JoinCodeDialogResult
+    >(JoinCodeDialogComponent, {
       width: '420px',
       data: { context: 'PROJECT' },
     });
@@ -322,10 +326,14 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  openJoinCodeModal(project: ProjectItem): void {
-    const dialogRef = this.dialog.open(ManageJoinCodeDialogComponent, {
+  openManageJoinCodeModal(project: ProjectItem): void {
+    const dialogRef = this.dialog.open<
+      ManageJoinCodeDialogComponent,
+      ManageJoinCodeDialogData,
+      ManageJoinCodeDialogResult
+    >(ManageJoinCodeDialogComponent, {
       width: '540px',
-      data: { project },
+      data: { entity: project, type: "PROJECT" },
       disableClose: true,
     });
 

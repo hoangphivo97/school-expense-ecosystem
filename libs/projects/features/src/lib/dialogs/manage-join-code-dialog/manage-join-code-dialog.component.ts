@@ -61,7 +61,7 @@ export class ManageJoinCodeDialogComponent implements OnInit {
   private readonly isProject = this.data.type === 'PROJECT';
 
   readonly joinedStudents = signal<StudentSummary[]>([]);
-  readonly joinConfig = signal<JoinConfig | null>(this.data.entity.joinConfig ?? null);
+  readonly joinConfig = signal<JoinConfig | null>(this.data?.entity?.joinConfig ?? null);
   readonly isLoadingRoster = signal<boolean>(true);
   readonly isMemberMutating = signal<boolean>(false);
   readonly isSubmitting = signal<boolean>(false);
