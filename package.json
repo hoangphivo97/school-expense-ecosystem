@@ -148,5 +148,11 @@
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
-  "packageManager": "yarn@4.16.0"
+  "packageManager": "yarn@4.16.0",
+  "scripts": {
+    "release": "standard-version",
+    "release:first": "standard-version --first-release",
+    "release:dry-run": "standard-version --dry-run",
+    "changelog:preview": "standard-version --skip.bump --skip.tag --skip.commit"
+  }
 }
