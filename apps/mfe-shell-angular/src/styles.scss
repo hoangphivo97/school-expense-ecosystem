@@ -360,4 +360,13 @@ html body.dark-mode {
   .mat-mdc-form-field-bottom-align {
     display: none;
   }
+
+  .floating-multi-modal-panel {
+  .mat-mdc-dialog-container {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}
 }

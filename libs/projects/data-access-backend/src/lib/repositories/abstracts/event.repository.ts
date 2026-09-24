@@ -1,0 +1,41 @@
+import { EventItem, EventQueryPayload, StudentSummary, PaginatedEventResult, EventStatus } from '@school-expense-ecosystem/projects/types';
+
+export abstract class EventRepository {
+  abstract create(event: EventItem): Promise<EventItem>;
+  abstract findById(id: string): Promise<EventItem | null>;
+  abstract update(id: string, data: Partial<EventItem>): Promise<void>;
+  abstract findByJoinCode(code: string): Promise<EventItem | null>;
+
+  abstract addStudentsBulk(id: string, studentUids: string[]): Promise<void>;
+  abstract removeStudent(id: string, studentUid: string): Promise<void>;
+  abstract updateJoinConfig(id: string, config: EventItem['joinConfig']): Promise<void>;
+
+  abstract updateSpentCounters(
+    id: string,
+    deltas: { pendingSpentDelta?: number; currentSpentDelta?: number }
+  ): Promise<void>;
+
+  abstract findWithQuery(query: EventQueryPayload): Promise<PaginatedEventResult>;
+  abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
+  abstract enrollStudentViaCode(eventId: string, studentId: string, expectedCode: string, allowedStatuses: EventStatus[]): Promise<EventItem>;
+  abstract createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem>;
+
+  /**
+   * Optimistic Concurrency Control update contract
+   */
+  abstract updateWithOptimisticLock(
+    id: string,
+    data: Partial<EventItem>,
+    expectedUpdatedAt: string
+  ): Promise<EventItem>;
+
+  /**
+   * Atomic state machine transition contract
+   */
+  abstract transitionStatus(
+    id: string,
+    targetStatus: string,
+    allowedCurrentStatuses: string[],
+    additionalData?: Record<string, any>
+  ): Promise<EventItem>;
+}

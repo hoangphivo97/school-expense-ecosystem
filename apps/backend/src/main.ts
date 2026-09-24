@@ -1,7 +1,7 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { onRequest } from 'firebase-functions/v2/https'; 
+import { onRequest } from 'firebase-functions/v2/https';
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
 
 let cachedServer: any;
@@ -29,10 +29,10 @@ function configureNestApp(app: any) {
 async function bootstrapServer() {
   if (!cachedServer) {
     const app = await NestFactory.create(AppModule);
-    
+
     configureNestApp(app);
     await app.init();
-    
+
     cachedServer = app.getHttpAdapter().getInstance();
   }
   return cachedServer;
@@ -58,9 +58,9 @@ export const api = onRequest(
 if (process.env.NODE_ENV === 'development') {
   async function bootstrapLocal() {
     const app = await NestFactory.create(AppModule);
-    configureNestApp(app); 
+    configureNestApp(app);
 
-    const port = process.env.PORT || 3000; 
+    const port = process.env.PORT || 3000;
     await app.listen(port);
 
     Logger.log(`🔥 [Enterprise] Pháo đài Backend đang mở cổng tại: http://localhost:${port}/api`);

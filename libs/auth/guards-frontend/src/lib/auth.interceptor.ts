@@ -46,8 +46,6 @@ export const authInterceptor: HttpInterceptorFn = (
     catchError((err: HttpErrorResponse) => {
       // Centralized error dispatching flow based on HTTP status codes
       switch (err.status) {
-        case 500:
-          return handle500Error(err, showErrorModal);
         case 403:
           return handle403Error(err, authStore, router, notify);
         case 401:
@@ -58,21 +56,6 @@ export const authInterceptor: HttpInterceptorFn = (
     }),
   );
 };
-
-function handle500Error(err: HttpErrorResponse, showErrorModal: ErrorModalDelegate | null): Observable<never> {
-  const errorBody = err.error as Partial<ErrorResponse>;
-
-  if (showErrorModal) {
-    showErrorModal({
-      statusCode: 500,
-      errorCode: errorBody?.errorCode || 'INTERNAL_SERVER_ERROR',
-      errorMsg: errorBody?.errorMsg || 'The server encountered an internal error and was unable to complete your request.',
-      title: 'Server Error',
-      hint: 'Please try again later or contact the system administrator.'
-    });
-  }
-  return throwError(() => err);
-}
 
 // Error 403
 function handle403Error(

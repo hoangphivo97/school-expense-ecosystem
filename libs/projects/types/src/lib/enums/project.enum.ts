@@ -13,16 +13,3 @@ export enum ProjectStatus {
     ARCHIVED = 'ARCHIVED',
     REJECTED = 'REJECTED'
 }
-
-export enum EventStatus {
-    UPCOMING = "UPCOMING",
-    ONGOING = "ONGOING",
-    COMPLETED = "COMPLETED",
-    CANCELLED = "CANCELLED"
-}
-
-export enum EventScope {
-    SCHOOL_WIDE = "SCHOOL_WIDE",
-    FACULTY = "FACULTY",
-    CLUB = "CLUB"
-}

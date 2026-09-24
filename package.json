@@ -1,6 +1,6 @@
 {
   "name": "school-expense-ecosystem",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "devDependencies": {
     "@angular-devkit/build-angular": "^22.0.0",
     "@angular-devkit/core": "^22.0.0",
@@ -45,6 +45,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/socket.io": "^3.0.2",
+    "@types/supertest": "^7.2.1",
     "@typescript-eslint/utils": "^8.40.0",
     "angular-eslint": "^21.2.0",
     "babel-jest": "^30.0.2",
@@ -74,12 +75,14 @@
     "react-refresh": "^0.10.0",
     "standard-version": "^9.5.0",
     "storybook": "10.1.9",
+    "supertest": "^7.2.2",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "tslib": "^2.3.0",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.40.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "whatwg-fetch": "^3.6.20"
   },
   "dependencies": {
     "@angular/animations": "22.0.0",
@@ -145,5 +148,11 @@
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
-  "packageManager": "yarn@4.16.0"
+  "packageManager": "yarn@4.16.0",
+  "scripts": {
+    "release": "standard-version",
+    "release:first": "standard-version --first-release",
+    "release:dry-run": "standard-version --dry-run",
+    "changelog:preview": "standard-version --skip.bump --skip.tag --skip.commit"
+  }
 }

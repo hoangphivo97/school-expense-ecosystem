@@ -1,19 +1,25 @@
 import { Module } from '@nestjs/common';
-import { BudgetBackendService,} from '@school-expense-ecosystem/finance/data-access-backend';
+import { BudgetBackendService, } from '@school-expense-ecosystem/finance/data-access-backend';
 import { ProjectController } from './controllers/project.controller';
-import { FirestoreProjectRepository, ProjectRepository, ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
+import { EventRepository, EventService, FirebaseEventRepository, FirestoreProjectRepository, JoinCodeService, ProjectRepository, ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { UserListBackendModule } from '@school-expense-ecosystem/admin/features-backend';
+import { EventController } from './controllers/event.controller';
 
 @Module({
-  imports:[
+  imports: [
     UserListBackendModule
   ],
-  controllers: [ProjectController],
-  providers: [BudgetBackendService, 
-    ProjectService, {
-    provide: ProjectRepository,
-    useClass: FirestoreProjectRepository
-  }],
-  exports: [ProjectService],
+  controllers: [ProjectController, EventController],
+  providers: [BudgetBackendService,
+    ProjectService,
+    EventService,
+    JoinCodeService,
+    {
+      provide: ProjectRepository,
+      useClass: FirestoreProjectRepository
+    },
+    { provide: EventRepository, useClass: FirebaseEventRepository },
+  ],
+  exports: [ProjectService, EventService, ProjectRepository, EventRepository],
 })
 export class ProjectBackendModule { }

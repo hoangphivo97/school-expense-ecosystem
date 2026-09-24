@@ -1,7 +1,9 @@
 {
   "common": {
     "cancel": "Cancel",
-    "submit": "Submit"
+    "submit": "Submit",
+    "confirm": "Join Now",
+    "joining": "Joining..."
   },
   "shared":{
     "notifications":{

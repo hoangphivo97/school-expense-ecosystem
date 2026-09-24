@@ -15,7 +15,7 @@
 
   <!-- Right Side: Navigation Control Node Pipeline -->
   <div class="page-navigation-controls">
-    <button mat-icon-button [disabled]="normalizedCurrentPage() === 0" (click)="selectPage(normalizedCurrentPage() - 1)"
+    <button mat-icon-button [disabled]="normalizedCurrentPage() <= 1" (click)="selectPage(normalizedCurrentPage() - 1)"
       [aria-label]="t('prevPage')">
       <mat-icon>chevron_left</mat-icon>
     </button>
@@ -24,12 +24,12 @@
       @for (pageIndex of pageIndices(); track pageIndex) {
       <button mat-flat-button [class.active-page-node]="normalizedCurrentPage() === pageIndex"
         (click)="selectPage(pageIndex)">
-        {{ pageIndex + 1 }}
+        {{ pageIndex }}
       </button>
       }
     </div>
 
-    <button mat-icon-button [disabled]="normalizedCurrentPage() === totalPages() - 1"
+    <button mat-icon-button [disabled]="normalizedCurrentPage() >= totalPages()"
       (click)="selectPage(normalizedCurrentPage() + 1)" [aria-label]="t('nextPage')">
       <mat-icon>chevron_right</mat-icon>
     </button>

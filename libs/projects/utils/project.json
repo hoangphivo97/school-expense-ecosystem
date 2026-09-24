@@ -1,0 +1,13 @@
+{
+  "name": "utils",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/projects/utils/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["project-ultils"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
