@@ -13,10 +13,15 @@ import {
 } from '@nestjs/common';
 import { ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
-import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { AddStudentsToProjectDto, CreateProjectDto, GenerateProjectJoinCodeDto, JoinProjectByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '../..';
+import { type AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
+import { CreateProjectDto } from '../dtos/project/create-project.dto';
+import { ProjectQueryDto } from '../dtos/project/project-query.dto';
+import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/shared/manage-members.dto';
+import { UpdateProjectDto } from '../dtos/project/update-project.dto';
+import { RejectProjectDto } from '../dtos/project/reject-project.dto';
+import { EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
 
-@Controller('projects-manager')
+@Controller('projects')
 @UseGuards(RolesGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
@@ -37,7 +42,7 @@ export class ProjectController {
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.CREATED)
-  async create(
+  async createProject(
     @CurrentUser() user: AuthenticatedUser,
     @Body() createProjectDto: CreateProjectDto
   ) {
@@ -50,8 +55,8 @@ export class ProjectController {
   @HttpCode(HttpStatus.OK)
   async joinByCode(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() joinDto: JoinProjectByCodeDto
-  ) {
+    @Body() joinDto: JoinByCodeDto
+  ): Promise<EnrolledActivitySummary> {
     return this.projectService.joinProjectByCode(user, joinDto);
   }
 
@@ -77,7 +82,7 @@ export class ProjectController {
   @Patch(':id')
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
-  async update(
+  async updateProject(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
     @Body() updateDto: UpdateProjectDto
@@ -90,7 +95,7 @@ export class ProjectController {
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.OK)
-  async archive(
+  async archiveProject(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser
   ) {
@@ -105,7 +110,7 @@ export class ProjectController {
   async generateJoinCode(
     @Param('id') projectId: string,
     @CurrentUser() user: AuthenticatedUser,
-    @Body() generateCodeDto: GenerateProjectJoinCodeDto
+    @Body() generateCodeDto: GenerateJoinCodeDto
   ) {
     return this.projectService.generateNewJoinCode(projectId, user, generateCodeDto);
   }
@@ -118,7 +123,7 @@ export class ProjectController {
   async addStudents(
     @Param('id') projectId: string,
     @CurrentUser() user: AuthenticatedUser,
-    @Body() addStudentsDto: AddStudentsToProjectDto
+    @Body() addStudentsDto: AddParticipantsDto
   ) {
     return this.projectService.addStudents(projectId, user, addStudentsDto);
   }
@@ -150,7 +155,7 @@ export class ProjectController {
   @Patch(':id/approve')
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
   @HttpCode(HttpStatus.OK)
-  async approve(
+  async approveProject(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser
   ) {
@@ -161,7 +166,7 @@ export class ProjectController {
   @Patch(':id/reject')
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN)
   @HttpCode(HttpStatus.OK)
-  async reject(
+  async rejectProject(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
     @Body() rejectDto?: RejectProjectDto

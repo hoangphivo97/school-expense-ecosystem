@@ -1,5 +1,5 @@
 import { FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { FilterUserParams, PaginationParams } from '@school-expense-ecosystem/shared/types';
+import { FilterUserParams, CursorPaginationParams } from '@school-expense-ecosystem/shared/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types'
 import { DeleteReasonType } from '../enums/user-list.enum';
 
@@ -9,7 +9,7 @@ import { DeleteReasonType } from '../enums/user-list.enum';
  * Composes pristine business criteria with strict technical pagination tokens.
  * Completely eliminates loose parameter code smells in the service layer.
  */
-export type UserQueryPayload = FilterUserParams & PaginationParams;
+export type UserQueryPayload = FilterUserParams & CursorPaginationParams;
 
 export interface CreateUserInput {
   fullName: string;
@@ -17,7 +17,7 @@ export interface CreateUserInput {
   userCode: string;
   role: Role;
   userType?: UserType;
-  facultyId?: FacultyId;
+  facultyId?: FacultyId | null;
   createdBy?: string;
   dateOfBirth?: string;
 }
@@ -26,7 +26,7 @@ export interface UpdateUserInput {
   fullName?: string;
   role?: Role;
   userType?: UserType;
-  facultyId?: FacultyId;
+  facultyId?: FacultyId | null;
   dateOfBirth?: string;
 }
 

@@ -30,7 +30,8 @@
       "/expense": "我的個人申請單",
       "/report": "財務報表中心",
       "/budget-manager": "預算額度管理",
-      "/project-manager": "專案管理"
+      "/project-manager/overview": "專案管理",
+      "/project-manager/events": "活动管理"
     }
   },
   "filter": {
@@ -58,6 +59,12 @@
         "LEVEL_2_DEAN": "院長 / 系主任",
         "LEVEL_3_USER": "一般使用者"
       },
+      "eventType": {
+        "SCHOOL": "校級補助",
+        "FACULTY": "院系自籌",
+        "PROJECT": "專案資助",
+        "OUTSOURCE": "委外 / 產學外部合作"
+      },
       "userTypes": {
         "ALL": "所有使用者類型",
         "STUDENT": "在校學生",
@@ -79,13 +86,24 @@
         "REJECTED": "駁回申請"
       },
       "projectStatus": {
-        "ALL": "所有專案狀態",
-        "ACTIVE": "執行中",
-        "PENDING_DEAN_APPROVAL": "待院系審查",
-        "PENDING_FINANCE_APPROVAL": "待主計處審核",
-        "REJECTED": "已駁回",
+        "ALL": "全部",
+        "DRAFT": "草稿",
+        "PENDING_DEAN_APPROVAL": "待系主任審批",
+        "PENDING_FINANCE_APPROVAL": "待財務處審批",
+        "ACTIVE": "進行中",
         "COMPLETED": "已結案",
-        "ARCHIVED": "已封存"
+        "ARCHIVED": "已歸檔",
+        "REJECTED": "已駁回"
+      },
+      "eventStatus": {
+        "PENDING_DEAN_APPROVAL": "待系主任審批",
+        "PENDING_FINANCE_APPROVAL": "待財務處審批",
+        "UPCOMING": "即將開始",
+        "ONGOING": "進行中",
+        "COMPLETED": "已結束",
+        "CANCELLED": "已取消",
+        "ARCHIVED": "已歸檔",
+        "REJECTED": "已駁回"
       },
       "projectType": {
         "ALL": "所有經費來源",
@@ -115,5 +133,22 @@
     "itemsPerPage": "每页条数：",
     "prevPage": "前往上一页",
     "nextPage": "前往下一页"
+  },
+  "capacity": {
+    "unlimited": "無名額限制（自由開放參與）"
+  },
+  "joinDialog": {
+    "project": {
+      "title": "加入專案",
+      "subtitle": "請輸入指導老師或專案負責人提供的邀請代碼以加入專案。",
+      "codeLabel": "專案邀請碼",
+      "codePlaceholder": "例如：PRJ-9821"
+    },
+    "event": {
+      "title": "參與活動",
+      "subtitle": "請輸入活動代碼以完成登記與簽到手續。",
+      "codeLabel": "活動邀請碼",
+      "codePlaceholder": "例如：EVT-4512"
+    }
   }
 }

@@ -56,7 +56,7 @@ export const routes: Routes = [
         path: '',
         loadChildren: () =>
           import('@school-expense-ecosystem/projects/features').then(
-            (m) => m.PROJECT_ROUTE
+            (m) => m.PROJECT_ROUTES
           ),
       },
       {

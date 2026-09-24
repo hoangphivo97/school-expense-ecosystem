@@ -30,10 +30,8 @@ export class UserListBackendService {
             throw new AdminIdentityConflictException();
         }
 
-        if (dto.role === Role.LEVEL_0_ADMIN || dto.role === Role.LEVEL_1_FINANCE) {
-            dto.facultyId = undefined;
-        }
-
+        const isGlobalRole = dto.role === Role.LEVEL_0_ADMIN || dto.role === Role.LEVEL_1_FINANCE;
+        const resolvedFacultyId = isGlobalRole ? null : (dto.facultyId ?? null);
         const uid = await this.userRepository.createAuthAccount(dto.email, dto.fullName, dto.password);
 
         const userPayload: CreateUserInput & { username: string } = {
@@ -44,7 +42,7 @@ export class UserListBackendService {
             userCode: dto.userCode,
             createdBy: executor.uid,
             username: dto.email.split('@')[0],
-            ...(dto.facultyId && { facultyId: dto.facultyId })
+            facultyId: resolvedFacultyId
         };
 
         const result = await this.userRepository.createUserRecord(uid, userPayload);
@@ -63,7 +61,7 @@ export class UserListBackendService {
         const targetUser = await this.validateAndGetTargetUser(targetUid, executor.uid);
 
         if (dto.role === Role.LEVEL_0_ADMIN || dto.role === Role.LEVEL_1_FINANCE) {
-            dto.facultyId = undefined;
+            dto.facultyId = null;
         }
 
         const changes: IAuditLogChanges = {};

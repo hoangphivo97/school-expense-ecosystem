@@ -1,0 +1,41 @@
+import { FacultyId, CursorPaginationParams } from "@school-expense-ecosystem/shared/types";
+
+export interface GenerateJoinCodePayload {
+  maxUses?: number | null;
+  startsAt: string;
+  expiresAt: string;
+}
+
+export interface JoinByCodePayload {
+  code: string;
+}
+
+export interface ManageParticipantsPayload {
+  userIds: string[];
+}
+
+export interface BaseActivityPayload<TFundingType> {
+  name: string;
+  description?: string | null;
+  type: TFundingType;
+  facultyId: FacultyId;
+  budgetCap: number;
+  initialSpent?: number;
+  startDate: string;
+  endDate: string;
+  // Optional Join Code Inline Creation
+  joinCodeConfig?: CreateJoinCodeConfig | null;
+}
+
+export interface BaseActivityQueryPayload<TStatus> extends CursorPaginationParams{
+  page?: number;
+  search?: string;
+  facultyId?: FacultyId;
+  status?: TStatus;
+  studentId?: string;
+}
+
+export interface CreateJoinCodeConfig {
+  maxUses?: number | null;
+  expiresAt?: string | null;
+}

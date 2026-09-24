@@ -21,9 +21,9 @@ export interface FilterUserParams extends BaseFilterParams {
   facultyId?: FacultyId;
 }
 
-export interface UserRequestFilters extends FilterUserParams, PaginationParams { }
+export interface UserRequestFilters extends FilterUserParams, CursorPaginationParams { }
 
-export interface PaginationParams {
+export interface CursorPaginationParams {
   limit: number;
   pageToken?: string;
 }
@@ -48,10 +48,11 @@ export interface UserBase {
 }
 
 export interface DemoAccount {
-  role: string;
+  role: Role;
   email: string;
   password: string;
   description: string;
+  userType?: UserType;
 }
 
 export type SharedFilterParams = SharedFilterFields;

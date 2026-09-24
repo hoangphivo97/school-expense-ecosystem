@@ -1,10 +1,12 @@
 {
   "common": {
     "cancel": "取消",
-    "submit": "確認"
+    "submit": "確認",
+    "confirm": "確認加入",
+    "joining": "加入中..."
   },
-    "shared":{
-    "notifications":{
+  "shared": {
+    "notifications": {
       "copiedToClipboard": "已複製至剪貼簿。",
       "copyFailed": "複製至剪貼簿失敗。"
     }

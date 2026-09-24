@@ -159,6 +159,21 @@
       ],
       "@school-expense-ecosystem/projects/types": [
         "./libs/projects/types/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/utils": [
+        "./libs/projects/utils/src/index.ts"
+      ],
+      "@school-expense-ecosystem/projects/ui": [
+        "./libs/projects/ui/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/data-access-backend": [
+        "./libs/shared/data-access-backend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/guards-frontend": [
+        "./libs/shared/guards-frontend/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/test-utils": [
+        "./libs/shared/test-utils/src/index.ts"
       ]
     }
   },
@@ -167,7 +182,6 @@
     "dist",
     ".angular",
     ".cache",
-    "tmp",
-    "**/*.spec.ts"
+    "tmp"
   ]
 }

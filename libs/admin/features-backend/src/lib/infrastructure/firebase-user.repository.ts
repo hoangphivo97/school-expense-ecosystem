@@ -10,7 +10,7 @@ export class FirebaseUserRepository implements UserRepository {
   constructor(@Inject('FIRESTORE_INSTANCE') private readonly db: admin.firestore.Firestore) { }
 
   async findPaginated(filters: UserQueryPayload): Promise<PaginatedUserResult> {
-    let query: admin.firestore.Query = this.db.collection('users').orderBy('createdAt', 'desc');
+    let query: admin.firestore.Query = this.db.collection('users');
 
     if (filters.facultyId) {
       query = query.where('facultyId', '==', filters.facultyId);
@@ -30,7 +30,12 @@ export class FirebaseUserRepository implements UserRepository {
 
     if (filters.searchTerm) {
       const term = filters.searchTerm.trim();
-      query = query.where('fullName', '>=', term).where('fullName', '<=', term + '\uf8ff');
+      query = query
+        .where('fullName', '>=', term)
+        .where('fullName', '<=', term + '\uf8ff')
+        .orderBy('fullName');
+    } else {
+      query = query.orderBy('createdAt', 'desc');
     }
 
     const countQuery = query;
@@ -93,7 +98,7 @@ export class FirebaseUserRepository implements UserRepository {
     await this.db.collection('users').doc(uid).set({
       ...userData,
       uid,
-      status: 'active',
+      status: UserStatus.ACTIVE,
       createdAt: new Date()
     });
     return { id: uid, success: true };

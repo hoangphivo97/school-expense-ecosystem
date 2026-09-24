@@ -1,0 +1,40 @@
+<lib-activity-form-layout
+  [form]="form"
+  [faculties]="faculties()"
+  [isFacultiesLoading]="isFacultiesLoading()"
+  [isSubmitting]="isSubmitting()"
+  [isDetailMode]="isDetailMode()"
+  [isEditMode]="isEditMode()"
+  [isImmediatelyActive]="isImmediatelyActive()"
+  [errorMessage]="errorMessage()"
+  translocoScope="project.createDialog"
+  [fundingTypeSlot]="projectFundingTpl"
+  (submitForm)="onSubmit()"
+  (cancelForm)="onCancel()"
+  (amountInput)="onInputAmount($event.event, $event.controlName)"
+>
+  <!-- Slot: Project Funding Type Selector -->
+  <ng-template #projectFundingTpl>
+    <mat-form-field appearance="outline" class="w-100 custom-field" [formGroup]="form">
+      <mat-label>{{ 'project.createDialog.fields.type.label' | transloco }}</mat-label>
+      <mat-select formControlName="type">
+        <mat-select-trigger>
+          <div class="d-flex align-items-center gap-2">
+            <mat-icon class="fs-6 h-auto w-auto field-icon">account_balance</mat-icon>
+            <span class="selected-value">
+              {{ 'shared.filter.options.projectType.' + form.get('type')?.value | transloco }}
+            </span>
+          </div>
+        </mat-select-trigger>
+        @for (type of fundingTypes; track type) {
+          <mat-option [value]="type">
+            {{ 'shared.filter.options.projectType.' + type | transloco }}
+          </mat-option>
+        }
+      </mat-select>
+      <mat-error>
+        {{ form.get('type')?.errors | formError: { required: 'project.createDialog.fields.type.errors.required' | transloco } }}
+      </mat-error>
+    </mat-form-field>
+  </ng-template>
+</lib-activity-form-layout>

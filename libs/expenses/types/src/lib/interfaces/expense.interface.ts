@@ -1,6 +1,6 @@
 import { BaseFilterParams, FacultyId, Role, UserType } from "@school-expense-ecosystem/shared/types";
 import { PaidMethod } from "../enums/expense.enum";
-import { PaginationParams, ExpenseStatus } from "@school-expense-ecosystem/shared/types";
+import { CursorPaginationParams, ExpenseStatus } from "@school-expense-ecosystem/shared/types";
 
 export interface ExpenseList {
   id: string;
@@ -59,8 +59,8 @@ export interface FilterExpenseParams extends BaseFilterParams {
   userType?: UserType;
 }
 
-export interface ReviewerExpenseRequestFilters extends FilterExpenseParams, PaginationParams {}
+export interface ReviewerExpenseRequestFilters extends FilterExpenseParams, CursorPaginationParams {}
 
-export interface PersonalExpenseRequestFilters extends FilterExpenseParams, PaginationParams {
+export interface PersonalExpenseRequestFilters extends FilterExpenseParams, CursorPaginationParams {
   userId: string;
 }

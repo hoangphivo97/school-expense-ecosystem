@@ -35,11 +35,11 @@ export class PaginationComponent {
   });
 
   pageIndices = computed(() => {
-    return Array.from({ length: this.totalPages() }, (_, i) => i);
+    return Array.from({ length: this.totalPages() }, (_, i) => i + 1);
   });
 
   selectPage(pageIndex: number): void {
-    if (pageIndex >= 0 && pageIndex < this.totalPages() && pageIndex !== this.normalizedCurrentPage()) {
+    if (pageIndex >= 1 && pageIndex < this.totalPages() && pageIndex !== this.normalizedCurrentPage()) {
       this.pageChange.emit(pageIndex);
     }
   }

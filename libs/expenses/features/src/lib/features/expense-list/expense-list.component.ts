@@ -77,8 +77,8 @@ export class ExpenseListComponent implements OnInit {
   dialogActionEnum = DialogActionEnum;
 
   readonly pageSize = signal<number>(10);
-  readonly currentPageIndex = signal<number>(0);
-  private readonly pageTokens = signal<Record<number, string>>({ 0: '' });
+  readonly currentPageIndex = signal<number>(1);
+  private readonly pageTokens = signal<Record<number, string>>({ 1: '' });
   readonly viewMode = signal<'PERSONAL' | 'PENDING_QUEUE' | 'FACULTY_HISTORY'>('PERSONAL');
 
   readonly operationalStatuses = EXPENSE_STATUS_OPTIONS;
@@ -159,8 +159,8 @@ export class ExpenseListComponent implements OnInit {
     effect(() => {
       this.filterParams();
       untracked(() => {
-        this.currentPageIndex.set(0);
-        this.pageTokens.set({ 0: '' });
+        this.currentPageIndex.set(1);
+        this.pageTokens.set({ 1: '' });
       });
     });
   }
@@ -203,8 +203,8 @@ export class ExpenseListComponent implements OnInit {
   onPageSizeChange(newSize: number): void {
     this.pageSize.set(newSize);
 
-    this.currentPageIndex.set(0);
-    this.pageTokens.set({ 0: '' });
+    this.currentPageIndex.set(1);
+    this.pageTokens.set({ 1: '' });
   }
 
   getListAfterSuccessCallApi(dialogRef: MatDialogRef<CreateExpenseModalComponent | BaseModalComponent>) {

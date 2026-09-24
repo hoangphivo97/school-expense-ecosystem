@@ -2,7 +2,7 @@ import { HttpClient, HttpParams, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload, Project, ProjectJoinConfig, ProjectQueryPayload, StudentSummary, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, GenerateJoinCodePayload, JoinByCodePayload, JoinConfig, ProjectItem, ProjectQueryPayload, StudentSummary, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 
 @Injectable({
   providedIn: 'root',
@@ -10,13 +10,13 @@ import { CreateProjectPayload, GenerateJoinCodePayload, JoinProjectByCodePayload
 export class ProjectApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = inject(API_BASE_URL);
-  private readonly apiUrl = `${this.baseUrl}/api/projects-manager`;
+  private readonly apiUrl = `${this.baseUrl}/api/projects`;
 
   /**
    * Fetch context-aware project list (Finance, Dean, Teacher, or Student)
    */
   getProjectsResource(queryFn?: () => ProjectQueryPayload | undefined) {
-    return httpResource<{ items: Project[]; total: number }>(() => {
+    return httpResource<{ items: ProjectItem[]; total: number }>(() => {
       const query = queryFn ? queryFn() : undefined;
       const params: Record<string, string> = {};
 
@@ -41,7 +41,7 @@ export class ProjectApiService {
    * Fetch single project details by ID
    */
   getProjectByIdResource(idFn: () => string | null | undefined) {
-    return httpResource<Project | null>(() => {
+    return httpResource<ProjectItem | null>(() => {
       const id = idFn();
       return id ? `${this.apiUrl}/${id}` : undefined;
     }, {
@@ -52,30 +52,30 @@ export class ProjectApiService {
   /**
    * Create a new project (Teacher / Dean / Finance)
    */
-  createProject(payload: CreateProjectPayload): Observable<Project> {
-    return this.http.post<Project>(this.apiUrl, payload);
+  createProject(payload: CreateProjectPayload): Observable<ProjectItem> {
+    return this.http.post<ProjectItem>(this.apiUrl, payload);
   }
 
   archiveProject(id: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/${id}/archive`, {});
   }
 
-  updateProject(id: string, payload: UpdateProjectPayload): Observable<Project> {
-    return this.http.patch<Project>(`${this.apiUrl}/${id}`, payload);
+  updateProject(id: string, payload: UpdateProjectPayload): Observable<ProjectItem> {
+    return this.http.patch<ProjectItem>(`${this.apiUrl}/${id}`, payload);
   }
 
   /**
    * Generate or reset invitation join code (Teacher / Dean)
    */
-  generateJoinCode(projectId: string, payload: GenerateJoinCodePayload): Observable<ProjectJoinConfig> {
-    return this.http.post<ProjectJoinConfig>(`${this.apiUrl}/${projectId}/join-code`, payload);
+  generateJoinCode(projectId: string, payload: GenerateJoinCodePayload): Observable<JoinConfig> {
+    return this.http.post<JoinConfig>(`${this.apiUrl}/${projectId}/join-code`, payload);
   }
 
   /**
    * Enroll current student into a project via Join Code
    */
-  joinProjectByCode(payload: JoinProjectByCodePayload): Observable<Project> {
-    return this.http.post<Project>(`${this.apiUrl}/join`, payload);
+  joinProjectByCode(payload: JoinByCodePayload): Observable<ProjectItem> {
+    return this.http.post<ProjectItem>(`${this.apiUrl}/join`, payload);
   }
 
 searchStudents(query: string): Observable<StudentSummary[]> {
@@ -86,8 +86,8 @@ searchStudents(query: string): Observable<StudentSummary[]> {
   /**
    * Approve pending project funding (Dean / Finance)
    */
-  approveProject(id: string): Observable<Project> {
-    return this.http.patch<Project>(`${this.apiUrl}/${id}/approve`, {});
+  approveProject(id: string): Observable<ProjectItem> {
+    return this.http.patch<ProjectItem>(`${this.apiUrl}/${id}/approve`, {});
   }
 
   addStudents(projectId: string, studentIds: string[]): Observable<void> {
@@ -98,8 +98,8 @@ searchStudents(query: string): Observable<StudentSummary[]> {
     return this.http.delete<void>(`${this.apiUrl}/${projectId}/students/${studentId}`);
   }
 
-  rejectProject(id: string, reason?: string): Observable<Project> {
-    return this.http.patch<Project>(`${this.apiUrl}/${id}/reject`, { reason });
+  rejectProject(id: string, reason?: string): Observable<ProjectItem> {
+    return this.http.patch<ProjectItem>(`${this.apiUrl}/${id}/reject`, { reason });
   }
 
   getProjectStudents(projectId: string):Observable<StudentSummary[]>{
