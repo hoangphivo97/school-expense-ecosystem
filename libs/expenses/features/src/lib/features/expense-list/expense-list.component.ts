@@ -12,8 +12,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 
 import { HeaderComponent, FooterComponent, BaseModalComponent, FilterComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
-import { DialogActionEnum, DialogData, ExpenseStatus, Role, SharedFilterParams } from '@school-expense-ecosystem/shared/types';
-import { AuthSignalStore, LocalStorageService } from '@school-expense-ecosystem/shared/data-access';
+import { DialogActionEnum, DialogData, ExpenseStatus, FacultyId, FilterFieldConfig, FilterOption, Role, SharedFilterParams } from '@school-expense-ecosystem/shared/types';
+import { AuthSignalStore, LocalStorageService, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import { DateFormatValue, EXPENSE_STATUS_OPTIONS, LocalStorageKey } from '@school-expense-ecosystem/shared/constants';
 import { ExpenseList } from '@school-expense-ecosystem/expenses/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
@@ -47,6 +47,87 @@ export class ExpenseListComponent implements OnInit {
   readonly expenseService = inject(ExpenseService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly authStore = inject(AuthSignalStore);
+  private readonly masterDataStore = inject(MasterDataStore);
+
+  readonly monthOptions: FilterOption<number | null>[] = [
+    { value: null, labelKey: 'shared.filter.options.months.ALL' },
+    ...Array.from({ length: 12 }, (_, i) => ({
+      value: i + 1,
+      labelKey: `shared.filter.options.months.${i + 1}`
+    }))
+  ];
+
+  readonly yearOptions = computed<FilterOption<number | null>[]>(() => {
+    const currentYear = new Date().getFullYear();
+    const rawYears = this.availableYearsSignal();
+    const years = rawYears.includes(currentYear) ? [...rawYears] : [...rawYears, currentYear];
+    years.sort((a, b) => b - a);
+
+    return [
+      { value: null, labelKey: 'shared.filter.options.years.ALL', label: 'All' },
+      ...years.map((y) => ({ value: y, label: `${y}` }))
+    ];
+  });
+
+  readonly statusOptions: FilterOption<string>[] = [
+    { value: 'ALL', labelKey: 'shared.filter.options.expenseStatus.ALL' },
+    ...EXPENSE_STATUS_OPTIONS.map((opt) => ({
+      value: opt.value,
+      labelKey: `shared.filter.options.expenseStatus.${opt.value}`,
+      label: opt.label ?? opt.value
+    }))
+  ];
+
+  readonly expenseFilterConfigs = computed<FilterFieldConfig[]>(() => {
+    const isPersonal = this.viewMode() === 'PERSONAL';
+
+    const configs: FilterFieldConfig[] = [
+      {
+        key: 'searchTerm',
+        type: 'search',
+        labelKey: 'shared.filter.searchLabel',
+        placeholderKey: 'shared.filter.searchPlaceholder',
+        defaultValue: '',
+      },
+      {
+        key: 'status',
+        type: 'select',
+        labelKey: 'shared.filter.labels.requestStatus',
+        defaultValue: 'ALL',
+        disabled: this.isStatusDisabled,
+        options: this.statusOptions,
+      },
+      {
+        key: 'month',
+        type: 'select',
+        labelKey: 'shared.filter.labels.month',
+        defaultValue: null,
+        options: this.monthOptions,
+      },
+      {
+        key: 'year',
+        type: 'select',
+        labelKey: 'shared.filter.labels.year',
+        defaultValue: new Date().getFullYear(),
+        options: this.yearOptions,
+      }
+    ];
+
+    // For reviewer/history modes, inject faculty selector connected to MasterDataStore
+    if (!isPersonal) {
+      configs.push({
+        key: 'facultyId',
+        type: 'select',
+        labelKey: 'shared.filter.labels.faculty',
+        defaultValue: 'ALL',
+        options: this.masterDataStore.facultyOptions,
+      });
+    }
+
+    return configs;
+  });
+
+  readonly isStatusDisabled = computed(() => this.viewMode() === 'PENDING_QUEUE');
 
   readonly activeResource = computed(() =>
     this.viewMode() === 'PERSONAL' ? this.expensePersonalResource : this.expenseReviewerResource
@@ -232,8 +313,19 @@ export class ExpenseListComponent implements OnInit {
     }
   }
 
-  onExpenseFiltersChanged(params: SharedFilterParams): void {
-    this.filterParams.set(params as FilterExpenseParams);
+  onExpenseFiltersChanged(filters: FilterExpenseParams): void {
+    const rawStatus = filters.status as unknown;
+    const rawMonth = filters.month as unknown;
+    const rawYear = filters.year as unknown;
+    const rawFaculty = filters.facultyId as unknown;
+
+    this.filterParams.set({
+      searchTerm: filters.searchTerm || '',
+      status: rawStatus === 'ALL' || !rawStatus ? undefined : (rawStatus as ExpenseStatus),
+      month: rawMonth === 'ALL' || rawMonth === null || rawMonth === undefined ? null : Number(rawMonth),
+      year: rawYear === 'ALL' || rawYear === null || rawYear === undefined ? null : Number(rawYear),
+      facultyId: rawFaculty === 'ALL' || !rawFaculty ? undefined : (rawFaculty as FacultyId)
+    });
   }
 
   get GlobalDateFormat(): string {

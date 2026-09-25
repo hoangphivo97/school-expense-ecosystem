@@ -15,7 +15,9 @@ import {
   ConfirmDialogData,
   DialogActionEnum,
   FacultyId,
+  FilterFieldConfig,
   FilterMode,
+  FilterOption,
   Role,
   SharedFilterFields,
   UserType,
@@ -76,8 +78,16 @@ export class EventListComponent {
   // Pagination & Filter States
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(1);
-  readonly filterParams = signal<SharedFilterFields>({});
-  readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
+  readonly filterParams = signal<SharedFilterFields>({
+    facultyId: this.currentUser()?.facultyId
+  });
+
+  readonly facultiesListSignal = computed(() =>
+    (this.facultyApiService.facultiesResource.value() ?? []).map((faculty) => ({
+      facultyId: faculty.id,
+      facultyName: faculty.name,
+    }))
+  );
 
   readonly queryParams = computed<EventQueryPayload>(() => {
     const filters = this.filterParams();
@@ -90,17 +100,60 @@ export class EventListComponent {
     };
   });
 
+  readonly statusOptions: FilterOption[] = [
+    { value: 'ALL', labelKey: 'shared.filter.options.allStatuses', label: 'All Statuses' },
+    ...Object.values(EventStatus).map((status) => ({
+      value: status,
+      label: status,
+      labelKey: `shared.filter.options.eventStatus.${status}`
+    }))
+  ];
+
+  // Faculty options reactive to API resource
+  readonly facultyOptions = computed<FilterOption[]>(() => [
+    { value: 'ALL', labelKey: 'shared.filter.options.allFaculties', label: 'All Faculties' },
+    ...this.facultiesListSignal().map((f) => ({
+      value: f.facultyId,
+      label: f.facultyName
+    }))
+  ]);
+
+  readonly isFacultyDisabled = computed(() => {
+    const user = this.currentUser();
+    return user?.role === Role.LEVEL_2_DEAN || user?.userType === UserType.STUDENT;
+  });
+
+  // Declarative schema for Event list toolbar
+  readonly eventFilterConfigs = computed<FilterFieldConfig[]>(() => [
+    {
+      key: 'searchTerm',
+      type: 'search',
+      labelKey: 'shared.filter.labels.search',
+      placeholderKey: 'project.eventList.filter.searchPlaceholder',
+      defaultValue: ''
+    },
+    {
+      key: 'facultyId',
+      type: 'select',
+      labelKey: 'shared.filter.labels.faculty',
+      defaultValue: this.currentUser()?.facultyId ?? 'ALL',
+      disabled: this.isFacultyDisabled,
+      options: this.facultyOptions,
+      customWidth: '220px'
+    },
+    {
+      key: 'status',
+      type: 'select',
+      labelKey: 'shared.filter.labels.status',
+      defaultValue: 'ALL',
+      options: this.statusOptions,
+      customWidth: '180px'
+    }
+  ]);
+
   // Reactive resource call via signal getter
   readonly eventResource = this.eventService.getEventsResource(() => this.queryParams());
   readonly isGridDataLoading = this.eventResource.isLoading;
-
-  // Dynamic Lookup for faculties
-  readonly facultiesListSignal = computed(() =>
-    this.facultyApiService.facultiesResource.value().map((faculty) => ({
-      facultyId: faculty.id,
-      facultyName: faculty.name,
-    }))
-  );
 
   // Derive total items and event records directly from API resource
   readonly allowedRoles = [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN];
@@ -162,7 +215,14 @@ export class EventListComponent {
   ];
 
   onEventFiltersChanged(filters: SharedFilterFields): void {
-    this.filterParams.set(filters);
+    const rawStatus = filters.status as unknown;
+    const rawFaculty = filters.facultyId as unknown;
+
+    this.filterParams.set({
+      searchTerm: filters.searchTerm?.trim() || '',
+      status: rawStatus === 'ALL' || !rawStatus ? undefined : (rawStatus as EventStatus),
+      facultyId: rawFaculty === 'ALL' || !rawFaculty ? undefined : (rawFaculty as FacultyId)
+    });
     this.currentPageIndex.set(1);
   }
 

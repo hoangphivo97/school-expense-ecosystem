@@ -1,7 +1,7 @@
 <lib-header></lib-header>
 <div class="expense-list" *transloco="let t; read:'expense.expenseList'">
-  <lib-filter [mode]="filterModeEnum.EXPENSE" [yearsList]="availableYearsSignal()" [value]="filterParams()"
-    (filterChange)="onExpenseFiltersChanged($event)" [disableStatus]="viewMode() === 'PENDING_QUEUE'">
+  <lib-filter [configs]="expenseFilterConfigs()" [value]="filterParams()"
+    (filterChange)="onExpenseFiltersChanged($event)">
 
     @if(viewMode() === "PERSONAL"){
     <button primaryAction mat-flat-button color="primary" (click)="openCreateExpenseModal()">

@@ -5,7 +5,7 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { MatIcon } from '@angular/material/icon';
 
 import { HeaderComponent, FooterComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
-import { FilterMode, SharedFilterParams } from '@school-expense-ecosystem/shared/types';
+import { FilterFieldConfig, FilterMode, FilterOption, SharedFilterParams } from '@school-expense-ecosystem/shared/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { makeLineChart, makeMonthlyColumnChart, makePieChart } from './utils/multiple-charts-helper';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
@@ -73,7 +73,52 @@ export class ReportComponent {
   readonly availableYearsResource = this.expenseService.getAllYearsResource();
   readonly availableYears = computed(() => this.availableYearsResource.value() ?? [new Date().getFullYear()]);
 
-  onFilterChanged(params: SharedFilterParams): void {
-    this.filterParams.set(params as unknown as FilterExpenseParams);
+  readonly monthOptions: FilterOption[] = [
+    { value: 'ALL', labelKey: 'shared.filter.options.allMonths', label: 'All Months' },
+    ...Array.from({ length: 12 }, (_, i) => ({
+      value: i + 1,
+      label: `Month ${i + 1}`,
+      labelKey: `shared.months.${i + 1}`
+    }))
+  ];
+
+  // Dynamic year options reacting immediately once availableYearsResource resolves
+  readonly yearOptions = computed<FilterOption[]>(() => {
+    return this.availableYears().map((year) => ({
+      value: year,
+      label: `${year}`
+    }));
+  });
+
+  // Declarative schema matching the reporting analytics requirement
+  readonly reportFilterConfigs = computed<FilterFieldConfig[]>(() => [
+    {
+      key: 'month',
+      type: 'select',
+      labelKey: 'shared.filter.labels.month',
+      defaultValue: new Date().getMonth() + 1,
+      options: this.monthOptions,
+      customWidth: '160px'
+    },
+    {
+      key: 'year',
+      type: 'select',
+      labelKey: 'shared.filter.labels.year',
+      defaultValue: new Date().getFullYear(),
+      options: this.yearOptions(),
+      customWidth: '140px'
+    }
+  ]);
+
+  // Type-safe filter handler feeding values back into the analyticsResource trigger
+  onFilterChanged(params: FilterExpenseParams): void {
+    const rawMonth = params.month as unknown;
+    const rawYear = params.year as unknown;
+
+    this.filterParams.set({
+      ...this.filterParams(),
+      month: rawMonth === 'ALL' || rawMonth === null || rawMonth === undefined ? undefined : Number(rawMonth),
+      year: rawYear === 'ALL' || rawYear === null || rawYear === undefined ? undefined : Number(rawYear)
+    });
   }
 }

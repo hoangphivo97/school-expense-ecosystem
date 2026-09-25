@@ -10,12 +10,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserListService } from '@school-expense-ecosystem/admin/data-access';
-import { SharedFilterParams, UserBase } from '@school-expense-ecosystem/shared/types';
+import { FacultyId, FilterFieldConfig, SharedFilterParams, UserBase } from '@school-expense-ecosystem/shared/types';
 import { BaseModalComponent, FilterComponent, FooterComponent, HeaderComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { DialogActionEnum, FilterMode, FilterUserParams } from '@school-expense-ecosystem/shared/types';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
-import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { UserStatus, UserType, Role } from '@school-expense-ecosystem/shared/types'
 import { faCircleCheck } from '@fortawesome/free-solid-svg-icons/faCircleCheck';
@@ -65,6 +65,7 @@ export class UserListComponent {
   private readonly userListService = inject(UserListService);
   private readonly dialog = inject(MatDialog);
   private readonly authStore = inject(AuthSignalStore);
+  private readonly masterDataStore = inject(MasterDataStore);
 
   private readonly dialogActionEnum = DialogActionEnum;
 
@@ -78,7 +79,62 @@ export class UserListComponent {
   protected readonly faLock = faLock;
   protected readonly faUserXMark = faUserXmark
 
-  readonly filterModeEnum = FilterMode;
+  readonly userFilterConfigs: FilterFieldConfig[] = [
+    {
+      key: 'searchTerm',
+      type: 'search',
+      labelKey: 'shared.filter.searchLabel',
+      placeholderKey: 'shared.filter.searchPlaceholder',
+      defaultValue: '',
+    },
+    {
+      key: 'role',
+      type: 'select',
+      labelKey: 'shared.filter.labels.systemRole',
+      defaultValue: 'ALL',
+      options: [
+        { value: 'ALL', labelKey: 'shared.filter.options.roles.ALL' },
+        ...Object.values(Role).map((role) => ({
+          value: role,
+          labelKey: `shared.filter.options.roles.${role}`
+        }))
+      ]
+    },
+    {
+      key: 'userType',
+      type: 'select',
+      labelKey: 'shared.filter.labels.userType',
+      defaultValue: 'ALL',
+      options: [
+        { value: 'ALL', labelKey: 'shared.filter.options.userTypes.ALL' },
+        ...Object.values(UserType).map((type) => ({
+          value: type,
+          labelKey: `shared.filter.options.userTypes.${type}`
+        }))
+      ]
+    },
+    {
+      key: 'status',
+      type: 'select',
+      labelKey: 'shared.filter.labels.accountStatus',
+      defaultValue: 'ALL',
+      options: [
+        { value: 'ALL', labelKey: 'shared.filter.options.accountStatus.ALL' },
+        ...Object.values(UserStatus).map((status) => ({
+          value: status,
+          labelKey: `shared.filter.options.accountStatus.${status}`
+        }))
+      ]
+    },
+    {
+      key: 'facultyId',
+      type: 'select',
+      labelKey: 'shared.filter.labels.faculty',
+      defaultValue: 'ALL',
+      // Stream reactive faculty options directly from the shared singleton store
+      options: this.masterDataStore.facultyOptions
+    }
+  ];
 
   protected readonly currentAdminId = computed(() => this.authStore.user()?.uid ?? '');
 
@@ -188,7 +244,7 @@ export class UserListComponent {
 
   onPageSizeChange(newSize: number): void {
     this.pageSize.set(newSize);
-    
+
     this.currentPageIndex.set(1);
     this.pageTokens.set({ 1: '' });
   }
@@ -197,8 +253,14 @@ export class UserListComponent {
     this.userResource.reload();
   }
 
-  onUserFiltersChanged(cleanParams: SharedFilterParams): void {
-    this.activeFilters.set(cleanParams as FilterUserParams);
+  onUserFiltersChanged(filters: FilterUserParams): void {
+    this.activeFilters.set({
+      searchTerm: filters.searchTerm || '',
+      role: (filters.role as unknown) === 'ALL' ? undefined : filters.role,
+      status: (filters.status as unknown) === 'ALL' ? undefined : filters.status,
+      userType: (filters.userType as unknown) === 'ALL' ? undefined : filters.userType,
+      facultyId: (filters.facultyId as unknown) === 'ALL' ? undefined : filters.facultyId
+    });
   }
 
   openProvisionModal(): void {
