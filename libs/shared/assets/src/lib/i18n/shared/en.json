@@ -43,10 +43,13 @@
       "userType": "User Type",
       "accountStatus": "Account Status",
       "requestStatus": "Request Status",
+      "eventStatus": "Event Status",
+      "projectStatus": "Project Status",
       "month": "Month",
       "year": "Year",
       "faculty": "Faculty",
-      "projectType": "Project Type"
+      "projectType": "Project Type",
+      "eventType": "Event Type"
     },
     "tooltip": {
       "reset": "Clear active layout filters"
@@ -97,12 +100,14 @@
         "REJECTED": "Rejected"
       },
       "eventType": {
+        "ALL": "All",
         "SCHOOL": "School Funded",
         "FACULTY": "Faculty Funded",
         "PROJECT": "Project Funded",
         "OUTSOURCE": "Outsourced / External"
       },
       "eventStatus": {
+        "ALL": "All",
         "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
         "PENDING_FINANCE_APPROVAL": "Pending Finance Approval",
         "UPCOMING": "Upcoming",
@@ -134,6 +139,9 @@
           "FULL": "Full / Quota Reached",
           "EXPIRED": "Expired"
         }
+      },
+      "years": {
+        "ALL": "All Years"
       }
     }
   },

@@ -16,7 +16,7 @@
         "/expense/history": "院系審批歷史",
         "/dashboard": "儀表板",
         "/project-overview": "專案概覽",
-        "/project-maanger": "專案清單"
+        "/project-manager": "專案清單"
       }
     }
   },
@@ -31,7 +31,7 @@
       "/report": "財務報表中心",
       "/budget-manager": "預算額度管理",
       "/project-manager/overview": "專案管理",
-      "/project-manager/events": "活动管理"
+      "/project-manager/events": "活動管理"
     }
   },
   "filter": {
@@ -42,10 +42,13 @@
       "userType": "使用者類型",
       "accountStatus": "帳戶狀態",
       "requestStatus": "申請單狀態",
+      "eventStatus": "活動狀態",
+      "projectStatus": "專案狀態",
       "month": "月份",
       "year": "年度",
       "faculty": "學院/科系",
-      "projectType": "專案類型"
+      "projectType": "專案類型",
+      "eventType": "活動類型"
     },
     "tooltip": {
       "reset": "清除目前篩選條件"
@@ -60,6 +63,7 @@
         "LEVEL_3_USER": "一般使用者"
       },
       "eventType": {
+        "ALL": "全部",
         "SCHOOL": "校級補助",
         "FACULTY": "院系自籌",
         "PROJECT": "專案資助",
@@ -68,7 +72,7 @@
       "userTypes": {
         "ALL": "所有使用者類型",
         "STUDENT": "在校學生",
-        "TEACHER": "專 Scanning 教授/教師",
+        "TEACHER": "專任教授 / 指導教師",
         "STAFF": "學校行政同仁"
       },
       "accountStatus": {
@@ -96,6 +100,7 @@
         "REJECTED": "已駁回"
       },
       "eventStatus": {
+        "ALL": "全部",
         "PENDING_DEAN_APPROVAL": "待系主任審批",
         "PENDING_FINANCE_APPROVAL": "待財務處審批",
         "UPCOMING": "即將開始",
@@ -125,14 +130,25 @@
         "10": "十月",
         "11": "十一月",
         "12": "十二月"
+      },
+      "joinCode": {
+        "status": {
+          "SCHEDULED": "已排程",
+          "ACTIVE": "開放中",
+          "FULL": "名額已滿",
+          "EXPIRED": "已逾期"
+        }
+      },
+      "years": {
+        "ALL": "所有年度"
       }
     }
   },
   "pagination": {
-    "ariaLabel": "数据网格导航",
-    "itemsPerPage": "每页条数：",
-    "prevPage": "前往上一页",
-    "nextPage": "前往下一页"
+    "ariaLabel": "資料網格導覽",
+    "itemsPerPage": "每頁筆數：",
+    "prevPage": "前往上一頁",
+    "nextPage": "前往下一頁"
   },
   "capacity": {
     "unlimited": "無名額限制（自由開放參與）"

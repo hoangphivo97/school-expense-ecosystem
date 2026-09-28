@@ -1,6 +1,6 @@
 import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ConfirmDialogData, DialogActionEnum, FacultyId, FilterMode, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
+import { ConfirmDialogData, DialogActionEnum, FacultyId, FilterFieldConfig, FilterMode, FilterOption, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { BaseModalComponent, BaseModalData, ConfirmDialogComponent, CopyToClipboardDirective, FilterComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
@@ -11,7 +11,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { JoinCodeDialogData, JoinCodeDialogResult, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { JoinCodeDialogData, JoinCodeDialogResult, ProjectFundingType, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
@@ -50,21 +50,110 @@ export class ProjectListComponent implements OnInit {
   // State Signals
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(1);
-  readonly filterParams = signal<SharedFilterFields>({});
+  readonly currentUser = this.authSignalStore.user;
+  readonly filterParams = signal<SharedFilterFields>({
+    facultyId: this.currentUser()?.facultyId,
+  });
   readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
   readonly activeTab = signal<'PROJECT' | 'EVENT'>('PROJECT');
+
+  readonly isFacultyDisabled = computed(() => {
+    const user = this.currentUser();
+    return user?.role === Role.LEVEL_2_DEAN || user?.userType === UserType.STUDENT;
+  });
 
   // 2. Computed Query Pipeline
   readonly queryParams = computed<ProjectQueryPayload>(() => {
     const filters = this.filterParams();
+    const selectedYear = filters.year;
+
     return {
       page: this.currentPageIndex(),
       limit: this.pageSize(),
       ...(filters.searchTerm ? { search: filters.searchTerm.trim() } : {}),
       ...(filters.facultyId ? { facultyId: filters.facultyId as FacultyId } : {}),
       ...(filters.status ? { status: filters.status as ProjectStatus } : {}),
-    }
+      ...(filters.year ? { year: Number(filters.year) } : {}),
+      ...(filters.projectType ? { type: filters.projectType as ProjectFundingType } : {}),
+    };
   });
+
+  readonly statusOptions: FilterOption[] = [
+    { value: 'ALL', labelKey: 'shared.filter.options.projectStatus.ALL', label: 'All Statuses' },
+    ...Object.values(ProjectStatus).map((status) => ({
+      value: status,
+      label: status,
+      labelKey: `shared.filter.options.projectStatus.${status}`
+    }))
+  ];
+
+  readonly facultyOptions = computed<FilterOption[]>(() => [
+    { value: 'ALL', labelKey: 'shared.filter.options.faculties.ALL', label: 'All Faculties' },
+    ...this.facultiesListSignal().map((f) => ({
+      value: f.facultyId,
+      label: f.facultyName
+    }))
+  ]);
+
+  readonly yearOptions = computed<FilterOption[]>(() => [
+    { value: 'ALL', labelKey: 'shared.filter.options.years.ALL', label: 'All Years' },
+    ...this.availableYearsSignal().map((year) => ({
+      value: year,
+      label: `${year}`
+    }))
+  ]);
+
+  // Project type options matching project-specific funding sources
+  readonly projectTypeOptions: FilterOption[] = [
+    { value: 'ALL', labelKey: 'shared.filter.options.projectType.ALL', label: 'All Types' },
+    { value: 'SCHOOL', labelKey: 'shared.filter.options.projectType.SCHOOL', label: 'School Funded' },
+    { value: 'FACULTY', labelKey: 'shared.filter.options.projectType.FACULTY', label: 'Faculty Funded' },
+    { value: 'OUTSOURCE', labelKey: 'shared.filteroptions.projectType.OUTSOURCE', label: 'External / Outsource' }
+  ];
+
+  // Declarative schema for Project list toolbar
+  readonly projectFilterConfigs = computed<FilterFieldConfig[]>(() => [
+    {
+      key: 'searchTerm',
+      type: 'search',
+      labelKey: 'shared.filter.searchLabel',
+      placeholderKey: 'shared.filter.searchPlaceholder',
+      defaultValue: ''
+    },
+    {
+      key: 'facultyId',
+      type: 'select',
+      labelKey: 'shared.filter.labels.faculty',
+      defaultValue: this.currentUser()?.facultyId ?? 'ALL',
+      disabled: this.isFacultyDisabled,
+      options: this.facultyOptions,
+      customWidth: '220px'
+    },
+    {
+      key: 'status',
+      type: 'select',
+      labelKey: 'shared.filter.labels.projectStatus',
+      defaultValue: 'ALL',
+      options: this.statusOptions,
+      customWidth: '180px'
+    },
+    {
+      key: 'year',
+      type: 'select',
+      labelKey: 'shared.filter.labels.year',
+      defaultValue: 'ALL',
+      options: this.yearOptions,
+      customWidth: '140px'
+    },
+    {
+      key: 'projectType',
+      type: 'select',
+      labelKey: 'shared.filter.labels.projectType',
+      defaultValue: 'ALL',
+      options: this.projectTypeOptions,
+      customWidth: '180px'
+    }
+  ]);
 
   // 3. Declarative HTTP Resource 
   readonly projectsResource = this.projectApiService.getProjectsResource(this.queryParams);
@@ -101,7 +190,6 @@ export class ProjectListComponent implements OnInit {
   readonly totalItems = computed(() => this.projectsResource.value()?.total ?? 0);
 
   // Auth Context Signals
-  readonly currentUser = this.authSignalStore.user;
   readonly isStudent = computed(() => this.currentUser()?.userType === UserType.STUDENT);
 
   // Dynamic Lookup Signals
@@ -139,8 +227,19 @@ export class ProjectListComponent implements OnInit {
   }
 
   onProjectFiltersChanged(filters: SharedFilterFields): void {
-    this.filterParams.set(filters);
-    this.currentPageIndex.set(1); // Reset to first page upon applying new filter
+    const rawStatus = filters.status as unknown;
+    const rawFaculty = filters.facultyId as unknown;
+    const rawYear = filters.year as unknown;
+    const rawType = filters.projectType as unknown;
+
+    this.filterParams.set({
+      searchTerm: filters.searchTerm?.trim() || '',
+      status: rawStatus === 'ALL' || !rawStatus ? undefined : (rawStatus as ProjectStatus),
+      facultyId: rawFaculty === 'ALL' || !rawFaculty ? undefined : (rawFaculty as FacultyId),
+      year: rawYear === 'ALL' || !rawYear ? undefined : Number(rawYear),
+      projectType: rawType === 'ALL' || !rawType ? undefined : (rawType as ProjectFundingType),
+    });
+    this.currentPageIndex.set(1);
   }
 
   onPageChange(page: number): void {

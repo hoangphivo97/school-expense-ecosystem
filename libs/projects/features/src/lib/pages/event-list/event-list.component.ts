@@ -8,7 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData } from '@school-expense-ecosystem/projects/types';
+import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, ProjectFundingType } from '@school-expense-ecosystem/projects/types';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import {
@@ -97,11 +97,13 @@ export class EventListComponent {
       ...(filters.searchTerm ? { search: filters.searchTerm.trim() } : {}),
       ...(filters.facultyId ? { facultyId: filters.facultyId as FacultyId } : {}),
       ...(filters.status ? { status: filters.status as EventStatus } : {}),
+      ...(filters.year ? { year: Number(filters.year) } : {}),
+      ...(filters.projectType ? { type: filters['projectType'] as ProjectFundingType } : {}),
     };
   });
 
   readonly statusOptions: FilterOption[] = [
-    { value: 'ALL', labelKey: 'shared.filter.options.allStatuses', label: 'All Statuses' },
+    { value: 'ALL', labelKey: 'shared.filter.options.eventStatus.ALL', label: 'All Statuses' },
     ...Object.values(EventStatus).map((status) => ({
       value: status,
       label: status,
@@ -111,7 +113,7 @@ export class EventListComponent {
 
   // Faculty options reactive to API resource
   readonly facultyOptions = computed<FilterOption[]>(() => [
-    { value: 'ALL', labelKey: 'shared.filter.options.allFaculties', label: 'All Faculties' },
+    { value: 'ALL', labelKey: 'shared.filter.options.faculties.ALL', label: 'All Faculties' },
     ...this.facultiesListSignal().map((f) => ({
       value: f.facultyId,
       label: f.facultyName
@@ -123,13 +125,31 @@ export class EventListComponent {
     return user?.role === Role.LEVEL_2_DEAN || user?.userType === UserType.STUDENT;
   });
 
+  readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
+
+  readonly projectTypeOptions: FilterOption[] = [
+    { value: 'ALL', labelKey: 'shared.filter.options.eventType.ALL', label: 'All Types' },
+    { value: 'SCHOOL', labelKey: 'shared.filter.options.eventType.SCHOOL', label: 'School Funded' },
+    { value: 'FACULTY', labelKey: 'shared.filter.options.eventType.FACULTY', label: 'Faculty Funded' },
+    { value: 'PROJECT', labelKey: 'shared.filter.options.eventType.PROJECT', label: 'Project Funded' },
+    { value: 'OUTSOURCE', labelKey: 'shared.filter.options.eventType.OUTSOURCE', label: 'Outsourced / External' },
+  ];
+
+  readonly yearOptions = computed<FilterOption[]>(() => [
+    { value: 'ALL', labelKey: 'shared.filter.options.years.ALL', label: 'All Years' },
+    ...this.availableYearsSignal().map((year) => ({
+      value: year,
+      label: `${year}`
+    }))
+  ]);
+
   // Declarative schema for Event list toolbar
   readonly eventFilterConfigs = computed<FilterFieldConfig[]>(() => [
     {
       key: 'searchTerm',
       type: 'search',
-      labelKey: 'shared.filter.labels.search',
-      placeholderKey: 'project.eventList.filter.searchPlaceholder',
+      labelKey: 'shared.filter.searchLabel',
+      placeholderKey: 'shared.filter.searchPlaceholder',
       defaultValue: ''
     },
     {
@@ -144,11 +164,27 @@ export class EventListComponent {
     {
       key: 'status',
       type: 'select',
-      labelKey: 'shared.filter.labels.status',
+      labelKey: 'shared.filter.labels.eventStatus',
       defaultValue: 'ALL',
       options: this.statusOptions,
       customWidth: '180px'
-    }
+    },
+    {
+      key: 'year',
+      type: 'select',
+      labelKey: 'shared.filter.labels.year',
+      defaultValue: 'ALL',
+      options: this.yearOptions,
+      customWidth: '140px'
+    },
+    {
+      key: 'projectType',
+      type: 'select',
+      labelKey: 'shared.filter.labels.eventType',
+      defaultValue: 'ALL',
+      options: this.projectTypeOptions,
+      customWidth: '180px'
+    },
   ]);
 
   // Reactive resource call via signal getter
@@ -217,11 +253,15 @@ export class EventListComponent {
   onEventFiltersChanged(filters: SharedFilterFields): void {
     const rawStatus = filters.status as unknown;
     const rawFaculty = filters.facultyId as unknown;
+    const rawYear = filters.year as unknown;
+    const rawType = filters.projectType as unknown;
 
     this.filterParams.set({
       searchTerm: filters.searchTerm?.trim() || '',
       status: rawStatus === 'ALL' || !rawStatus ? undefined : (rawStatus as EventStatus),
-      facultyId: rawFaculty === 'ALL' || !rawFaculty ? undefined : (rawFaculty as FacultyId)
+      facultyId: rawFaculty === 'ALL' || !rawFaculty ? undefined : (rawFaculty as FacultyId),
+      year: rawYear === 'ALL' || !rawYear ? undefined : Number(rawYear),
+      projectType: rawType === 'ALL' || !rawType ? undefined : (rawType as ProjectFundingType),
     });
     this.currentPageIndex.set(1);
   }
