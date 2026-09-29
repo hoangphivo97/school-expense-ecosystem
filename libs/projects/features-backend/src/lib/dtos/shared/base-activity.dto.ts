@@ -1,7 +1,8 @@
 import { CreateJoinCodeConfig } from '@school-expense-ecosystem/projects/types';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsInt,
@@ -95,6 +96,11 @@ export abstract class BaseActivityQueryDto {
   @IsOptional()
   @IsString()
   studentId?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  year?: number;
 }
 
 export class RejectReasonDto {

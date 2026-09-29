@@ -8,7 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, ProjectFundingType } from '@school-expense-ecosystem/projects/types';
+import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, ProjectFundingType, EventFundingType } from '@school-expense-ecosystem/projects/types';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import {
@@ -98,7 +98,7 @@ export class EventListComponent {
       ...(filters.facultyId ? { facultyId: filters.facultyId as FacultyId } : {}),
       ...(filters.status ? { status: filters.status as EventStatus } : {}),
       ...(filters.year ? { year: Number(filters.year) } : {}),
-      ...(filters.projectType ? { type: filters['projectType'] as ProjectFundingType } : {}),
+      ...(filters.eventType ? { type: filters.eventType as EventFundingType} : {}),
     };
   });
 
@@ -127,7 +127,7 @@ export class EventListComponent {
 
   readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
 
-  readonly projectTypeOptions: FilterOption[] = [
+  readonly eventTypeOptions: FilterOption[] = [
     { value: 'ALL', labelKey: 'shared.filter.options.eventType.ALL', label: 'All Types' },
     { value: 'SCHOOL', labelKey: 'shared.filter.options.eventType.SCHOOL', label: 'School Funded' },
     { value: 'FACULTY', labelKey: 'shared.filter.options.eventType.FACULTY', label: 'Faculty Funded' },
@@ -178,11 +178,11 @@ export class EventListComponent {
       customWidth: '140px'
     },
     {
-      key: 'projectType',
+      key: 'eventType',
       type: 'select',
       labelKey: 'shared.filter.labels.eventType',
       defaultValue: 'ALL',
-      options: this.projectTypeOptions,
+      options: this.eventTypeOptions,
       customWidth: '180px'
     },
   ]);
@@ -254,14 +254,14 @@ export class EventListComponent {
     const rawStatus = filters.status as unknown;
     const rawFaculty = filters.facultyId as unknown;
     const rawYear = filters.year as unknown;
-    const rawType = filters.projectType as unknown;
+    const rawType = filters.eventType as unknown;
 
     this.filterParams.set({
       searchTerm: filters.searchTerm?.trim() || '',
       status: rawStatus === 'ALL' || !rawStatus ? undefined : (rawStatus as EventStatus),
       facultyId: rawFaculty === 'ALL' || !rawFaculty ? undefined : (rawFaculty as FacultyId),
       year: rawYear === 'ALL' || !rawYear ? undefined : Number(rawYear),
-      projectType: rawType === 'ALL' || !rawType ? undefined : (rawType as ProjectFundingType),
+      eventType: rawType === 'ALL' || !rawType ? undefined : (rawType as EventFundingType),
     });
     this.currentPageIndex.set(1);
   }

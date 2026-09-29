@@ -52,7 +52,7 @@ export class ProjectListComponent implements OnInit {
   readonly currentPageIndex = signal<number>(1);
   readonly currentUser = this.authSignalStore.user;
   readonly filterParams = signal<SharedFilterFields>({
-    facultyId: this.currentUser()?.facultyId,
+    facultyId: this.currentUser()?.facultyId
   });
   readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
   readonly activeTab = signal<'PROJECT' | 'EVENT'>('PROJECT');
@@ -65,7 +65,6 @@ export class ProjectListComponent implements OnInit {
   // 2. Computed Query Pipeline
   readonly queryParams = computed<ProjectQueryPayload>(() => {
     const filters = this.filterParams();
-    const selectedYear = filters.year;
 
     return {
       page: this.currentPageIndex(),
@@ -158,7 +157,6 @@ export class ProjectListComponent implements OnInit {
   // 3. Declarative HTTP Resource 
   readonly projectsResource = this.projectApiService.getProjectsResource(this.queryParams);
 
-  // 4. State Signals dẫn xuất trực tiếp từ Resource (Không cần set thủ công)
   readonly isGridDataLoading = this.projectsResource.isLoading;
   readonly dataSource = computed<ProjectViewModel[]>(() => {
     const items = this.projectsResource.value()?.items ?? [];
@@ -213,8 +211,6 @@ export class ProjectListComponent implements OnInit {
     'status',
     'action',
   ]);
-
-  filterModeEnum = FilterMode
 
   ngOnInit(): void {
   }

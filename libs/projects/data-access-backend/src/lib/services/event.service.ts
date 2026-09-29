@@ -42,6 +42,7 @@ import {
 import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
+import { calculateSpannedYears } from '../helpers/calculate-years.helper';
 
 @Injectable()
 export class EventService {
@@ -144,6 +145,7 @@ export class EventService {
       updatedAt: new Date().toISOString(),
       startDate: new Date(dto.startDate).toISOString(),
       endDate: new Date(dto.endDate).toISOString(),
+      years: calculateSpannedYears(dto.startDate, dto.endDate),
     };
 
     // Encumber faculty fund if it is a standalone faculty-funded event
@@ -202,6 +204,10 @@ export class EventService {
 
     const { expectedUpdatedAt, ...cleanDto } = dto;
 
+    const targetStartDate = cleanDto.startDate ?? event.startDate;
+    const targetEndDate = cleanDto.endDate ?? event.endDate;
+    const isTimelineModified = Boolean(cleanDto.startDate || cleanDto.endDate);
+
     const updateData: Partial<EventItem> = {
       ...(cleanDto.name && { name: cleanDto.name.trim() }),
       ...(cleanDto.description !== undefined && { description: cleanDto.description ? cleanDto.description.trim() : undefined }),
@@ -214,6 +220,9 @@ export class EventService {
       }),
       ...(cleanDto.startDate && { startDate: new Date(cleanDto.startDate).toISOString() }),
       ...(cleanDto.endDate && { endDate: new Date(cleanDto.endDate).toISOString() }),
+      ...(isTimelineModified && {
+        years: calculateSpannedYears(targetStartDate, targetEndDate),
+      }),
       status: nextStatus,
     };
 

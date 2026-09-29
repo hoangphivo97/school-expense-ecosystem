@@ -11,7 +11,7 @@ export interface UpdateProjectPayload extends Partial<CreateProjectPayload> {
   expectedUpdatedAt: string;
 }
 
-export interface ProjectQueryPayload extends BaseActivityQueryPayload<ProjectStatus> {
+export interface ProjectQueryPayload extends BaseActivityQueryPayload<ProjectStatus, ProjectFundingType> {
   mentorId?: string;
 }
 
