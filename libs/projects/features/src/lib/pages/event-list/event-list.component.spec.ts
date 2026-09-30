@@ -305,7 +305,7 @@ describe('EventListComponent', () => {
       expect(createBtn).not.toBeNull();
     });
 
-    it('should render "Join by Code" button and hide "Create Event" for Student', () => {
+    it('should hide "Create Event" button and render "Join by Code" button for Student', () => {
       mockUserSignal.set(
         createMockAuthenticatedUser({
           role: Role.LEVEL_3_USER,
@@ -318,7 +318,7 @@ describe('EventListComponent', () => {
       const host: HTMLElement = fixture.nativeElement;
       const primaryBtnIcon = host.querySelector('button[primaryAction] mat-icon');
 
-      // Slot conditionally swaps to Join by Code with vpn_key icon
+      // Assert that Student sees the Join by Code button with vpn_key icon
       expect(primaryBtnIcon?.textContent?.trim()).toBe('vpn_key');
     });
 

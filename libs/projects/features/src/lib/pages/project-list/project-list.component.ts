@@ -1,7 +1,7 @@
 import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ConfirmDialogData, DialogActionEnum, FacultyId, FilterFieldConfig, FilterMode, FilterOption, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
-import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
+import { ConfirmDialogData, DialogActionEnum, FacultyId, FilterFieldConfig, FilterOption, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
+import { AuthSignalStore, FacultyApiService, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import { BaseModalComponent, BaseModalData, ConfirmDialogComponent, CopyToClipboardDirective, FilterComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -42,10 +42,10 @@ export interface ProjectViewModel extends ProjectItem {
 export class ProjectListComponent implements OnInit {
   private readonly projectApiService = inject(ProjectApiService);
   private readonly authSignalStore = inject(AuthSignalStore);
-  private readonly facultyApiService = inject(FacultyApiService);
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
   private readonly translocoService = inject(TranslocoService);
+  private readonly masterDataStore = inject(MasterDataStore);
 
   // State Signals
   readonly pageSize = signal<number>(10);
@@ -86,14 +86,6 @@ export class ProjectListComponent implements OnInit {
     }))
   ];
 
-  readonly facultyOptions = computed<FilterOption[]>(() => [
-    { value: 'ALL', labelKey: 'shared.filter.options.faculties.ALL', label: 'All Faculties' },
-    ...this.facultiesListSignal().map((f) => ({
-      value: f.facultyId,
-      label: f.facultyName
-    }))
-  ]);
-
   readonly yearOptions = computed<FilterOption[]>(() => [
     { value: 'ALL', labelKey: 'shared.filter.options.years.ALL', label: 'All Years' },
     ...this.availableYearsSignal().map((year) => ({
@@ -125,7 +117,7 @@ export class ProjectListComponent implements OnInit {
       labelKey: 'shared.filter.labels.faculty',
       defaultValue: this.currentUser()?.facultyId ?? 'ALL',
       disabled: this.isFacultyDisabled,
-      options: this.facultyOptions,
+      options: this.masterDataStore.facultyOptions,
       customWidth: '220px'
     },
     {
@@ -189,14 +181,6 @@ export class ProjectListComponent implements OnInit {
 
   // Auth Context Signals
   readonly isStudent = computed(() => this.currentUser()?.userType === UserType.STUDENT);
-
-  // Dynamic Lookup Signals
-  readonly facultiesListSignal = computed(() =>
-    this.facultyApiService.facultiesResource.value().map((faculty) => ({
-      facultyId: faculty.id,
-      facultyName: faculty.name,
-    }))
-  );
 
   // Reactive Grid Data & Columns
   readonly dynamicDisplayedColumns: Signal<string[]> = computed(() => [

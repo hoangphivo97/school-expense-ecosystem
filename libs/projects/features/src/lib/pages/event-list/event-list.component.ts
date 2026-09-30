@@ -10,13 +10,12 @@ import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/tran
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
 import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, ProjectFundingType, EventFundingType } from '@school-expense-ecosystem/projects/types';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
-import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
+import { AuthSignalStore, FacultyApiService, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import {
   ConfirmDialogData,
   DialogActionEnum,
   FacultyId,
   FilterFieldConfig,
-  FilterMode,
   FilterOption,
   Role,
   SharedFilterFields,
@@ -65,13 +64,12 @@ export interface EventViewModel extends EventItem, BaseActivityViewModel {
 })
 export class EventListComponent {
   private readonly authSignalStore = inject(AuthSignalStore);
-  private readonly facultyApiService = inject(FacultyApiService);
   private readonly eventService = inject(EventApiService)
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
   private readonly translocoService = inject(TranslocoService);
+  private readonly masterDataStore = inject(MasterDataStore);
 
-  readonly filterModeEnum = FilterMode;
   readonly currentUser = this.authSignalStore.user;
   readonly isStudent = computed(() => this.currentUser()?.userType === UserType.STUDENT);
 
@@ -81,13 +79,6 @@ export class EventListComponent {
   readonly filterParams = signal<SharedFilterFields>({
     facultyId: this.currentUser()?.facultyId
   });
-
-  readonly facultiesListSignal = computed(() =>
-    (this.facultyApiService.facultiesResource.value() ?? []).map((faculty) => ({
-      facultyId: faculty.id,
-      facultyName: faculty.name,
-    }))
-  );
 
   readonly queryParams = computed<EventQueryPayload>(() => {
     const filters = this.filterParams();
@@ -110,15 +101,6 @@ export class EventListComponent {
       labelKey: `shared.filter.options.eventStatus.${status}`
     }))
   ];
-
-  // Faculty options reactive to API resource
-  readonly facultyOptions = computed<FilterOption[]>(() => [
-    { value: 'ALL', labelKey: 'shared.filter.options.faculties.ALL', label: 'All Faculties' },
-    ...this.facultiesListSignal().map((f) => ({
-      value: f.facultyId,
-      label: f.facultyName
-    }))
-  ]);
 
   readonly isFacultyDisabled = computed(() => {
     const user = this.currentUser();
@@ -158,7 +140,7 @@ export class EventListComponent {
       labelKey: 'shared.filter.labels.faculty',
       defaultValue: this.currentUser()?.facultyId ?? 'ALL',
       disabled: this.isFacultyDisabled,
-      options: this.facultyOptions,
+      options: this.masterDataStore.facultyOptions,
       customWidth: '220px'
     },
     {

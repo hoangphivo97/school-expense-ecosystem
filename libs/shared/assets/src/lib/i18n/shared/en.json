@@ -55,7 +55,15 @@
       "reset": "Clear active layout filters"
     },
     "options": {
-      "faculties": { "ALL": "All Faculties" },
+      "faculties": {
+        "ALL": "All Faculties",
+        "FIT": "Faculty of Information Technology",
+        "FBE": "Faculty of Business and Economics",
+        "FLL": "Faculty of Foreign Languages & Linguistics",
+        "FET": "Faculty of Engineering and Technology",
+        "FAD": "Faculty of Architecture and Design",
+        "FLA": "Faculty of Law and Public Administration"
+      },
       "roles": {
         "ALL": "All Roles",
         "LEVEL_0_ADMIN": "System Admin",

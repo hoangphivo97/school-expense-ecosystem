@@ -5,7 +5,7 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { MatIcon } from '@angular/material/icon';
 
 import { HeaderComponent, FooterComponent, FilterComponent } from '@school-expense-ecosystem/shared/ui';
-import { FilterFieldConfig, FilterMode, FilterOption, SharedFilterParams } from '@school-expense-ecosystem/shared/types';
+import { FilterFieldConfig, FilterOption } from '@school-expense-ecosystem/shared/types';
 import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { makeLineChart, makeMonthlyColumnChart, makePieChart } from './utils/multiple-charts-helper';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
@@ -32,8 +32,6 @@ export class ReportComponent {
   private readonly router = inject(Router);
   private readonly authSignalStore = inject(AuthSignalStore); // 🌟 BỔ SUNG: Khai thác quyền hạn user đăng nhập
 
-
-  readonly filterModeEnum = FilterMode;
 
   readonly filterParams = signal<FilterExpenseParams>({
     month: new Date().getMonth() + 1,
