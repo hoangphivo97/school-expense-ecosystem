@@ -1,19 +1,14 @@
 <div class="project-list" *transloco="let t; read:'project.projectList'">
-  <lib-filter 
-    [mode]="filterModeEnum.PROJECT" 
-    [yearsList]="availableYearsSignal()" 
-    [value]="filterParams()"
-    (filterChange)="onProjectFiltersChanged($event)"
-    [facultiesList]="facultiesListSignal()"
-  >
-    @if (isStudent()) {
-      <button primaryAction mat-flat-button color="primary" (click)="openJoinByCodeDialog()">
-        <mat-icon>vpn_key</mat-icon> {{ t('actions.joinByCode') }}
-      </button>
+  <lib-filter [configs]="projectFilterConfigs()" [value]="filterParams()"
+    (filterChange)="onProjectFiltersChanged($event)">
+    @if (!isStudent()) {
+    <button primaryAction mat-flat-button color="primary" (click)="openCreateProjectModal()">
+      <mat-icon>add</mat-icon> {{ t('actions.createProject') }}
+    </button>
     } @else {
-      <button primaryAction mat-flat-button color="primary" (click)="openCreateProjectModal()">
-        <mat-icon>add</mat-icon> {{ t('actions.createProject') }}
-      </button>
+    <button primaryAction mat-flat-button color="primary" (click)="openJoinByCodeDialog()">
+      <mat-icon>vpn_key</mat-icon> {{ t('actions.joinByCode') }}
+    </button>
     }
   </lib-filter>
 

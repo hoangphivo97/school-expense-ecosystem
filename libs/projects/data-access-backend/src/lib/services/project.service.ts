@@ -9,6 +9,7 @@ import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedExce
 import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
+import { calculateSpannedYears } from '../helpers/calculate-years.helper';
 
 @Injectable()
 export class ProjectService {
@@ -66,6 +67,7 @@ export class ProjectService {
       joinConfig: joinConfig,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      years: calculateSpannedYears(dto.startDate, dto.endDate)
     };
 
     if (dto.type === ProjectFundingType.FACULTY) {
@@ -114,6 +116,10 @@ export class ProjectService {
 
     const { expectedUpdatedAt, ...cleanDto } = dto;
 
+    const targetStartDate = cleanDto.startDate ?? project.startDate;
+    const targetEndDate = cleanDto.endDate ?? project.endDate;
+    const isTimelineModified = Boolean(cleanDto.startDate || cleanDto.endDate);
+
     const updateData: Partial<ProjectItem> = {
       ...(cleanDto.name && { name: cleanDto.name.trim() }),
       ...(cleanDto.description !== undefined && { description: cleanDto.description ? cleanDto.description.trim() : null }),
@@ -126,6 +132,11 @@ export class ProjectService {
       }),
       ...(cleanDto.startDate && { startDate: new Date(cleanDto.startDate).toISOString() }),
       ...(cleanDto.endDate && { endDate: new Date(cleanDto.endDate).toISOString() }),
+      ...(cleanDto.startDate && { startDate: new Date(cleanDto.startDate).toISOString() }),
+      ...(cleanDto.endDate && { endDate: new Date(cleanDto.endDate).toISOString() }),
+      ...(isTimelineModified && {
+        years: calculateSpannedYears(targetStartDate, targetEndDate),
+      }),
       status: nextStatus,
       updatedAt: new Date().toISOString(),
     };

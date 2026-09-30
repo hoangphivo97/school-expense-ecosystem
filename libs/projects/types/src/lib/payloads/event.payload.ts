@@ -13,7 +13,7 @@ export interface UpdateEventPayload extends Partial<CreateEventPayload> {
   expectedUpdatedAt: string;
 }
 
-export interface EventQueryPayload extends BaseActivityQueryPayload<EventStatus> {
+export interface EventQueryPayload extends BaseActivityQueryPayload<EventStatus, EventFundingType> {
   projectId?: string;
   organizerId?: string;
 }

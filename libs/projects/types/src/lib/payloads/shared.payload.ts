@@ -27,12 +27,14 @@ export interface BaseActivityPayload<TFundingType> {
   joinCodeConfig?: CreateJoinCodeConfig | null;
 }
 
-export interface BaseActivityQueryPayload<TStatus> extends CursorPaginationParams{
+export interface BaseActivityQueryPayload<TStatus, TType> extends CursorPaginationParams{
   page?: number;
   search?: string;
   facultyId?: FacultyId;
   status?: TStatus;
   studentId?: string;
+  year?: number;
+  type?: TType;
 }
 
 export interface CreateJoinCodeConfig {

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProjectLayoutComponent } from './project-layout.component';
+import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/utils-frontend';
 
 describe('ProjectLayoutComponent', () => {
   let component: ProjectLayoutComponent;
@@ -7,7 +8,9 @@ describe('ProjectLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProjectLayoutComponent],
+      imports: [ProjectLayoutComponent,
+        provideSharedTranslocoTesting(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProjectLayoutComponent);

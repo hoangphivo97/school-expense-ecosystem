@@ -4,13 +4,16 @@ import {
   inject,
   input,
   output,
-  OnInit,
   computed,
   effect,
-  viewChild,
+  signal,
+  isSignal,
+  untracked,
+  Injector,
+  runInInjectionContext,
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
@@ -18,30 +21,30 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableDataSource } from '@angular/material/table';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { FilterMode, SharedFilterFields, SharedFilterParams, } from '@school-expense-ecosystem/shared/types';
-import { EXPENSE_STATUS_OPTIONS, months } from '@school-expense-ecosystem/shared/constants';
-import { FacultyId, Role, UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
-import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
-import { ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { FilterFieldConfig, FilterOption, FilterValuePrimitive } from '@school-expense-ecosystem/shared/types';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+export interface SelectFieldViewModel {
+  config: FilterFieldConfig;
+}
 
 @Component({
   selector: 'lib-filter',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
     MatSelectModule,
     MatOptionModule,
     MatInputModule,
     MatFormFieldModule,
     MatIconModule,
     MatTooltipModule,
+    TranslocoModule,
     MatPaginatorModule,
-    TranslocoModule
+    ReactiveFormsModule
   ],
   templateUrl: './filter.component.html',
   styleUrl: './filter.component.scss',
@@ -49,255 +52,117 @@ import { ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/pro
     { provide: TRANSLOCO_SCOPE, useValue: 'shared' }
   ]
 })
-export class FilterComponent<T = unknown> implements OnInit {
+export class FilterComponent<TFilter extends object = Record<string, unknown>, T = unknown> implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly paginator = viewChild(MatPaginator);
-
-  readonly mode = input<FilterMode>(FilterMode.EXPENSE);
-  readonly disableStatus = input<boolean>(false);
-
-  readonly showSearch = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.USER || this.mode() === FilterMode.PROJECT);
-  readonly showMonth = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT);
-  readonly showYear = computed(() => this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT || this.mode() === FilterMode.PROJECT);
-  readonly showRole = computed(() => this.mode() === FilterMode.USER);
-  readonly showUserType = computed(() => this.mode() === FilterMode.USER);
-  readonly showStatus = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.PROJECT);
-  readonly showFaculty = computed(() => this.mode() === FilterMode.USER || this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.PROJECT);
-  readonly showProjectType = computed(() => this.mode() === FilterMode.PROJECT);
-
-  // Multi-dimensional dynamic model mapping streams
+  readonly configs = input.required<FilterFieldConfig[]>();
+  readonly value = input<TFilter | null>(null);
   readonly inputDataSource = input<MatTableDataSource<T> | null>(null);
-  readonly value = input<SharedFilterParams | null>(null);
-  readonly yearsList = input<number[]>([]);
-  readonly facultiesList = input<{ facultyId: string; facultyName: string }[]>([]);
 
-  readonly filterChange = output<SharedFilterParams>();
+  readonly filterChange = output<TFilter>();
 
-  readonly systemRolesOptions = [
-    { value: 'ALL', labelKey: 'shared.filter.all_roles' },
-    { value: Role.LEVEL_0_ADMIN, labelKey: 'shared.roles.admin' },
-    { value: Role.LEVEL_1_FINANCE, labelKey: 'shared.roles.finance' },
-    { value: Role.LEVEL_2_DEAN, labelKey: 'shared.roles.dean' },
-    { value: Role.LEVEL_3_USER, labelKey: 'shared.roles.end_user' }
-  ];
-
-  readonly userTypesOptions = [
-    { value: 'ALL', label: 'All User Types' },
-    { value: UserType.STUDENT, label: 'Student' },
-    { value: UserType.TEACHER, label: 'Teacher' },
-    { value: UserType.STAFF, label: 'Staff' }
-  ];
-
-  readonly accountStatusOptions = [
-    { value: 'ALL', label: 'All Statuses' },
-    { value: UserStatus.ACTIVE, label: 'Active' },
-    { value: UserStatus.ONBOARDING, label: 'Onboarding' },
-    { value: UserStatus.REJECTED, label: 'Rejected' },
-    // { value: UserStatus.INACTIVE, label: 'Inactive' }
-  ];
-
-  readonly projectStatusOptions = [
-    { value: 'ALL', labelKey: 'shared.filter.all_statuses' },
-    { value: ProjectStatus.ACTIVE, labelKey: 'projects.status.active' },
-    { value: ProjectStatus.PENDING_DEAN_APPROVAL, labelKey: 'projects.status.pending_dean_approval' },
-    { value: ProjectStatus.PENDING_FINANCE_APPROVAL, labelKey: 'projects.status.pending_finance_approval' },
-    { value: ProjectStatus.REJECTED, labelKey: 'projects.status.rejected' },
-    { value: ProjectStatus.COMPLETED, labelKey: 'projects.status.completed' },
-    { value: ProjectStatus.ARCHIVED, labelKey: 'projects.status.archived' },
-  ];
-
-  readonly projectTypeOptions = [
-    { value: 'ALL', labelKey: 'shared.filter.all_types' },
-    { value: ProjectFundingType.SCHOOL, labelKey: 'projects.funding.school' },
-    { value: ProjectFundingType.FACULTY, labelKey: 'projects.funding.faculty' },
-    { value: ProjectFundingType.OUTSOURCE, labelKey: 'projects.funding.external' },
-  ];
-
-  readonly expenseStatusOptions = EXPENSE_STATUS_OPTIONS;
-
-  readonly currentMonth = new Date().getMonth() + 1;
-  readonly currentYear = new Date().getFullYear();
-
-  // Baseline UI state registry holding sentinel default constants
-  readonly defaultFilterState = {
-    searchTerm: '',
-    month: this.currentMonth,
-    year: this.currentYear,
-    role: 'ALL',
-    userType: 'ALL',
-    status: 'ALL',
-    facultyId: 'ALL',
-    projectType: 'ALL'
-  };
-
-  readonly filterForm = new FormGroup({
-    searchTerm: new FormControl(this.defaultFilterState.searchTerm),
-    month: new FormControl<number | null>(this.defaultFilterState.month),
-    year: new FormControl<number | null>(this.defaultFilterState.year),
-    role: new FormControl(this.defaultFilterState.role),
-    userType: new FormControl(this.defaultFilterState.userType),
-    status: new FormControl(this.defaultFilterState.status),
-    facultyId: new FormControl(this.defaultFilterState.facultyId),
-    projectType: new FormControl(this.defaultFilterState.projectType)
+  readonly defaultState = computed<Record<string, unknown>>(() => {
+    return this.configs().reduce((acc, field) => {
+      acc[field.key] = field.defaultValue;
+      return acc;
+    }, {} as Record<string, unknown>);
   });
 
-  readonly processedYears = computed(() => {
-    const years = [...this.yearsList()];
-    if (!years.includes(this.currentYear)) {
-      years.push(this.currentYear);
-    }
-    return years.sort((a, b) => a - b);
-  });
+  form!: FormGroup;
+  readonly isDirty = signal<boolean>(false);
 
-  readonly availableMonths = computed(() => months);
-
-  readonly isDirty = computed(() => {
-    const currentForm = this.filterForm.value;
-    const searchDirty = this.showSearch() && currentForm.searchTerm !== this.defaultFilterState.searchTerm;
-    const monthDirty = this.showMonth() && currentForm.month !== this.defaultFilterState.month;
-    const yearDirty = this.showYear() && currentForm.year !== this.defaultFilterState.year;
-    const roleDirty = this.showRole() && currentForm.role !== this.defaultFilterState.role;
-    const userTypeDirty = this.showUserType() && currentForm.userType !== this.defaultFilterState.userType;
-    const statusDirty = this.showStatus() && currentForm.status !== this.defaultFilterState.status;
-    const facultyDirty = this.showFaculty() && currentForm.facultyId !== this.defaultFilterState.facultyId;
-
-    return searchDirty || monthDirty || yearDirty || roleDirty || userTypeDirty || statusDirty || facultyDirty;
-  });
-
-  constructor() {
-    effect(() => {
-      const statusControl = this.filterForm.get('status');
-      if (this.disableStatus()) {
-        statusControl?.disable({ emitEvent: false });
-      } else {
-        statusControl?.enable({ emitEvent: false });
-      }
-    });
-
-    effect(() => {
-      const incomingState = this.value();
-      if (!incomingState) return;
-
-      // Reactively branch on the component mode signal to cleanly narrow union type boundaries
-      if (this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT) {
-        const expenseState = incomingState as unknown as SharedFilterFields;
-        this.filterForm.patchValue({
-          month: expenseState.month !== undefined ? expenseState.month : this.currentMonth,
-          year: expenseState.year !== undefined ? expenseState.year : this.currentYear,
-          searchTerm: expenseState.searchTerm ?? '',
-          status: expenseState.status ?? 'ALL',
-          facultyId: expenseState.facultyId ?? 'ALL',
-          userType: expenseState.userType ?? 'ALL'
-        }, { emitEvent: false });
-
-      }
-      else if (this.mode() === FilterMode.PROJECT) {
-        // Architect Fix: Patch incoming state specific to Project mode
-        const projectState = incomingState as unknown as SharedFilterFields;
-        this.filterForm.patchValue({
-          searchTerm: projectState.searchTerm ?? '',
-          year: projectState.year !== undefined ? projectState.year : this.currentYear,
-          status: projectState.status ?? 'ALL',
-          facultyId: projectState.facultyId ?? 'ALL',
-          projectType: (projectState as any).projectType ?? 'ALL'
-        }, { emitEvent: false })
-      }
-      else {
-        const userState = incomingState as unknown as SharedFilterFields;
-        this.filterForm.patchValue({
-          searchTerm: userState.searchTerm ?? '',
-          role: userState.role ?? 'ALL',
-          userType: userState.userType ?? 'ALL',
-          status: userState.status ?? 'ALL',
-          facultyId: userState.facultyId ?? 'ALL'
-        }, { emitEvent: false });
-      }
-    });
-  }
+  readonly searchField = computed(() => this.configs().find((c) => c.type === 'search'));
+  readonly selectConfigs = computed(() => this.configs().filter((c) => c.type === 'select'));
 
   ngOnInit(): void {
-    this.registerFilterValueStreams();
+    this.initFormGroup();
+    this.bindValueChanges();
   }
 
-  private registerFilterValueStreams(): void {
-    this.filterForm.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe((formValues) => {
+  constructor() {
+    this.syncDisabledState();
+    this.syncIncomingValue();
+  }
 
-        const getValidRole = (val: unknown): Role | undefined => {
-          if (val === 'ALL' || val === null || val === '') return undefined;
-          return Object.values(Role).includes(val as Role) ? (val as Role) : undefined;
-        };
+  private initFormGroup(): void {
+    const group: Record<string, FormControl> = {};
+    const incoming = this.value() as Record<string, unknown> | null;
 
-        const getValidUserType = (val: unknown): UserType | undefined => {
-          if (val === 'ALL' || val === null || val === '') return undefined;
-          return val as UserType;
-        };
+    for (const cfg of this.configs()) {
+      const isDisabled = this.resolveFieldDisabled(cfg);
+      // Seed with incoming parent state if present, fallback to default value
+      const initialVal = incoming?.[cfg.key] ?? cfg.defaultValue ?? null;
 
-        const getValidFacultyId = (val: unknown): FacultyId | undefined => {
-          if (val === 'ALL' || val === null || val === '') return undefined;
-          return val as FacultyId;
-        };
+      group[cfg.key] = new FormControl({
+        value: initialVal,
+        disabled: isDisabled
+      });
+    }
+    this.form = new FormGroup(group);
+  }
 
-        const extractRawStatus = (val: unknown): any => {
-          if (val === 'ALL' || val === null || val === '') return undefined;
-          return val;
-        };
+  private bindValueChanges(): void {
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => {
+        this.isDirty.set(this.form.dirty);
 
-        let payload;
-
-        if (this.mode() === FilterMode.EXPENSE || this.mode() === FilterMode.REPORT) {
-          payload = {
-            searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
-            month: this.showMonth() ? (formValues.month !== undefined ? formValues.month : null) : null,
-            year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
-            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined,
-            facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
-            userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
-          };
-        } else if (this.mode() === FilterMode.PROJECT) {
-          // Explicit mapping for Project Filter Mode
-          payload = {
-            searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
-            year: this.showYear() ? (formValues.year !== undefined ? formValues.year : null) : null,
-            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined,
-            facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
-            projectType: formValues.projectType === 'ALL' ? undefined : formValues.projectType,
-          };
-        } else {
-          payload = {
-            searchTerm: this.showSearch() ? (formValues.searchTerm ?? '') : '',
-            role: this.showRole() ? getValidRole(formValues.role) : undefined,
-            userType: this.showUserType() ? getValidUserType(formValues.userType) : undefined,
-            status: this.showStatus() ? extractRawStatus(formValues.status) : undefined, // Will map to UserStatus implicitly
-            facultyId: this.showFaculty() ? getValidFacultyId(formValues.facultyId) : undefined,
-          };
-        }
-
+        // Synchronize local table data source if search control exists
+        const searchConfig = this.searchField();
         const dataSource = this.inputDataSource();
-        if (dataSource && this.showSearch()) {
-          dataSource.filter = (payload.searchTerm as string).trim().toLowerCase();
+        if (dataSource && searchConfig) {
+          const query = val[searchConfig.key];
+          dataSource.filter = typeof query === 'string' ? query.trim().toLowerCase() : '';
         }
 
-        this.filterChange.emit(payload);
+        // Emit complete state snapshot including disabled fields
+        this.filterChange.emit(this.form.getRawValue() as TFilter);
       });
   }
 
+  private syncDisabledState(): void {
+    // Reactively toggle control availability when parent conditions mutate
+    effect(() => {
+      if (!this.form) return;
+      for (const cfg of this.configs()) {
+        if (cfg.disabled !== undefined) {
+          const ctrl = this.form.get(cfg.key);
+          if (ctrl) {
+            const shouldDisable = this.resolveFieldDisabled(cfg);
+            if (shouldDisable && ctrl.enabled) {
+              ctrl.disable({ emitEvent: false });
+            } else if (!shouldDisable && ctrl.disabled) {
+              ctrl.enable({ emitEvent: false });
+            }
+          }
+        }
+      }
+    });
+  }
+
+  private syncIncomingValue(): void {
+    // Safely apply parent values without triggering circular event emissions
+    effect(() => {
+      const incoming = this.value();
+      if (!this.form || !incoming) return;
+
+      this.form.patchValue(incoming as any, { emitEvent: false });
+    });
+  }
+
+  resolveFieldOptions(field: FilterFieldConfig): FilterOption[] {
+    if (!field.options) return [];
+    return isSignal(field.options) ? field.options() : field.options;
+  }
+
+  resolveFieldDisabled(field: FilterFieldConfig): boolean {
+    if (field.disabled === undefined) return false;
+    return isSignal(field.disabled) ? field.disabled() : field.disabled;
+  }
+
   resetFilters(): void {
-    this.filterForm.setValue({
-      searchTerm: this.defaultFilterState.searchTerm,
-      month: this.defaultFilterState.month,
-      year: this.defaultFilterState.year,
-      role: this.defaultFilterState.role,
-      userType: this.defaultFilterState.userType,
-      status: this.defaultFilterState.status,
-      facultyId: this.defaultFilterState.facultyId,
-      projectType: this.defaultFilterState.projectType
-    }, { emitEvent: true });
+    this.form.reset(this.defaultState(), { emitEvent: false });
+    this.isDirty.set(false);
+    this.filterChange.emit(this.form.getRawValue() as TFilter);
   }
 }

@@ -66,4 +66,5 @@ export interface SharedFilterFields {
   userType?: string | null;
   role?: string | null;
   projectType?: string | null;
+  eventType?: string | null;
 }

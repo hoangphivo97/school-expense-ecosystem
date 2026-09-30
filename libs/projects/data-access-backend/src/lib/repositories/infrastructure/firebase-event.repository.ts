@@ -33,7 +33,14 @@ export class FirebaseEventRepository
     if (query.status) baseQuery = baseQuery.where('status', '==', query.status);
     if (query.projectId) baseQuery = baseQuery.where('projectId', '==', query.projectId);
     if (query.organizerId) baseQuery = baseQuery.where('organizerId', '==', query.organizerId);
-    if (query.studentId) baseQuery = baseQuery.where('joinedStudentIds', 'array-contains', query.studentId);
+    if (query.type) baseQuery = baseQuery.where('type', '==', query.type);
+
+    const hasStudentFilter = Boolean(query.studentId);
+    if (hasStudentFilter) {
+      baseQuery = baseQuery.where('joinedStudentIds', 'array-contains', query.studentId);
+    } else if (query.year) {
+      baseQuery = baseQuery.where('years', 'array-contains', Number(query.year));
+    }
 
     // Push search filter and index sorting down to database level
     if (query.search) {
@@ -64,11 +71,17 @@ export class FirebaseEventRepository
       countQuery.count().get(),
     ]);
 
+    let items = snapshot.docs.map((doc) => this.mapDoc(doc));
+    let totalItems = countSnapshot.data().count;
 
-    const items = snapshot.docs.map((doc) => this.mapDoc(doc));
+    if (hasStudentFilter && query.year) {
+      const selectedYear = Number(query.year);
+      items = items.filter((item) => item.years?.includes(selectedYear));
+      totalItems = items.length;
+    }
+
     const lastDoc = snapshot.docs[snapshot.docs.length - 1];
     const nextPageToken = lastDoc ? lastDoc.id : null;
-    const totalItems = countSnapshot.data().count;
 
     return { items, nextPageToken, totalItems };
   }
