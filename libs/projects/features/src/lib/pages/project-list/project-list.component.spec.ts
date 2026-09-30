@@ -5,11 +5,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { NotificationService } from '@school-expense-ecosystem/shared/ui';
-import { TranslocoTestingModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { ProjectFundingType, ProjectItem, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { ProjectListComponent, ProjectViewModel } from './project-list.component';
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
+import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/utils-frontend';
+import { enProject, twProject } from '@school-expense-ecosystem/shared/assets';
 
 describe('ProjectListComponent', () => {
   let component: ProjectListComponent;
@@ -39,6 +40,7 @@ describe('ProjectListComponent', () => {
     joinedStudentIds: ['stu-01'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    years: [2026]
   };
 
   beforeEach(async () => {
@@ -81,15 +83,10 @@ describe('ProjectListComponent', () => {
       imports: [
         ProjectListComponent,
         // Provides full mock environment for *transloco directive and | transloco pipe
-        TranslocoTestingModule.forRoot({
-          langs: {},
-          translocoConfig: {
-            availableLangs: ['en'],
-            defaultLang: 'en',
-            reRenderOnLangChange: true,
-          },
-          preloadLangs: true,
-        }),
+        provideSharedTranslocoTesting({
+          en: {project: enProject},
+          tw: {project: twProject}
+        })
       ],
       providers: [
         { provide: ProjectApiService, useValue: mockProjectApiService },
@@ -168,6 +165,29 @@ describe('ProjectListComponent', () => {
           search: 'Blockchain',
         })
       );
+    });
+
+    it('should format year as a numeric scalar in queryParams when a specific year is selected', () => {
+      component.currentPageIndex.set(4);
+
+      // Simulate filter emit from child FilterComponent
+      component.onProjectFiltersChanged({ year: 2026 });
+
+      expect(component.currentPageIndex()).toBe(1);
+      expect(component.queryParams().year).toBe(2026);
+    });
+
+    it('should omit year parameter from queryParams when filter is set to ALL', () => {
+      component.onProjectFiltersChanged({ year: undefined });
+
+      // Ensure query string is not polluted with sentinel ALL value
+      expect(component.queryParams().year).toBeUndefined();
+    });
+
+    it('should coerce stringified year values to number in queryParams', () => {
+      component.onProjectFiltersChanged({ year: 2025 });
+
+      expect(component.queryParams().year).toBe(2025);
     });
   });
 
