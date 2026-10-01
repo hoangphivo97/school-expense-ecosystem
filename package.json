@@ -153,6 +153,7 @@
     "release": "standard-version",
     "release:first": "standard-version --first-release",
     "release:dry-run": "standard-version --dry-run",
-    "changelog:preview": "standard-version --skip.bump --skip.tag --skip.commit"
+    "changelog:preview": "standard-version --skip.bump --skip.tag --skip.commit",
+    "review:pr": "node tools/ai-reviewer/review-agent.mjs"
   }
 }
