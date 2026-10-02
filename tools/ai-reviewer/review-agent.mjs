@@ -241,14 +241,20 @@ async function requestGeminiFallback() {
       };
     } catch (err) {
       lastError = err;
-      const isQuotaExhausted =
+      const isTransientOrQuotaError =
         err.status === 429 ||
+        err.status === 503 ||
+        err.status === 500 ||
         err.message?.includes('429') ||
+        err.message?.includes('503') ||
         err.message?.includes('RESOURCE_EXHAUSTED') ||
-        err.message?.toLowerCase().includes('quota');
+        err.message?.toLowerCase().includes('quota') ||
+        err.message?.toLowerCase().includes('high demand') ||
+        err.message?.toLowerCase().includes('overloaded') ||
+        err.message?.toLowerCase().includes('unavailable');
 
-      if (isQuotaExhausted) {
-        console.warn(`[Quota Exceeded] Model ${modelName} hit limit. Cascading to next candidate...`);
+      if (isTransientOrQuotaError) {
+        console.warn(`[Cascading] Model ${modelName} unavailable/throttled. Trying next candidate...`);
         continue;
       }
 
