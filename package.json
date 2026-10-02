@@ -102,6 +102,7 @@
     "@fortawesome/angular-fontawesome": "^5.0.0",
     "@fortawesome/free-brands-svg-icons": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@google/genai": "^2.24.0",
     "@mui/icons-material": "^7.3.6",
     "@mui/material": "^7.3.6",
     "@nestjs/common": "^11.0.0",
@@ -153,6 +154,7 @@
     "release": "standard-version",
     "release:first": "standard-version --first-release",
     "release:dry-run": "standard-version --dry-run",
-    "changelog:preview": "standard-version --skip.bump --skip.tag --skip.commit"
+    "changelog:preview": "standard-version --skip.bump --skip.tag --skip.commit",
+    "review:pr": "node tools/ai-reviewer/review-agent.mjs"
   }
 }
