@@ -21,18 +21,21 @@ export class ProjectService {
 
   async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<ProjectItem> {
     const isSchoolFunded = dto.type === ProjectFundingType.SCHOOL;
+    const isOutsrouce = dto.type === ProjectFundingType.OUTSOURCE;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
     const isDean = user.role === Role.LEVEL_2_DEAN;
 
     let initialStatus: ProjectStatus;
-    if (!isSchoolFunded || isFinance) {
-      // Non-school funded projects or projects directly created by Finance are immediately active
+
+    if (isOutsrouce || isFinance) {
       initialStatus = ProjectStatus.ACTIVE;
     } else if (isDean) {
-      // Dean creating a school-funded project must route to Finance approval
-      initialStatus = ProjectStatus.PENDING_FINANCE_APPROVAL;
+      // Deans possess authority over Faculty funds; School-funded projects escalate to Finance
+      initialStatus = isSchoolFunded
+        ? ProjectStatus.PENDING_FINANCE_APPROVAL
+        : ProjectStatus.ACTIVE;
     } else {
-      // Teachers/Mentors creating a school-funded project route to Dean approval first
+      // Teachers creating Faculty or School projects must first route to Dean approval
       initialStatus = ProjectStatus.PENDING_DEAN_APPROVAL;
     }
 
@@ -217,6 +220,11 @@ export class ProjectService {
         `Cannot assign non-student accounts to roster: ${invalidEmails.join(', ')}`
       );
     }
+
+    const currentEnrolledSet = new Set(project.joinedStudentIds ?? []);
+    const studentsToAdd = requestedIds.filter((id) => !currentEnrolledSet.has(id));
+
+    if (studentsToAdd.length === 0) return;
 
     await this.projectRepo.addStudentsBulk(projectId, dto.userIds);
   }

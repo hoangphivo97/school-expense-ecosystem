@@ -43,6 +43,7 @@ import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
 import { calculateSpannedYears } from '../helpers/calculate-years.helper';
+import { ProjectStudentNotFoundException } from '../exceptions/project.exception';
 
 @Injectable()
 export class EventService {
@@ -107,17 +108,24 @@ export class EventService {
       await this.projectRepository.updateSpentCounters(dto.projectId, {
         pendingSpentDelta: dto.budgetCap,
       });
+
+      // Case A: Linked to Project - Teacher must route through Dean approval; Dean/Finance can activate immediately
+      const isDeanOrFinance = user.role === Role.LEVEL_2_DEAN || user.role === Role.LEVEL_1_FINANCE;
+      initialStatus = isDeanOrFinance ? EventStatus.UPCOMING : EventStatus.PENDING_DEAN_APPROVAL;
     } else {
-      // 2. Case B: Standalone EventItem (Routes through approval workflow)
-      const isSchoolFunded = dto.type === EventFundingType.SCHOOL;
+      // 2. Case B: Standalone Event (Routes through governance workflow)
       const isFinance = user.role === Role.LEVEL_1_FINANCE;
       const isDean = user.role === Role.LEVEL_2_DEAN;
 
-      if (!isSchoolFunded || isFinance) {
+      if (dto.type === EventFundingType.OUTSOURCE || isFinance) {
         initialStatus = EventStatus.UPCOMING;
       } else if (isDean) {
-        initialStatus = EventStatus.PENDING_FINANCE_APPROVAL;
+        // Dean creating a School-funded event routes to Finance; Faculty-funded activates directly
+        initialStatus = dto.type === EventFundingType.SCHOOL
+          ? EventStatus.PENDING_FINANCE_APPROVAL
+          : EventStatus.UPCOMING;
       } else {
+        // Teachers creating Faculty or School events must route to Dean first
         initialStatus = EventStatus.PENDING_DEAN_APPROVAL;
       }
     }
@@ -415,7 +423,32 @@ export class EventService {
       throw new InvalidEventStateException('modify roster during', event.status);
     }
 
-    await this.eventRepository.addStudentsBulk(id, dto.userIds);
+    const requestedIds = [...new Set(dto.userIds)];
+    if (requestedIds.length === 0) return;
+
+    // Verify system accounts exist
+    const existingUsers = await this.userRepository.findByIds(requestedIds);
+    const foundUserMap = new Map(existingUsers.map((u) => [u.uid, u]));
+
+    const missingIds = requestedIds.filter((id) => !foundUserMap.has(id));
+    if (missingIds.length > 0) {
+      throw new ProjectStudentNotFoundException(missingIds);
+    }
+
+    // Restrict additions strictly to students
+    const nonStudentAccounts = existingUsers.filter((u) => u.userType !== UserType.STUDENT);
+    if (nonStudentAccounts.length > 0) {
+      const invalidEmails = nonStudentAccounts.map((u) => u.email || `${u.fullName} (${u.uid})`);
+      throw new BadRequestException(`Cannot assign non-student accounts to roster: ${invalidEmails.join(', ')}`);
+    }
+
+    // Filter out already enrolled members
+    const currentEnrolledSet = new Set(event.joinedStudentIds ?? []);
+    const studentsToAdd = requestedIds.filter((uid) => !currentEnrolledSet.has(uid));
+
+    if (studentsToAdd.length === 0) return;
+
+    await this.eventRepository.addStudentsBulk(id, studentsToAdd);
   }
 
   async removeStudent(id: string, studentUid: string, user: AuthenticatedUser): Promise<void> {
