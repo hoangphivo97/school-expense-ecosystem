@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary, ProjectQueryPayload, PaginatedProjectResult, EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
 import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
-import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException } from '../exceptions/project.exception';
+import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException, ProjectStudentNotFoundException } from '../exceptions/project.exception';
 import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
@@ -194,6 +194,28 @@ export class ProjectService {
 
     if (project.status === ProjectStatus.PENDING_DEAN_APPROVAL) {
       throw new ProjectRosterLockedException();
+    }
+
+    const requestedIds = [...new Set(dto.userIds)];
+    if (requestedIds.length === 0) return;
+
+    const existingUsers = await this.userRepo.findByIds(requestedIds);
+    const foundUserMap = new Map(existingUsers.map((u) => [u.uid, u]));
+
+    const missingIds = requestedIds.filter((id) => !foundUserMap.has(id));
+    if (missingIds.length > 0) {
+      throw new ProjectStudentNotFoundException(missingIds);
+    }
+
+    const nonStudentAccounts = existingUsers.filter((u) => u.userType !== UserType.STUDENT);
+    if (nonStudentAccounts.length > 0) {
+      // Map to emails so the Teacher/Dean immediately knows which accounts are invalid
+      const invalidEmails = nonStudentAccounts.map(
+        (u) => u.email || `${u.fullName} (${u.uid})`
+      );
+      throw new BadRequestException(
+        `Cannot assign non-student accounts to roster: ${invalidEmails.join(', ')}`
+      );
     }
 
     await this.projectRepo.addStudentsBulk(projectId, dto.userIds);

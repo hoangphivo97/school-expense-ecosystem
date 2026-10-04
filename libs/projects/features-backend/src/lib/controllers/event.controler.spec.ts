@@ -87,6 +87,7 @@ describe('EventController (HTTP Integration)', () => {
             endDate: new Date().toISOString(),
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            years: [2026]
           },
         ],
         nextPageToken: 'next_token_evt',

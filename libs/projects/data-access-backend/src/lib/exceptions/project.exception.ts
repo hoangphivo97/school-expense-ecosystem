@@ -18,6 +18,14 @@ export class ProjectAccessForbiddenException extends ForbiddenException {
   }
 }
 
+export class ProjectStudentNotFoundException extends NotFoundException {
+  constructor(missingIds: string[]) {
+    super(
+      `Unable to locate the specified student account(s) in the system directory (${missingIds.length} account(s) invalid).`
+    );
+  }
+}
+
 // 2. Lifecycle & Approval Exceptions
 export class ProjectApprovalForbiddenException extends ForbiddenException {
   constructor() {
