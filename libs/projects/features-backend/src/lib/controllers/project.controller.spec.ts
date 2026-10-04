@@ -91,6 +91,7 @@ describe('ProjectController (HTTP Integration)', () => {
             joinedStudentIds: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            years: [2026]
           },
         ],
         nextPageToken: 'token_page_2',
