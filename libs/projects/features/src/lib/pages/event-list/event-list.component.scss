@@ -58,7 +58,7 @@
     text-transform: capitalize;
     white-space: nowrap;
 
-$event-statuses: (
+    $event-statuses: (
       'PENDING_DEAN_APPROVAL': (bg: #fff7ed, text: #c2410c, border: #fed7aa),
       'PENDING_FINANCE_APPROVAL': (bg: #faf5ff, text: #7e22ce, border: #e9d5ff),
       'UPCOMING': (bg: #eff6ff, text: #1d4ed8, border: #bfdbfe),

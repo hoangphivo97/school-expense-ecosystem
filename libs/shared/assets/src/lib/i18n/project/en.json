@@ -24,6 +24,8 @@
       "budgetCap": "Budget Cap",
       "currentSpent": "Current Spent",
       "enrolledStudents": "Students",
+      "pendingSpent": "Pending Spent",
+      "budgetExhaustion": "Budget Exhaustion",
       "timeline": "Timeline",
       "status": "Status"
     },
@@ -239,6 +241,8 @@
       "budgetCap": "Budget Allocation",
       "currentSpent": "Disbursed",
       "timeline": "Schedule Window",
+      "pendingSpent": "Pending Spent",
+      "budgetExhaustion": "Budget Exhaustion",
       "participants": "Attendance / Cap",
       "status": "Event Status"
     },

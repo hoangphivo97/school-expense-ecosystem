@@ -24,6 +24,8 @@
       "budgetCap": "預算上限",
       "currentSpent": "目前累計支出",
       "enrolledStudents": "參與學生",
+      "pendingSpent": "待審核支出",
+      "budgetExhaustion": "預算支用率",
       "timeline": "執行期間",
       "status": "專案狀態"
     },
@@ -234,6 +236,8 @@
       "currentSpent": "已核銷額度",
       "timeline": "活動期程",
       "participants": "參與名額 / 上限",
+      "pendingSpent": "待審核支出",
+      "budgetExhaustion": "預算支用率",
       "status": "活動狀態"
     },
     "actions": {
