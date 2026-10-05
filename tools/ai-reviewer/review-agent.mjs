@@ -8,6 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 const KOBOLD_ENDPOINT =
   process.env.KOBOLD_ENDPOINT || 'http://127.0.0.1:5001/v1/chat/completions';
 const TARGET_BRANCH = process.env.TARGET_BRANCH || 'origin/dev';
+const KOBOLD_TIMEOUT_MS = parseInt(process.env.KOBOLD_TIMEOUT_MS || '180000', 10); // 3 minutes for local GPU generation
 const REVIEW_TARGET_PATTERNS = [
   '*.ts',
   '*.html',
@@ -189,32 +190,41 @@ const activeRules = assembleApplicableRules(changedFiles);
 
 // 5. Inference Handlers: Primary (KoboldCpp) & Fallback (Gemini API via Interactions API)
 async function requestKoboldCpp() {
-  console.log('Sending request to Local KoboldCpp (RX 6800 XT)...');
+  console.log(`Sending request to Local KoboldCpp (Timeout: ${KOBOLD_TIMEOUT_MS / 1000}s)...`);
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 40000); // 40-second timeout threshold
+  const timeoutId = setTimeout(() => controller.abort(), KOBOLD_TIMEOUT_MS);
 
-  const res = await fetch(KOBOLD_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    signal: controller.signal,
-    body: JSON.stringify({
-      model: 'qwen2.5-coder',
-      messages: [
-        { role: 'system', content: activeRules },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.1,
-      max_tokens: 3072,
-    }),
-  });
-  clearTimeout(timeoutId);
+  try {
+    const res = await fetch(KOBOLD_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'qwen2.5-coder',
+        messages: [
+          { role: 'system', content: activeRules },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.1,
+        max_tokens: 3072,
+      }),
+    });
 
-  if (!res.ok) {
-    throw new Error(`KoboldCpp responded with HTTP status: ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`KoboldCpp HTTP Error ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error(`Local inference timed out after ${KOBOLD_TIMEOUT_MS / 1000}s.`);
+    }
+    // Forward network/service faults (e.g. ECONNREFUSED) immediately to trigger fallback
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content;
 }
 
 async function requestGeminiFallback() {

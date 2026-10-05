@@ -15,7 +15,7 @@ import { JoinCodeDialogData, JoinCodeDialogResult, ProjectFundingType, ProjectIt
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
-import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
+import { ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateProjectDialogComponent } from '../../dialogs/create-project-dialog/create-project-dialog.component';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogData, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
@@ -33,7 +33,7 @@ export interface ProjectViewModel extends ProjectItem {
   templateUrl: './project-list.component.html',
   styleUrls: ['./project-list.component.scss'],
   imports: [FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslocoModule, MatMenuModule, MatSnackBarModule, CopyToClipboardDirective, MatTabsModule,
-    ActivityCapacityProgressComponent
+    ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent
   ],
   providers: [
     { provide: TRANSLOCO_SCOPE, useValue: 'project' }
@@ -189,9 +189,11 @@ export class ProjectListComponent implements OnInit {
     'type',
     'facultyId',
     'budgetCap',
+    'pendingSpent',
     'currentSpent',
     'timeline',
     'enrolledStudents',
+    'budgetExhaustion',
     'status',
     'action',
   ]);

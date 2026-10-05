@@ -29,7 +29,7 @@ import {
   NotificationService,
   PaginationComponent,
 } from '@school-expense-ecosystem/shared/ui';
-import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
+import { ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/create-event-dialog.component';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogData, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
@@ -55,7 +55,8 @@ export interface EventViewModel extends EventItem, BaseActivityViewModel {
     PaginationComponent,
     LoadingDirective,
     CopyToClipboardDirective,
-    ActivityCapacityProgressComponent
+    ActivityCapacityProgressComponent,
+    BudgetExhaustionProgressComponent
   ],
   templateUrl: './event-list.component.html',
   styleUrl: './event-list.component.scss',
@@ -89,7 +90,7 @@ export class EventListComponent {
       ...(filters.facultyId ? { facultyId: filters.facultyId as FacultyId } : {}),
       ...(filters.status ? { status: filters.status as EventStatus } : {}),
       ...(filters.year ? { year: Number(filters.year) } : {}),
-      ...(filters.eventType ? { type: filters.eventType as EventFundingType} : {}),
+      ...(filters.eventType ? { type: filters.eventType as EventFundingType } : {}),
     };
   });
 
@@ -226,8 +227,10 @@ export class EventListComponent {
     'facultyId',
     'budgetCap',
     'currentSpent',
+    'pendingSpent',
     'timeline',
     'participants',
+    'budgetExhaustion',
     'status',
     'action',
   ];

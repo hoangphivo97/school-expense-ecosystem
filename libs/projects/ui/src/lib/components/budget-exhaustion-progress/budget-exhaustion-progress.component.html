@@ -1,0 +1,15 @@
+<div class="d-flex flex-column gap-1 w-100">
+  <div class="d-flex justify-content-between align-items-center small fw-semibold text-nowrap">
+    <span>{{ rate() | number: '1.0-1' }}%</span>
+    <span class="text-muted font-monospace" style="font-size: 0.75rem;">
+      {{ totalCommitted() | number: '1.0-0' }} / {{ budgetCap() | number: '1.0-0' }}
+    </span>
+  </div>
+  <div class="budget-progress-track">
+    <div
+      class="budget-progress-fill"
+      [style.width.%]="rate() > 100 ? 100 : rate()"
+      [ngClass]="statusClass()"
+    ></div>
+  </div>
+</div>

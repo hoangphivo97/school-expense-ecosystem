@@ -1,6 +1,5 @@
 <div class="event-list-container" *transloco="let t; read: 'project.eventList'">
-  <lib-filter [configs]="eventFilterConfigs()" [value]="filterParams()"
-    (filterChange)="onEventFiltersChanged($event)">
+  <lib-filter [configs]="eventFilterConfigs()" [value]="filterParams()" (filterChange)="onEventFiltersChanged($event)">
     @if (!isStudent()) {
     <button primaryAction mat-flat-button color="primary" (click)="openCreateEventModal()">
       <mat-icon>add</mat-icon> {{ t('actions.createEvent') }}
@@ -60,6 +59,16 @@
             </td>
           </ng-container>
 
+          <!-- Pending Spent (Frozen / In-queue allocations) -->
+          <ng-container matColumnDef="pendingSpent">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
+              {{ t('columns.pendingSpent') }}
+            </th>
+            <td mat-cell *matCellDef="let event" class="text-warning fw-semibold">
+              {{ (event.pendingSpent || 0) | number: '1.0-0' }} TWD
+            </td>
+          </ng-container>
+
           <!-- Current Spent -->
           <ng-container matColumnDef="currentSpent">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">
@@ -88,6 +97,20 @@
             <td mat-cell *matCellDef="let event" class="py-3 px-4">
               <lib-activity-capacity-progress [current]="event.participantCount" [max]="event.maxParticipants"
                 [percentage]="event.attendancePercentage" [isFull]="event.isFull" fallbackIcon="group" />
+            </td>
+          </ng-container>
+
+          <!-- Budget Exhaustion Progress Column -->
+          <ng-container matColumnDef="budgetExhaustion">
+            <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header text-nowrap" style="min-width: 180px;">
+              {{ t('columns.budgetExhaustion') }}
+            </th>
+            <td mat-cell *matCellDef="let event" class="py-3 px-4" style="min-width: 180px;">
+              <lib-budget-exhaustion-progress
+                [spent]="event.currentSpent"
+                [pending]="event.pendingSpent"
+                [budgetCap]="event.budgetCap"
+              />
             </td>
           </ng-container>
 
