@@ -125,28 +125,46 @@ describe('ManageJoinCodeLayoutComponent', () => {
   });
 
   describe('Roster Tab Operations', () => {
-    it('should select a student and emit studentAdded on add, then reset selection', () => {
-      const addSpy = jest.fn();
-      component.studentAdded.subscribe(addSpy);
-
-      // Simulate autocomplete selection
+    it('should stage a student chip on autocomplete selection and prevent duplicates', () => {
       component.onStudentSelected({
-        option: { value: mockStudents[0] },
-      } as MatAutocompleteSelectedEvent);
-      expect(component.selectedStudent()).toEqual(mockStudents[0]);
+        option: { value: mockStudents[0], deselect: jest.fn() },
+      } as unknown as MatAutocompleteSelectedEvent);
 
-      component.onAddStudent();
-
-      expect(addSpy).toHaveBeenCalledWith(mockStudents[0]);
-      expect(component.selectedStudent()).toBeNull();
+      expect(component.stagedStudents()).toEqual([mockStudents[0]]);
       expect(component.searchRawQuery()).toBe('');
+
+      // Attempt to stage identical student again
+      component.onStudentSelected({
+        option: { value: mockStudents[0], deselect: jest.fn() },
+      } as unknown as MatAutocompleteSelectedEvent);
+
+      expect(component.stagedStudents().length).toBe(1);
     });
 
-    it('should not emit studentAdded if no student is selected', () => {
-      const addSpy = jest.fn();
-      component.studentAdded.subscribe(addSpy);
+    it('should remove a staged student chip by id', () => {
+      component.stagedStudents.set([...mockStudents]);
 
-      component.onAddStudent();
+      component.onRemoveStagedStudent(mockStudents[0].id);
+
+      expect(component.stagedStudents()).toEqual([mockStudents[1]]);
+    });
+
+    it('should emit studentsAdded with staged students on add, then reset staged list', () => {
+      const addSpy = jest.fn();
+      component.studentsAdded.subscribe(addSpy);
+      component.stagedStudents.set([mockStudents[0]]);
+
+      component.onAddStudents();
+
+      expect(addSpy).toHaveBeenCalledWith([mockStudents[0]]);
+      expect(component.stagedStudents()).toEqual([]);
+    });
+
+    it('should not emit studentsAdded if staged list is empty', () => {
+      const addSpy = jest.fn();
+      component.studentsAdded.subscribe(addSpy);
+
+      component.onAddStudents();
       expect(addSpy).not.toHaveBeenCalled();
     });
 

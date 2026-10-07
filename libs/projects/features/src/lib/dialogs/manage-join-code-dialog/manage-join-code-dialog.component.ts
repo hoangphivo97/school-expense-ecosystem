@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { toDebouncedSignal } from '@school-expense-ecosystem/shared/utils-frontend';
@@ -12,7 +12,9 @@ import {
   ProjectItem,
   StudentSummary,
 } from '@school-expense-ecosystem/projects/types';
-import { TranslocoModule } from '@ngneat/transloco';
+import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
+import { ConfirmDialogData } from '@school-expense-ecosystem/shared/types';
 
 export interface ManageJoinCodeDialogData {
   entity: ProjectItem | EventItem;
@@ -27,7 +29,7 @@ export interface ManageJoinCodeDialogResult {
 @Component({
   selector: 'lib-manage-join-code-dialog',
   standalone: true,
-  imports: [ManageJoinCodeLayoutComponent, TranslocoModule],
+  imports: [ManageJoinCodeLayoutComponent, TranslocoModule, ConfirmDialogComponent],
   template: `
     <ng-container *transloco="let t; read: 'project.manageMembersDialog'">
       <lib-manage-join-code-layout
@@ -43,7 +45,7 @@ export interface ManageJoinCodeDialogResult {
         [isSubmitting]="isSubmitting()"
         [errorMessage]="errorMessage()"
         (searchRawQueryChange)="searchQuery.set($event)"
-        (studentAdded)="handleAddStudent($event)"
+        (studentsAdded)="handleAddStudents($event)"
         (studentRemoved)="handleRemoveStudent($event)"
         (codeGenerated)="handleGenerateCode($event)"
         (closed)="handleClose()"
@@ -56,6 +58,8 @@ export class ManageJoinCodeDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult>);
   private readonly projectApiService = inject(ProjectApiService);
   private readonly eventApiService = inject(EventApiService);
+  private readonly dialog = inject(MatDialog);
+  private readonly translocoService = inject(TranslocoService);
 
   readonly data = inject<ManageJoinCodeDialogData>(MAT_DIALOG_DATA);
   private readonly isProject = this.data.type === 'PROJECT';
@@ -122,24 +126,30 @@ export class ManageJoinCodeDialogComponent implements OnInit {
     });
   }
 
-  handleAddStudent(student: StudentSummary): void {
-    if (this.joinedStudents().some((s) => s.id === student.id)) {
-      this.errorMessage.set('Student is already enrolled.');
+  handleAddStudents(students: StudentSummary[]): void {
+    if (students.length === 0) return;
+
+    const currentEnrolledIds = new Set(this.joinedStudents().map((s) => s.id));
+    const newStudents = students.filter((s) => !currentEnrolledIds.has(s.id));
+
+    if (newStudents.length === 0) {
+      this.errorMessage.set('Selected students are already enrolled.');
       return;
     }
 
     this.isMemberMutating.set(true);
     this.errorMessage.set(null);
 
-    this.api.addMembers([student.id]).subscribe({
+    const ids = newStudents.map((s) => s.id);
+    this.api.addMembers(ids).subscribe({
       next: () => {
         this.isMemberMutating.set(false);
-        this.joinedStudents.update((list) => [student, ...list]);
+        this.joinedStudents.update((list) => [...newStudents, ...list]);
         this.hasMutated = true;
       },
       error: (err) => {
         this.isMemberMutating.set(false);
-        this.errorMessage.set(err?.error?.errorMsg || err?.error?.message || 'Failed to add student.');
+        this.errorMessage.set(err?.error?.errorMsg || err?.error?.message || 'Failed to add students.');
       },
     });
   }
@@ -147,19 +157,41 @@ export class ManageJoinCodeDialogComponent implements OnInit {
   handleRemoveStudent(studentId: string): void {
     if (this.isMemberMutating()) return;
 
-    this.isMemberMutating.set(true);
-    this.errorMessage.set(null);
+    const targetStudent = this.joinedStudents().find((s) => s.id === studentId);
+    const studentName = targetStudent?.fullName ?? '';
 
-    this.api.removeMember(studentId).subscribe({
-      next: () => {
-        this.isMemberMutating.set(false);
-        this.joinedStudents.update((list) => list.filter((s) => s.id !== studentId));
-        this.hasMutated = true;
-      },
-      error: (err) => {
-        this.isMemberMutating.set(false);
-        this.errorMessage.set(err?.error?.errorMsg || err?.error?.message || 'Failed to remove student.');
-      },
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      disableClose: true,
+      data: {
+        title: this.translocoService.translate('project.manageMembersDialog.roster.confirmRemoveTitle'),
+        message: this.translocoService.translate('project.manageMembersDialog.roster.confirmRemoveMessage', {
+          name: studentName,
+        }),
+        confirmText: this.translocoService.translate('project.manageMembersDialog.roster.confirmRemoveAction'),
+        cancelText: this.translocoService.translate('project.manageMembersDialog.roster.cancelAction'),
+        confirmColor: 'warn',
+        icon: 'warning',
+      } as ConfirmDialogData,
+    });
+
+    confirmRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+
+      this.isMemberMutating.set(true);
+      this.errorMessage.set(null);
+
+      this.api.removeMember(studentId).subscribe({
+        next: () => {
+          this.isMemberMutating.set(false);
+          this.joinedStudents.update((list) => list.filter((s) => s.id !== studentId));
+          this.hasMutated = true;
+        },
+        error: (err) => {
+          this.isMemberMutating.set(false);
+          this.errorMessage.set(err?.error?.errorMsg || err?.error?.message || 'Failed to remove student.');
+        },
+      });
     });
   }
 

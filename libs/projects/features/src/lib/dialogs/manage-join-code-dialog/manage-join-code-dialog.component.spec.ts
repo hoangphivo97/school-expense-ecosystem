@@ -29,19 +29,26 @@ describe('ManageJoinCodeDialogComponent', () => {
   let mockProjectApiService: { [K in keyof ProjectApiService]?: jest.Mock };
   let mockEventApiService: { [K in keyof EventApiService]?: jest.Mock };
 
-  const dummyStudent1: StudentSummary = {
-    id: 'stu-001',
-    studentCode: 'B18DCCN001',
-    fullName: 'Nguyen Van A',
-    email: 'a.nguyen@school.edu',
-  };
-
-  const dummyStudent2: StudentSummary = {
-    id: 'stu-002',
-    studentCode: 'B18DCCN002',
-    fullName: 'Tran Thi B',
-    email: 'b.tran@school.edu',
-  };
+  const dummyStudents: StudentSummary[] = [
+    {
+      id: 'stu-001',
+      studentCode: 'B18DCCN001',
+      fullName: 'Nguyen Van A',
+      email: 'a.nguyen@school.edu',
+    },
+    {
+      id: 'stu-002',
+      studentCode: 'B18DCCN002',
+      fullName: 'Tran Thi B',
+      email: 'b.tran@school.edu',
+    },
+    {
+      id: 'stu-003',
+      studentCode: 'B18DCCN003',
+      fullName: 'Le Van C',
+      email: 'c.le@school.edu',
+    },
+  ];
 
   const dummyProject: ProjectItem = {
     id: 'PRJ-FIT-001',
@@ -59,6 +66,7 @@ describe('ManageJoinCodeDialogComponent', () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     joinConfig: null,
+    years: [2026]
   };
 
   const dummyGeneratedConfig: JoinConfig = {
@@ -77,7 +85,7 @@ describe('ManageJoinCodeDialogComponent', () => {
     };
 
     mockProjectApiService = {
-      getProjectStudents: jest.fn().mockReturnValue(of([dummyStudent1])),
+      getProjectStudents: jest.fn().mockReturnValue(of([dummyStudents[0]])),
       addStudents: jest.fn().mockReturnValue(of({ success: true })),
       removeStudent: jest.fn().mockReturnValue(of({ success: true })),
       generateJoinCode: jest.fn().mockReturnValue(of(dummyGeneratedConfig)),
@@ -85,7 +93,7 @@ describe('ManageJoinCodeDialogComponent', () => {
     };
 
     mockEventApiService = {
-      getEventStudents: jest.fn().mockReturnValue(of([dummyStudent1])),
+      getEventStudents: jest.fn().mockReturnValue(of([dummyStudents[0]])),
       addStudents: jest.fn().mockReturnValue(of({ success: true })),
       removeStudent: jest.fn().mockReturnValue(of({ success: true })),
       generateJoinCode: jest.fn().mockReturnValue(of(dummyGeneratedConfig)),
@@ -125,31 +133,53 @@ describe('ManageJoinCodeDialogComponent', () => {
     it('should initialize and fetch enrolled students roster for project', () => {
       expect(component).toBeTruthy();
       expect(mockProjectApiService.getProjectStudents).toHaveBeenCalledWith(dummyProject.id);
-      expect(component.joinedStudents()).toEqual([dummyStudent1]);
+      expect(component.joinedStudents()).toEqual([dummyStudents[0]]);
       expect(component.isLoadingRoster()).toBe(false);
     });
 
     describe('Member Roster Mutation', () => {
-      it('should add a student and update joinedStudents signal', () => {
-        component.handleAddStudent(dummyStudent2);
+      // Batch append multiple students and update joinedStudents signal
+      it('should add multiple students and update joinedStudents signal', () => {
+        const studentsToAdd = [dummyStudents[1], dummyStudents[2]];
 
-        expect(mockProjectApiService.addStudents).toHaveBeenCalledWith(dummyProject.id, [dummyStudent2.id]);
-        expect(component.joinedStudents()).toEqual([dummyStudent2, dummyStudent1]);
+        component.handleAddStudents(studentsToAdd);
+
+        expect(mockProjectApiService.addStudents).toHaveBeenCalledWith(dummyProject.id, [
+          dummyStudents[1].id,
+          dummyStudents[2].id,
+        ]);
+        expect(component.joinedStudents()).toEqual([
+          dummyStudents[1],
+          dummyStudents[2],
+          dummyStudents[0],
+        ]);
         expect(component.isMemberMutating()).toBe(false);
         expect(component.errorMessage()).toBeNull();
       });
 
-      it('should guard against adding already enrolled student', () => {
-        component.handleAddStudent(dummyStudent1);
+      // Filter already enrolled members and add only unregistered ones
+      it('should filter out already enrolled students in a mixed batch', () => {
+        const mixedBatch = [dummyStudents[0], dummyStudents[1]]; // stu-001 already enrolled
+
+        component.handleAddStudents(mixedBatch);
+
+        expect(mockProjectApiService.addStudents).toHaveBeenCalledWith(dummyProject.id, [dummyStudents[1].id]);
+        expect(component.joinedStudents()).toEqual([dummyStudents[1], dummyStudents[0]]);
+        expect(component.isMemberMutating()).toBe(false);
+      });
+
+      // Guard when all students in the batch are already enrolled
+      it('should guard against adding when all batch students are already enrolled', () => {
+        component.handleAddStudents([dummyStudents[0]]);
 
         expect(mockProjectApiService.addStudents).not.toHaveBeenCalled();
-        expect(component.errorMessage()).toBe('Student is already enrolled.');
+        expect(component.errorMessage()).toBe('Selected students are already enrolled.');
       });
 
       it('should remove a student and update joinedStudents signal', () => {
-        component.handleRemoveStudent(dummyStudent1.id);
+        component.handleRemoveStudent(dummyStudents[0].id);
 
-        expect(mockProjectApiService.removeStudent).toHaveBeenCalledWith(dummyProject.id, dummyStudent1.id);
+        expect(mockProjectApiService.removeStudent).toHaveBeenCalledWith(dummyProject.id, dummyStudents[0].id);
         expect(component.joinedStudents()).toEqual([]);
         expect(component.isMemberMutating()).toBe(false);
       });
@@ -157,7 +187,7 @@ describe('ManageJoinCodeDialogComponent', () => {
       it('should prevent concurrent member mutations while mutating', () => {
         component.isMemberMutating.set(true);
 
-        component.handleRemoveStudent(dummyStudent1.id);
+        component.handleRemoveStudent(dummyStudents[0].id);
 
         expect(mockProjectApiService.removeStudent).not.toHaveBeenCalled();
       });
@@ -167,7 +197,7 @@ describe('ManageJoinCodeDialogComponent', () => {
           throwError(() => ({ error: { message: 'Capacity exceeded' } }))
         );
 
-        component.handleAddStudent(dummyStudent2);
+        component.handleAddStudents([dummyStudents[1]]);
 
         expect(component.isMemberMutating()).toBe(false);
         expect(component.errorMessage()).toBe('Capacity exceeded');
@@ -209,12 +239,12 @@ describe('ManageJoinCodeDialogComponent', () => {
       });
 
       it('should close dialog with synchronized payload when state was mutated', () => {
-        component.handleAddStudent(dummyStudent2);
+        component.handleAddStudents([dummyStudents[1], dummyStudents[2]]);
 
         component.handleClose();
 
         expect(mockDialogRef.close).toHaveBeenCalledWith({
-          joinedStudentIds: ['stu-002', 'stu-001'],
+          joinedStudentIds: ['stu-002', 'stu-003', 'stu-001'],
           joinConfig: null,
         });
       });
@@ -238,6 +268,7 @@ describe('ManageJoinCodeDialogComponent', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       joinConfig: null,
+      years: [2026]
     };
 
     beforeEach(async () => {
@@ -253,9 +284,9 @@ describe('ManageJoinCodeDialogComponent', () => {
     });
 
     it('should route add student call to EventApiService', () => {
-      component.handleAddStudent(dummyStudent2);
+      component.handleAddStudents([dummyStudents[1]]);
 
-      expect(mockEventApiService.addStudents).toHaveBeenCalledWith(dummyEvent.id, [dummyStudent2.id]);
+      expect(mockEventApiService.addStudents).toHaveBeenCalledWith(dummyEvent.id, [dummyStudents[1].id]);
       expect(mockProjectApiService.addStudents).not.toHaveBeenCalled();
     });
 

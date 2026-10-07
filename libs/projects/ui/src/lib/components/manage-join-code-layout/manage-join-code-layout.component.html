@@ -19,7 +19,7 @@
   </div>
   }
 
-  <mat-tab-group animationDuration="150ms" class="custom-tab-group">
+  <mat-tab-group dynamicHeight animationDuration="150ms" class="custom-tab-group">
     <!-- TAB 1: Roster -->
     <mat-tab>
       <ng-template mat-tab-label>
@@ -32,23 +32,26 @@
           <mat-form-field appearance="outline" class="flex-grow-1 custom-field" subscriptSizing="dynamic">
             <mat-label>{{ t('roster.searchLabel') }}</mat-label>
             <mat-icon matIconPrefix class="field-icon">person_add</mat-icon>
-            <input
-              matInput
-              [value]="searchRawQuery()"
-              (input)="onSearchInput($any($event.target).value)"
-              [matAutocomplete]="auto"
-              [placeholder]="t('roster.searchPlaceholder')"
-            />
+
+            <mat-chip-grid #chipGrid aria-label="Selected students">
+              @for (staged of stagedStudents(); track staged.id) {
+              <mat-chip-row (removed)="onRemoveStagedStudent(staged.id)">
+                {{ staged.fullName }}
+                <button matChipRemove [attr.aria-label]="'Remove ' + staged.fullName">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+              }
+              <input [value]="searchRawQuery()" (input)="onSearchInput($any($event.target).value)"
+                [matChipInputFor]="chipGrid" [matAutocomplete]="auto" [placeholder]="t('roster.searchPlaceholder')" />
+            </mat-chip-grid>
 
             @if (isSearching()) {
             <mat-spinner matIconSuffix diameter="18" class="me-2"></mat-spinner>
             }
 
-            <mat-autocomplete
-              #auto="matAutocomplete"
-              [displayWith]="displayStudentFn"
-              (optionSelected)="onStudentSelected($event)"
-            >
+            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayStudentFn"
+              (optionSelected)="onStudentSelected($event)">
               @for (student of searchResults(); track student.id) {
               <mat-option [value]="student">
                 <div class="d-flex flex-column py-1">
@@ -71,18 +74,23 @@
             </mat-autocomplete>
           </mat-form-field>
 
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            class="h-auto py-3 px-3"
-            [disabled]="!selectedStudent() || isMemberMutating()"
-            (click)="onAddStudent()"
-          >
-            <mat-icon class="me-1">add</mat-icon>
-            <span>{{ t('roster.addButton') }}</span>
+          <button mat-flat-button color="primary" type="button" class="h-auto py-3 px-3"
+            [disabled]="stagedStudents().length === 0 || isMemberMutating()" (click)="onAddStudents()">
+            <mat-icon class="me-1" [class.spinning]="isMemberMutating()">
+              {{ isMemberMutating() ? 'sync' : 'group_add' }}
+            </mat-icon>
+            <span>
+              {{ isMemberMutating() ? t('roster.adding') : t('roster.addButton') }}
+              @if (stagedStudents().length > 0 && !isMemberMutating()) {
+              ({{ stagedStudents().length }})
+              }
+            </span>
           </button>
         </div>
+
+        @if (isMemberMutating()) {
+        <mat-progress-bar mode="indeterminate" class="mb-2 rounded-1"></mat-progress-bar>
+        }
 
         <div class="member-list-container border rounded-3 p-2">
           @if (isLoadingRoster()) {
@@ -111,22 +119,12 @@
               </div>
 
               <div class="d-flex align-items-center gap-1">
-                <button
-                  mat-icon-button
-                  type="button"
-                  [copyToClipboard]="student.studentCode || student.id"
-                  [matTooltip]="t('roster.copyIdTooltip')"
-                >
+                <button mat-icon-button type="button" [copyToClipboard]="student.studentCode || student.id"
+                  [matTooltip]="t('roster.copyIdTooltip')">
                   <mat-icon class="fs-6 h-auto w-auto text-secondary">content_copy</mat-icon>
                 </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  class="text-danger"
-                  [disabled]="isMemberMutating()"
-                  (click)="studentRemoved.emit(student.id)"
-                  [matTooltip]="t('roster.removeTooltip')"
-                >
+                <button mat-icon-button type="button" class="text-danger" [disabled]="isMemberMutating()"
+                  (click)="studentRemoved.emit(student.id)" [matTooltip]="t('roster.removeTooltip')">
                   <mat-icon class="fs-6 h-auto w-auto">delete_outline</mat-icon>
                 </button>
               </div>
@@ -149,15 +147,12 @@
         @if (joinConfig() && !isCreatingNew()) {
         <div class="code-card p-3 rounded-3 mb-3 border">
           <div class="d-flex align-items-center justify-content-between mb-2">
-            <span
-              class="badge text-uppercase px-2 py-1"
-              [ngClass]="{
+            <span class="badge text-uppercase px-2 py-1" [ngClass]="{
                 'bg-primary-subtle text-primary': codeStatus() === 'SCHEDULED',
                 'bg-success-subtle text-success': codeStatus() === 'ACTIVE',
                 'bg-warning-subtle text-warning': codeStatus() === 'FULL',
                 'bg-danger-subtle text-danger': codeStatus() === 'EXPIRED'
-              }"
-            >
+              }">
               {{ t('code.status.' + (codeStatus() | lowercase)) }}
             </span>
             <span class="text-secondary small">
@@ -167,10 +162,8 @@
 
           <div
             class="code-display-box d-flex align-items-center justify-content-between p-3 rounded-2 my-2 bg-light border"
-            [copyToClipboard]="joinConfig()!.code"
-            copySuccessKey="project.manageMembersDialog.code.copied"
-            [matTooltip]="t('code.clickToCopy')"
-          >
+            [copyToClipboard]="joinConfig()!.code" copySuccessKey="project.manageMembersDialog.code.copied"
+            [matTooltip]="t('code.clickToCopy')">
             <span class="invitation-code font-monospace fw-bold fs-4 text-primary tracking-wider">
               {{ joinConfig()!.code }}
             </span>
@@ -186,11 +179,8 @@
                 {{ joinConfig()!.usedCount }} / {{ joinConfig()!.maxUses }} ({{ capacityPercentage() }}%)
               </span>
             </div>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="capacityPercentage()"
-              [color]="codeStatus() === 'FULL' ? 'warn' : 'primary'"
-            ></mat-progress-bar>
+            <mat-progress-bar mode="determinate" [value]="capacityPercentage()"
+              [color]="codeStatus() === 'FULL' ? 'warn' : 'primary'"></mat-progress-bar>
           </div>
         </div>
 
@@ -213,12 +203,12 @@
                 <mat-hint align="end">{{ t('code.fields.maxUses.hint') }}</mat-hint>
                 <mat-error>
                   {{
-                    createCodeForm.get('maxUses')?.errors
-                      | formError: {
-                          required: t('code.fields.maxUses.errors.required'),
-                          min: t('code.fields.maxUses.errors.min'),
-                          max: t('code.fields.maxUses.errors.max')
-                        }
+                  createCodeForm.get('maxUses')?.errors
+                  | formError: {
+                  required: t('code.fields.maxUses.errors.required'),
+                  min: t('code.fields.maxUses.errors.min'),
+                  max: t('code.fields.maxUses.errors.max')
+                  }
                   }}
                 </mat-error>
               </mat-form-field>
@@ -228,20 +218,14 @@
               <div class="col-6">
                 <mat-form-field appearance="outline" class="w-100">
                   <mat-label>{{ t('code.fields.startsAt.label') }}</mat-label>
-                  <input
-                    matInput
-                    [matDatepicker]="startPicker"
-                    formControlName="startsAt"
-                    [min]="minStartDate"
-                    [max]="maxEndDate()"
-                    readonly
-                  />
+                  <input matInput [matDatepicker]="startPicker" formControlName="startsAt" [min]="minStartDate"
+                    [max]="maxEndDate()" readonly />
                   <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
                   <mat-datepicker #startPicker></mat-datepicker>
                   <mat-error>
                     {{
-                      createCodeForm.get('startsAt')?.errors
-                        | formError: { required: t('code.fields.startsAt.errors.required') }
+                    createCodeForm.get('startsAt')?.errors
+                    | formError: { required: t('code.fields.startsAt.errors.required') }
                     }}
                   </mat-error>
                 </mat-form-field>
@@ -250,20 +234,14 @@
               <div class="col-6">
                 <mat-form-field appearance="outline" class="w-100">
                   <mat-label>{{ t('code.fields.expiresAt.label') }}</mat-label>
-                  <input
-                    matInput
-                    [matDatepicker]="endPicker"
-                    formControlName="expiresAt"
-                    [min]="createCodeForm.get('startsAt')?.value || minStartDate"
-                    [max]="maxEndDate()"
-                    readonly
-                  />
+                  <input matInput [matDatepicker]="endPicker" formControlName="expiresAt"
+                    [min]="createCodeForm.get('startsAt')?.value || minStartDate" [max]="maxEndDate()" readonly />
                   <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
                   <mat-datepicker #endPicker></mat-datepicker>
                   <mat-error>
                     {{
-                      createCodeForm.get('expiresAt')?.errors
-                        | formError: { required: t('code.fields.expiresAt.errors.required') }
+                    createCodeForm.get('expiresAt')?.errors
+                    | formError: { required: t('code.fields.expiresAt.errors.required') }
                     }}
                   </mat-error>
                 </mat-form-field>
@@ -278,14 +256,8 @@
             </button>
             }
 
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              (click)="onSubmitCode()"
-              [disabled]="createCodeForm.invalid || isSubmitting()"
-              class="px-4"
-            >
+            <button mat-flat-button color="primary" type="submit" (click)="onSubmitCode()"
+              [disabled]="createCodeForm.invalid || isSubmitting()" class="px-4">
               <mat-icon class="me-1" [class.spinning]="isSubmitting()">
                 {{ isSubmitting() ? 'sync' : 'key' }}
               </mat-icon>

@@ -100,7 +100,7 @@ export class EventApiService {
   }
 
   addStudents(id: string, studentIds: string[]): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${id}/students`, { studentIds });
+    return this.http.post<void>(`${this.apiUrl}/${id}/students`, { userIds: studentIds });
   }
 
   removeStudent(id: string, studentUid: string): Observable<void> {

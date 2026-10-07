@@ -174,7 +174,9 @@
     }
   },
   "manageMembersDialog": {
-    "title": "Project Members & Recruitment",
+    "titleProject": "Project Members & Recruitment",
+    "titleEvent": "Manage Event Members",
+    "title": "Manage Members",
     "close": "Close",
     "tabs": {
       "roster": "Roster",
@@ -185,12 +187,17 @@
       "searchPlaceholder": "Type student name, student ID, or email...",
       "noStudentsFound": "No students found matching your search.",
       "addButton": "Add",
+      "adding": "Processing...",
       "emptyState": "No students have joined this project yet.",
       "copyIdTooltip": "Copy Student ID",
       "removeTooltip": "Remove student from project",
       "alreadyEnrolled": "Student is already enrolled in this project.",
       "addSuccess": "Student added successfully.",
-      "removeSuccess": "Student removed successfully."
+      "removeSuccess": "Student removed successfully.",
+      "confirmRemoveTitle": "Remove Member",
+      "confirmRemoveMessage": "Are you sure you want to remove \"{{name}}\" from this project roster?",
+      "confirmRemoveAction": "Remove",
+      "cancelAction": "Cancel"
     },
     "code": {
       "clickToCopy": "Click to copy invitation code",
