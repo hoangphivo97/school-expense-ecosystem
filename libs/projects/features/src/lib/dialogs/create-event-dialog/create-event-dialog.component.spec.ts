@@ -52,6 +52,7 @@ describe('CreateEventDialogComponent', () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     joinedStudentIds: [],
+    years: [2026]
   };
 
   const dummyEvent: EventItem = {
@@ -69,6 +70,7 @@ describe('CreateEventDialogComponent', () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     joinedStudentIds: [],
+    years: [2026]
   };
 
   beforeEach(async () => {

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
-import { form, maxLength, minLength, required, FormField, transformedValue } from '@angular/forms/signals';
+import { form, maxLength, minLength, required, FormField, transformedValue, disabled } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -52,6 +52,7 @@ export class JoinCodeDialogComponent {
     required(schema.code, { message: 'Code is required' });
     minLength(schema.code, 6, { message: 'Code must be at least 6 characters' });
     maxLength(schema.code, 12, { message: 'Code cannot exceed 12 characters' });
+    disabled(schema.code, { when: () => this.isSubmitting() });
   });
 
   // Dynamic visual cues based on context

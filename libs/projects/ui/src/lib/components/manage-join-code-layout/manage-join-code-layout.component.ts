@@ -28,6 +28,7 @@ import {
   JoinConfig,
   StudentSummary,
 } from '@school-expense-ecosystem/projects/types';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'lib-manage-join-code-layout',
@@ -50,6 +51,7 @@ import {
     TranslocoModule,
     CopyToClipboardDirective,
     FormErrorPipe,
+    MatChipsModule
   ],
   templateUrl: './manage-join-code-layout.component.html',
   styleUrl: './manage-join-code-layout.component.scss',
@@ -74,14 +76,14 @@ export class ManageJoinCodeLayoutComponent {
 
   // Outputs
   readonly searchRawQueryChange = output<string>();
-  readonly studentAdded = output<StudentSummary>();
+  readonly studentsAdded = output<StudentSummary[]>();
   readonly studentRemoved = output<string>();
   readonly codeGenerated = output<GenerateJoinCodePayload>();
   readonly closed = output<void>();
 
   // Internal Form & Local Signals
   readonly searchRawQuery = signal<string>('');
-  readonly selectedStudent = signal<StudentSummary | null>(null);
+  readonly stagedStudents = signal<StudentSummary[]>([]);
   readonly isCreatingNew = signal<boolean>(false);
   readonly minStartDate = new Date();
 
@@ -117,15 +119,32 @@ export class ManageJoinCodeLayoutComponent {
   }
 
   onStudentSelected(event: MatAutocompleteSelectedEvent): void {
-    this.selectedStudent.set(event.option.value as StudentSummary);
+    const student = event.option.value as StudentSummary;
+    if (!student) return;
+
+    // Prevent duplicate staging or staging already enrolled members
+    const isAlreadyJoined = this.joinedStudents().some((s) => s.id === student.id);
+    const isAlreadyStaged = this.stagedStudents().some((s) => s.id === student.id);
+
+    if (!isAlreadyJoined && !isAlreadyStaged) {
+      this.stagedStudents.update((list) => [...list, student]);
+    }
+
+    this.searchRawQuery.set('');
+    this.searchRawQueryChange.emit('');
+    event.option.deselect();
   }
 
-  onAddStudent(): void {
-    const student = this.selectedStudent();
-    if (!student) return;
-    this.studentAdded.emit(student);
-    this.searchRawQuery.set('');
-    this.selectedStudent.set(null);
+  onRemoveStagedStudent(studentId: string): void {
+    this.stagedStudents.update((list) => list.filter((s) => s.id !== studentId));
+  }
+
+  onAddStudents(): void {
+    const staged = this.stagedStudents();
+    if (staged.length === 0) return;
+
+    this.studentsAdded.emit(staged);
+    this.stagedStudents.set([]);
   }
 
   onSubmitCode(): void {
