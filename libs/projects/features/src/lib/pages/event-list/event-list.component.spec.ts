@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { TranslocoTestingModule } from '@ngneat/transloco';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { ConfirmDialogComponent, NotificationService } from '@school-expense-ecosystem/shared/ui';
@@ -18,6 +17,7 @@ import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/cr
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/utils-frontend';
 import { enEvent, twEvent } from '@school-expense-ecosystem/shared/assets';
+import { createMockEventItem } from '@school-expense-ecosystem/projects/test-utils';
 
 describe('EventListComponent', () => {
   let component: EventListComponent;
@@ -33,25 +33,11 @@ describe('EventListComponent', () => {
   let mockDialog: { open: jest.Mock };
   let mockNotificationService: jest.Mocked<Partial<NotificationService>>;
 
-  const dummyEvent: EventItem = {
-    id: 'EVT-FIT-001',
-    name: 'Tech Symposium 2026',
-    facultyId: FacultyId.FIT,
-    type: EventFundingType.FACULTY,
-    budgetCap: 10000000,
-    initialSpent: 0,
-    currentSpent: 0,
-    pendingSpent: 0,
-    status: EventStatus.PENDING_DEAN_APPROVAL,
-    organizerId: 'teacher-organizer-01',
+  const dummyEvent = createMockEventItem({
     joinedStudentIds: ['stu-01', 'stu-02'],
-    projectId: null,
     startDate: new Date('2026-11-01').toISOString(),
     endDate: new Date('2026-11-02').toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    years: [2026]
-  };
+  })
 
   beforeEach(async () => {
     // 1. Initialize reactive state mocks

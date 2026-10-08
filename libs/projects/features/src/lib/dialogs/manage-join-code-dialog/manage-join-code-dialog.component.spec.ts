@@ -5,21 +5,19 @@ import { TranslocoTestingModule } from '@ngneat/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   EventFundingType,
-  EventItem,
   EventStatus,
   GenerateJoinCodePayload,
   JoinConfig,
   ProjectFundingType,
-  ProjectItem,
   ProjectStatus,
   StudentSummary,
 } from '@school-expense-ecosystem/projects/types';
-import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import {
   ManageJoinCodeDialogComponent,
   ManageJoinCodeDialogData,
   ManageJoinCodeDialogResult,
 } from './manage-join-code-dialog.component';
+import { createMockEventItem, createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
 
 describe('ManageJoinCodeDialogComponent', () => {
   let component: ManageJoinCodeDialogComponent;
@@ -50,24 +48,13 @@ describe('ManageJoinCodeDialogComponent', () => {
     },
   ];
 
-  const dummyProject: ProjectItem = {
-    id: 'PRJ-FIT-001',
-    name: 'AI Research Platform',
-    type: ProjectFundingType.FACULTY,
-    status: ProjectStatus.ACTIVE,
-    facultyId: FacultyId.FIT,
-    budgetCap: 20000000,
-    initialSpent: 0,
-    currentSpent: 0,
-    mentorId: 'mentor-01',
+  const dummyProject = createMockProjectItem({
     joinedStudentIds: ['stu-001'],
     startDate: new Date('2026-11-01').toISOString(),
     endDate: new Date('2026-11-30').toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    joinConfig: null,
-    years: [2026]
-  };
+    type: ProjectFundingType.FACULTY,
+    status: ProjectStatus.ACTIVE,
+  })
 
   const dummyGeneratedConfig: JoinConfig = {
     code: 'INVITE-2026',
@@ -252,24 +239,12 @@ describe('ManageJoinCodeDialogComponent', () => {
   });
 
   describe('Event Context Flow (Polymorphic Routing)', () => {
-    const dummyEvent: EventItem = {
-      id: 'EVT-FIT-001',
-      name: 'Hackathon 2026',
+    const dummyEvent = createMockEventItem({
       type: EventFundingType.FACULTY,
       status: EventStatus.UPCOMING,
-      facultyId: FacultyId.FIT,
-      budgetCap: 5000000,
-      initialSpent: 0,
-      currentSpent: 0,
-      organizerId: 'teacher-01',
-      joinedStudentIds: ['stu-001'],
       startDate: new Date('2026-11-01').toISOString(),
       endDate: new Date('2026-11-02').toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      joinConfig: null,
-      years: [2026]
-    };
+    })
 
     beforeEach(async () => {
       await setupTestBed({

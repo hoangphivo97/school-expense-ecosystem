@@ -6,7 +6,6 @@ import { TranslocoTestingModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   ProjectFundingType,
-  ProjectItem,
   ProjectStatus,
 } from '@school-expense-ecosystem/projects/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
@@ -23,6 +22,7 @@ import {
   CreateProjectDialogComponent,
   CreateProjectDialogData,
 } from './create-project-dialog.component';
+import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
 
 describe('CreateProjectDialogComponent', () => {
   let component: CreateProjectDialogComponent;
@@ -34,22 +34,13 @@ describe('CreateProjectDialogComponent', () => {
   let mockFacultyApiService: { facultiesResource: { value: WritableSignal<any[]>; isLoading: WritableSignal<boolean> } };
   let mockUserSignal: WritableSignal<AuthenticatedUser | null>;
 
-  const dummyProject: ProjectItem = {
-    id: 'PRJ-FIT-001',
-    name: 'AI Research Platform',
+  const dummyProject = createMockProjectItem({
+    facultyId: FacultyId.FIT,
     type: ProjectFundingType.FACULTY,
     status: ProjectStatus.ACTIVE,
-    budgetCap: 20000000,
-    initialSpent: 5000000,
-    currentSpent: 5000000,
-    mentorId: 'mentor-01',
-    facultyId: FacultyId.FIT,
-    joinedStudentIds: [],
     startDate: new Date('2026-11-01').toISOString(),
     endDate: new Date('2026-11-30').toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  })
 
   beforeEach(async () => {
     mockDialogRef = {
