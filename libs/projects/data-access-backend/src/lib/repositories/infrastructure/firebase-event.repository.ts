@@ -7,10 +7,6 @@ import {
 } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
 import { FirebaseBaseRepository } from './firebase-base.repository';
-import {
-  EventInitialSpentExceedsCapException,
-  EventNotFoundException,
-} from '../../exceptions/event.exception';
 
 @Injectable()
 export class FirebaseEventRepository
@@ -20,10 +16,6 @@ export class FirebaseEventRepository
     @Inject('FIRESTORE_INSTANCE') db: admin.firestore.Firestore
   ) {
     super(db, 'events');
-  }
-
-  private get departmentFundsCollection() {
-    return this.db.collection('department_funds');
   }
 
   async findWithQuery(query: EventQueryPayload): Promise<PaginatedEventResult> {
@@ -84,32 +76,6 @@ export class FirebaseEventRepository
     const nextPageToken = lastDoc ? lastDoc.id : null;
 
     return { items, nextPageToken, totalItems };
-  }
-  async createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem> {
-    const fundRef = this.departmentFundsCollection.doc(departmentFundId);
-    const eventRef = this.collection.doc(event.id);
-
-    return this.db.runTransaction(async (transaction) => {
-      const fundDoc = await transaction.get(fundRef);
-      if (!fundDoc.exists) {
-        throw new EventNotFoundException(`Department fund ${departmentFundId} not found`);
-      }
-
-      const fundData = fundDoc.data()!;
-      const remainingBudget = Number(fundData['remainingBudget'] || 0);
-
-      if (remainingBudget < event.budgetCap) {
-        throw new EventInitialSpentExceedsCapException();
-      }
-
-      transaction.update(fundRef, {
-        remainingBudget: admin.firestore.FieldValue.increment(-event.budgetCap),
-        updatedAt: new Date().toISOString(),
-      });
-
-      transaction.set(eventRef, event);
-      return event;
-    });
   }
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): EventItem {

@@ -58,6 +58,18 @@ export class ProjectInitialSpentExceedsCapException extends BadRequestException 
   }
 }
 
+export class DepartmentFundNotFoundException extends NotFoundException {
+  constructor(fundId: string) {
+    super(`Department fund "${fundId}" was not found.`);
+  }
+}
+
+export class InsufficientDepartmentFundException extends BadRequestException {
+  constructor(remaining: number, requested: number) {
+    super(`Insufficient department funds. Available: ${remaining}, Requested: ${requested}.`);
+  }
+}
+
 export class ProjectActiveFinancialModificationException extends BadRequestException {
   constructor(field: 'initialSpent' | 'budgetCap') {
     super(`Cannot modify ${field} directly on an active project.`);

@@ -6,11 +6,12 @@ import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ec
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { NotificationService } from '@school-expense-ecosystem/shared/ui';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { ProjectFundingType, ProjectItem, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { ProjectItem, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { ProjectListComponent, ProjectViewModel } from './project-list.component';
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/utils-frontend';
 import { enProject, twProject } from '@school-expense-ecosystem/shared/assets';
+import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
 
 describe('ProjectListComponent', () => {
   let component: ProjectListComponent;
@@ -25,23 +26,7 @@ describe('ProjectListComponent', () => {
   let mockDialog: { open: jest.Mock };
   let mockNotificationService: jest.Mocked<Partial<NotificationService>>;
 
-  const dummyProject: ProjectItem = {
-    id: 'PRJ-FIT-001',
-    name: 'AI Research Platform',
-    type: ProjectFundingType.FACULTY,
-    status: ProjectStatus.PENDING_DEAN_APPROVAL,
-    budgetCap: 20000000,
-    initialSpent: 0,
-    currentSpent: 0,
-    mentorId: 'mentor-uid-01',
-    facultyId: FacultyId.FIT,
-    startDate: new Date().toISOString(),
-    endDate: new Date().toISOString(),
-    joinedStudentIds: ['stu-01'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    years: [2026]
-  };
+  const dummyProject = createMockProjectItem();
 
   beforeEach(async () => {
     // 1. Initialize reactive mock signals

@@ -1,13 +1,14 @@
-import { Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { JoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/types';
 import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedException, JoinCodeExpiredException, JoinCodeNotStartedException, StudentAlreadyEnrolledException } from '../../exceptions/join-code.exception';
 import { BaseFirestoreRepository } from '@school-expense-ecosystem/shared/data-access-backend';
+import { DepartmentFundNotFoundException, InsufficientDepartmentFundException } from '../../exceptions/project.exception';
 
 export interface JoinableEntity<TStatus extends string = string> {
   id: string;
   status?: TStatus;
+  budgetCap: number;
   joinedStudentIds?: string[];
   joinConfig?: JoinConfig | null;
 }
@@ -16,6 +17,10 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
 
   protected get usersCollection() {
     return this.db.collection('users');
+  }
+
+  protected get departmentFundsCollection() {
+    return this.db.collection('department_funds');
   }
 
   protected abstract override mapDoc(doc: admin.firestore.DocumentSnapshot): T;
@@ -240,6 +245,36 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
         },
         updatedAt: timestampIso,
       };
+    });
+  }
+
+  async createWithFacultyFund(entity: T, departmentFundId: string): Promise<T> {
+    const fundRef = this.departmentFundsCollection.doc(departmentFundId);
+    const entityRef = this.collection.doc(entity.id);
+
+    return this.db.runTransaction(async (transaction) => {
+      const fundDoc = await transaction.get(fundRef);
+      if (!fundDoc.exists) {
+        throw new DepartmentFundNotFoundException(departmentFundId);
+      }
+
+      const fundData = fundDoc.data()!;
+      const remainingBudget = Number(fundData['remainingBudget'] || 0);
+
+      // Snapshot balance availability check
+      if (remainingBudget < entity.budgetCap) {
+        throw new InsufficientDepartmentFundException(remainingBudget, entity.budgetCap);
+      }
+
+      // Synchronously update department allocation counters
+      transaction.update(fundRef, {
+        remainingBudget: admin.firestore.FieldValue.increment(-entity.budgetCap),
+        allocatedBudget: admin.firestore.FieldValue.increment(entity.budgetCap),
+        updatedAt: new Date().toISOString(),
+      });
+
+      transaction.set(entityRef, entity);
+      return entity;
     });
   }
 }

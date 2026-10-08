@@ -6,9 +6,6 @@ import { TranslocoTestingModule } from '@ngneat/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   EventFundingType,
-  EventItem,
-  EventStatus,
-  ProjectFundingType,
   ProjectItem,
   ProjectStatus,
 } from '@school-expense-ecosystem/projects/types';
@@ -23,6 +20,7 @@ import {
 import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 import { CreateEventDialogComponent, CreateEventDialogData } from './create-event-dialog.component';
+import { createMockEventItem, createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
 
 describe('CreateEventDialogComponent', () => {
   let component: CreateEventDialogComponent;
@@ -36,42 +34,17 @@ describe('CreateEventDialogComponent', () => {
   let mockUserSignal: WritableSignal<AuthenticatedUser | null>;
   let mockProjectsResourceSignal: WritableSignal<{ items: ProjectItem[]; total: number } | undefined>;
 
-  const dummyProject: ProjectItem = {
-    id: 'PRJ-FIT-001',
-    name: 'AI Research Platform',
-    type: ProjectFundingType.FACULTY,
-    status: ProjectStatus.ACTIVE,
-    budgetCap: 20000000,
-    initialSpent: 5000000,
-    currentSpent: 5000000,
-    pendingSpent: 2000000, // Headroom = 20M - (5M + 2M) = 13M
-    mentorId: 'mentor-01',
-    facultyId: FacultyId.FIT,
-    startDate: new Date().toISOString(),
-    endDate: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    joinedStudentIds: [],
-    years: [2026]
-  };
-
-  const dummyEvent: EventItem = {
-    id: 'EVT-FIT-001',
-    name: 'Tech Symposium 2026',
-    facultyId: FacultyId.FIT,
-    type: EventFundingType.FACULTY,
-    budgetCap: 10000000,
-    initialSpent: 0,
-    currentSpent: 0,
-    status: EventStatus.PENDING_DEAN_APPROVAL,
-    organizerId: 'teacher-01',
+  const dummyProject = createMockProjectItem({
+    status: ProjectStatus.ACTIVE
+  });
+  
+  const dummyEvent = createMockEventItem({
     startDate: new Date('2026-11-01').toISOString(),
     endDate: new Date('2026-11-02').toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    joinedStudentIds: [],
-    years: [2026]
-  };
+    facultyId: FacultyId.FIT,
+    type: EventFundingType.FACULTY,
+  });
+
 
   beforeEach(async () => {
     mockDialogRef = {
