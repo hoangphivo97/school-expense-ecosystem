@@ -1,7 +1,7 @@
 import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogData, DialogActionEnum, FacultyId, FilterFieldConfig, FilterOption, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
-import { AuthSignalStore, FacultyApiService, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
+import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import { BaseModalComponent, BaseModalData, ConfirmDialogComponent, CopyToClipboardDirective, FilterComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -13,7 +13,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { JoinCodeDialogData, JoinCodeDialogResult, ProjectFundingType, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTabsModule } from '@angular/material/tabs';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateProjectDialogComponent } from '../../dialogs/create-project-dialog/create-project-dialog.component';
@@ -32,7 +31,7 @@ export interface ProjectViewModel extends ProjectItem {
   selector: 'lib-project-list',
   templateUrl: './project-list.component.html',
   styleUrls: ['./project-list.component.scss'],
-  imports: [FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslocoModule, MatMenuModule, MatSnackBarModule, CopyToClipboardDirective, MatTabsModule,
+  imports: [FilterComponent, LoadingDirective, CommonModule, PaginationComponent, MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslocoModule, MatMenuModule, MatSnackBarModule, CopyToClipboardDirective,
     ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent
   ],
   providers: [
@@ -55,7 +54,6 @@ export class ProjectListComponent implements OnInit {
     facultyId: this.currentUser()?.facultyId
   });
   readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
-  readonly activeTab = signal<'PROJECT' | 'EVENT'>('PROJECT');
 
   readonly isFacultyDisabled = computed(() => {
     const user = this.currentUser();
@@ -423,11 +421,5 @@ export class ProjectListComponent implements OnInit {
         this.projectsResource.reload();
       }
     });
-  }
-
-  onTabChange(tabIndex: number): void {
-    // 0: Projects Tab, 1: Events Tab
-    this.activeTab.set(tabIndex === 0 ? 'PROJECT' : 'EVENT');
-    this.currentPageIndex.set(1);
   }
 }
