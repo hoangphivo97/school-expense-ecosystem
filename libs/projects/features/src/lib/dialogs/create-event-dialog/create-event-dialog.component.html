@@ -12,6 +12,8 @@
   [extraFieldsSlot]="parentProjectTpl"
   (submitForm)="onSubmit()"
   (cancelForm)="onCancel()"
+  [departmentFund]="departmentFund()"
+  [isFundLoading]="isFundLoading()"
   (amountInput)="onInputAmount($event.event, $event.controlName)"
 >
   <!-- Slot 1: Event Funding Type -->

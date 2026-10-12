@@ -19,24 +19,26 @@
       <form [formGroup]="form()" class="w-100 py-2">
         <!-- Error Banners -->
         @if (errorMessage()) {
-          <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-            <mat-icon class="fs-5 w-auto h-auto text-danger flex-shrink-0">error_outline</mat-icon>
-            <span>{{ errorMessage() }}</span>
-          </div>
+        <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto text-danger flex-shrink-0">error_outline</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
         }
 
-        @if (form().errors?.['invalidDateRange'] && (form().get('endDate')?.touched || form().get('startDate')?.touched)) {
-          <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-            <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
-            <span>{{ t('warnings.invalidDateRange') }}</span>
-          </div>
+        @if (form().errors?.['invalidDateRange'] && (form().get('endDate')?.touched ||
+        form().get('startDate')?.touched)) {
+        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
+          <span>{{ t('warnings.invalidDateRange') }}</span>
+        </div>
         }
 
-        @if (form().errors?.['initialSpentExceedsBudget'] && (form().get('initialSpent')?.touched || form().get('budgetCap')?.touched)) {
-          <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-            <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
-            <span>{{ t('warnings.initialSpentExceedsBudget') }}</span>
-          </div>
+        @if (form().errors?.['initialSpentExceedsBudget'] && (form().get('initialSpent')?.touched ||
+        form().get('budgetCap')?.touched)) {
+        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
+          <span>{{ t('warnings.initialSpentExceedsBudget') }}</span>
+        </div>
         }
 
         <div class="row g-4 m-0">
@@ -48,8 +50,8 @@
               <input matInput formControlName="name" [placeholder]="t('fields.name.placeholder')" maxlength="150" />
               <mat-error>
                 {{ form().get('name')?.errors | formError: {
-                  required: t('fields.name.errors.required'),
-                  maxlength: t('fields.name.errors.maxlength')
+                required: t('fields.name.errors.required'),
+                maxlength: t('fields.name.errors.maxlength')
                 } }}
               </mat-error>
             </mat-form-field>
@@ -72,21 +74,22 @@
                   </div>
                 </mat-select-trigger>
                 @if (isFacultiesLoading()) {
-                  <mat-option disabled>{{ t('fields.faculty.loading') }}</mat-option>
+                <mat-option disabled>{{ t('fields.faculty.loading') }}</mat-option>
                 }
                 @for (faculty of faculties(); track faculty.id) {
-                  <mat-option [value]="faculty.id">{{ faculty.name }} ({{ faculty.id }})</mat-option>
+                <mat-option [value]="faculty.id">{{ faculty.name }} ({{ faculty.id }})</mat-option>
                 }
               </mat-select>
-              <mat-error>{{ form().get('facultyId')?.errors | formError: { required: t('fields.faculty.errors.required') } }}</mat-error>
+              <mat-error>{{ form().get('facultyId')?.errors | formError: { required: t('fields.faculty.errors.required')
+                } }}</mat-error>
             </mat-form-field>
           </div>
 
           <!-- Slot 2: Extra Domain Fields -->
           @if (extraFieldsSlot()) {
-            <div class="col-12">
-              <ng-container *ngTemplateOutlet="extraFieldsSlot() ?? null"></ng-container>
-            </div>
+          <div class="col-12">
+            <ng-container *ngTemplateOutlet="extraFieldsSlot() ?? null"></ng-container>
+          </div>
           }
 
           <!-- Budget Cap -->
@@ -95,12 +98,30 @@
               <mat-label>{{ t('fields.budgetCap.label') }}</mat-label>
               <mat-icon matIconPrefix class="field-icon">payments</mat-icon>
               <span matTextSuffix class="currency-suffix">TWD</span>
-              <input matInput formControlName="budgetCap" (input)="onAmountChange($event, 'budgetCap')" placeholder="0" />
+              <input matInput formControlName="budgetCap" (input)="onAmountChange($event, 'budgetCap')"
+                placeholder="0" />
+              @if (isFundLoading()) {
+              <mat-hint align="end" class="text-muted d-inline-flex align-items-center gap-1">
+                <mat-spinner diameter="12"></mat-spinner>
+                <span>{{ t('fields.budgetCap.checkingHint') }}</span>
+              </mat-hint>
+              } @else if (departmentFund(); as fund) {
+              <mat-hint align="end" class="fw-medium text-primary">
+                {{ t('fields.budgetCap.remainingHint', { amount: (fund.remainingBudget | number) }) }}
+              </mat-hint>
+              }
               <mat-error>
+                @if (form().get('budgetCap')?.getError('insufficientDepartmentBudget'); as err) {
+                {{ t('fields.budgetCap.errors.insufficientDepartmentBudget', {
+                available: (err?.available | number),
+                requested: (err?.requested | number)
+                }) }}
+                } @else {
                 {{ form().get('budgetCap')?.errors | formError: {
-                  required: t('fields.budgetCap.errors.required'),
-                  min: t('fields.budgetCap.errors.min')
+                required: t('fields.budgetCap.errors.required'),
+                min: t('fields.budgetCap.errors.min')
                 } }}
+                }
               </mat-error>
             </mat-form-field>
           </div>
@@ -111,12 +132,13 @@
               <mat-label>{{ t('fields.initialSpent.label') }}</mat-label>
               <mat-icon matIconPrefix class="field-icon">account_balance_wallet</mat-icon>
               <span matTextSuffix class="currency-suffix">TWD</span>
-              <input matInput formControlName="initialSpent" (input)="onAmountChange($event, 'initialSpent')" placeholder="0" />
+              <input matInput formControlName="initialSpent" (input)="onAmountChange($event, 'initialSpent')"
+                placeholder="0" />
               <mat-hint align="end" class="fw-medium">{{ t('fields.initialSpent.hint') }}</mat-hint>
               <mat-error>
-                {{ form().get('initialSpent')?.errors | formError: { 
-                  min: t('fields.initialSpent.errors.min'),
-                  initialSpentExceedsBudget: t('warnings.initialSpentExceedsBudget')
+                {{ form().get('initialSpent')?.errors | formError: {
+                min: t('fields.initialSpent.errors.min'),
+                initialSpentExceedsBudget: t('warnings.initialSpentExceedsBudget')
                 } }}
               </mat-error>
             </mat-form-field>
@@ -126,10 +148,13 @@
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100 custom-field">
               <mat-label>{{ t('fields.startDate.label') }}</mat-label>
-              <input matInput [matDatepicker]="startPicker" formControlName="startDate" [max]="form().get('endDate')?.value" readonly />
-              <mat-datepicker-toggle matIconSuffix [for]="startPicker" [disabled]="form().get('startDate')?.disabled"></mat-datepicker-toggle>
+              <input matInput [matDatepicker]="startPicker" formControlName="startDate"
+                [max]="form().get('endDate')?.value" readonly />
+              <mat-datepicker-toggle matIconSuffix [for]="startPicker"
+                [disabled]="form().get('startDate')?.disabled"></mat-datepicker-toggle>
               <mat-datepicker #startPicker [disabled]="form().get('startDate')?.disabled"></mat-datepicker>
-              <mat-error>{{ form().get('startDate')?.errors | formError: { required: t('fields.startDate.errors.required') } }}</mat-error>
+              <mat-error>{{ form().get('startDate')?.errors | formError: { required:
+                t('fields.startDate.errors.required') } }}</mat-error>
             </mat-form-field>
           </div>
 
@@ -137,10 +162,12 @@
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100 custom-field">
               <mat-label>{{ t('fields.endDate.label') }}</mat-label>
-              <input matInput [matDatepicker]="endPicker" formControlName="endDate" [min]="form().get('startDate')?.value" readonly />
+              <input matInput [matDatepicker]="endPicker" formControlName="endDate"
+                [min]="form().get('startDate')?.value" readonly />
               <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
               <mat-datepicker #endPicker></mat-datepicker>
-              <mat-error>{{ form().get('endDate')?.errors | formError: { required: t('fields.endDate.errors.required') } }}</mat-error>
+              <mat-error>{{ form().get('endDate')?.errors | formError: { required: t('fields.endDate.errors.required') }
+                }}</mat-error>
             </mat-form-field>
           </div>
 
@@ -149,28 +176,30 @@
             <mat-form-field appearance="outline" class="w-100 custom-field">
               <mat-label>{{ t('fields.description.label') }}</mat-label>
               <mat-icon matIconPrefix class="field-icon refined-textarea-icon">notes</mat-icon>
-              <textarea matInput rows="3" formControlName="description" [placeholder]="t('fields.description.placeholder')" maxlength="500"></textarea>
+              <textarea matInput rows="3" formControlName="description"
+                [placeholder]="t('fields.description.placeholder')" maxlength="500"></textarea>
               <mat-hint align="end">{{ form().get('description')?.value?.length || 0 }} / 500</mat-hint>
-              <mat-error>{{ form().get('description')?.errors | formError: { maxlength: t('fields.description.errors.maxlength') } }}</mat-error>
+              <mat-error>{{ form().get('description')?.errors | formError: { maxlength:
+                t('fields.description.errors.maxlength') } }}</mat-error>
             </mat-form-field>
           </div>
 
           <!-- Join Code Trigger Toggle -->
           @if (!isDetailMode() && !isEditMode()) {
-            <div class="col-12">
-              <div class="expandable-join-box p-3 rounded-4 d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <div class="join-icon-avatar">
-                    <mat-icon color="primary">qr_code_2</mat-icon>
-                  </div>
-                  <div>
-                    <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.toggleTitle') }}</h4>
-                    <p class="m-0 text-muted smaller">{{ t('invitationCode.toggleSubtitle') }}</p>
-                  </div>
+          <div class="col-12">
+            <div class="expandable-join-box p-3 rounded-4 d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-3">
+                <div class="join-icon-avatar">
+                  <mat-icon color="primary">qr_code_2</mat-icon>
                 </div>
-                <mat-slide-toggle formControlName="generateJoinCode" color="primary"></mat-slide-toggle>
+                <div>
+                  <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.toggleTitle') }}</h4>
+                  <p class="m-0 text-muted smaller">{{ t('invitationCode.toggleSubtitle') }}</p>
+                </div>
               </div>
+              <mat-slide-toggle formControlName="generateJoinCode" color="primary"></mat-slide-toggle>
             </div>
+          </div>
           }
         </div>
       </form>
@@ -179,85 +208,75 @@
     <!-- Modal Footer Actions -->
     <mat-dialog-actions align="end" class="modal-footer px-4 pb-4 pt-2">
       @if (isDetailMode()) {
-        <button mat-flat-button color="primary" type="button" class="px-4" (click)="cancelForm.emit()">
-          {{ t('actions.close') }}
-        </button>
+      <button mat-flat-button color="primary" type="button" class="px-4" (click)="cancelForm.emit()">
+        {{ t('actions.close') }}
+      </button>
       } @else {
-        <button mat-button type="button" class="cancel-btn" (click)="cancelForm.emit()" [disabled]="isSubmitting()">
-          {{ t('actions.cancel') }}
-        </button>
+      <button mat-button type="button" class="cancel-btn" (click)="cancelForm.emit()" [disabled]="isSubmitting()">
+        {{ t('actions.cancel') }}
+      </button>
 
-        <button
-          mat-flat-button
-          color="primary"
-          type="button"
-          class="submit-btn px-4 ms-2"
-          [disabled]="form().invalid || isSubmitting()"
-          (click)="submitForm.emit()"
-        >
-          <mat-icon class="me-2" [class.spinning]="isSubmitting()">
-            {{ isSubmitting() ? 'sync' : 'save' }}
-          </mat-icon>
-          <span>{{ isSubmitting() ? t('actions.submitting') : (isEditMode() ? t('actions.update') : t('actions.submit')) }}</span>
-        </button>
+      <button mat-flat-button color="primary" type="button" class="submit-btn px-4 ms-2"
+        [disabled]="form().invalid || isSubmitting() || form().pending" (click)="submitForm.emit()">
+        <mat-icon class="me-2" [class.spinning]="isSubmitting() || form().pending">
+          {{ isSubmitting() ? 'sync' : 'save' }}
+        </mat-icon>
+        <span>{{ isSubmitting() ? t('actions.submitting') : (isEditMode() ? t('actions.update') : t('actions.submit'))
+          }}</span>
+      </button>
       }
     </mat-dialog-actions>
   </div>
 
   <!-- Window 2: Secondary Slide-out Card for Join Code Settings -->
   @if (form().get('generateJoinCode')?.value && !isDetailMode() && !isEditMode()) {
-    <div class="secondary-modal-card">
-      <div class="card-header-box d-flex align-items-center justify-content-between border-bottom p-3">
-        <div class="d-flex align-items-center gap-2">
-          <mat-icon color="primary">settings_suggest</mat-icon>
-          <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.panelTitle') }}</h4>
-        </div>
-        <button mat-icon-button type="button" (click)="form().get('generateJoinCode')?.setValue(false)">
-          <mat-icon class="fs-5">close</mat-icon>
-        </button>
+  <div class="secondary-modal-card">
+    <div class="card-header-box d-flex align-items-center justify-content-between border-bottom p-3">
+      <div class="d-flex align-items-center gap-2">
+        <mat-icon color="primary">settings_suggest</mat-icon>
+        <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.panelTitle') }}</h4>
       </div>
+      <button mat-icon-button type="button" (click)="form().get('generateJoinCode')?.setValue(false)">
+        <mat-icon class="fs-5">close</mat-icon>
+      </button>
+    </div>
 
-      <div class="card-content-box p-3 d-flex flex-column gap-3" [formGroup]="form()">
-        @if (!isImmediatelyActive()) {
-          <div class="alert alert-info py-2 px-3 m-0 small d-flex align-items-start gap-2">
-            <mat-icon class="fs-6 text-info flex-shrink-0 mt-1" style="width: 18px; height: 18px; font-size: 18px;">info</mat-icon>
-            <span class="lh-sm">{{ t('invitationCode.pendingApprovalNotice') }}</span>
-          </div>
+    <div class="card-content-box p-3 d-flex flex-column gap-3" [formGroup]="form()">
+      @if (!isImmediatelyActive()) {
+      <div class="alert alert-info py-2 px-3 m-0 small d-flex align-items-start gap-2">
+        <mat-icon class="fs-6 text-info flex-shrink-0 mt-1"
+          style="width: 18px; height: 18px; font-size: 18px;">info</mat-icon>
+        <span class="lh-sm">{{ t('invitationCode.pendingApprovalNotice') }}</span>
+      </div>
+      }
+
+      <!-- Max Capacity Limit -->
+      <mat-form-field appearance="outline" class="w-100 custom-field">
+        <mat-label>{{ t('invitationCode.maxUsesLabel') }}</mat-label>
+        <mat-icon matIconPrefix class="field-icon">group_add</mat-icon>
+        <input matInput type="number" formControlName="maxUses" placeholder="Unlimited" min="1" />
+        <mat-hint align="end">{{ t('invitationCode.maxUsesHint') }}</mat-hint>
+        <mat-error>{{ t('invitationCode.maxUsesError') }}</mat-error>
+      </mat-form-field>
+
+      <!-- Code Expiration Date -->
+      <mat-form-field appearance="outline" class="w-100 custom-field">
+        <mat-label>{{ t('invitationCode.expiresAtLabel') }}</mat-label>
+        <input matInput [matDatepicker]="codeExpirePicker" formControlName="expiresAt"
+          [min]="form().get('startDate')?.value" [max]="form().get('endDate')?.value" readonly />
+        <mat-datepicker-toggle matIconSuffix [for]="codeExpirePicker"></mat-datepicker-toggle>
+        <mat-datepicker #codeExpirePicker></mat-datepicker>
+        <mat-hint align="end">{{ t('invitationCode.expiresAtHint') }}</mat-hint>
+        @if (form().errors?.['invalidJoinCodeExpiration']) {
+        <mat-error>{{ t('invitationCode.expiresAtError') }}</mat-error>
         }
+      </mat-form-field>
 
-        <!-- Max Capacity Limit -->
-        <mat-form-field appearance="outline" class="w-100 custom-field">
-          <mat-label>{{ t('invitationCode.maxUsesLabel') }}</mat-label>
-          <mat-icon matIconPrefix class="field-icon">group_add</mat-icon>
-          <input matInput type="number" formControlName="maxUses" placeholder="Unlimited" min="1" />
-          <mat-hint align="end">{{ t('invitationCode.maxUsesHint') }}</mat-hint>
-          <mat-error>{{ t('invitationCode.maxUsesError') }}</mat-error>
-        </mat-form-field>
-
-        <!-- Code Expiration Date -->
-        <mat-form-field appearance="outline" class="w-100 custom-field">
-          <mat-label>{{ t('invitationCode.expiresAtLabel') }}</mat-label>
-          <input
-            matInput
-            [matDatepicker]="codeExpirePicker"
-            formControlName="expiresAt"
-            [min]="form().get('startDate')?.value"
-            [max]="form().get('endDate')?.value"
-            readonly
-          />
-          <mat-datepicker-toggle matIconSuffix [for]="codeExpirePicker"></mat-datepicker-toggle>
-          <mat-datepicker #codeExpirePicker></mat-datepicker>
-          <mat-hint align="end">{{ t('invitationCode.expiresAtHint') }}</mat-hint>
-          @if (form().errors?.['invalidJoinCodeExpiration']) {
-            <mat-error>{{ t('invitationCode.expiresAtError') }}</mat-error>
-          }
-        </mat-form-field>
-
-        <div class="code-preview-card mt-auto p-3 rounded-3 text-center">
-          <mat-icon class="preview-icon text-muted mb-1">lock_open</mat-icon>
-          <p class="preview-text small text-muted m-0">{{ t('invitationCode.previewNote') }}</p>
-        </div>
+      <div class="code-preview-card mt-auto p-3 rounded-3 text-center">
+        <mat-icon class="preview-icon text-muted mb-1">lock_open</mat-icon>
+        <p class="preview-text small text-muted m-0">{{ t('invitationCode.previewNote') }}</p>
       </div>
     </div>
+  </div>
   }
 </div>

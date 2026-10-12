@@ -68,3 +68,12 @@ export interface SharedFilterFields {
   projectType?: string | null;
   eventType?: string | null;
 }
+
+export interface DepartmentFundSummary {
+  facultyId: FacultyId;
+  year: number;
+  remainingBudget: number;
+  totalBudget?: number;
+  allocatedBudget?: number;
+  fundId?: string;
+}

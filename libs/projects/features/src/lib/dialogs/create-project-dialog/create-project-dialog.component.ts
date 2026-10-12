@@ -26,8 +26,9 @@ import {
 } from '@school-expense-ecosystem/projects/types';
 import { ActivityFormLayoutComponent } from '@school-expense-ecosystem/projects/ui';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { ConfirmDialogData, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
+import { ConfirmDialogData, DepartmentFundSummary, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
+import { departmentBudgetLimitValidator } from '../../validators/department-budget.validator';
 
 export interface CreateProjectDialogData {
   facultyId?: FacultyId;
@@ -95,6 +96,8 @@ export class CreateProjectDialogComponent {
   );
 
   readonly isFacultiesLoading = this.facultyApiService.facultiesResource.isLoading;
+  readonly departmentFund = signal<DepartmentFundSummary | null>(null);
+  readonly isFundLoading = signal<boolean>(false);
 
   readonly isImmediatelyActive = computed(() => {
     const role = this.authStore.user()?.role;
@@ -109,7 +112,12 @@ export class CreateProjectDialogComponent {
       description: ['', [Validators.maxLength(500)]],
       type: [ProjectFundingType.SCHOOL, [Validators.required]],
       facultyId: [this.data?.facultyId ?? FacultyId.FIT, [Validators.required]],
-      budgetCap: [0, [Validators.required, Validators.min(1)]],
+      budgetCap: [0, [Validators.required, Validators.min(1),
+        departmentBudgetLimitValidator({
+            getRemainingBudget: () => this.departmentFund()?.remainingBudget,
+            isFacultyFunding: () => this.form?.get('type')?.value === ProjectFundingType.FACULTY,
+          }),
+      ]],
       initialSpent: [0, [Validators.min(0)]],
       startDate: [new Date(), [Validators.required]],
       endDate: [null, [Validators.required]],
@@ -121,6 +129,13 @@ export class CreateProjectDialogComponent {
   );
 
   constructor() {
+    this.form.get('type')?.valueChanges.subscribe(() => {
+      this.loadDepartmentFund();
+    });
+    this.form.get('facultyId')?.valueChanges.subscribe(() => {
+      this.loadDepartmentFund();
+    });
+
     const initialJoinCodeState = Boolean(this.form.get('generateJoinCode')?.value);
     this.updateDialogLayout(initialJoinCodeState);
 
@@ -247,7 +262,7 @@ export class CreateProjectDialogComponent {
   }
 
   onSubmit(): void {
-    if (this.form.invalid || this.isSubmitting()) return;
+    if (this.form.invalid || this.form.pending || this.isSubmitting()) return;
 
     this.errorMessage.set(null);
     const formValue = this.form.getRawValue();
@@ -291,9 +306,9 @@ export class CreateProjectDialogComponent {
       endDate: new Date(formValue.endDate).toISOString(),
       joinCodeConfig: isJoinCodeEnabled
         ? {
-            maxUses: formValue.maxUses ? Number(formValue.maxUses) : undefined,
-            expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : undefined,
-          }
+          maxUses: formValue.maxUses ? Number(formValue.maxUses) : undefined,
+          expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : undefined,
+        }
         : undefined,
     };
 
@@ -376,5 +391,33 @@ export class CreateProjectDialogComponent {
 
   private updateDialogLayout(isExpanded: boolean): void {
     this.dialogRef.updateSize(isExpanded ? '1020px' : '600px');
+  }
+
+  private loadDepartmentFund(): void {
+    if (this.isDetailMode()) {
+      return;
+    }
+
+    const type: ProjectFundingType = this.form.get('type')?.value;
+    const facultyId: FacultyId = this.form.get('facultyId')?.value;
+
+    // Reset and avoid API calls if not faculty funding
+    if (type !== ProjectFundingType.FACULTY || !facultyId) {
+      this.departmentFund.set(null);
+      this.isFundLoading.set(false);
+      return;
+    }
+
+    this.isFundLoading.set(true);
+    this.facultyApiService.getDepartmentFundBalance(facultyId).subscribe({
+      next: (fund) => {
+        this.departmentFund.set(fund);
+        this.isFundLoading.set(false);
+      },
+      error: () => {
+        this.departmentFund.set(null);
+        this.isFundLoading.set(false);
+      },
+    });
   }
 }

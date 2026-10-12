@@ -129,8 +129,11 @@
         "label": "預算上限（總額限制）",
         "errors": {
           "required": "預算上限為必填項目",
-          "min": "預算上限必須大於 0"
-        }
+          "min": "預算上限必須大於 0",
+          "insufficientDepartmentBudget":"系所可用經費不足（剩餘：{{available}} TWD，申請：{{requested}} TWD）。"
+        },
+        "remainingHint": "可用餘額：{{amount}} TWD",
+        "checkingHint": "正在讀取可用餘額..."
       },
       "initialSpent": {
         "label": "期初已支用金額",
