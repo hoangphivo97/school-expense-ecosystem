@@ -1,11 +1,9 @@
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import {
-  AbstractControl,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
-  ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +29,10 @@ import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem
 import { departmentBudgetLimitValidator } from '../../validators/department-budget.validator';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
+import { catchError, merge, of, switchMap } from 'rxjs';
+import { validateDateRange, validateInitialSpent, validateJoinCodeSchedule } from '../../validators/activity-form.validators';
+import { setupJoinCodeDialogSync } from '../../validators/join-code-sync.util';
+import { handleCurrencyInput } from '../../validators/currency-input.util';
 
 export interface CreateProjectDialogData {
   facultyId?: FacultyId;
@@ -116,10 +118,10 @@ export class CreateProjectDialogComponent {
       type: [ProjectFundingType.SCHOOL, [Validators.required]],
       facultyId: [this.data?.facultyId ?? FacultyId.FIT, [Validators.required]],
       budgetCap: [0, [Validators.required, Validators.min(1),
-        departmentBudgetLimitValidator({
-            getRemainingBudget: () => this.departmentFund()?.remainingBudget,
-            isFacultyFunding: () => this.form?.get('type')?.value === ProjectFundingType.FACULTY,
-          }),
+      departmentBudgetLimitValidator({
+        getRemainingBudget: () => this.departmentFund()?.remainingBudget,
+        isFacultyFunding: () => this.form?.get('type')?.value === ProjectFundingType.FACULTY,
+      }),
       ]],
       initialSpent: [0, [Validators.min(0)]],
       startDate: [new Date(), [Validators.required]],
@@ -128,45 +130,43 @@ export class CreateProjectDialogComponent {
       maxUses: [null, [Validators.min(1)]],
       expiresAt: [null],
     },
-    { validators: [this.validateDateRange, this.validateInitialSpent, this.validateJoinCodeSchedule] }
+    { validators: [validateDateRange, validateInitialSpent, validateJoinCodeSchedule] }
   );
 
   constructor() {
-    this.form.get('type')?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.loadDepartmentFund();
-      });
+    const typeControl = this.form.get('type');
+    const facultyControl = this.form.get('facultyId');
 
-    this.form.get('facultyId')?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.loadDepartmentFund();
-      });
+    if (typeControl && facultyControl) {
+      merge(typeControl.valueChanges, facultyControl.valueChanges)
+        .pipe(
+          switchMap(() => {
+            if (this.isDetailMode()) return of(null);
 
-    const initialJoinCodeState = Boolean(this.form.get('generateJoinCode')?.value);
-    this.updateDialogLayout(initialJoinCodeState);
+            const type = typeControl.value as ProjectFundingType;
+            const facultyId = facultyControl.value as FacultyId;
 
-    this.form.get('generateJoinCode')?.valueChanges.subscribe((enabled: boolean) => {
-      this.updateDialogLayout(Boolean(enabled));
-      if (enabled) {
-        const projectEndDate = this.form.get('endDate')?.value;
-        if (projectEndDate && !this.form.get('expiresAt')?.value) {
-          this.form.patchValue({ expiresAt: projectEndDate }, { emitEvent: false });
-        }
-      } else {
-        this.form.patchValue({ maxUses: null, expiresAt: null }, { emitEvent: false });
-        this.form.get('maxUses')?.setErrors(null);
-        this.form.get('expiresAt')?.setErrors(null);
-        this.form.updateValueAndValidity();
-      }
-    });
+            // Reset balance if conditions are not met
+            if (type !== ProjectFundingType.FACULTY || !facultyId) {
+              return of(null);
+            }
 
-    this.form.get('endDate')?.valueChanges.subscribe((newEndDate) => {
-      if (this.form.get('generateJoinCode')?.value && newEndDate) {
-        this.form.patchValue({ expiresAt: newEndDate }, { emitEvent: false });
-      }
-    });
+            // switchMap automatically cancels any pending in-flight request when a new selection occurs
+            return this.facultyApiService.getDepartmentFundBalance(facultyId).pipe(
+              trackLoading(this.isFundLoading),
+              catchError(() => of(null))
+            );
+          }),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe((fund) => {
+          this.departmentFund.set(fund);
+          // Instant sync validation evaluation
+          this.form.get('budgetCap')?.updateValueAndValidity();
+        });
+    }
+
+    setupJoinCodeDialogSync(this.form, this.dialogRef, this.destroyRef);
 
     if (this.data?.project) {
       const project = this.data.project;
@@ -195,78 +195,8 @@ export class CreateProjectDialogComponent {
     }
   }
 
-  private validateDateRange(control: AbstractControl): ValidationErrors | null {
-    const start = control.get('startDate')?.value;
-    const end = control.get('endDate')?.value;
-
-    if (start && end) {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
-
-      if (startDate > endDate) {
-        return { invalidDateRange: true };
-      }
-    }
-    return null;
-  }
-
-  private validateJoinCodeSchedule(control: AbstractControl): ValidationErrors | null {
-    const generateCode = control.get('generateJoinCode')?.value;
-    if (!generateCode) return null;
-
-    const expiresAtVal = control.get('expiresAt')?.value;
-    const endDateVal = control.get('endDate')?.value;
-
-    if (expiresAtVal && endDateVal) {
-      const expiresAt = new Date(expiresAtVal);
-      const endDate = new Date(endDateVal);
-      expiresAt.setHours(23, 59, 59, 999);
-      endDate.setHours(23, 59, 59, 999);
-
-      if (expiresAt > endDate) {
-        return { invalidJoinCodeExpiration: true };
-      }
-    }
-    return null;
-  }
-
-  private validateInitialSpent(control: AbstractControl): ValidationErrors | null {
-    const budget = Number(control.get('budgetCap')?.value || 0);
-    const initial = Number(control.get('initialSpent')?.value || 0);
-
-    if (initial > budget) {
-      control.get('initialSpent')?.setErrors({ initialSpentExceedsBudget: true });
-      return { initialSpentExceedsBudget: true };
-    }
-    return null;
-  }
-
   onInputAmount(event: Event, controlName: 'budgetCap' | 'initialSpent'): void {
-    const inputElement = event.target as HTMLInputElement;
-    const sanitized = inputElement.value.replace(/,/g, '').replace(/[^0-9.]/g, '').trim();
-    const control = this.form.get(controlName);
-
-    control?.markAsTouched();
-
-    if (!sanitized || sanitized === '.') {
-      control?.setValue(null);
-      inputElement.value = '';
-      this.form.updateValueAndValidity();
-      return;
-    }
-
-    const numericValue = parseFloat(sanitized);
-    if (!isNaN(numericValue)) {
-      control?.setValue(numericValue);
-      inputElement.value = this.decimalPipe.transform(numericValue, '1.0-2') || '';
-    } else {
-      control?.setValue(null);
-      inputElement.value = '';
-    }
-
-    this.form.updateValueAndValidity();
+    handleCurrencyInput(event, controlName, this.form, this.decimalPipe)
   }
 
   onSubmit(): void {
@@ -389,48 +319,7 @@ export class CreateProjectDialogComponent {
       next: (createdProject) => {
         this.isSubmitting.set(false);
         this.dialogRef.close(createdProject);
-      },
-      error: (err) => {
-        this.isSubmitting.set(false);
-        this.errorMessage.set(err?.error?.message || 'Failed to initialize project. Please try again.');
-      },
+      }
     });
-  }
-
-  private updateDialogLayout(isExpanded: boolean): void {
-    this.dialogRef.updateSize(isExpanded ? '1020px' : '600px');
-  }
-
-  private loadDepartmentFund(): void {
-    if (this.isDetailMode()) {
-      return;
-    }
-
-    const type: ProjectFundingType = this.form.get('type')?.value;
-    const facultyId: FacultyId = this.form.get('facultyId')?.value;
-
-    if (type !== ProjectFundingType.FACULTY || !facultyId) {
-      this.departmentFund.set(null);
-      this.form.get('budgetCap')?.updateValueAndValidity();
-      return;
-    }
-
-    this.facultyApiService
-      .getDepartmentFundBalance(facultyId)
-      .pipe(
-        trackLoading(this.isFundLoading),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: (fund) => {
-          this.departmentFund.set(fund);
-          // Re-evaluate synchronous budget cap ceiling instantly
-          this.form.get('budgetCap')?.updateValueAndValidity();
-        },
-        error: () => {
-          this.departmentFund.set(null);
-          this.form.get('budgetCap')?.updateValueAndValidity();
-        },
-      });
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { Faculty, FacultyId } from '@school-expense-ecosystem/shared/types';
 import { FacultyRepository } from '../abstracts/faculty.repository';
@@ -19,7 +19,6 @@ const DEFAULT_FACULTY_BUDGET_BASELINE = 50_000_000;
 export class FirestoreFacultyRepository implements FacultyRepository {
   private readonly logger = new Logger(FirestoreFacultyRepository.name);
   private readonly collection = admin.firestore().collection('faculties');
-  private readonly departmentFundsCollection = admin.firestore().collection('department_funds');
 
   async findAllActive(): Promise<Faculty[]> {
     try {
@@ -66,58 +65,6 @@ export class FirestoreFacultyRepository implements FacultyRepository {
     } catch (error) {
       this.logger.error(`Error querying faculty with ID: ${id}`, error);
       return null;
-    }
-  }
-
-  async getDepartmentFund(facultyId: FacultyId, year: number) {
-    const fundId = `${facultyId.toUpperCase()}_DEPT_${year}`;
-    const isProduction = process.env['NODE_ENV'] === 'production';
-
-    try {
-      const doc = await this.departmentFundsCollection.doc(fundId).get();
-
-      if (doc.exists) {
-        const data = doc.data()!;
-        return {
-          fundId,
-          facultyId,
-          year,
-          remainingBudget: Number(data['remainingBudget'] ?? 0),
-          allocatedBudget: Number(data['allocatedBudget'] ?? 0),
-          totalBudget: Number(data['totalBudget'] ?? 0),
-        };
-      }
-
-      // Strictly disallow phantom budget fallbacks in production environments
-      if (isProduction) {
-        this.logger.error(`Department fund ${fundId} is missing in production.`);
-        throw new NotFoundException(`Department fund "${fundId}" was not found.`);
-      }
-
-      // Provide mock baseline strictly during local development and testing
-      this.logger.warn(`Department fund ${fundId} missing in Firestore. Using local fallback.`);
-      return {
-        fundId,
-        facultyId,
-        year,
-        remainingBudget: DEFAULT_FACULTY_BUDGET_BASELINE,
-        allocatedBudget: 0,
-        totalBudget: DEFAULT_FACULTY_BUDGET_BASELINE,
-      };
-    } catch (error) {
-      if (isProduction || error instanceof NotFoundException) {
-        throw error;
-      }
-
-      this.logger.error(`Failed to query fund ${fundId}. Falling back to baseline.`, error);
-      return {
-        fundId,
-        facultyId,
-        year,
-        remainingBudget: DEFAULT_FACULTY_BUDGET_BASELINE,
-        allocatedBudget: 0,
-        totalBudget: DEFAULT_FACULTY_BUDGET_BASELINE,
-      };
     }
   }
 }
