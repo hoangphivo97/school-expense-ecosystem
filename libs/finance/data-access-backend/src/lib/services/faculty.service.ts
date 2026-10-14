@@ -1,25 +1,13 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { AuthenticatedUser, Faculty, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
+import { AuthenticatedUser, DepartmentFundBalanceResult, Faculty, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { FacultyRepository } from '../repositories/abstracts/faculty.repository';
-
-export type DepartmentFundBalanceResult =
-  | {
-      facultyId: FacultyId;
-      year: number;
-      remainingBudget: number;
-    }
-  | {
-      fundId: string;
-      facultyId: FacultyId;
-      year: number;
-      remainingBudget: number;
-      allocatedBudget: number;
-      totalBudget: number;
-    };
+import { DepartmentFundRepository } from '../repositories/abstracts/department-fund.repository';
 
 @Injectable()
 export class FacultyService {
-  constructor(private readonly facultyRepo: FacultyRepository) { }
+  constructor(private readonly facultyRepo: FacultyRepository,
+    private readonly departmentFundRepo: DepartmentFundRepository
+  ) { }
 
   async getAllActiveFaculties(): Promise<Faculty[]> {
     return this.facultyRepo.findAllActive();
@@ -33,7 +21,7 @@ export class FacultyService {
     return faculty;
   }
 
-async getDepartmentFundBalance(
+  async getDepartmentFundBalance(
     facultyId: FacultyId,
     user: AuthenticatedUser,
     year?: number
@@ -41,12 +29,10 @@ async getDepartmentFundBalance(
     await this.getFacultyById(facultyId);
 
     const targetYear = year && !isNaN(year) ? Number(year) : new Date().getFullYear();
-    const departmentFundId = `${facultyId.toUpperCase()}_DEPT_${targetYear}`;
-
-    const fund = await this.facultyRepo.getDepartmentFund(facultyId, targetYear);
+    const fund = await this.departmentFundRepo.getDepartmentFund(facultyId, targetYear);
 
     if (!fund) {
-      throw new NotFoundException(`Department fund "${departmentFundId}" was not found.`);
+      throw new NotFoundException(`Department fund for faculty "${facultyId}" in year ${targetYear} was not found.`);
     }
 
     if (user.role === Role.LEVEL_3_USER) {

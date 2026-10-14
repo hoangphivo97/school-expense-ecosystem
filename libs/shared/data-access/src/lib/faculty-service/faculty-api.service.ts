@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams, httpResource } from '@angular/common/http';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-import { DepartmentFundSummary, Faculty, FacultyId } from '@school-expense-ecosystem/shared/types';
+import {  DepartmentFundBalanceResult, Faculty, FacultyId } from '@school-expense-ecosystem/shared/types';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -16,12 +16,13 @@ export class FacultyApiService {
     defaultValue: [],
   });
 
-  getDepartmentFundBalance(facultyId: FacultyId, year?: number): Observable<DepartmentFundSummary> {
-    let params = new HttpParams().set('facultyId', facultyId);
-    if (year) {
+  getDepartmentFundBalance(facultyId: FacultyId, year?: number): Observable<DepartmentFundBalanceResult> {
+    let params = new HttpParams();
+    if (year && !isNaN(year)) {
       params = params.set('year', year.toString());
     }
-    return this.http.get<DepartmentFundSummary>(
+
+    return this.http.get<DepartmentFundBalanceResult>(
       `${this.apiUrl}/${facultyId}/fund-balance`,
       { params }
     );

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BudgetBackendService, FacultyRepository, FacultyService, FirestoreFacultyRepository,} from '@school-expense-ecosystem/finance/data-access-backend';
-import { FirestoreProjectRepository, ProjectRepository, ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
+import { BudgetBackendService, DepartmentFundRepository, FacultyRepository, FacultyService, FirestoreDepartmentFundRepository, FirestoreFacultyRepository,} from '@school-expense-ecosystem/finance/data-access-backend';
 import { FacultyController } from './controllers/faculty.controller';
 
 @Module({
@@ -9,7 +8,10 @@ import { FacultyController } from './controllers/faculty.controller';
     FacultyService, {
     provide: FacultyRepository,
     useClass: FirestoreFacultyRepository
+  },{
+    provide: DepartmentFundRepository,
+    useClass: FirestoreDepartmentFundRepository
   }],
-  exports: [FacultyService, FacultyRepository],
+  exports: [FacultyService, FacultyRepository, DepartmentFundRepository],
 })
 export class FinanceBackendModule { }

@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -31,6 +31,8 @@ import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/sh
 import { ConfirmDialogData, DepartmentFundSummary, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { departmentBudgetLimitValidator } from '../../validators/department-budget.validator';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 
 export interface CreateEventDialogData {
   facultyId?: FacultyId;
@@ -74,6 +76,7 @@ export class CreateEventDialogComponent {
   private readonly dialog = inject(MatDialog);
   private readonly authStore = inject(AuthSignalStore);
   private readonly translocoService = inject(TranslocoService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly WARNING_RULES: Partial<Record<Role, Partial<Record<EventFundingType, string>>>> = {
     [Role.LEVEL_2_DEAN]: {
@@ -155,12 +158,17 @@ export class CreateEventDialogComponent {
   );
 
   constructor() {
-    this.form.get('type')?.valueChanges.subscribe(() => {
-      this.loadDepartmentFund();
-    });
-    this.form.get('facultyId')?.valueChanges.subscribe(() => {
-      this.loadDepartmentFund();
-    });
+    this.form.get('type')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadDepartmentFund();
+      });
+
+    this.form.get('facultyId')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadDepartmentFund();
+      });
 
     const initialJoinCodeState = Boolean(this.form.get('generateJoinCode')?.value);
     this.updateDialogLayout(initialJoinCodeState);
@@ -480,23 +488,28 @@ export class CreateEventDialogComponent {
     const type: EventFundingType = this.form.get('type')?.value;
     const facultyId: FacultyId = this.form.get('facultyId')?.value;
 
-    // Reset and avoid API calls if not faculty funding
     if (type !== EventFundingType.FACULTY || !facultyId) {
       this.departmentFund.set(null);
-      this.isFundLoading.set(false);
+      this.form.get('budgetCap')?.updateValueAndValidity();
       return;
     }
 
-    this.isFundLoading.set(true);
-    this.facultyApiService.getDepartmentFundBalance(facultyId).subscribe({
-      next: (fund) => {
-        this.departmentFund.set(fund);
-        this.isFundLoading.set(false);
-      },
-      error: () => {
-        this.departmentFund.set(null);
-        this.isFundLoading.set(false);
-      },
-    });
+    this.facultyApiService
+      .getDepartmentFundBalance(facultyId)
+      .pipe(
+        trackLoading(this.isFundLoading),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (fund) => {
+          this.departmentFund.set(fund);
+          // Re-evaluate synchronous budget cap ceiling instantly
+          this.form.get('budgetCap')?.updateValueAndValidity();
+        },
+        error: () => {
+          this.departmentFund.set(null);
+          this.form.get('budgetCap')?.updateValueAndValidity();
+        },
+      });
   }
 }
