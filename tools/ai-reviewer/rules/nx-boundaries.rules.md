@@ -37,7 +37,12 @@ Every domain under `libs/<domain>/` must adhere to standard layer separation:
    - **Rule**: Leaf node; must not contain executable business logic or heavy runtime dependencies.
 
 8. **`utils` (Shared Helpers)**:
-   - **Contents**: Stateless pure utility functions.
+   - **Contents**: Stateless pure utility functions and reactive helpers.
+   - **Dual-Target Scoping & Entry Points**:
+     - **Frontend Scope** (`src/frontend.ts`): Angular reactive operators (`trackLoading`), signal helpers, and browser-safe utilities.
+     - **Backend Scope** (`src/backend.ts`): Server-side exceptions, cryptographic helpers, and Node-specific utilities.
+     - **Agnostic Scope** (`src/index.ts`): Environment-agnostic pure logic (e.g., date formats, math calculations).
+   - **Forbidden**: Frontend code must NEVER import backend utilities, and backend services must NEVER import browser/DOM/signal utilities.
 
 ---
 
@@ -60,5 +65,6 @@ Enforce the following dependency graph restrictions:
    - **`type:types` & `type:constants`**: Leaf libraries; may ONLY depend on `type:types`.
 
 3. **Encapsulation & Barrel Exports**:
-   - Cross-library imports MUST use the root path alias defined in `tsconfig.base.json` (e.g., `@school-expense-ecosystem/projects/data-access-backend`).
-   - Deep imports accessing internal library structures (e.g., `../../src/lib/...`) are strictly prohibited.
+   - Cross-library imports MUST use the root path alias defined in `tsconfig.base.json` (e.g., `@school-expense-ecosystem/projects/data-access-backend`)[cite: 20].
+   - Deep imports accessing internal library structures (e.g., `../../src/lib/...`) are strictly prohibited[cite: 20].
+   - **Cross-Domain Inheritance Prohibition**: Concrete or abstract classes in one business domain (e.g., `libs/finance/**`) must NEVER extend classes defined in another business domain (e.g., `libs/projects/**`). All cross-domain code sharing must occur through `@school-expense-ecosystem/shared/*`.
