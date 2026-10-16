@@ -1,11 +1,9 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import {
-  AbstractControl,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
-  ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,8 +24,15 @@ import {
 } from '@school-expense-ecosystem/projects/types';
 import { ActivityFormLayoutComponent } from '@school-expense-ecosystem/projects/ui';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { ConfirmDialogData, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
+import { ConfirmDialogData, DepartmentFundSummary, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
+import { departmentBudgetLimitValidator } from '../../validators/department-budget.validator';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
+import { catchError, merge, of, switchMap } from 'rxjs';
+import { validateDateRange, validateInitialSpent, validateJoinCodeSchedule } from '../../validators/activity-form.validators';
+import { setupJoinCodeDialogSync } from '../../validators/join-code-sync.util';
+import { handleCurrencyInput } from '../../validators/currency-input.util';
 
 export interface CreateProjectDialogData {
   facultyId?: FacultyId;
@@ -69,6 +74,7 @@ export class CreateProjectDialogComponent {
   private readonly dialog = inject(MatDialog);
   private readonly authStore = inject(AuthSignalStore);
   private readonly translocoService = inject(TranslocoService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly WARNING_RULES: Partial<Record<Role, Partial<Record<ProjectFundingType, string>>>> = {
     [Role.LEVEL_2_DEAN]: {
@@ -95,6 +101,8 @@ export class CreateProjectDialogComponent {
   );
 
   readonly isFacultiesLoading = this.facultyApiService.facultiesResource.isLoading;
+  readonly departmentFund = signal<DepartmentFundSummary | null>(null);
+  readonly isFundLoading = signal<boolean>(false);
 
   readonly isImmediatelyActive = computed(() => {
     const role = this.authStore.user()?.role;
@@ -109,7 +117,12 @@ export class CreateProjectDialogComponent {
       description: ['', [Validators.maxLength(500)]],
       type: [ProjectFundingType.SCHOOL, [Validators.required]],
       facultyId: [this.data?.facultyId ?? FacultyId.FIT, [Validators.required]],
-      budgetCap: [0, [Validators.required, Validators.min(1)]],
+      budgetCap: [0, [Validators.required, Validators.min(1),
+      departmentBudgetLimitValidator({
+        getRemainingBudget: () => this.departmentFund()?.remainingBudget,
+        isFacultyFunding: () => this.form?.get('type')?.value === ProjectFundingType.FACULTY,
+      }),
+      ]],
       initialSpent: [0, [Validators.min(0)]],
       startDate: [new Date(), [Validators.required]],
       endDate: [null, [Validators.required]],
@@ -117,33 +130,43 @@ export class CreateProjectDialogComponent {
       maxUses: [null, [Validators.min(1)]],
       expiresAt: [null],
     },
-    { validators: [this.validateDateRange, this.validateInitialSpent, this.validateJoinCodeSchedule] }
+    { validators: [validateDateRange, validateInitialSpent, validateJoinCodeSchedule] }
   );
 
   constructor() {
-    const initialJoinCodeState = Boolean(this.form.get('generateJoinCode')?.value);
-    this.updateDialogLayout(initialJoinCodeState);
+    const typeControl = this.form.get('type');
+    const facultyControl = this.form.get('facultyId');
 
-    this.form.get('generateJoinCode')?.valueChanges.subscribe((enabled: boolean) => {
-      this.updateDialogLayout(Boolean(enabled));
-      if (enabled) {
-        const projectEndDate = this.form.get('endDate')?.value;
-        if (projectEndDate && !this.form.get('expiresAt')?.value) {
-          this.form.patchValue({ expiresAt: projectEndDate }, { emitEvent: false });
-        }
-      } else {
-        this.form.patchValue({ maxUses: null, expiresAt: null }, { emitEvent: false });
-        this.form.get('maxUses')?.setErrors(null);
-        this.form.get('expiresAt')?.setErrors(null);
-        this.form.updateValueAndValidity();
-      }
-    });
+    if (typeControl && facultyControl) {
+      merge(typeControl.valueChanges, facultyControl.valueChanges)
+        .pipe(
+          switchMap(() => {
+            if (this.isDetailMode()) return of(null);
 
-    this.form.get('endDate')?.valueChanges.subscribe((newEndDate) => {
-      if (this.form.get('generateJoinCode')?.value && newEndDate) {
-        this.form.patchValue({ expiresAt: newEndDate }, { emitEvent: false });
-      }
-    });
+            const type = typeControl.value as ProjectFundingType;
+            const facultyId = facultyControl.value as FacultyId;
+
+            // Reset balance if conditions are not met
+            if (type !== ProjectFundingType.FACULTY || !facultyId) {
+              return of(null);
+            }
+
+            // switchMap automatically cancels any pending in-flight request when a new selection occurs
+            return this.facultyApiService.getDepartmentFundBalance(facultyId).pipe(
+              trackLoading(this.isFundLoading),
+              catchError(() => of(null))
+            );
+          }),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe((fund) => {
+          this.departmentFund.set(fund);
+          // Instant sync validation evaluation
+          this.form.get('budgetCap')?.updateValueAndValidity();
+        });
+    }
+
+    setupJoinCodeDialogSync(this.form, this.dialogRef, this.destroyRef);
 
     if (this.data?.project) {
       const project = this.data.project;
@@ -172,82 +195,12 @@ export class CreateProjectDialogComponent {
     }
   }
 
-  private validateDateRange(control: AbstractControl): ValidationErrors | null {
-    const start = control.get('startDate')?.value;
-    const end = control.get('endDate')?.value;
-
-    if (start && end) {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
-
-      if (startDate > endDate) {
-        return { invalidDateRange: true };
-      }
-    }
-    return null;
-  }
-
-  private validateJoinCodeSchedule(control: AbstractControl): ValidationErrors | null {
-    const generateCode = control.get('generateJoinCode')?.value;
-    if (!generateCode) return null;
-
-    const expiresAtVal = control.get('expiresAt')?.value;
-    const endDateVal = control.get('endDate')?.value;
-
-    if (expiresAtVal && endDateVal) {
-      const expiresAt = new Date(expiresAtVal);
-      const endDate = new Date(endDateVal);
-      expiresAt.setHours(23, 59, 59, 999);
-      endDate.setHours(23, 59, 59, 999);
-
-      if (expiresAt > endDate) {
-        return { invalidJoinCodeExpiration: true };
-      }
-    }
-    return null;
-  }
-
-  private validateInitialSpent(control: AbstractControl): ValidationErrors | null {
-    const budget = Number(control.get('budgetCap')?.value || 0);
-    const initial = Number(control.get('initialSpent')?.value || 0);
-
-    if (initial > budget) {
-      control.get('initialSpent')?.setErrors({ initialSpentExceedsBudget: true });
-      return { initialSpentExceedsBudget: true };
-    }
-    return null;
-  }
-
   onInputAmount(event: Event, controlName: 'budgetCap' | 'initialSpent'): void {
-    const inputElement = event.target as HTMLInputElement;
-    const sanitized = inputElement.value.replace(/,/g, '').replace(/[^0-9.]/g, '').trim();
-    const control = this.form.get(controlName);
-
-    control?.markAsTouched();
-
-    if (!sanitized || sanitized === '.') {
-      control?.setValue(null);
-      inputElement.value = '';
-      this.form.updateValueAndValidity();
-      return;
-    }
-
-    const numericValue = parseFloat(sanitized);
-    if (!isNaN(numericValue)) {
-      control?.setValue(numericValue);
-      inputElement.value = this.decimalPipe.transform(numericValue, '1.0-2') || '';
-    } else {
-      control?.setValue(null);
-      inputElement.value = '';
-    }
-
-    this.form.updateValueAndValidity();
+    handleCurrencyInput(event, controlName, this.form, this.decimalPipe)
   }
 
   onSubmit(): void {
-    if (this.form.invalid || this.isSubmitting()) return;
+    if (this.form.invalid || this.form.pending || this.isSubmitting()) return;
 
     this.errorMessage.set(null);
     const formValue = this.form.getRawValue();
@@ -291,9 +244,9 @@ export class CreateProjectDialogComponent {
       endDate: new Date(formValue.endDate).toISOString(),
       joinCodeConfig: isJoinCodeEnabled
         ? {
-            maxUses: formValue.maxUses ? Number(formValue.maxUses) : undefined,
-            expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : undefined,
-          }
+          maxUses: formValue.maxUses ? Number(formValue.maxUses) : undefined,
+          expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : undefined,
+        }
         : undefined,
     };
 
@@ -366,15 +319,7 @@ export class CreateProjectDialogComponent {
       next: (createdProject) => {
         this.isSubmitting.set(false);
         this.dialogRef.close(createdProject);
-      },
-      error: (err) => {
-        this.isSubmitting.set(false);
-        this.errorMessage.set(err?.error?.message || 'Failed to initialize project. Please try again.');
-      },
+      }
     });
-  }
-
-  private updateDialogLayout(isExpanded: boolean): void {
-    this.dialogRef.updateSize(isExpanded ? '1020px' : '600px');
   }
 }

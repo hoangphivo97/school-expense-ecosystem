@@ -172,6 +172,65 @@ describe('EventController (HTTP Integration)', () => {
     });
   });
 
+  it('should reject with 400 when type is PROJECT but projectId is omitted', async () => {
+    const payloadMissingProjectId = {
+      name: 'Project Sub-Event',
+      description: 'Missing parent project link',
+      facultyId: FacultyId.FIT,
+      type: EventFundingType.PROJECT,
+      budgetCap: 5000000,
+      initialSpent: 0,
+      startDate: new Date('2026-10-01').toISOString(),
+      endDate: new Date('2026-10-03').toISOString(),
+    };
+
+    const response = await request(app.getHttpServer())
+      .post('/events')
+      .send(payloadMissingProjectId)
+      .expect(400);
+
+    // Verify class-validator intercepts before reaching the service layer
+    expect(mockEventService.createEvent).not.toHaveBeenCalled();
+    expect(response.body.message).toEqual(
+      expect.arrayContaining([expect.stringContaining('projectId is mandatory when event funding type is PROJECT')])
+    );
+  });
+
+  it('should create event successfully and return 201 when type is PROJECT and projectId is provided', async () => {
+    const validProjectFundedPayload = {
+      name: 'Linked Sub-Event',
+      facultyId: FacultyId.FIT,
+      type: EventFundingType.PROJECT,
+      projectId: 'PRJ-FIT-001',
+      budgetCap: 5000000,
+      initialSpent: 0,
+      startDate: new Date('2026-10-01').toISOString(),
+      endDate: new Date('2026-10-03').toISOString(),
+    };
+
+    const createdEvent: Partial<EventItem> = {
+      id: 'EVT-FIT-100',
+      ...validProjectFundedPayload,
+      status: EventStatus.UPCOMING,
+    };
+
+    mockEventService.createEvent.mockResolvedValueOnce(createdEvent);
+
+    const response = await request(app.getHttpServer())
+      .post('/events')
+      .send(validProjectFundedPayload)
+      .expect(201);
+
+    expect(mockEventService.createEvent).toHaveBeenCalledWith(
+      mockCurrentUser,
+      expect.objectContaining({
+        type: EventFundingType.PROJECT,
+        projectId: 'PRJ-FIT-001',
+      })
+    );
+    expect(response.body.id).toBe('EVT-FIT-100');
+  });
+
   describe('PATCH /events/:id/approve', () => {
     it('should route event approval and return 200', async () => {
       const eventId = 'EVT-FIT-001';

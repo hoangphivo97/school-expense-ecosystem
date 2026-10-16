@@ -13,6 +13,8 @@ const SEED_FACULTIES: Faculty[] = [
   { id: FacultyId.FLA, name: 'Faculty of Law and Public Administration', isActive: true },
 ];
 
+const DEFAULT_FACULTY_BUDGET_BASELINE = 50_000_000;
+
 @Injectable()
 export class FirestoreFacultyRepository implements FacultyRepository {
   private readonly logger = new Logger(FirestoreFacultyRepository.name);

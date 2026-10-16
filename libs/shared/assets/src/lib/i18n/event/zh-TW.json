@@ -12,7 +12,8 @@
       "deanSchoolApproval": "由院長發起之校級補助活動，建立後需由財務處進行最終審核。",
       "deanFacultyDeduction": "院系自籌活動在建立後，將直接自系所基金餘額中預扣相應額度。",
       "teacherDualApproval": "教師發起之校級補助活動，需先經院長初審通過，再送交財務處複審。",
-      "teacherDeanApproval": "教師發起之院系補助活動，提交後需經院長審核核准。"
+      "teacherDeanApproval": "教師發起之院系補助活動，提交後需經院長審核核准。",
+      "outsideParentTimeline": "活動期程必須完全在所屬計畫的執行期間之內（不可超出計畫開始或結束日期）。"
     },
     "fields": {
       "name": {
@@ -36,7 +37,8 @@
         "loading": "正在載入可用專案列表...",
         "headroom": "可用預算額度",
         "errors": {
-          "budgetExceeded": "活動預算已超過所選母專案之剩餘額度"
+          "budgetExceeded": "活動預算已超過所選母專案之剩餘額度",
+          "timelineExceeded": "活動日期超出所屬計畫之執行期間"
         }
       },
       "faculty": {
@@ -50,8 +52,11 @@
         "label": "預算上限",
         "errors": {
           "required": "預算上限為必填項目",
-          "min": "預算上限金額必須大於 0"
-        }
+          "min": "預算上限金額必須大於 0",
+          "insufficientDepartmentBudget":"系所可用經費不足（剩餘：{{available}} TWD，申請：{{requested}} TWD）。"
+        },
+        "remainingHint": "可用餘額：{{amount}} TWD",
+        "checkingHint": "正在讀取可用餘額..."
       },
       "initialSpent": {
         "label": "初期已承諾支出",

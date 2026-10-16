@@ -1,11 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Faculty } from '@school-expense-ecosystem/shared/types';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { AuthenticatedUser, DepartmentFundBalanceResult, Faculty, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { FacultyRepository } from '../repositories/abstracts/faculty.repository';
-
+import { DepartmentFundRepository } from '../repositories/abstracts/department-fund.repository';
 
 @Injectable()
 export class FacultyService {
-  constructor(private readonly facultyRepo: FacultyRepository) {}
+  constructor(private readonly facultyRepo: FacultyRepository,
+    private readonly departmentFundRepo: DepartmentFundRepository
+  ) { }
 
   async getAllActiveFaculties(): Promise<Faculty[]> {
     return this.facultyRepo.findAllActive();
@@ -17,5 +19,34 @@ export class FacultyService {
       throw new NotFoundException(`Faculty with identifier ${facultyId} not found`);
     }
     return faculty;
+  }
+
+  async getDepartmentFundBalance(
+    facultyId: FacultyId,
+    user: AuthenticatedUser,
+    year?: number
+  ): Promise<DepartmentFundBalanceResult> {
+    await this.getFacultyById(facultyId);
+
+    const targetYear = year && !isNaN(year) ? Number(year) : new Date().getFullYear();
+    const fund = await this.departmentFundRepo.getDepartmentFund(facultyId, targetYear);
+
+    if (!fund) {
+      throw new NotFoundException(`Department fund for faculty "${facultyId}" in year ${targetYear} was not found.`);
+    }
+
+    if (user.role === Role.LEVEL_3_USER) {
+      if (user.facultyId !== facultyId) {
+        throw new ForbiddenException('You can only view fund balance for your own department.');
+      }
+
+      return {
+        facultyId: fund.facultyId,
+        year: fund.year,
+        remainingBudget: fund.remainingBudget,
+      };
+    }
+
+    return fund;
   }
 }

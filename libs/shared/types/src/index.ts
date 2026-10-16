@@ -9,3 +9,4 @@ export * from './lib/enums/nav.enum';
 export * from './lib/interface/faculty.interface';
 export * from './lib/interface/auditable-entity.interface';
 export * from './lib/interface/filter-config.types';
+export * from './lib/interface/department-fund.types';

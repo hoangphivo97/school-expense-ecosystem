@@ -11,6 +11,8 @@
   [fundingTypeSlot]="projectFundingTpl"
   (submitForm)="onSubmit()"
   (cancelForm)="onCancel()"
+  [departmentFund]="departmentFund()"
+  [isFundLoading]="isFundLoading()"
   (amountInput)="onInputAmount($event.event, $event.controlName)"
 >
   <!-- Slot: Project Funding Type Selector -->

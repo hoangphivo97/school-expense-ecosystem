@@ -129,8 +129,11 @@
         "label": "Budget Cap (Total Limit)",
         "errors": {
           "required": "Budget cap is required",
-          "min": "Budget cap must be greater than 0"
-        }
+          "min": "Budget cap must be greater than 0",
+          "insufficientDepartmentBudget": "Insufficient department funds (Available: {{available}} TWD, Requested: {{requested}} TWD)."
+        },
+        "remainingHint": "Available: {{amount}} TWD",
+        "checkingHint": "Checking available quota..."
       },
       "initialSpent": {
         "label": "Initial Committed Spent",

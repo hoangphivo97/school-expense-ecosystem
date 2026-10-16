@@ -8,7 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 const KOBOLD_ENDPOINT =
   process.env.KOBOLD_ENDPOINT || 'http://127.0.0.1:5001/v1/chat/completions';
 const TARGET_BRANCH = process.env.TARGET_BRANCH || 'origin/dev';
-const KOBOLD_TIMEOUT_MS = parseInt(process.env.KOBOLD_TIMEOUT_MS || '180000', 10); // 3 minutes for local GPU generation
+const KOBOLD_TIMEOUT_MS = parseInt(process.env.KOBOLD_TIMEOUT_MS || '300000', 10); // 3 minutes for local GPU generation
 const REVIEW_TARGET_PATTERNS = [
   '*.ts',
   '*.html',

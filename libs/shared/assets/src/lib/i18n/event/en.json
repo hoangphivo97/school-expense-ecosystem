@@ -12,7 +12,8 @@
       "deanSchoolApproval": "School-funded events created by the Dean require final review and approval by the Finance Office.",
       "deanFacultyDeduction": "Faculty-funded events will encumber budget directly from the department fund balance upon creation.",
       "teacherDualApproval": "School-funded events initiated by teachers require review by the Dean followed by the Finance Office.",
-      "teacherDeanApproval": "Faculty-funded events submitted by teachers require review and approval by the Dean."
+      "teacherDeanApproval": "Faculty-funded events submitted by teachers require review and approval by the Dean.",
+      "outsideParentTimeline": "Event timeline must stay strictly within the parent project's duration."
     },
     "fields": {
       "name": {
@@ -36,7 +37,8 @@
         "loading": "Loading available projects...",
         "headroom": "budget",
         "errors": {
-          "budgetExceeded": "Event budget exceeds parent project headroom"
+          "budgetExceeded": "Event budget exceeds parent project headroom",
+          "timelineHint": "Parent project timeline"
         }
       },
       "faculty": {
@@ -50,8 +52,11 @@
         "label": "Budget Cap",
         "errors": {
           "required": "Budget cap is required",
-          "min": "Budget cap must be greater than 0"
-        }
+          "min": "Budget cap must be greater than 0",
+          "insufficientDepartmentBudget": "Insufficient department funds (Available: {{available}} TWD, Requested: {{requested}} TWD)."
+        },
+        "remainingHint": "Available: {{amount}} TWD",
+        "checkingHint": "Checking available quota..."
       },
       "initialSpent": {
         "label": "Initial Committed Spent",
