@@ -54,15 +54,25 @@
         @for (project of availableProjects(); track project.id) {
           @let availableHeadroom = project.budgetCap - (project.currentSpent + (project.pendingSpent ?? 0));
           <mat-option [value]="project.id">
-            <div class="w-100">
-              <span class="fw-medium">{{ project.name }}</span>
-              <span class="text-muted">
-                {{ 'event.createDialog.fields.parentProject.headroom' | transloco }}: {{ availableHeadroom | number }} TWD
-              </span>
+            <div class="d-flex flex-column py-1">
+              <span class="fw-medium text-truncate">{{ project.name }}</span>
+              <div class="d-flex align-items-center gap-2 text-muted small">
+                <span>{{ availableHeadroom | number }} TWD</span>
+                <span>•</span>
+                <span>{{ project.startDate | date: 'dd/MM/yyyy' }} - {{ project.endDate | date: 'dd/MM/yyyy' }}</span>
+              </div>
             </div>
           </mat-option>
         }
       </mat-select>
+
+      <!-- Dynamic Timeline Hint when project is selected -->
+      @if (selectedProject(); as project) {
+        <mat-hint align="start" class="text-primary fw-medium">
+          {{ 'event.createDialog.fields.parentProject.timelineHint' | transloco }}:
+          {{ project.startDate | date: 'dd/MM/yyyy' }} ~ {{ project.endDate | date: 'dd/MM/yyyy' }}
+        </mat-hint>
+      }
       <mat-hint align="end">{{ 'event.createDialog.fields.parentProject.hint' | transloco }}</mat-hint>
       <mat-error>
         {{ form.get('budgetCap')?.errors | formError: { parentBudgetExceeded: 'event.createDialog.fields.parentProject.errors.budgetExceeded' | transloco } }}

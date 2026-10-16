@@ -12,7 +12,6 @@ export function setupJoinCodeDialogSync(
     dialogRef.updateSize(isExpanded ? '1020px' : '600px');
   };
 
-  // Khởi tạo layout ban đầu
   updateLayout(Boolean(form.get('generateJoinCode')?.value));
 
   form.get('generateJoinCode')?.valueChanges

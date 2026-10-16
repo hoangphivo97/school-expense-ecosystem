@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import {
   AbstractControl,
@@ -58,7 +58,8 @@ export interface CreateEventDialogData {
     TranslocoModule,
     FormErrorPipe,
     ActivityFormLayoutComponent,
-    DecimalPipe
+    DecimalPipe,
+    DatePipe
   ],
   templateUrl: './create-event-dialog.component.html',
   styleUrl: './create-event-dialog.component.scss',
@@ -120,6 +121,13 @@ export class CreateEventDialogComponent {
 
   readonly selectedFundingType = signal<EventFundingType>(EventFundingType.SCHOOL);
   readonly isProjectFunded = computed(() => this.selectedFundingType() === EventFundingType.PROJECT);
+  readonly selectedProjectId = signal<string | null>(null);
+
+  readonly selectedProject = computed<ProjectItem | null>(() => {
+    const parentId = this.selectedProjectId();
+    if (!parentId) return null;
+    return this.availableProjects().find((p) => p.id === parentId) ?? null;
+  });
 
   readonly departmentFund = signal<DepartmentFundSummary | null>(null);
   readonly isFundLoading = signal<boolean>(false);
@@ -157,6 +165,7 @@ export class CreateEventDialogComponent {
         validateInitialSpent,
         validateJoinCodeSchedule,
         (control) => this.validateParentProjectBudget(control),
+        (control) => this.validateParentProjectTimeline(control)
       ],
     }
   );
@@ -195,6 +204,12 @@ export class CreateEventDialogComponent {
     }
 
     setupJoinCodeDialogSync(this.form, this.dialogRef, this.destroyRef);
+
+    this.form.get('projectId')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((projectId: string | null) => {
+        this.selectedProjectId.set(projectId);
+      });
 
     // Handle funding type modifications
     this.form.get('facultyId')?.valueChanges
@@ -405,5 +420,31 @@ export class CreateEventDialogComponent {
         this.dialogRef.close(createdEvent);
       }
     });
+  }
+
+  private validateParentProjectTimeline(control: AbstractControl): ValidationErrors | null {
+    const type = control.get('type')?.value;
+    const parentProjectId = control.get('projectId')?.value;
+    const startVal = control.get('startDate')?.value;
+    const endVal = control.get('endDate')?.value;
+
+    // Only enforce when funded by parent project
+    if (type !== EventFundingType.PROJECT || !parentProjectId || !startVal || !endVal) {
+      return null;
+    }
+
+    const parentProject = this.availableProjects().find((p) => p.id === parentProjectId);
+    if (!parentProject) return null;
+
+    const eventStart = new Date(startVal).setHours(0, 0, 0, 0);
+    const eventEnd = new Date(endVal).setHours(23, 59, 59, 999);
+    const projectStart = new Date(parentProject.startDate).setHours(0, 0, 0, 0);
+    const projectEnd = new Date(parentProject.endDate).setHours(23, 59, 59, 999);
+
+    if (eventStart < projectStart || eventEnd > projectEnd) {
+      return { eventOutsideParentProjectTimeline: true };
+    }
+
+    return null;
   }
 }

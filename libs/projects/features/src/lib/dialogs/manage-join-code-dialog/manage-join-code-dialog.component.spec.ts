@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { TranslocoTestingModule } from '@ngneat/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
@@ -26,6 +26,7 @@ describe('ManageJoinCodeDialogComponent', () => {
   let mockDialogRef: jest.Mocked<Partial<MatDialogRef<ManageJoinCodeDialogComponent, ManageJoinCodeDialogResult>>>;
   let mockProjectApiService: { [K in keyof ProjectApiService]?: jest.Mock };
   let mockEventApiService: { [K in keyof EventApiService]?: jest.Mock };
+  let mockDialog: { open: jest.Mock };
 
   const dummyStudents: StudentSummary[] = [
     {
@@ -71,6 +72,12 @@ describe('ManageJoinCodeDialogComponent', () => {
       close: jest.fn(),
     };
 
+    mockDialog = {
+      open: jest.fn().mockReturnValue({
+        afterClosed: () => of(true),
+      }),
+    };
+
     mockProjectApiService = {
       getProjectStudents: jest.fn().mockReturnValue(of([dummyStudents[0]])),
       addStudents: jest.fn().mockReturnValue(of({ success: true })),
@@ -101,7 +108,12 @@ describe('ManageJoinCodeDialogComponent', () => {
         { provide: ProjectApiService, useValue: mockProjectApiService },
         { provide: EventApiService, useValue: mockEventApiService },
         { provide: MAT_DIALOG_DATA, useValue: dialogData },
+        { provide: MatDialog, useValue: mockDialog },
       ],
+    }).overrideComponent(ManageJoinCodeDialogComponent, {
+      add: {
+        providers: [{ provide: MatDialog, useValue: mockDialog }],
+      },
     }).compileComponents();
 
     fixture = TestBed.createComponent(ManageJoinCodeDialogComponent);
@@ -164,8 +176,14 @@ describe('ManageJoinCodeDialogComponent', () => {
       });
 
       it('should remove a student and update joinedStudents signal', () => {
+        // Ensure confirmation dialog resolves to true
+        mockDialog.open.mockReturnValueOnce({
+          afterClosed: () => of(true),
+        } as any);
+
         component.handleRemoveStudent(dummyStudents[0].id);
 
+        expect(mockDialog.open).toHaveBeenCalled();
         expect(mockProjectApiService.removeStudent).toHaveBeenCalledWith(dummyProject.id, dummyStudents[0].id);
         expect(component.joinedStudents()).toEqual([]);
         expect(component.isMemberMutating()).toBe(false);
@@ -215,6 +233,20 @@ describe('ManageJoinCodeDialogComponent', () => {
 
         expect(component.isSubmitting()).toBe(false);
         expect(component.errorMessage()).toBe('Failed to generate code.');
+      });
+
+      it('should abort student removal if user cancels confirmation dialog', () => {
+        // Simulate user rejecting the deletion prompt
+        mockDialog.open.mockReturnValueOnce({
+          afterClosed: () => of(false),
+        } as any);
+
+        component.handleRemoveStudent(dummyStudents[0].id);
+
+        expect(mockDialog.open).toHaveBeenCalled();
+        expect(mockProjectApiService.removeStudent).not.toHaveBeenCalled();
+        expect(component.joinedStudents()).toEqual([dummyStudents[0]]);
+        expect(component.isMemberMutating()).toBe(false);
       });
     });
 

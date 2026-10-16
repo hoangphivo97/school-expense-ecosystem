@@ -41,6 +41,13 @@
         </div>
         }
 
+        @if (form().errors?.['eventOutsideParentProjectTimeline'] && (form().get('endDate')?.touched || form().get('startDate')?.touched)) {
+        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
+          <span>{{ t('warnings.outsideParentTimeline') }}</span>
+        </div>
+        }
+
         <div class="row g-4 m-0">
           <!-- Name Field -->
           <div class="col-12">

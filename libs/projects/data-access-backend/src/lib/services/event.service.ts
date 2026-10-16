@@ -35,6 +35,8 @@ import {
   EventForbiddenException,
   EventInitialSpentExceedsCapException,
   EventNotFoundException,
+  EventOutsideParentProjectTimelineException,
+  EventParentProjectRequiredException,
   EventPendingExpensesArchiveException,
   EventStudentNotEnrolledException,
   InvalidEventStateException,
@@ -70,7 +72,11 @@ export class EventService {
     let initialStatus: EventStatus;
 
     // 1. Case A: Sub-event linked to a Parent Project
-    if (dto.projectId) {
+    if (dto.type === EventFundingType.PROJECT) {
+      if (!dto.projectId) {
+        throw new EventParentProjectRequiredException();
+      }
+
       const parentProject = await this.projectRepository.findById(dto.projectId);
       if (!parentProject) {
         throw new NotFoundException(`Parent Project with ID ${dto.projectId} not found.`);
@@ -84,13 +90,19 @@ export class EventService {
         throw new BadRequestException('EventItem faculty must match parent project faculty.');
       }
 
-      const eventStart = new Date(dto.startDate);
-      const eventEnd = new Date(dto.endDate);
-      const projectStart = new Date(parentProject.startDate);
-      const projectEnd = new Date(parentProject.endDate);
+      // Normalize date boundaries: start of day for start date, end of day for end date
+      const eventStart = new Date(dto.startDate).setHours(0, 0, 0, 0);
+      const eventEnd = new Date(dto.endDate).setHours(23, 59, 59, 999);
+      const projectStart = new Date(parentProject.startDate).setHours(0, 0, 0, 0);
+      const projectEnd = new Date(parentProject.endDate).setHours(23, 59, 59, 999);
 
       if (eventStart < projectStart || eventEnd > projectEnd) {
-        throw new BadRequestException('EventItem timeline must stay within the parent project duration.');
+        throw new EventOutsideParentProjectTimelineException(
+          dto.startDate,
+          dto.endDate,
+          parentProject.startDate,
+          parentProject.endDate
+        );
       }
 
       const availableBudget =
@@ -101,15 +113,11 @@ export class EventService {
         );
       }
 
-      // Sub-events under active projects are immediately upcoming
-      initialStatus = EventStatus.UPCOMING;
-
       // Reserve project budget headroom via pendingSpent delta
       await this.projectRepository.updateSpentCounters(dto.projectId, {
         pendingSpentDelta: dto.budgetCap,
       });
 
-      // Case A: Linked to Project - Teacher must route through Dean approval; Dean/Finance can activate immediately
       const isDeanOrFinance = user.role === Role.LEVEL_2_DEAN || user.role === Role.LEVEL_1_FINANCE;
       initialStatus = isDeanOrFinance ? EventStatus.UPCOMING : EventStatus.PENDING_DEAN_APPROVAL;
     } else {
@@ -215,6 +223,25 @@ export class EventService {
     const targetStartDate = cleanDto.startDate ?? event.startDate;
     const targetEndDate = cleanDto.endDate ?? event.endDate;
     const isTimelineModified = Boolean(cleanDto.startDate || cleanDto.endDate);
+
+    if (isTimelineModified && event.type === EventFundingType.PROJECT && event.projectId) {
+      const parentProject = await this.projectRepository.findById(event.projectId);
+      if (parentProject) {
+        const eventStart = new Date(targetStartDate).setHours(0, 0, 0, 0);
+        const eventEnd = new Date(targetEndDate).setHours(23, 59, 59, 999);
+        const projectStart = new Date(parentProject.startDate).setHours(0, 0, 0, 0);
+        const projectEnd = new Date(parentProject.endDate).setHours(23, 59, 59, 999);
+
+        if (eventStart < projectStart || eventEnd > projectEnd) {
+          throw new EventOutsideParentProjectTimelineException(
+            targetStartDate,
+            targetEndDate,
+            parentProject.startDate,
+            parentProject.endDate
+          );
+        }
+      }
+    }
 
     const updateData: Partial<EventItem> = {
       ...(cleanDto.name && { name: cleanDto.name.trim() }),

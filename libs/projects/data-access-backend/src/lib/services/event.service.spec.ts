@@ -7,6 +7,10 @@ import { EventRepository } from '../repositories/abstracts/event.repository';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { EventService } from './event.service';
 import { JoinCodeService } from './join-code.service';
+import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
+import { CreateEventDto } from '@school-expense-ecosystem/projects/features-backend';
+import { EventOutsideParentProjectTimelineException, EventParentProjectRequiredException } from '../exceptions/event.exception';
+import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 
 describe('EventService', () => {
   let service: EventService;
@@ -84,13 +88,17 @@ describe('EventService', () => {
     const baseDto = {
       name: 'Hackathon 2026',
       facultyId: FacultyId.FIT,
-      type: EventFundingType.SCHOOL,
+      type: EventFundingType.PROJECT,
       budgetCap: 5000000,
       initialSpent: 0,
       projectId: 'PRJ-PARENT-01',
       startDate: new Date('2026-06-01').toISOString(),
       endDate: new Date('2026-06-05').toISOString(),
     };
+
+    const mockTeacherUser = {
+      ...createMockAuthenticatedUser()
+    }
 
     it('should throw BadRequestException if parent project is not active', async () => {
       const user = { uid: 't1', role: Role.LEVEL_3_USER, userType: UserType.TEACHER } as AuthenticatedUser;
@@ -115,6 +123,50 @@ describe('EventService', () => {
       } as any);
 
       await expect(service.createEvent(user, baseDto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw EventOutsideParentProjectTimelineException when event dates exceed parent project bounds', async () => {
+      const parentProject = createMockProjectItem({
+        id: 'PRJ-FIT-001',
+        facultyId: FacultyId.FIT,
+        status: ProjectStatus.ACTIVE,
+        startDate: '2026-11-01T00:00:00.000Z',
+        endDate: '2026-11-30T23:59:59.999Z',
+        budgetCap: 50000000,
+        currentSpent: 10000000,
+        pendingSpent: 0,
+      });
+
+      projectRepo.findById.mockResolvedValueOnce(parentProject);
+
+      const invalidEventDto: CreateEventDto = {
+        name: 'Late Workshop',
+        facultyId: FacultyId.FIT,
+        type: EventFundingType.PROJECT,
+        projectId: 'PRJ-FIT-001',
+        budgetCap: 5000000,
+        startDate: '2026-11-15T00:00:00.000Z',
+        endDate: '2026-12-05T00:00:00.000Z', // Exceeds parent project endDate
+      };
+
+      await expect(service.createEvent(mockTeacherUser, invalidEventDto)).rejects.toThrow(
+        EventOutsideParentProjectTimelineException
+      );
+    });
+
+    it('should throw EventParentProjectRequiredException when type is PROJECT but projectId is omitted', async () => {
+      const missingProjectDto: CreateEventDto = {
+        name: 'Orphan Sub-Event',
+        facultyId: FacultyId.FIT,
+        type: EventFundingType.PROJECT,
+        budgetCap: 5000000,
+        startDate: '2026-11-05T00:00:00.000Z',
+        endDate: '2026-11-10T00:00:00.000Z',
+      };
+
+      await expect(service.createEvent(mockTeacherUser, missingProjectDto)).rejects.toThrow(
+        EventParentProjectRequiredException
+      );
     });
   });
 

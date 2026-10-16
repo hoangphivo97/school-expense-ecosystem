@@ -52,3 +52,17 @@ export class EventStudentNotEnrolledException extends NotFoundException {
     super(`Student ${studentId} is not registered in this event.`);
   }
 }
+
+export class EventOutsideParentProjectTimelineException extends BadRequestException {
+  constructor(eventStart: string, eventEnd: string, projectStart: string, projectEnd: string) {
+    super(
+      `Event timeline (${eventStart} to ${eventEnd}) must stay strictly within parent project duration (${projectStart} to ${projectEnd}).`
+    );
+  }
+}
+
+export class EventParentProjectRequiredException extends BadRequestException {
+  constructor() {
+    super('Parent project ID is required when event funding type is PROJECT.');
+  }
+}
