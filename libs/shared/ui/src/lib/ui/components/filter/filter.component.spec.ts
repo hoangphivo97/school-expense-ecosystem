@@ -7,8 +7,8 @@ import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/
 
 
 describe('FilterComponent', () => {
-  let component: FilterComponent<any>;
-  let fixture: ComponentFixture<FilterComponent<any>>;
+  let component: FilterComponent;
+  let fixture: ComponentFixture<FilterComponent>;
 
   const mockConfigs: FilterFieldConfig[] = [
     {
@@ -37,7 +37,7 @@ describe('FilterComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(FilterComponent);
+    fixture = TestBed.createComponent<FilterComponent>(FilterComponent);
     component = fixture.componentInstance;
   });
 
