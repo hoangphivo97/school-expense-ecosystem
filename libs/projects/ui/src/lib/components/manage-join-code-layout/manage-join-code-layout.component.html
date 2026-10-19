@@ -119,7 +119,7 @@
               </div>
 
               <div class="d-flex align-items-center gap-1">
-                <button mat-icon-button type="button" [copyToClipboard]="student.studentCode || student.id"
+                <button mat-icon-button type="button" [seCopyToClipboard]="student.studentCode || student.id"
                   [matTooltip]="t('roster.copyIdTooltip')">
                   <mat-icon class="fs-6 h-auto w-auto text-secondary">content_copy</mat-icon>
                 </button>
@@ -162,7 +162,7 @@
 
           <div
             class="code-display-box d-flex align-items-center justify-content-between p-3 rounded-2 my-2 bg-light border"
-            [copyToClipboard]="joinConfig()!.code" copySuccessKey="project.manageMembersDialog.code.copied"
+            [seCopyToClipboard]="joinConfig()!.code" copySuccessKey="project.manageMembersDialog.code.copied"
             [matTooltip]="t('code.clickToCopy')">
             <span class="invitation-code font-monospace fw-bold fs-4 text-primary tracking-wider">
               {{ joinConfig()!.code }}

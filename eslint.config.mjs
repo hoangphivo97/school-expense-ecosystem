@@ -25,7 +25,7 @@ export default [
                 'scope:shared',
                 'scope:finance',
                 'scope:dashboard',
-                'scope:admin'
+                'scope:admin',
               ],
             }, //Backend Rules
             {
@@ -36,7 +36,7 @@ export default [
                 'scope:finance',
                 'scope:shared',
                 'scope:admin',
-                'scope:expenses'
+                'scope:expenses',
               ],
             },
             // Rulse for Domain Auth
@@ -53,15 +53,16 @@ export default [
             // Rules Domain Expenses
             {
               sourceTag: 'scope:expenses',
-              onlyDependOnLibsWithTags: ['scope:expenses', 'scope:shared', 'scope: projects'],
+              onlyDependOnLibsWithTags: [
+                'scope:expenses',
+                'scope:shared',
+                'scope: projects',
+              ],
             },
             // Rules Domain Projects
             {
               sourceTag: 'scope:projects',
-              onlyDependOnLibsWithTags: [
-                'scope:projects',
-                'scope:shared',
-              ],
+              onlyDependOnLibsWithTags: ['scope:projects', 'scope:shared'],
             },
             // Rules for Shared
             {
@@ -78,6 +79,7 @@ export default [
                 'type:types',
                 'type:constants',
                 'type:data-access',
+                'type:util',
               ],
             },
             {
@@ -86,7 +88,7 @@ export default [
                 'type:shared-utils',
                 'type:types',
                 'type:constants',
-                "type:data-access"
+                'type:data-access',
               ],
             },
             {
@@ -113,7 +115,7 @@ export default [
               sourceTag: 'scope:admin',
               onlyDependOnLibsWithTags: [
                 'scope:admin',
-                'scope:shared', 
+                'scope:shared',
                 'scope:auth',
               ],
             },

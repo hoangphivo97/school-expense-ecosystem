@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { TranslocoTestingModule } from '@ngneat/transloco';
 import { FilterFieldConfig } from '@school-expense-ecosystem/shared/types';
 import { FilterComponent } from './filter.component';
 import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
