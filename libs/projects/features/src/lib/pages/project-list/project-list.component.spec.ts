@@ -8,8 +8,7 @@ import { NotificationService } from '@school-expense-ecosystem/shared/ui';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { ProjectItem, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { ProjectListComponent, ProjectViewModel } from './project-list.component';
-import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
-import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/utils-frontend';
+import { createMockAuthenticatedUser, provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
 import { enProject, twProject } from '@school-expense-ecosystem/shared/assets';
 import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
 

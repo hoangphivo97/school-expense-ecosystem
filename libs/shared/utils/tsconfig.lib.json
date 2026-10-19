@@ -7,6 +7,6 @@
     "inlineSources": true,
     "types": []
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../test-utils/src/lib/utils/transloco-testing.util.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]
 }

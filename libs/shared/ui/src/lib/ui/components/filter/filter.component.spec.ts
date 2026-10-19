@@ -4,7 +4,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { TranslocoTestingModule } from '@ngneat/transloco';
 import { FilterFieldConfig } from '@school-expense-ecosystem/shared/types';
 import { FilterComponent } from './filter.component';
-import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/utils-frontend';
+import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
 
 
 describe('FilterComponent', () => {

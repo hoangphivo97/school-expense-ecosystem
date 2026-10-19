@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
-import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/utils-frontend';
 
 import { Router, NavigationEnd } from '@angular/router';
 import { ReplaySubject } from 'rxjs';
+import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;

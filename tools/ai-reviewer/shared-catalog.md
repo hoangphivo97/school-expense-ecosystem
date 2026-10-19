@@ -61,6 +61,6 @@ When reviewing pull requests, strictly verify if the author reimplemented logic 
 
 ## 6. Unit Testing Helpers
 - **`provideSharedTranslocoTesting(extraLangs?)`**
-  - **Path**: `@school-expense-ecosystem/shared/utils/transloco-testing.util`
+  - **Path**: `@school-expense-ecosystem/shared/text-utils/utils/transloco-testing.util`
   - **Purpose**: Supplies a preconfigured Transloco testing harness loaded with shared dictionaries (`enCommon`, `enShared`, `twCommon`, `twShared`).
   - **Violation Trigger**: Instantiating empty `TranslocoTestingModule.forRoot(...)` blocks or mocking raw translation keys manually in `*.spec.ts` files.
