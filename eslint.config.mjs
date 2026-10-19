@@ -55,6 +55,14 @@ export default [
               sourceTag: 'scope:expenses',
               onlyDependOnLibsWithTags: ['scope:expenses', 'scope:shared', 'scope: projects'],
             },
+            // Rules Domain Projects
+            {
+              sourceTag: 'scope:projects',
+              onlyDependOnLibsWithTags: [
+                'scope:projects',
+                'scope:shared',
+              ],
+            },
             // Rules for Shared
             {
               sourceTag: 'scope:shared',

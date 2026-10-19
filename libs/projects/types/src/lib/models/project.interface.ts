@@ -1,4 +1,3 @@
-import { CursorPaginationParams } from "@school-expense-ecosystem/shared/types";
 import { ProjectFundingType, ProjectStatus } from "../enums/project.enum";
 import { BaseActivityItem } from "./shared.interface";
 
