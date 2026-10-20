@@ -1,6 +1,7 @@
-import { BaseFilterParams, FacultyId, Role, UserType } from "@school-expense-ecosystem/shared/types";
+// ... 1-2 lines above
+import { FacultyId, UserType } from "@school-expense-ecosystem/shared/types";
 import { PaidMethod } from "../enums/expense.enum";
-import { CursorPaginationParams, ExpenseStatus } from "@school-expense-ecosystem/shared/types";
+import { ExpenseStatus } from "@school-expense-ecosystem/shared/types";
 
 export interface ExpenseList {
   id: string;
@@ -22,13 +23,6 @@ export interface ExpenseList {
   date: string;
 }
 
-export type CreateExpenseInput = Pick<
-  ExpenseList,
-  'amount' | 'purpose' | 'description' | 'proofUrls' | 'paidMethod'
->;
-
-export type UpdateExpenseInput = Partial<CreateExpenseInput>;
-
 export interface PaginatedExpensesResponse {
   expenses: ExpenseList[];
   nextPageToken: string | null;
@@ -45,22 +39,4 @@ export interface ExpenseAnalyticsDto {
   pieData: { label: string; amount: number }[];
   lineData: { label: string; amount: number }[];
   barData: { label: string; amount: number }[];
-}
-
-export interface AnalyticsFilters extends Pick<FilterExpenseParams, "year" | "month" | "facultyId"> {
-  role: Role;
-}
-
-export interface FilterExpenseParams extends BaseFilterParams {
-  month?: number | null;
-  year?: number | null;
-  status?: ExpenseStatus | 'ALL' | null; // Typed accurately to represent business approval stages
-  facultyId?: FacultyId;
-  userType?: UserType;
-}
-
-export interface ReviewerExpenseRequestFilters extends FilterExpenseParams, CursorPaginationParams {}
-
-export interface PersonalExpenseRequestFilters extends FilterExpenseParams, CursorPaginationParams {
-  userId: string;
 }

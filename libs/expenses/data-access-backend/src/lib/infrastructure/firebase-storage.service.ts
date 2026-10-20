@@ -64,7 +64,7 @@ export class FirebaseStorageAdapter implements StorageProvider {
                 });
 
                 finalUrls.push(finalUrl);
-            } catch (error) {
+            } catch {
                 // Fallback: if the cloud move execution fails, retain the original URL to guarantee application stability
                 finalUrls.push(url);
             }
