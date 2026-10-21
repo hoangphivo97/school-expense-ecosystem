@@ -1,10 +1,6 @@
 import { Module } from '@nestjs/common';
-import { UserListBackendService } from './user-list.service';
-import { UserListController } from './user-list.controller';
-import { UserRepository } from './repository/user.repository';
-import { FirebaseUserRepository } from './infrastructure/firebase-user.repository';
-import { FirestoreAuditLogRepository } from './infrastructure/firebase-audit-log.repository';
-import { IAdminAuditLogRepository } from './repository/audit-log.repository';
+import { FirebaseUserRepository, FirestoreAuditLogRepository, IAdminAuditLogRepository, UserListBackendService, UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
+import { UserListController } from './controllers/user-list.controller';
 
 @Module({
   controllers: [UserListController],

@@ -1,4 +1,4 @@
-import { CreateJoinCodeConfig } from '@school-expense-ecosystem/projects/types';
+import { CreateJoinCodeConfig, RejectActivityPayload } from '@school-expense-ecosystem/projects/types';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -103,7 +103,7 @@ export abstract class BaseActivityQueryDto {
   year?: number;
 }
 
-export class RejectReasonDto {
+export class RejectReasonDto implements RejectActivityPayload{
   @IsString()
   @IsNotEmpty({ message: 'Rejection reason is required' })
   @MinLength(5, { message: 'Reason must be at least 5 characters long' })

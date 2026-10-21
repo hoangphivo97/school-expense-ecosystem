@@ -1,16 +1,15 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { EventFundingType, EventStatus, ProjectStatus } from '@school-expense-ecosystem/projects/types';
-import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
+import { CreateEventPayload, EventFundingType, EventStatus, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../repositories/abstracts/event.repository';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { EventService } from './event.service';
 import { JoinCodeService } from './join-code.service';
 import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
-import { CreateEventDto } from '@school-expense-ecosystem/projects/features-backend';
 import { EventOutsideParentProjectTimelineException, EventParentProjectRequiredException } from '../exceptions/event.exception';
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
+import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
 
 describe('EventService', () => {
   let service: EventService;
@@ -102,25 +101,31 @@ describe('EventService', () => {
 
     it('should throw BadRequestException if parent project is not active', async () => {
       const user = { uid: 't1', role: Role.LEVEL_3_USER, userType: UserType.TEACHER } as AuthenticatedUser;
-      projectRepo.findById.mockResolvedValueOnce({
-        id: 'PRJ-PARENT-01',
-        status: ProjectStatus.PENDING_DEAN_APPROVAL,
-      } as any);
+      projectRepo.findById.mockResolvedValueOnce(
+        createMockProjectItem({
+          id: 'PRJ-PARENT-01',
+          status: ProjectStatus.PENDING_DEAN_APPROVAL,
+        })
+      );
 
       await expect(service.createEvent(user, baseDto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException if sub-event timeline exceeds parent project', async () => {
       const user = { uid: 't1', role: Role.LEVEL_3_USER, userType: UserType.TEACHER } as AuthenticatedUser;
-      projectRepo.findById.mockResolvedValueOnce({
-        id: 'PRJ-PARENT-01',
-        status: ProjectStatus.ACTIVE,
-        facultyId: FacultyId.FIT,
-        startDate: new Date('2026-06-02').toISOString(),
-        endDate: new Date('2026-06-04').toISOString(),
-        budgetCap: 20000000,
-        currentSpent: 0,
-      } as any);
+      projectRepo.findById.mockResolvedValueOnce(
+        createMockProjectItem(
+          {
+            id: 'PRJ-PARENT-01',
+            status: ProjectStatus.ACTIVE,
+            facultyId: FacultyId.FIT,
+            startDate: new Date('2026-06-02').toISOString(),
+            endDate: new Date('2026-06-04').toISOString(),
+            budgetCap: 20000000,
+            currentSpent: 0,
+          }
+        )
+      );
 
       await expect(service.createEvent(user, baseDto)).rejects.toThrow(BadRequestException);
     });
@@ -139,7 +144,7 @@ describe('EventService', () => {
 
       projectRepo.findById.mockResolvedValueOnce(parentProject);
 
-      const invalidEventDto: CreateEventDto = {
+      const invalidEventPayload: CreateEventPayload = {
         name: 'Late Workshop',
         facultyId: FacultyId.FIT,
         type: EventFundingType.PROJECT,
@@ -149,13 +154,13 @@ describe('EventService', () => {
         endDate: '2026-12-05T00:00:00.000Z', // Exceeds parent project endDate
       };
 
-      await expect(service.createEvent(mockTeacherUser, invalidEventDto)).rejects.toThrow(
+      await expect(service.createEvent(mockTeacherUser, invalidEventPayload)).rejects.toThrow(
         EventOutsideParentProjectTimelineException
       );
     });
 
     it('should throw EventParentProjectRequiredException when type is PROJECT but projectId is omitted', async () => {
-      const missingProjectDto: CreateEventDto = {
+      const missingProjectPayload: CreateEventPayload = {
         name: 'Orphan Sub-Event',
         facultyId: FacultyId.FIT,
         type: EventFundingType.PROJECT,
@@ -164,7 +169,7 @@ describe('EventService', () => {
         endDate: '2026-11-10T00:00:00.000Z',
       };
 
-      await expect(service.createEvent(mockTeacherUser, missingProjectDto)).rejects.toThrow(
+      await expect(service.createEvent(mockTeacherUser, missingProjectPayload)).rejects.toThrow(
         EventParentProjectRequiredException
       );
     });
@@ -175,11 +180,23 @@ describe('EventService', () => {
       const user = { uid: 'org-1', role: Role.LEVEL_2_DEAN, facultyId: FacultyId.FIT } as AuthenticatedUser;
       eventRepo.findById.mockResolvedValueOnce({
         id: 'EVT-1',
+        name: 'Mock Event',
         organizerId: 'org-1',
         facultyId: FacultyId.FIT,
+        type: EventFundingType.FACULTY,
         status: EventStatus.PENDING_DEAN_APPROVAL,
-        joinedStudentIds: []
-      } as any);
+        budgetCap: 10000000,
+        initialSpent: 0,
+        currentSpent: 0,
+        pendingSpent: 0,
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        joinedStudentIds: [],
+        joinConfig: null,
+        years: [2026],
+      });
 
       await expect(service.approveEvent('EVT-1', user)).rejects.toThrow(ForbiddenException);
     });

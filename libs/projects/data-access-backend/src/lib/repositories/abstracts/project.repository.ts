@@ -32,6 +32,6 @@ export abstract class ProjectRepository {
     id: string,
     targetStatus: string,
     allowedCurrentStatuses: string[],
-    additionalData?: Record<string, any>
+    additionalData?: Record<string, unknown>
   ): Promise<ProjectItem>;
 }

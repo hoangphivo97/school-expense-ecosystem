@@ -2,7 +2,7 @@ export class BaseAdminException extends Error {
   constructor(
     public readonly errorCode: string,
     public override readonly message: string,
-    public readonly extraData?: Record<string, any>
+    public readonly extraData?: Record<string, unknown>
   ) {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype);

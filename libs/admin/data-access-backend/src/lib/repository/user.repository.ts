@@ -7,7 +7,7 @@ export abstract class UserRepository {
   abstract createUserRecord(uid: string, userData: CreateUserInput): Promise<CreateUserResult>;
   abstract updateUserFields(uid: string, updateData: UpdateUserInput): Promise<void>;
   abstract createAuthAccount(email: string, fullName: string, password?: string): Promise<string>;
-  abstract findById(uid: string): Promise<any | null>;
+  abstract findById(uid: string): Promise<UserBase | null>;
   abstract updateStatus(uid: string, status: UserStatus, reason?: string): Promise<void>;
   abstract deleteUserRecord(uid: string): Promise<void>;
   abstract deleteAuthAccount(uid: string) : Promise<void>;

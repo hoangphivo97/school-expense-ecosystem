@@ -1,47 +1,15 @@
-import { FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { FilterUserParams, CursorPaginationParams } from '@school-expense-ecosystem/shared/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types'
-import { DeleteReasonType } from '../enums/user-list.enum';
-
-
-/**
- * Unified Flat User Query Payload Contract.
- * Composes pristine business criteria with strict technical pagination tokens.
- * Completely eliminates loose parameter code smells in the service layer.
- */
-export type UserQueryPayload = FilterUserParams & CursorPaginationParams;
-
-export interface CreateUserInput {
-  fullName: string;
-  email: string;
-  userCode: string;
-  role: Role;
-  userType?: UserType;
-  facultyId?: FacultyId | null;
-  createdBy?: string;
-  dateOfBirth?: string;
-}
-
-export interface UpdateUserInput {
-  fullName?: string;
-  role?: Role;
-  userType?: UserType;
-  facultyId?: FacultyId | null;
-  dateOfBirth?: string;
-}
 
 export interface CreateUserResult {
   id: string;
   success: boolean;
 }
 
+/**
+ * Paginated directory response structure
+ */
 export interface PaginatedUserResult {
   users: UserBase[];
   nextPageToken: string | null;
   totalItems: number;
-}
-
-export interface DeleteUserPayload {
-  reasonType: DeleteReasonType;
-  confirmationText: string;
 }

@@ -62,7 +62,7 @@ export default [
             // Rules Domain Projects
             {
               sourceTag: 'scope:projects',
-              onlyDependOnLibsWithTags: ['scope:projects', 'scope:shared'],
+              onlyDependOnLibsWithTags: ['scope:projects', 'scope:shared', 'scope:admin'],
             },
             // Rules for Shared
             {
@@ -89,6 +89,7 @@ export default [
                 'type:types',
                 'type:constants',
                 'type:data-access',
+                'type:util'
               ],
             },
             {

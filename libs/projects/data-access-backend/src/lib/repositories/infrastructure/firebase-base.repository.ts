@@ -69,7 +69,7 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
     id: string,
     deltas: { pendingSpentDelta?: number; currentSpentDelta?: number }
   ): Promise<void> {
-    const updatePayload: Record<string, any> = {
+    const updatePayload: Record<string, unknown> = {
       updatedAt: new Date().toISOString(),
     };
 
@@ -84,8 +84,8 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
     await this.collection.doc(id).update(updatePayload);
   }
 
-  protected mapBaseFields(doc: admin.firestore.DocumentSnapshot): Record<string, any> {
-    const data = doc.data()!;
+  protected mapBaseFields(doc: admin.firestore.DocumentSnapshot): Record<string, unknown> {
+    const data = doc.data() ?? {};
     return {
       ...data,
       id: doc.id,
@@ -173,14 +173,18 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
   /**
    * Universal date formatter for Firestore Timestamp / Date / string
    */
-  protected formatDate(dateVal: any): string {
+  protected formatDate(dateVal: unknown): string {
     if (!dateVal) return new Date().toISOString();
     if (typeof dateVal === 'string') return dateVal;
-    if (dateVal.toDate && typeof dateVal.toDate === 'function') {
-      return dateVal.toDate().toISOString();
+    if (typeof dateVal === 'object' && 
+      dateVal !== null &&
+      'toDate' in dateVal &&
+      typeof(dateVal as { toDate: () => Date}).toDate === 'function'
+    ) {
+      return (dateVal as { toDate: () => Date }).toDate().toISOString();
     }
     if (dateVal instanceof Date) return dateVal.toISOString();
-    return new Date(dateVal).toISOString();
+    return new Date(dateVal as string | number | Date).toISOString();
   }
 
   private validateJoinEligibility(entity: T, studentId: string, expectedCode: string, allowedStatuses: TStatus[]): { currentUses: number } {
@@ -239,10 +243,10 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
       return {
         ...entity,
         joinedStudentIds: [...(entity.joinedStudentIds ?? []), studentId],
-        joinConfig: {
-          ...entity.joinConfig!,
+        joinConfig: entity.joinConfig ? {
+          ...entity.joinConfig,
           usedCount: nextUsedCount,
-        },
+        } : null,
         updatedAt: timestampIso,
       };
     });
@@ -258,7 +262,7 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
         throw new DepartmentFundNotFoundException(departmentFundId);
       }
 
-      const fundData = fundDoc.data()!;
+      const fundData = fundDoc.data() ?? {};
       const remainingBudget = Number(fundData['remainingBudget'] || 0);
 
       // Snapshot balance availability check

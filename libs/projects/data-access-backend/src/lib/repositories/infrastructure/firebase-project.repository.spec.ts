@@ -4,13 +4,24 @@ import {
   DepartmentFundNotFoundException,
   InsufficientDepartmentFundException,
 } from '../../exceptions/project.exception';
-import { ProjectItem } from '@school-expense-ecosystem/projects/types';
 import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
+
+interface MockTransaction {
+  get: jest.Mock;
+  update: jest.Mock;
+  set: jest.Mock;
+}
+
+interface MockFirestoreDb {
+  collection: jest.Mock;
+  doc: jest.Mock;
+  runTransaction: jest.Mock;
+}
 
 describe('FirestoreProjectRepository - createWithFacultyFund', () => {
   let repository: FirestoreProjectRepository;
-  let mockDb: any;
-  let mockTransaction: any;
+  let mockDb: MockFirestoreDb;
+  let mockTransaction: MockTransaction;
 
   const mockProject = createMockProjectItem()
   const mockFundId = 'IT_DEPT_2026';
