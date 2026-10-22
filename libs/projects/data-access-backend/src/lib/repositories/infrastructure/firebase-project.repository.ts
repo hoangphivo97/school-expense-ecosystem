@@ -80,6 +80,6 @@ export class FirestoreProjectRepository
   }
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): ProjectItem {
-    return this.mapBaseFields(doc) as ProjectItem;
+    return this.mapBaseFields(doc) as unknown as ProjectItem;
   }
 }

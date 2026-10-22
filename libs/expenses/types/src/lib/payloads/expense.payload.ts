@@ -32,6 +32,8 @@ export interface ExpenseAnalyticsFilters extends Pick<FilterExpenseParams, 'year
   role: Role;
 }
 
+export type ExpenseAnalyticsQueryPayload = Pick<FilterExpenseParams, 'year' | 'month'>;
+
 // Backward-compatibility aliases for existing backend services
 export type CreateExpenseInput = CreateExpensePayload;
 export type UpdateExpenseInput = UpdateExpensePayload;

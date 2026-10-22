@@ -79,6 +79,6 @@ export class FirebaseEventRepository
   }
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): EventItem {
-    return this.mapBaseFields(doc) as EventItem;
+    return this.mapBaseFields(doc) as unknown as EventItem;
   }
 }

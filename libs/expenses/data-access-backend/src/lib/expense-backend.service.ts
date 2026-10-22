@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ExpenseRepository } from './expense.repository';
-import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, ExpenseAuditLogDocument, PersonalExpenseRequestFilters, ReviewerExpenseRequestFilters, CreateExpenseInput, AnalyticsFilters } from '@school-expense-ecosystem/expenses/types';
+import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, ExpenseAuditLogDocument, PersonalExpenseRequestFilters, ReviewerExpenseRequestFilters, CreateExpenseInput, ExpenseAnalyticsQueryPayload } from '@school-expense-ecosystem/expenses/types';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { ExpenseAmountLimitExceededException, ExpenseInvalidDisbursementActionException, ExpenseMissingRejectionReasonException, ExpenseNotFoundException, ExpenseWorkflowLockedException } from './exceptions/expense.exception';
@@ -177,7 +177,7 @@ export class ExpenseBackendService {
 
   async getExpenseAnalytics(
     user: AuthenticatedUser,
-    query: AnalyticsFilters
+    query: ExpenseAnalyticsQueryPayload
   ): Promise<ExpenseAnalyticsDto> {
     // Admin and Finance oversee university-wide metrics; Dean is scoped to their faculty
     const isGlobalRole =
