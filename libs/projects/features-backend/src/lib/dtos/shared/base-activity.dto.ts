@@ -1,8 +1,7 @@
 import { CreateJoinCodeConfig, RejectActivityPayload } from '@school-expense-ecosystem/projects/types';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
-  IsArray,
   IsDateString,
   IsEnum,
   IsInt,
@@ -83,7 +82,7 @@ export abstract class BaseActivityQueryDto {
   @IsInt()
   @Min(1)
   @Max(100)
-  limit: number = 10;
+  limit = 10;
 
   @IsOptional()
   @IsString()

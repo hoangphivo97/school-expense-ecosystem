@@ -1,6 +1,6 @@
 import { Directive, inject, input } from '@angular/core';
 import { Clipboard } from '@angular/cdk/clipboard';
-import { NotificationService } from '../services/notification-service/notification.service';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 @Directive({
   selector: '[seCopyToClipboard]',

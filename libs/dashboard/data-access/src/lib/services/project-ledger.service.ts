@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { TimelineGroup, TimelineItem } from '@school-expense-ecosystem/dashboard/types';
 import { marked } from 'marked';
+import { GithubIssue } from '@school-expense-ecosystem/dashboard/types';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class ProjectLedgerService {
   private readonly GITHUB_API_URL = 'https://api.github.com/repos/hoangphivo97/school-expense-ecosystem/issues?state=all&per_page=100';
 
   getLedgerTimelines(): Observable<{ history: TimelineGroup[]; roadmap: TimelineGroup[] }> {
-    return this.http.get<any[]>(this.GITHUB_API_URL).pipe(
+    return this.http.get<GithubIssue[]>(this.GITHUB_API_URL).pipe(
       map(issues => {
         // Only Issue is feature
         const cleanIssues = issues.filter(i => !i.pull_request);
@@ -29,7 +30,7 @@ export class ProjectLedgerService {
     );
   }
 
-  private transformAndGroupIssues(issues: any[]): TimelineGroup[] {
+  private transformAndGroupIssues(issues: GithubIssue[]): TimelineGroup[] {
     const groups: { [year: number]: { [month: number]: TimelineItem[] } } = {};
 
     issues.forEach(issue => {

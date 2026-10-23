@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { ConfirmDialogComponent, NotificationService } from '@school-expense-ecosystem/shared/ui';
+import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   EventFundingType,
@@ -17,6 +17,7 @@ import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/cr
 import { createMockAuthenticatedUser, provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
 import { enEvent, twEvent } from '@school-expense-ecosystem/shared/assets';
 import { createMockEventItem } from '@school-expense-ecosystem/projects/test-utils';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 describe('EventListComponent', () => {
   let component: EventListComponent;

@@ -48,7 +48,7 @@ OPERATIONAL DIRECTIVES:
 
 ## 4. ARCHITECTURAL BOUNDARIES & NX MONOREPO
 - Nx Project Classification (`project.json`):
-  - Projects must maintain correct tags: `["type:feature" | "type:ui" | "type:data-access" | "type:util"]` and `["scope:<domain>"]`.
+  - Projects must maintain correct tags: `["type:features" | "type:ui" | "type:data-access" | "type:util"]` and `["scope:<domain>"]`.
 - UI / Presentational Components (`libs/*/ui/*`):
   - Must remain "Dumb Components".
   - Strictly FORBIDDEN: Injecting Stores, Services, or `HttpClient`. All interactions must pass via `input()` and `output()`.

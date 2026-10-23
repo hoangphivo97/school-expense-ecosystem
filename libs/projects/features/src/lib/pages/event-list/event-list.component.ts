@@ -26,13 +26,13 @@ import {
   CopyToClipboardDirective,
   FilterComponent,
   LoadingDirective,
-  NotificationService,
   PaginationComponent,
 } from '@school-expense-ecosystem/shared/ui';
 import { ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/create-event-dialog.component';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogData, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 export interface EventViewModel extends EventItem, BaseActivityViewModel {
   canManage: boolean;

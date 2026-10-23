@@ -39,7 +39,7 @@ export default [
                 'scope:expenses',
               ],
             },
-            // Rulse for Domain Auth
+            // Rules Domain Auth
             {
               sourceTag: 'scope:auth',
               onlyDependOnLibsWithTags: [
@@ -47,7 +47,7 @@ export default [
                 'scope:shared',
                 'scope:features',
                 'scope:data-access',
-                'scope: data-access-backend',
+                'scope:data-access-backend',
               ],
             },
             // Rules Domain Expenses
@@ -56,20 +56,24 @@ export default [
               onlyDependOnLibsWithTags: [
                 'scope:expenses',
                 'scope:shared',
-                'scope: projects',
+                'scope:projects',
               ],
             },
             // Rules Domain Projects
             {
               sourceTag: 'scope:projects',
-              onlyDependOnLibsWithTags: ['scope:projects', 'scope:shared', 'scope:admin'],
+              onlyDependOnLibsWithTags: ['scope:projects', 'scope:shared', 'scope:admin', 'scope:finance'],
             },
             // Rules for Shared
             {
               sourceTag: 'scope:shared',
               onlyDependOnLibsWithTags: ['scope:shared'],
             },
-
+            // Rules for Dashboard
+            {
+              sourceTag: 'scope:dashboard',
+              onlyDependOnLibsWithTags: ['scope:dashboard', 'scope:shared']
+            },
             // Inbound Rules for Shared Libraries (UI, Data Access, Utils, Types, Constants)
             {
               sourceTag: 'type:ui',

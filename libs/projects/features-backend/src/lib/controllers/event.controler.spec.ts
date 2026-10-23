@@ -1,6 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as supertest from 'supertest';
+import request from 'supertest';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import {
   EnrolledActivitySummary,
@@ -12,7 +12,6 @@ import {
 import { EventController } from './event.controller';
 import { EventService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
-const request = require('supertest');
 
 describe('EventController (HTTP Integration)', () => {
   let app: INestApplication;
@@ -51,8 +50,8 @@ describe('EventController (HTTP Integration)', () => {
       })
     );
 
-    app.use((req: any, _res: any, next: () => void) => {
-      req.user = mockCurrentUser;
+    app.use((req: Record<string, unknown>, _res: unknown, next: () => void) => {
+      req['user'] = mockCurrentUser;
       next();
     });
 
