@@ -34,4 +34,8 @@ describe('LanguageSwitcherComponent', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
+
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
+  });
 })

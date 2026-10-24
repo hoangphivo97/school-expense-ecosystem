@@ -2,17 +2,20 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 
 import { Router, NavigationEnd } from '@angular/router';
-import { ReplaySubject } from 'rxjs';
+import { Observable, ReplaySubject } from 'rxjs';
 import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
-  let routerEvents$: ReplaySubject<any>;
-  let mockRouter: any;
+  let routerEvents$: ReplaySubject<NavigationEnd>;
+  let mockRouter: {
+    events: Observable<NavigationEnd>;
+    url: string;
+  };
 
   beforeEach(async () => {
-    routerEvents$ = new ReplaySubject<any>(1);
+    routerEvents$ = new ReplaySubject<NavigationEnd>(1);
     mockRouter = {
       events: routerEvents$.asObservable(),
       url: '/dashboard'

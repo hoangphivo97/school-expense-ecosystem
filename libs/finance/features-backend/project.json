@@ -4,7 +4,7 @@
   "sourceRoot": "libs/finance/features-backend/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["scope:finance", "type:features"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

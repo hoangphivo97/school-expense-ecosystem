@@ -25,7 +25,8 @@ export default [
                 'scope:shared',
                 'scope:finance',
                 'scope:dashboard',
-                'scope:admin'
+                'scope:admin',
+                'scope:projects',
               ],
             }, //Backend Rules
             {
@@ -36,10 +37,11 @@ export default [
                 'scope:finance',
                 'scope:shared',
                 'scope:admin',
-                'scope:expenses'
+                'scope:expenses',
+                'scope:projects'
               ],
             },
-            // Rulse for Domain Auth
+            // Rules Domain Auth
             {
               sourceTag: 'scope:auth',
               onlyDependOnLibsWithTags: [
@@ -47,20 +49,33 @@ export default [
                 'scope:shared',
                 'scope:features',
                 'scope:data-access',
-                'scope: data-access-backend',
+                'scope:data-access-backend',
               ],
             },
             // Rules Domain Expenses
             {
               sourceTag: 'scope:expenses',
-              onlyDependOnLibsWithTags: ['scope:expenses', 'scope:shared', 'scope: projects'],
+              onlyDependOnLibsWithTags: [
+                'scope:expenses',
+                'scope:shared',
+                'scope:projects',
+              ],
+            },
+            // Rules Domain Projects
+            {
+              sourceTag: 'scope:projects',
+              onlyDependOnLibsWithTags: ['scope:projects', 'scope:shared', 'scope:admin', 'scope:finance'],
             },
             // Rules for Shared
             {
               sourceTag: 'scope:shared',
               onlyDependOnLibsWithTags: ['scope:shared'],
             },
-
+            // Rules for Dashboard
+            {
+              sourceTag: 'scope:dashboard',
+              onlyDependOnLibsWithTags: ['scope:dashboard', 'scope:shared']
+            },
             // Inbound Rules for Shared Libraries (UI, Data Access, Utils, Types, Constants)
             {
               sourceTag: 'type:ui',
@@ -70,6 +85,7 @@ export default [
                 'type:types',
                 'type:constants',
                 'type:data-access',
+                'type:util',
               ],
             },
             {
@@ -78,7 +94,8 @@ export default [
                 'type:shared-utils',
                 'type:types',
                 'type:constants',
-                "type:data-access"
+                'type:data-access',
+                'type:util'
               ],
             },
             {
@@ -105,7 +122,7 @@ export default [
               sourceTag: 'scope:admin',
               onlyDependOnLibsWithTags: [
                 'scope:admin',
-                'scope:shared', 
+                'scope:shared',
                 'scope:auth',
               ],
             },

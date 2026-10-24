@@ -1,8 +1,7 @@
-import { CreateJoinCodeConfig } from '@school-expense-ecosystem/projects/types';
+import { CreateJoinCodeConfig, RejectActivityPayload } from '@school-expense-ecosystem/projects/types';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
-  IsArray,
   IsDateString,
   IsEnum,
   IsInt,
@@ -83,7 +82,7 @@ export abstract class BaseActivityQueryDto {
   @IsInt()
   @Min(1)
   @Max(100)
-  limit: number = 10;
+  limit = 10;
 
   @IsOptional()
   @IsString()
@@ -103,7 +102,7 @@ export abstract class BaseActivityQueryDto {
   year?: number;
 }
 
-export class RejectReasonDto {
+export class RejectReasonDto implements RejectActivityPayload{
   @IsString()
   @IsNotEmpty({ message: 'Rejection reason is required' })
   @MinLength(5, { message: 'Reason must be at least 5 characters long' })

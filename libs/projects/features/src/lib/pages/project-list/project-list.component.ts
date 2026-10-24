@@ -2,7 +2,7 @@ import { Component, OnInit, Signal, computed, inject, signal } from '@angular/co
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogData, DialogActionEnum, FacultyId, FilterFieldConfig, FilterOption, Role, SharedFilterFields, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
-import { BaseModalComponent, BaseModalData, ConfirmDialogComponent, CopyToClipboardDirective, FilterComponent, LoadingDirective, NotificationService, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
+import { BaseModalComponent, BaseModalData, ConfirmDialogComponent, CopyToClipboardDirective, FilterComponent, LoadingDirective, PaginationComponent } from '@school-expense-ecosystem/shared/ui';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +18,7 @@ import { ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent } 
 import { CreateProjectDialogComponent } from '../../dialogs/create-project-dialog/create-project-dialog.component';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogData, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 export interface ProjectViewModel extends ProjectItem {
   canApprove: boolean;
@@ -38,7 +39,7 @@ export interface ProjectViewModel extends ProjectItem {
     { provide: TRANSLOCO_SCOPE, useValue: 'project' }
   ]
 })
-export class ProjectListComponent implements OnInit {
+export class ProjectListComponent {
   private readonly projectApiService = inject(ProjectApiService);
   private readonly authSignalStore = inject(AuthSignalStore);
   private readonly dialog = inject(MatDialog);
@@ -195,9 +196,6 @@ export class ProjectListComponent implements OnInit {
     'status',
     'action',
   ]);
-
-  ngOnInit(): void {
-  }
 
   canManageJoinCode(project: ProjectItem): boolean {
     const user = this.currentUser();

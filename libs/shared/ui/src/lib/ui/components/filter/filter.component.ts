@@ -8,9 +8,6 @@ import {
   effect,
   signal,
   isSignal,
-  untracked,
-  Injector,
-  runInInjectionContext,
   OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -22,7 +19,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableDataSource } from '@angular/material/table';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
-import { FilterFieldConfig, FilterOption, FilterValuePrimitive } from '@school-expense-ecosystem/shared/types';
+import { FilterFieldConfig, FilterOption } from '@school-expense-ecosystem/shared/types';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -146,7 +143,7 @@ export class FilterComponent<TFilter extends object = Record<string, unknown>, T
       const incoming = this.value();
       if (!this.form || !incoming) return;
 
-      this.form.patchValue(incoming as any, { emitEvent: false });
+      this.form.patchValue(incoming as Record<string, unknown>, { emitEvent: false });
     });
   }
 

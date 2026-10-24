@@ -3,3 +3,4 @@ export * from './lib/interfaces/chart.interface';
 export * from './lib/interfaces/expense.interface';
 export * from './lib/enums/expense.enum';
 export * from './lib/interfaces/expense-logs.interface';
+export * from './lib/payloads/expense.payload';

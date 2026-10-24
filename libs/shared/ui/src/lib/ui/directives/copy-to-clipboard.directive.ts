@@ -1,9 +1,9 @@
 import { Directive, inject, input } from '@angular/core';
 import { Clipboard } from '@angular/cdk/clipboard';
-import { NotificationService } from '@school-expense-ecosystem/shared/ui';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 @Directive({
-  selector: '[copyToClipboard]',
+  selector: '[seCopyToClipboard]',
   standalone: true,
   host: {
     '(click)': 'onClick($event)',
@@ -14,17 +14,15 @@ export class CopyToClipboardDirective {
   private readonly clipboard = inject(Clipboard);
   private readonly notify = inject(NotificationService);
 
-  readonly text = input.required<string>({ alias: 'copyToClipboard' });
-  readonly successKey = input<string>('shared.notifications.copiedToClipboard', {
-    alias: 'copySuccessKey',
-  });
+  readonly seCopyToClipboard = input.required<string>();
+  readonly copySuccessKey = input<string>('shared.notifications.copiedToClipboard');
 
   protected onClick(event: MouseEvent): void {
     event.stopPropagation();
-    const value = this.text();
+    const value = this.seCopyToClipboard();
 
     if (value && this.clipboard.copy(value)) {
-      this.notify.success(this.successKey());
+      this.notify.success(this.copySuccessKey());
     }
   }
 }

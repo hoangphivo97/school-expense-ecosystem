@@ -1,10 +1,10 @@
 import { Controller, Get, UseGuards, Req, Query, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { UserListBackendService } from './user-list.service';
 import { Role, UserBase } from '@school-expense-ecosystem/shared/types';
 import { JwtAuthGuard, RolesGuard, Roles } from '@school-expense-ecosystem/shared/guards-backend';
-import { ChangeUserStatusDto, CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
 import { IAdminExecutor, UserQueryPayload } from '@school-expense-ecosystem/admin/types';
-import { ActiveAdmin } from './decorators/admin-executor.decorator';
+import { ChangeUserStatusDto, CreateUserDto, DeleteUserDto, UpdateUserDto } from '../dto/user-list.dto';
+import { ActiveAdmin } from '../decorators/admin-executor.decorator';
+import { UserListBackendService } from '@school-expense-ecosystem/admin/data-access-backend';
 
 
 @Controller('users')

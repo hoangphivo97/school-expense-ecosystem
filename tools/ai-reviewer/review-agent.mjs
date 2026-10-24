@@ -37,15 +37,26 @@ function assembleApplicableRules(changedFiles) {
     rules.push(readRule('nx-boundaries.rules.md'));
   }
 
+  // Architect Fix: Dynamically inject eslint.config.mjs as Single Source of Truth for Nx Boundaries
+  const eslintConfigPath = path.resolve('eslint.config.mjs');
+  if (fs.existsSync(eslintConfigPath)) {
+    const eslintContent = fs.readFileSync(eslintConfigPath, 'utf-8');
+    rules.push(
+      `### DYNAMIC SYSTEM CONFIGURATION: ACTIVE ESLINT MODULE BOUNDARIES (\`eslint.config.mjs\`):\n\`\`\`javascript\n${eslintContent}\n\`\`\``
+    );
+  }
+
   // Detect relevant layers from modified file paths
   const hasFrontendChanges = changedFiles.some(
     (f) =>
       f.includes('apps/mfe') ||
       f.includes('/features/') ||
       f.includes('/ui/') ||
+      (f.includes('/data-access/') && !f.includes('data-access-backend')) ||
       f.endsWith('.html') ||
       f.endsWith('.scss')
   );
+
   const hasBackendChanges = changedFiles.some(
     (f) =>
       f.includes('apps/backend') ||
@@ -53,6 +64,7 @@ function assembleApplicableRules(changedFiles) {
       f.includes('data-access-backend') ||
       f.includes('guards-backend')
   );
+  
   const hasFirestoreRepoChanges = changedFiles.some(
     (f) =>
       f.includes('data-access-backend') &&

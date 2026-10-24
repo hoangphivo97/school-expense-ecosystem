@@ -179,7 +179,7 @@ describe('ManageJoinCodeDialogComponent', () => {
         // Ensure confirmation dialog resolves to true
         mockDialog.open.mockReturnValueOnce({
           afterClosed: () => of(true),
-        } as any);
+        } as unknown as MatDialogRef<unknown>);
 
         component.handleRemoveStudent(dummyStudents[0].id);
 
@@ -239,7 +239,7 @@ describe('ManageJoinCodeDialogComponent', () => {
         // Simulate user rejecting the deletion prompt
         mockDialog.open.mockReturnValueOnce({
           afterClosed: () => of(false),
-        } as any);
+        } as unknown as MatDialogRef<unknown>);
 
         component.handleRemoveStudent(dummyStudents[0].id);
 

@@ -22,7 +22,7 @@
               {{ t('columns.id') }}
             </th>
             <td mat-cell *matCellDef="let event" class="py-3 px-4">
-              <span class="event-id-chip" [matTooltip]="t('actions.clickToCopy')" [copyToClipboard]="event.id"
+              <span class="event-id-chip" [matTooltip]="t('actions.clickToCopy')" [seCopyToClipboard]="event.id"
                 copySuccessKey="project.projectList.notifications.copiedToClipboard">
                 {{ event.id }}
               </span>

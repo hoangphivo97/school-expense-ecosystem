@@ -30,7 +30,12 @@ describe('CreateEventDialogComponent', () => {
   let mockDialog: { open: jest.Mock };
   let mockEventApiService: jest.Mocked<Partial<EventApiService>>;
   let mockProjectApiService: jest.Mocked<Partial<ProjectApiService>>;
-  let mockFacultyApiService: { facultiesResource: { value: WritableSignal<any[]>; isLoading: WritableSignal<boolean> } };
+  let mockFacultyApiService: {
+    facultiesResource: {
+      value: WritableSignal<{ id: FacultyId; name: string }[]>;
+      isLoading: WritableSignal<boolean>;
+    };
+  };
   let mockUserSignal: WritableSignal<AuthenticatedUser | null>;
   let mockProjectsResourceSignal: WritableSignal<{ items: ProjectItem[]; total: number } | undefined>;
 
@@ -73,7 +78,7 @@ describe('CreateEventDialogComponent', () => {
       getProjectsResource: jest.fn().mockReturnValue({
         value: mockProjectsResourceSignal,
         isLoading: signal(false),
-      } as any),
+      } as unknown as ReturnType<ProjectApiService['getProjectsResource']>),
     };
 
     mockFacultyApiService = {
@@ -232,7 +237,7 @@ describe('CreateEventDialogComponent', () => {
       // User confirms the warning modal
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onSubmit();
 
@@ -265,8 +270,8 @@ describe('CreateEventDialogComponent', () => {
 
       // User cancels the warning modal
       mockDialog.open.mockReturnValue({
-        afterClosed: () => of(false),
-      } as any);
+        afterClosed: () => of(true),
+      } as unknown as MatDialogRef<unknown>);
 
       component.onSubmit();
 

@@ -4,7 +4,7 @@
   "sourceRoot": "libs/shared/guards-frontend/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["scope:shared","type:guard"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

@@ -13,8 +13,6 @@ const SEED_FACULTIES: Faculty[] = [
   { id: FacultyId.FLA, name: 'Faculty of Law and Public Administration', isActive: true },
 ];
 
-const DEFAULT_FACULTY_BUDGET_BASELINE = 50_000_000;
-
 @Injectable()
 export class FirestoreFacultyRepository implements FacultyRepository {
   private readonly logger = new Logger(FirestoreFacultyRepository.name);
@@ -31,7 +29,7 @@ export class FirestoreFacultyRepository implements FacultyRepository {
       }
 
       return snapshot.docs.map((doc) => {
-        const data = doc.data();
+        const data = doc.data() ?? {};
         return {
           id: doc.id as FacultyId,
           name: data['name'] ?? '',
@@ -55,7 +53,7 @@ export class FirestoreFacultyRepository implements FacultyRepository {
         return fallback ?? null;
       }
 
-      const data = doc.data()!;
+      const data = doc.data() ?? {};
       return {
         id: doc.id as FacultyId,
         name: data['name'] ?? '',

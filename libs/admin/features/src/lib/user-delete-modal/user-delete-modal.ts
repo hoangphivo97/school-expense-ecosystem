@@ -10,8 +10,8 @@ import { UserListService } from '@school-expense-ecosystem/admin/data-access';
 import { DeleteReasonType, DeleteUserPayload } from '@school-expense-ecosystem/admin/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { form, FormField, required, validate, } from '@angular/forms/signals';
-import { FormErrorSignalPipe, LoadingDirective, NotificationService } from '@school-expense-ecosystem/shared/ui';
-import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
+import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
+import { NotificationService, trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @Component({
@@ -34,7 +34,7 @@ export class UserDeleteModalComponent {
   protected readonly DeleteReasonType = DeleteReasonType;
 
   readonly isLoading = signal<boolean>(false);
-  protected readonly deleteModel = signal<DeleteUserPayload>({
+  protected readonly deleteModel = signal<DeleteUserPayload & { confirmationText: string }>({
     reasonType: DeleteReasonType.INPUT_ERROR,
     confirmationText: ''
   });

@@ -64,10 +64,11 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       const targetQueryStr = this.formatYearMonth(filters.year, filters.month);
       query = query.where('filterYearMonth', '==', targetQueryStr) as T;
     } else if (filters.year) {
+      const targetYear = filters.year;
       if (filters.searchTerm) {
         // Bypass multi-field inequality conflict by treating the entire year as an equality array matching filterYearMonth
         const allMonthsInYear = Array.from({ length: 12 }, (_, i) =>
-          this.formatYearMonth(filters.year!, i + 1)
+          this.formatYearMonth(targetYear, i + 1)
         );
         query = query.where('filterYearMonth', 'in', allMonthsInYear) as T;
       } else {

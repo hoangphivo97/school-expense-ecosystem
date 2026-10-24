@@ -1,20 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { form, required, FormField } from '@angular/forms/signals';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { FacultyId } from '@school-expense-ecosystem/shared/types';
-import { FacultyBudgetInit } from '@school-expense-ecosystem/finance/types';
-import { BudgetApiService } from '@school-expense-ecosystem/finance/data-access';
 
 @Component({
   selector: 'lib-budget-manager',
-  imports: [FormField, CommonModule],
+  imports: [CommonModule],
   templateUrl: './budget-manager.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './budget-manager.scss',
 })
 export class BudgetManager {
-  private readonly budgetService = inject(BudgetApiService);
 
   // readonly faculties = [
   //   { id: FacultyId.FIT, name: 'Faculty of Information Technology' },

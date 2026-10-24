@@ -36,6 +36,6 @@ export abstract class EventRepository {
     id: string,
     targetStatus: string,
     allowedCurrentStatuses: string[],
-    additionalData?: Record<string, any>
+    additionalData?: Record<string, unknown>
   ): Promise<EventItem>;
 }

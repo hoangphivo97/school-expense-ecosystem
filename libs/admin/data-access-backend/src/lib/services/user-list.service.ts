@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { UserBase, } from '@school-expense-ecosystem/shared/types';
-import { UserRepository } from './repository/user.repository';
-import { AdminIdentityConflictException, AdminInvalidDeletionStatusException, AdminPeerProtectionException, AdminSecurityThreatException, AdminSelfMutationException, AdminUserNotFoundException, CreateUserDto, DeleteUserDto, UpdateUserDto } from '@school-expense-ecosystem/admin/data-access-backend';
-import { AdminActionType, CreateUserInput, CreateUserResult, DeleteReasonType, IAdminExecutor, IAuditLogChanges, UserQueryPayload } from '@school-expense-ecosystem/admin/types';
-import { IAdminAuditLogRepository } from './repository/audit-log.repository';
+import { AdminActionType, CreateUserInput, CreateUserPayload, CreateUserResult, DeleteReasonType, DeleteUserPayload, IAdminExecutor, IAuditLogChanges, UpdateUserPayload, UserQueryPayload } from '@school-expense-ecosystem/admin/types';
 import { UserStatus, Role } from '@school-expense-ecosystem/shared/types';
+import { UserRepository } from '../repository/user.repository';
+import { IAdminAuditLogRepository } from '../repository/audit-log.repository';
+import { AdminIdentityConflictException, AdminInvalidDeletionStatusException, AdminPeerProtectionException, AdminSecurityThreatException, AdminSelfMutationException, AdminUserNotFoundException } from '../exceptions/admin.exception';
 
 @Injectable()
 export class UserListBackendService {
@@ -24,24 +24,24 @@ export class UserListBackendService {
         });
     }
 
-    async provisionNewUserByAdmin(executor: IAdminExecutor, dto: CreateUserDto): Promise<CreateUserResult> {
-        const hasConflict = await this.userRepository.checkIdentityConflict(dto.email, dto.userCode);
+    async provisionNewUserByAdmin(executor: IAdminExecutor, payload: CreateUserPayload): Promise<CreateUserResult> {
+        const hasConflict = await this.userRepository.checkIdentityConflict(payload.email, payload.userCode);
         if (hasConflict) {
             throw new AdminIdentityConflictException();
         }
 
-        const isGlobalRole = dto.role === Role.LEVEL_0_ADMIN || dto.role === Role.LEVEL_1_FINANCE;
-        const resolvedFacultyId = isGlobalRole ? null : (dto.facultyId ?? null);
-        const uid = await this.userRepository.createAuthAccount(dto.email, dto.fullName, dto.password);
+        const isGlobalRole = payload.role === Role.LEVEL_0_ADMIN || payload.role === Role.LEVEL_1_FINANCE;
+        const resolvedFacultyId = isGlobalRole ? null : (payload.facultyId ?? null);
+        const uid = await this.userRepository.createAuthAccount(payload.email, payload.fullName, payload.password);
 
         const userPayload: CreateUserInput & { username: string } = {
-            email: dto.email,
-            role: dto.role,
-            userType: dto.userType,
-            fullName: dto.fullName,
-            userCode: dto.userCode,
+            email: payload.email,
+            role: payload.role,
+            userType: payload.userType,
+            fullName: payload.fullName,
+            userCode: payload.userCode,
             createdBy: executor.uid,
-            username: dto.email.split('@')[0],
+            username: payload.email.split('@')[0],
             facultyId: resolvedFacultyId
         };
 
@@ -57,24 +57,24 @@ export class UserListBackendService {
         return result;
     }
 
-    async updateUserByAdmin(targetUid: string, executor: IAdminExecutor, dto: UpdateUserDto): Promise<{ success: boolean }> {
+    async updateUserByAdmin(targetUid: string, executor: IAdminExecutor, payload: UpdateUserPayload): Promise<{ success: boolean }> {
         const targetUser = await this.validateAndGetTargetUser(targetUid, executor.uid);
 
-        if (dto.role === Role.LEVEL_0_ADMIN || dto.role === Role.LEVEL_1_FINANCE) {
-            dto.facultyId = null;
+        if (payload.role === Role.LEVEL_0_ADMIN || payload.role === Role.LEVEL_1_FINANCE) {
+            payload.facultyId = null;
         }
 
         const changes: IAuditLogChanges = {};
 
-        if (dto.role !== undefined && dto.role !== targetUser.role) {
-            changes['role'] = { old: targetUser.role || null, new: dto.role };
+        if (payload.role !== undefined && payload.role !== targetUser.role) {
+            changes['role'] = { old: targetUser.role || null, new: payload.role };
         }
 
-        if (dto.facultyId !== undefined && dto.facultyId !== targetUser.facultyId) {
-            changes['facultyId'] = { old: targetUser.facultyId || null, new: dto.facultyId };
+        if (payload.facultyId !== undefined && payload.facultyId !== targetUser.facultyId) {
+            changes['facultyId'] = { old: targetUser.facultyId || null, new: payload.facultyId };
         }
 
-        await this.userRepository.updateUserFields(targetUid, dto);
+        await this.userRepository.updateUserFields(targetUid, payload);
 
         if (Object.keys(changes).length > 0) {
             const action = 'role' in changes
@@ -135,14 +135,14 @@ export class UserListBackendService {
         return targetUser;
     }
 
-    async deleteUserByAdmin(targetUid: string, executor: IAdminExecutor, dto: DeleteUserDto): Promise<{ success: boolean }> {
+    async deleteUserByAdmin(targetUid: string, executor: IAdminExecutor, payload: DeleteUserPayload): Promise<{ success: boolean }> {
         const targetUser = await this.validateAndGetTargetUser(targetUid, executor.uid);
 
         if (targetUser.status !== UserStatus.REJECTED) {
             throw new AdminInvalidDeletionStatusException();
         }
 
-        if (dto.reasonType === DeleteReasonType.INPUT_ERROR) {
+        if (payload.reasonType === DeleteReasonType.INPUT_ERROR) {
             await this.userRepository.deleteAuthAccount(targetUid);
             await this.userRepository.deleteUserRecord(targetUid);
 
@@ -159,7 +159,7 @@ export class UserListBackendService {
             return { success: true };
         }
 
-        if (dto.reasonType === DeleteReasonType.SECURITY_THREAT) {
+        if (payload.reasonType === DeleteReasonType.SECURITY_THREAT) {
             throw new AdminSecurityThreatException();
         }
 
