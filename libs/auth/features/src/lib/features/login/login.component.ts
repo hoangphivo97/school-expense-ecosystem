@@ -19,7 +19,7 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
 import { DemoAccountArr } from '@school-expense-ecosystem/shared/constants';
 import { MatInputModule } from '@angular/material/input';
 import { email, form, FormField, required, submit } from '@angular/forms/signals';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 
 export interface DemoAccountViewModel extends DemoAccount {
   translationKey: string;

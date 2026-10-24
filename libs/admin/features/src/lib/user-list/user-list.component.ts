@@ -26,7 +26,7 @@ import { faUserXmark } from '@fortawesome/free-solid-svg-icons/faUserXmark';
 import { faCirclePause } from '@fortawesome/free-solid-svg-icons/faCirclePause';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserDeleteModalComponent } from '../user-delete-modal/user-delete-modal';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 
 @Component({

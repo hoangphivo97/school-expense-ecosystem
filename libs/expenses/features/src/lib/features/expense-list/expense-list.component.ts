@@ -20,7 +20,7 @@ import { ExpenseService } from '@school-expense-ecosystem/expenses/data-access';
 import { CreateExpenseModalComponent } from '../create-expense-modal/create-expense-modal.component';
 import { EnumToStringPipe } from '../EnumToStringPipe/enum-to-string.pipe';
 import { FilterExpenseParams } from '@school-expense-ecosystem/expenses/types';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({

@@ -6,7 +6,7 @@ import { faFileCircleXmark} from '@fortawesome/free-solid-svg-icons/faFileCircle
 import { faUserSlash } from '@fortawesome/free-solid-svg-icons/faUserSlash';
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons/faRightFromBracket';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { MatButtonModule } from '@angular/material/button';
 
 interface RestrictionNavigationState {

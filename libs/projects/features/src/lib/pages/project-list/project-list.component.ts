@@ -8,7 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { JoinCodeDialogData, JoinCodeDialogResult, ProjectFundingType, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';

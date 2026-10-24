@@ -1,5 +1,5 @@
 import { EnvironmentProviders, makeEnvironmentProviders, isDevMode } from '@angular/core';
-import { provideTransloco } from '@ngneat/transloco';
+import { provideTransloco } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from './transloco-loader';
 
 export function provideTranslocoConfig(): EnvironmentProviders {

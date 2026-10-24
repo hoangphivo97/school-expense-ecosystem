@@ -1,10 +1,10 @@
-import axios from 'axios';
-
 describe('GET /api', () => {
   it('should return a message', async () => {
-    const res = await axios.get(`/api`);
+    const baseUrl = process.env.API_URL ?? 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api`);
+    const data = await res.json();
 
     expect(res.status).toBe(200);
-    expect(res.data).toEqual({ message: 'Hello API' });
+    expect(data).toEqual({ message: 'Hello API' });
   });
 });

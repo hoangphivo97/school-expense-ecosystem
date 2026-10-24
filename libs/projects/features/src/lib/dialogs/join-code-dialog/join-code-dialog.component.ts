@@ -6,7 +6,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { EventItem, JoinCodeDialogData, JoinCodeDialogResult, ProjectItem } from '@school-expense-ecosystem/projects/types';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';

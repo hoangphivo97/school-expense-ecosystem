@@ -5,7 +5,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { ROUTE_HEADER_TITLE_REGISTRY } from '@school-expense-ecosystem/shared/constants';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'lib-header',

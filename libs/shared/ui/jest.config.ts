@@ -12,7 +12,7 @@ export default {
       },
     ],
   },
-  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$|@angular|@ngrx|rxjs|@ngneat/transloco|flat)'],
+  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$|@angular|@ngrx|rxjs|@jsverse/transloco|flat)'],
   moduleFileExtensions: ['ts', 'html', 'js', 'mjs'],
   coverageDirectory: '../../../coverage/libs/shared/ui',
 };

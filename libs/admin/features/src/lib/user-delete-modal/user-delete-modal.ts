@@ -12,7 +12,7 @@ import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { form, FormField, required, validate, } from '@angular/forms/signals';
 import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
 import { NotificationService, trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'lib-user-delete-modal',

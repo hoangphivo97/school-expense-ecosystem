@@ -18,7 +18,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableDataSource } from '@angular/material/table';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { FilterFieldConfig, FilterOption } from '@school-expense-ecosystem/shared/types';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';

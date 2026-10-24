@@ -1,7 +1,7 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 
 interface LanguageOption {

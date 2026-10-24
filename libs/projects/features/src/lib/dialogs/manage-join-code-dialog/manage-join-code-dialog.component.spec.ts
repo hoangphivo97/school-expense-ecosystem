@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   EventFundingType,
