@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.12](https://github.com/hoangphivo97/school-expense-ecosystem/compare/v0.0.11...v0.0.12) (2026-10-24)
+
+
+### Features
+
+* add department fund balance retrieval and validation ([9195da5](https://github.com/hoangphivo97/school-expense-ecosystem/commit/9195da5a231bff4b0bb3d14e0cd451f000a39f4d))
+* enhance event creation with parent project validation and timeline checks ([302980d](https://github.com/hoangphivo97/school-expense-ecosystem/commit/302980d775a206a2f2f76ad0bcd92092148e4928))
+* enhance member management by adding batch student validation and throttling for project join requests ([5f0518f](https://github.com/hoangphivo97/school-expense-ecosystem/commit/5f0518f38fbee27339f25585767500a5ef4773eb))
+* enhance member management with batch student addition and confirmation dialogs ([6c0f697](https://github.com/hoangphivo97/school-expense-ecosystem/commit/6c0f6976652f919be1385b1b8a64548bc2a8f646))
+* implement atomic Firestore transactions for concurrency-safe budget allocation and add related exceptions ([3a080b8](https://github.com/hoangphivo97/school-expense-ecosystem/commit/3a080b870a5f0683c099b8100e39fae4e65caade))
+* implement financial execution datagrid with dynamic exhaustion tracking indicators ([aa57f5f](https://github.com/hoangphivo97/school-expense-ecosystem/commit/aa57f5fa93b4cfac0261bba87940e77d3a5c71a3))
+* implement reactive forms for project and event creation with async validation and improved input handling ([5d18e26](https://github.com/hoangphivo97/school-expense-ecosystem/commit/5d18e26a526f272f7485ec5b51f6035b56d14b26))
+* implement role-based event and project status management with enhanced student validation ([c87f935](https://github.com/hoangphivo97/school-expense-ecosystem/commit/c87f935ff68abef42b82dc958ae368a5adfe2b56))
+* integrate AI code reviewer with KoboldCpp and Angular guidelines for pull requests ([82082ed](https://github.com/hoangphivo97/school-expense-ecosystem/commit/82082edc1b35936daa519a59f42d18e453fa5fb5))
+* refactor project routing and remove unused imports for cleaner code ([576bee0](https://github.com/hoangphivo97/school-expense-ecosystem/commit/576bee07415045a04d31daf36c37b5d2c45f60ba))
+* Update architectural rules and dependencies for Angular monorepo ([c18c8f1](https://github.com/hoangphivo97/school-expense-ecosystem/commit/c18c8f1fae2f548943e07b9debd0ced06be6e5f7))
+
+
+### Bug Fixes
+
+* enhance error handling for AI model requests to include transient and quota errors ([ebe4947](https://github.com/hoangphivo97/school-expense-ecosystem/commit/ebe494770ed276add371805ee9927d5fe10ba85b))
+* increase KOBOLD_TIMEOUT_MS to 300000 for improved local GPU generation ([97b8ac8](https://github.com/hoangphivo97/school-expense-ecosystem/commit/97b8ac8a76707ef89ed236d23385079222b821f6))
+
 ### [0.0.11](https://github.com/hoangphivo97/school-expense-ecosystem/compare/v0.0.10...v0.0.11) (2026-09-24)
 
 
