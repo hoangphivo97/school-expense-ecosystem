@@ -1,7 +1,7 @@
 <lib-header></lib-header>
 
 <div class="user-directory-layout-root">
-  <lib-filter [mode]="filterModeEnum.USER" [value]="activeFilters()" (filterChange)="onUserFiltersChanged($event)">
+  <lib-filter [configs]="userFilterConfigs" [value]="activeFilters()" (filterChange)="onUserFiltersChanged($event)">
 
     @if(isAdmin()){
     <button primaryAction mat-flat-button color="primary" (click)="openProvisionModal()">

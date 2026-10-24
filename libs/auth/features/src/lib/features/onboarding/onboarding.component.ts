@@ -14,7 +14,7 @@ import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { ErrorModalService, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'lib-onboarding',

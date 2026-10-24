@@ -66,4 +66,14 @@ export interface SharedFilterFields {
   userType?: string | null;
   role?: string | null;
   projectType?: string | null;
+  eventType?: string | null;
+}
+
+export interface DepartmentFundSummary {
+  facultyId: FacultyId;
+  year: number;
+  remainingBudget: number;
+  totalBudget?: number;
+  allocatedBudget?: number;
+  fundId?: string;
 }

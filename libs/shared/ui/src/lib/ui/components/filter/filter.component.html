@@ -1,10 +1,12 @@
-<section class="app-toolbar-wrapper" [formGroup]="filterForm" *transloco="let t; read: 'shared.filter'">
+@if (form) {
+<section class="app-toolbar-wrapper" [formGroup]="form" *transloco="let t">
 
-  @if (showSearch()) {
+  @if (searchField(); as searchConfig) {
   <div class="toolbar-primary-row d-flex align-items-center justify-content-between gap-3">
     <mat-form-field appearance="outline" class="search-input-field flex-grow-1 enterprise-dense-field">
-      <mat-label>{{ t('searchLabel') }}</mat-label>
-      <input matInput type="text" [placeholder]="t('searchPlaceholder')" formControlName="searchTerm" />
+      <mat-label>{{ t(searchConfig.labelKey) }}</mat-label>
+      <input matInput type="text" [placeholder]="searchConfig.placeholderKey ? t(searchConfig.placeholderKey) : ''"
+        [formControlName]="searchConfig.key" />
       <mat-icon matSuffix class="text-muted">search</mat-icon>
     </mat-form-field>
 
@@ -14,90 +16,17 @@
   </div>
   }
 
-  <div class="toolbar-secondary-row d-flex flex-wrap align-items-center gap-2" [ngClass]="{ 'mt-3': showSearch() }">
+  <div class="toolbar-secondary-row d-flex flex-wrap align-items-center gap-2" [ngClass]="{ 'mt-3': searchField() }">
 
-    @if (mode() === 'USER') {
-    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
-      <mat-label>{{ t('labels.systemRole') }}</mat-label>
-      <mat-select formControlName="role" panelClass="enterprise-dropdown-panel">
-        @for (option of systemRolesOptions; track option.value) {
-        <mat-option [value]="option.value">{{ t('options.roles.' + option.value) }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
-      <mat-label>{{ t('labels.userType') }}</mat-label>
-      <mat-select formControlName="userType" panelClass="enterprise-dropdown-panel">
-        @for (option of userTypesOptions; track option.value) {
-        <mat-option [value]="option.value">{{ t('options.userTypes.' + option.value) }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-    }
-
-    @if (showStatus()) {
-    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
-      <mat-label>{{ mode() === 'USER' ? t('labels.accountStatus') : t('labels.requestStatus') }}</mat-label>
-      <mat-select formControlName="status" panelClass="enterprise-dropdown-panel">
-        @if (mode() === 'USER') {
-        @for (option of accountStatusOptions; track option.value) {
-        <mat-option [value]="option.value">{{ t('options.accountStatus.' + option.value) }}</mat-option>
-        }
-        }
-        @else if (mode() === 'PROJECT') {
-        @for (option of projectStatusOptions; track option.value) {
-        <mat-option [value]="option.value">{{ t('options.projectStatus.' + option.value) }}</mat-option>
-        }
-        }
-        @else {
-        @for (option of expenseStatusOptions; track option.value) {
-        <mat-option [value]="option.value">{{ t('options.expenseStatus.' + option.value) }}</mat-option>
-        }
-        }
-      </mat-select>
-    </mat-form-field>
-    }
-    @if (showProjectType()) {
-    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
-      <mat-label>{{ t('labels.projectType') }}</mat-label>
-      <mat-select formControlName="projectType" panelClass="enterprise-dropdown-panel">
-        @for (option of projectTypeOptions; track option.value) {
-        <mat-option [value]="option.value">{{ t('options.projectType.' + option.value) }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-    }
-
-    @if (showMonth()) {
-    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
-      <mat-label>{{ t('labels.month') }}</mat-label>
-      <mat-select formControlName="month" panelClass="enterprise-dropdown-panel">
-        @for (month of availableMonths(); track month.value) {
-        <mat-option [value]="month.value">{{ t('options.months.' + (month.value ?? 'ALL')) }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-    }
-
-    @if (showYear()) {
-    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
-      <mat-label>{{ t('labels.year') }}</mat-label>
-      <mat-select formControlName="year" panelClass="enterprise-dropdown-panel">
-        @for (year of processedYears(); track year) {
-        <mat-option [value]="year">{{ year }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-    }
-
-    @if (showFaculty() && facultiesList().length > 0) {
-    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field">
-      <mat-label>{{ t('labels.faculty') }}</mat-label>
-      <mat-select formControlName="facultyId" panelClass="enterprise-dropdown-panel">
-        <mat-option value="ALL">{{ t('options.faculties.ALL') }}</mat-option>
-        @for (faculty of facultiesList(); track faculty.facultyId) {
-        <mat-option [value]="faculty.facultyId">{{ faculty.facultyName }}</mat-option>
+    @for (config of selectConfigs(); track config.key) {
+    <mat-form-field appearance="outline" class="sub-filter-item enterprise-dense-field"
+      [style.width]="config.customWidth">
+      <mat-label>{{ t(config.labelKey) }}</mat-label>
+      <mat-select [formControlName]="config.key" panelClass="enterprise-dropdown-panel">
+        @for (option of resolveFieldOptions(config); track option.value) {
+        <mat-option [value]="option.value">
+          {{ option.labelKey ? t(option.labelKey) : option.label }}
+        </mat-option>
         }
       </mat-select>
     </mat-form-field>
@@ -105,8 +34,8 @@
 
     @if (isDirty()) {
     <div class="reset-action-container ms-auto animate-fade-in">
-      <button type="button" class="filter-reset-btn" [matTooltip]="t('tooltip.reset')" matTooltipPosition="above"
-        (click)="resetFilters()">
+      <button type="button" class="filter-reset-btn" [matTooltip]="t('shared.filter.tooltip.reset')"
+        matTooltipPosition="above" (click)="resetFilters()">
         <mat-icon class="sync-rotation-icon">rotate_left</mat-icon>
       </button>
     </div>
@@ -114,3 +43,4 @@
 
   </div>
 </section>
+}

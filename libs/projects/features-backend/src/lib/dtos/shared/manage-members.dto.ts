@@ -1,6 +1,6 @@
 import { GenerateJoinCodePayload, JoinByCodePayload, ManageParticipantsPayload } from '@school-expense-ecosystem/projects/types';
 import { Transform } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsDateString, IsInt, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, Length, Min } from 'class-validator';
+import { ArrayMinSize, IsArray, IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Length, Min } from 'class-validator';
 
 export class GenerateJoinCodeDto implements GenerateJoinCodePayload {
   @IsOptional()

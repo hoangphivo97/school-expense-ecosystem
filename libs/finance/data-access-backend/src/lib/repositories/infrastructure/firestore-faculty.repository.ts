@@ -29,7 +29,7 @@ export class FirestoreFacultyRepository implements FacultyRepository {
       }
 
       return snapshot.docs.map((doc) => {
-        const data = doc.data();
+        const data = doc.data() ?? {};
         return {
           id: doc.id as FacultyId,
           name: data['name'] ?? '',
@@ -53,7 +53,7 @@ export class FirestoreFacultyRepository implements FacultyRepository {
         return fallback ?? null;
       }
 
-      const data = doc.data()!;
+      const data = doc.data() ?? {};
       return {
         id: doc.id as FacultyId,
         name: data['name'] ?? '',

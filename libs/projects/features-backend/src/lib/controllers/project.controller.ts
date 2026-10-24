@@ -20,6 +20,7 @@ import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/
 import { UpdateProjectDto } from '../dtos/project/update-project.dto';
 import { RejectProjectDto } from '../dtos/project/reject-project.dto';
 import { EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('projects')
 @UseGuards(RolesGuard)
@@ -51,8 +52,10 @@ export class ProjectController {
 
   // 3. Student Join Project via Code
   @Post('join')
+  @Roles(Role.LEVEL_3_USER)
   @UserTypes(UserType.STUDENT)
   @HttpCode(HttpStatus.OK)
+  @Throttle({ medium: { limit: 5, ttl: 60000 } })
   async joinByCode(
     @CurrentUser() user: AuthenticatedUser,
     @Body() joinDto: JoinByCodeDto
@@ -120,6 +123,7 @@ export class ProjectController {
   @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
   @UserTypes(UserType.TEACHER)
   @HttpCode(HttpStatus.OK)
+  @Throttle({ medium: { limit: 5, ttl: 60000 } })
   async addStudents(
     @Param('id') projectId: string,
     @CurrentUser() user: AuthenticatedUser,

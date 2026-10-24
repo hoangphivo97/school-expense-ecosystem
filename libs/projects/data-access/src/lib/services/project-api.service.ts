@@ -78,10 +78,10 @@ export class ProjectApiService {
     return this.http.post<ProjectItem>(`${this.apiUrl}/join`, payload);
   }
 
-searchStudents(query: string): Observable<StudentSummary[]> {
-  const params = new HttpParams().set('query', query.trim());
-  return this.http.get<StudentSummary[]>(`${this.apiUrl}/students/search`, { params });
-}
+  searchStudents(query: string): Observable<StudentSummary[]> {
+    const params = new HttpParams().set('query', query.trim());
+    return this.http.get<StudentSummary[]>(`${this.apiUrl}/students/search`, { params });
+  }
 
   /**
    * Approve pending project funding (Dean / Finance)
@@ -91,7 +91,7 @@ searchStudents(query: string): Observable<StudentSummary[]> {
   }
 
   addStudents(projectId: string, studentIds: string[]): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${projectId}/students`, { studentIds });
+    return this.http.post<void>(`${this.apiUrl}/${projectId}/students`, { userIds: studentIds });
   }
 
   removeStudent(projectId: string, studentId: string): Observable<void> {
@@ -102,7 +102,7 @@ searchStudents(query: string): Observable<StudentSummary[]> {
     return this.http.patch<ProjectItem>(`${this.apiUrl}/${id}/reject`, { reason });
   }
 
-  getProjectStudents(projectId: string):Observable<StudentSummary[]>{
+  getProjectStudents(projectId: string): Observable<StudentSummary[]> {
     return this.http.get<StudentSummary[]>(`${this.apiUrl}/${projectId}/students`);
   }
 }

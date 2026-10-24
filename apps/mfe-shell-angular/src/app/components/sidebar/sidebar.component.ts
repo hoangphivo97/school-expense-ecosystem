@@ -23,7 +23,7 @@ import { A11yModule } from "@angular/cdk/a11y";
 import { Role } from '@school-expense-ecosystem/shared/types';
 import { MatTooltip } from "@angular/material/tooltip";
 import { LanguageSwitcherComponent } from "@school-expense-ecosystem/shared/ui";
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-sidebar',

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslocoModule } from '@ngneat/transloco';
+import { TranslocoModule } from '@jsverse/transloco';
 import { ChangelogService, ProjectLedgerService } from '@school-expense-ecosystem/dashboard/data-access';
 import { ChangelogRelease, ChangelogSection, TimelineGroup } from '@school-expense-ecosystem/dashboard/types';
 import { HeaderComponent } from '@school-expense-ecosystem/shared/ui';
@@ -16,7 +16,7 @@ import { map } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true
 })
-export class ProjectOverview implements OnInit {
+export class ProjectOverview {
   private ledgerService = inject(ProjectLedgerService);
   private changelogService = inject(ChangelogService);
 
@@ -36,11 +36,11 @@ export class ProjectOverview implements OnInit {
     let currentRelease: ChangelogRelease | null = null;
     let currentSection: ChangelogSection | null = null;
 
-    const releaseRegex = /^#{1,3}\s+(?:\[?v?([0-9]+\.[0-9]+\.[0-9]+[^\]\s]*)\]?(?:\([^\)]*\))?)\s+\((.*?)\)/;
+    const releaseRegex = /^#{1,3}\s+(?:\[?v?([0-9]+\.[0-9]+\.[0-9]+[^\]\s]*)\]?(?:\([^)]*\))?)\s+\((.*?)\)/;
 
     const sectionRegex = /^#{3,4}\s+([A-Za-z\s]+)(?:\s*\(\d+\))?$/;
 
-    const itemRegex = /^\*\s+(?:(?:\*\*([^*]+):\*\*\s*)?)(.*?)(?:\s*\(\[?([a-f0-9]+)\]?(?:\((https?:\/\/[^\)]+)\))?\))?$/;
+    const itemRegex = /^\*\s+(?:(?:\*\*([^*]+):\*\*\s*)?)(.*?)(?:\s*\(\[?([a-f0-9]+)\]?(?:\((https?:\/\/[^)]+)\))?\))?$/;
 
     for (const rawLine of lines) {
       const line = rawLine.trim();
@@ -85,12 +85,6 @@ export class ProjectOverview implements OnInit {
   });
 
   systemStatuses = computed(() => {
-    const historicalGroups = this.historicalTimeline();
-    const roadmapGroups = this.roadmapTimeline();
-
-    const totalShippedFeatures = historicalGroups.reduce((acc, group) => acc + group.items.length, 0);
-    const activeBacklogCount = roadmapGroups.reduce((acc, group) => acc + group.items.length, 0);
-
     return [
       {
         key: 'Federated Remote Nodes',
@@ -132,12 +126,4 @@ export class ProjectOverview implements OnInit {
     this.ledgerData$.pipe(map(data => data.roadmap)),
     { initialValue: [] as TimelineGroup[] }
   );
-
-  constructor() { }
-
-  ngOnInit(): void {
-
-  }
-
-
 }

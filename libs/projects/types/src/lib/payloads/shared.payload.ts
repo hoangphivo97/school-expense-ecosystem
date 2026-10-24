@@ -1,4 +1,5 @@
 import { FacultyId, CursorPaginationParams } from "@school-expense-ecosystem/shared/types";
+import { JoinConfig } from "../models/shared.interface";
 
 export interface GenerateJoinCodePayload {
   maxUses?: number | null;
@@ -14,6 +15,12 @@ export interface ManageParticipantsPayload {
   userIds: string[];
 }
 
+export type AddParticipantsPayload = ManageParticipantsPayload;
+
+export interface RejectActivityPayload {
+  reason?: string | null;
+}
+
 export interface BaseActivityPayload<TFundingType> {
   name: string;
   description?: string | null;
@@ -23,16 +30,24 @@ export interface BaseActivityPayload<TFundingType> {
   initialSpent?: number;
   startDate: string;
   endDate: string;
-  // Optional Join Code Inline Creation
   joinCodeConfig?: CreateJoinCodeConfig | null;
 }
 
-export interface BaseActivityQueryPayload<TStatus> extends CursorPaginationParams{
+// Base update payload mirroring BaseUpdateActivityDto
+export interface BaseUpdateActivityPayload<TFundingType> extends Partial<BaseActivityPayload<TFundingType>> {
+  joinConfig?: JoinConfig | null;
+  rejectionReason?: string | null;
+  expectedUpdatedAt: string;
+}
+
+export interface BaseActivityQueryPayload<TStatus, TType> extends CursorPaginationParams {
   page?: number;
   search?: string;
   facultyId?: FacultyId;
   status?: TStatus;
   studentId?: string;
+  year?: number;
+  type?: TType;
 }
 
 export interface CreateJoinCodeConfig {

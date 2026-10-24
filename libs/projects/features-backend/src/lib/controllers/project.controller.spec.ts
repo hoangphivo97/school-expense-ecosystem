@@ -1,13 +1,12 @@
 import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as supertest from 'supertest';
+import request from 'supertest';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { EnrolledActivitySummary, PaginatedProjectResult, ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { ProjectController } from './project.controller';
 import { ProjectService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { AuthGuard } from '@nestjs/passport';
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
-const request = require('supertest');
 
 describe('ProjectController (HTTP Integration)', () => {
   let app: INestApplication;
@@ -56,8 +55,8 @@ describe('ProjectController (HTTP Integration)', () => {
     );
 
     // Mock Express middleware to inject current user into request context
-    app.use((req: any, _res: any, next: () => void) => {
-      req.user = mockCurrentUser;
+    app.use((req: Record<string, unknown>, _res: unknown, next: () => void) => {
+      req['user'] = mockCurrentUser;
       next();
     });
 
@@ -91,6 +90,7 @@ describe('ProjectController (HTTP Integration)', () => {
             joinedStudentIds: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            years: [2026]
           },
         ],
         nextPageToken: 'token_page_2',

@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
-import { form, maxLength, minLength, required, FormField, transformedValue } from '@angular/forms/signals';
+import { form, maxLength, minLength, required, FormField, disabled } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { EventItem, JoinCodeDialogData, JoinCodeDialogResult, ProjectItem } from '@school-expense-ecosystem/projects/types';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -52,6 +52,7 @@ export class JoinCodeDialogComponent {
     required(schema.code, { message: 'Code is required' });
     minLength(schema.code, 6, { message: 'Code must be at least 6 characters' });
     maxLength(schema.code, 12, { message: 'Code cannot exceed 12 characters' });
+    disabled(schema.code, { when: () => this.isSubmitting() });
   });
 
   // Dynamic visual cues based on context

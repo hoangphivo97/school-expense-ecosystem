@@ -7,10 +7,6 @@ import {
 } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
 import { FirebaseBaseRepository } from './firebase-base.repository';
-import {
-  EventInitialSpentExceedsCapException,
-  EventNotFoundException,
-} from '../../exceptions/event.exception';
 
 @Injectable()
 export class FirebaseEventRepository
@@ -22,10 +18,6 @@ export class FirebaseEventRepository
     super(db, 'events');
   }
 
-  private get departmentFundsCollection() {
-    return this.db.collection('department_funds');
-  }
-
   async findWithQuery(query: EventQueryPayload): Promise<PaginatedEventResult> {
     let baseQuery: admin.firestore.Query = this.collection;
 
@@ -33,7 +25,14 @@ export class FirebaseEventRepository
     if (query.status) baseQuery = baseQuery.where('status', '==', query.status);
     if (query.projectId) baseQuery = baseQuery.where('projectId', '==', query.projectId);
     if (query.organizerId) baseQuery = baseQuery.where('organizerId', '==', query.organizerId);
-    if (query.studentId) baseQuery = baseQuery.where('joinedStudentIds', 'array-contains', query.studentId);
+    if (query.type) baseQuery = baseQuery.where('type', '==', query.type);
+
+    const hasStudentFilter = Boolean(query.studentId);
+    if (hasStudentFilter) {
+      baseQuery = baseQuery.where('joinedStudentIds', 'array-contains', query.studentId);
+    } else if (query.year) {
+      baseQuery = baseQuery.where('years', 'array-contains', Number(query.year));
+    }
 
     // Push search filter and index sorting down to database level
     if (query.search) {
@@ -64,42 +63,22 @@ export class FirebaseEventRepository
       countQuery.count().get(),
     ]);
 
+    let items = snapshot.docs.map((doc) => this.mapDoc(doc));
+    let totalItems = countSnapshot.data().count;
 
-    const items = snapshot.docs.map((doc) => this.mapDoc(doc));
+    if (hasStudentFilter && query.year) {
+      const selectedYear = Number(query.year);
+      items = items.filter((item) => item.years?.includes(selectedYear));
+      totalItems = items.length;
+    }
+
     const lastDoc = snapshot.docs[snapshot.docs.length - 1];
     const nextPageToken = lastDoc ? lastDoc.id : null;
-    const totalItems = countSnapshot.data().count;
 
     return { items, nextPageToken, totalItems };
   }
-  async createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem> {
-    const fundRef = this.departmentFundsCollection.doc(departmentFundId);
-    const eventRef = this.collection.doc(event.id);
-
-    return this.db.runTransaction(async (transaction) => {
-      const fundDoc = await transaction.get(fundRef);
-      if (!fundDoc.exists) {
-        throw new EventNotFoundException(`Department fund ${departmentFundId} not found`);
-      }
-
-      const fundData = fundDoc.data()!;
-      const remainingBudget = Number(fundData['remainingBudget'] || 0);
-
-      if (remainingBudget < event.budgetCap) {
-        throw new EventInitialSpentExceedsCapException();
-      }
-
-      transaction.update(fundRef, {
-        remainingBudget: admin.firestore.FieldValue.increment(-event.budgetCap),
-        updatedAt: new Date().toISOString(),
-      });
-
-      transaction.set(eventRef, event);
-      return event;
-    });
-  }
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): EventItem {
-    return this.mapBaseFields(doc) as EventItem;
+    return this.mapBaseFields(doc) as unknown as EventItem;
   }
 }

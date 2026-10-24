@@ -64,10 +64,11 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
       const targetQueryStr = this.formatYearMonth(filters.year, filters.month);
       query = query.where('filterYearMonth', '==', targetQueryStr) as T;
     } else if (filters.year) {
+      const targetYear = filters.year;
       if (filters.searchTerm) {
         // Bypass multi-field inequality conflict by treating the entire year as an equality array matching filterYearMonth
         const allMonthsInYear = Array.from({ length: 12 }, (_, i) =>
-          this.formatYearMonth(filters.year!, i + 1)
+          this.formatYearMonth(targetYear, i + 1)
         );
         query = query.where('filterYearMonth', 'in', allMonthsInYear) as T;
       } else {
@@ -150,6 +151,11 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
 
   async findPersonalExpensePaginated(filters: PersonalExpenseRequestFilters): Promise<PaginatedExpensesResponse> {
     let baseQuery = this.collection.where('userId', '==', filters.userId);
+
+    if (filters.status && filters.status !== 'ALL') {
+      baseQuery = baseQuery.where('status', '==', filters.status);
+    }
+
     baseQuery = this.applyDateAndSearchFilters(baseQuery, filters);
 
     const sortedQuery = this.applySorting(baseQuery, filters);
@@ -166,6 +172,10 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
 
     if (filters.status && filters.status !== 'ALL') {
       baseQuery = baseQuery.where('status', '==', filters.status);
+    }
+
+    if (filters.userType) {
+      baseQuery = baseQuery.where('requesterType', '==', filters.userType);
     }
 
     baseQuery = this.applyDateAndSearchFilters(baseQuery, filters);

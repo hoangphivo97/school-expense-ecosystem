@@ -28,6 +28,7 @@ export interface BaseActivityItem<TFundingType, TStatus> {
   rejectionReason?: string | null;
   createdAt: string;
   updatedAt: string;
+  years: number[];
 }
 
 export interface StudentSummary {

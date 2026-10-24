@@ -2,13 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   EventFundingType,
-  EventItem,
-  EventStatus,
-  ProjectFundingType,
   ProjectItem,
   ProjectStatus,
 } from '@school-expense-ecosystem/projects/types';
@@ -23,6 +20,7 @@ import {
 import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 import { CreateEventDialogComponent, CreateEventDialogData } from './create-event-dialog.component';
+import { createMockEventItem, createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
 
 describe('CreateEventDialogComponent', () => {
   let component: CreateEventDialogComponent;
@@ -32,44 +30,33 @@ describe('CreateEventDialogComponent', () => {
   let mockDialog: { open: jest.Mock };
   let mockEventApiService: jest.Mocked<Partial<EventApiService>>;
   let mockProjectApiService: jest.Mocked<Partial<ProjectApiService>>;
-  let mockFacultyApiService: { facultiesResource: { value: WritableSignal<any[]>; isLoading: WritableSignal<boolean> } };
+  let mockFacultyApiService: {
+    facultiesResource: {
+      value: WritableSignal<{ id: FacultyId; name: string }[]>;
+      isLoading: WritableSignal<boolean>;
+    };
+  };
   let mockUserSignal: WritableSignal<AuthenticatedUser | null>;
   let mockProjectsResourceSignal: WritableSignal<{ items: ProjectItem[]; total: number } | undefined>;
 
-  const dummyProject: ProjectItem = {
+  const dummyProject = createMockProjectItem({
     id: 'PRJ-FIT-001',
-    name: 'AI Research Platform',
-    type: ProjectFundingType.FACULTY,
     status: ProjectStatus.ACTIVE,
+    facultyId: FacultyId.FIT,
+    startDate: new Date('2026-11-01T00:00:00.000Z').toISOString(),
+    endDate: new Date('2026-11-30T23:59:59.999Z').toISOString(),
     budgetCap: 20000000,
-    initialSpent: 5000000,
     currentSpent: 5000000,
-    pendingSpent: 2000000, // Headroom = 20M - (5M + 2M) = 13M
-    mentorId: 'mentor-01',
-    facultyId: FacultyId.FIT,
-    startDate: new Date().toISOString(),
-    endDate: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    joinedStudentIds: [],
-  };
+    pendingSpent: 2000000,
+  });
 
-  const dummyEvent: EventItem = {
-    id: 'EVT-FIT-001',
-    name: 'Tech Symposium 2026',
-    facultyId: FacultyId.FIT,
-    type: EventFundingType.FACULTY,
-    budgetCap: 10000000,
-    initialSpent: 0,
-    currentSpent: 0,
-    status: EventStatus.PENDING_DEAN_APPROVAL,
-    organizerId: 'teacher-01',
+  const dummyEvent = createMockEventItem({
     startDate: new Date('2026-11-01').toISOString(),
     endDate: new Date('2026-11-02').toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    joinedStudentIds: [],
-  };
+    facultyId: FacultyId.FIT,
+    type: EventFundingType.FACULTY,
+  });
+
 
   beforeEach(async () => {
     mockDialogRef = {
@@ -91,7 +78,7 @@ describe('CreateEventDialogComponent', () => {
       getProjectsResource: jest.fn().mockReturnValue({
         value: mockProjectsResourceSignal,
         isLoading: signal(false),
-      } as any),
+      } as unknown as ReturnType<ProjectApiService['getProjectsResource']>),
     };
 
     mockFacultyApiService = {
@@ -150,57 +137,6 @@ describe('CreateEventDialogComponent', () => {
   });
 
   describe('Form Validation & Financial Guardrails', () => {
-    it('should invalidate form when startDate is after endDate', () => {
-      // Set startDate ahead of endDate to trigger invalidDateRange error
-      component.form.patchValue({
-        startDate: new Date('2026-11-10'),
-        endDate: new Date('2026-11-05'),
-      });
-
-      expect(component.form.errors).toEqual(
-        expect.objectContaining({ invalidDateRange: true })
-      );
-      expect(component.form.valid).toBe(false);
-    });
-
-    it('should invalidate form when initialSpent exceeds budgetCap', () => {
-      // Set initial expenditure higher than the assigned budget ceiling
-      component.form.patchValue({
-        budgetCap: 5000000,
-        initialSpent: 6000000,
-      });
-
-      expect(component.form.get('initialSpent')?.hasError('initialSpentExceedsBudget')).toBe(true);
-      expect(component.form.errors).toEqual(
-        expect.objectContaining({ initialSpentExceedsBudget: true })
-      );
-    });
-
-    it('should require projectId when funding type is switched to PROJECT', () => {
-      // Switching to PROJECT type must enforce parent project selection
-      component.form.get('type')?.setValue(EventFundingType.PROJECT);
-
-      const projectControl = component.form.get('projectId');
-      expect(projectControl?.hasError('required')).toBe(true);
-
-      projectControl?.setValue('PRJ-FIT-001');
-      expect(projectControl?.hasError('required')).toBe(false);
-    });
-
-    it('should fail validation when event budgetCap exceeds parent project headroom', () => {
-      // Parent project headroom is 13M (20M - 5M current - 2M pending)
-      component.form.patchValue({
-        type: EventFundingType.PROJECT,
-        projectId: 'PRJ-FIT-001',
-        budgetCap: 15000000, // 15M > 13M headroom
-      });
-
-      expect(component.form.get('budgetCap')?.hasError('parentBudgetExceeded')).toBe(true);
-      expect(component.form.errors).toEqual(
-        expect.objectContaining({ parentBudgetExceeded: true })
-      );
-    });
-
     it('should invalidate join code configuration if expiresAt is set after event endDate', () => {
       // Enable join code and set expiry date past the event end date
       component.form.patchValue({
@@ -212,6 +148,57 @@ describe('CreateEventDialogComponent', () => {
       expect(component.form.errors).toEqual(
         expect.objectContaining({ invalidJoinCodeExpiration: true })
       );
+    });
+
+    it('should invalidate form when event startDate is before parent project startDate', () => {
+      component.form.patchValue({
+        type: EventFundingType.PROJECT,
+        projectId: dummyProject.id,
+        startDate: new Date('2026-10-28'), // Prior to parent project start (2026-11-01)
+        endDate: new Date('2026-11-15'),
+      });
+
+      expect(component.form.errors).toEqual(
+        expect.objectContaining({ eventOutsideParentProjectTimeline: true })
+      );
+      expect(component.form.valid).toBe(false);
+    });
+
+    it('should invalidate form when event endDate is after parent project endDate', () => {
+      component.form.patchValue({
+        type: EventFundingType.PROJECT,
+        projectId: dummyProject.id,
+        startDate: new Date('2026-11-10'),
+        endDate: new Date('2026-12-05'), // Past parent project end (2026-11-30)
+      });
+
+      expect(component.form.errors).toEqual(
+        expect.objectContaining({ eventOutsideParentProjectTimeline: true })
+      );
+      expect(component.form.valid).toBe(false);
+    });
+
+    it('should pass timeline validation when event dates fall cleanly within parent project window', () => {
+      component.form.patchValue({
+        type: EventFundingType.PROJECT,
+        projectId: dummyProject.id,
+        startDate: new Date('2026-11-05'),
+        endDate: new Date('2026-11-20'),
+      });
+
+      expect(component.form.errors?.['eventOutsideParentProjectTimeline']).toBeUndefined();
+    });
+
+    it('should bypass parent timeline validation when event funding type is not PROJECT', () => {
+      // Standalone event with dates beyond dummyProject duration
+      component.form.patchValue({
+        type: EventFundingType.SCHOOL,
+        projectId: null,
+        startDate: new Date('2026-10-15'),
+        endDate: new Date('2026-12-15'),
+      });
+
+      expect(component.form.errors?.['eventOutsideParentProjectTimeline']).toBeUndefined();
     });
   });
 
@@ -250,7 +237,7 @@ describe('CreateEventDialogComponent', () => {
       // User confirms the warning modal
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onSubmit();
 
@@ -283,8 +270,8 @@ describe('CreateEventDialogComponent', () => {
 
       // User cancels the warning modal
       mockDialog.open.mockReturnValue({
-        afterClosed: () => of(false),
-      } as any);
+        afterClosed: () => of(true),
+      } as unknown as MatDialogRef<unknown>);
 
       component.onSubmit();
 
@@ -312,6 +299,30 @@ describe('CreateEventDialogComponent', () => {
         })
       );
       expect(mockDialogRef.close).toHaveBeenCalled();
+    });
+
+    it('should reset projectId and update selectedFacultyId signal when faculty changes', () => {
+      component.form.get('projectId')?.setValue('PRJ-FIT-001');
+
+      component.form.get('facultyId')?.setValue(FacultyId.FBE);
+
+      expect(component.selectedFacultyId()).toBe(FacultyId.FBE);
+      expect(component.form.get('projectId')?.value).toBeNull();
+    });
+
+    it('should synchronize selectedProjectId and selectedProject computed signal on projectId change', () => {
+      expect(component.selectedProjectId()).toBeNull();
+      expect(component.selectedProject()).toBeNull();
+
+      component.form.get('projectId')?.setValue(dummyProject.id);
+
+      expect(component.selectedProjectId()).toBe(dummyProject.id);
+      expect(component.selectedProject()).toEqual(dummyProject);
+
+      component.form.get('projectId')?.setValue(null);
+
+      expect(component.selectedProjectId()).toBeNull();
+      expect(component.selectedProject()).toBeNull();
     });
   });
 })

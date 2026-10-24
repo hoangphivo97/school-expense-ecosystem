@@ -43,16 +43,27 @@
       "userType": "User Type",
       "accountStatus": "Account Status",
       "requestStatus": "Request Status",
+      "eventStatus": "Event Status",
+      "projectStatus": "Project Status",
       "month": "Month",
       "year": "Year",
       "faculty": "Faculty",
-      "projectType": "Project Type"
+      "projectType": "Project Type",
+      "eventType": "Event Type"
     },
     "tooltip": {
       "reset": "Clear active layout filters"
     },
     "options": {
-      "faculties": { "ALL": "All Faculties" },
+      "faculties": {
+        "ALL": "All Faculties",
+        "FIT": "Faculty of Information Technology",
+        "FBE": "Faculty of Business and Economics",
+        "FLL": "Faculty of Foreign Languages & Linguistics",
+        "FET": "Faculty of Engineering and Technology",
+        "FAD": "Faculty of Architecture and Design",
+        "FLA": "Faculty of Law and Public Administration"
+      },
       "roles": {
         "ALL": "All Roles",
         "LEVEL_0_ADMIN": "System Admin",
@@ -97,12 +108,14 @@
         "REJECTED": "Rejected"
       },
       "eventType": {
+        "ALL": "All",
         "SCHOOL": "School Funded",
         "FACULTY": "Faculty Funded",
         "PROJECT": "Project Funded",
         "OUTSOURCE": "Outsourced / External"
       },
       "eventStatus": {
+        "ALL": "All",
         "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
         "PENDING_FINANCE_APPROVAL": "Pending Finance Approval",
         "UPCOMING": "Upcoming",
@@ -134,6 +147,9 @@
           "FULL": "Full / Quota Reached",
           "EXPIRED": "Expired"
         }
+      },
+      "years": {
+        "ALL": "All Years"
       }
     }
   },

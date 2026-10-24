@@ -1,6 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as supertest from 'supertest';
+import request from 'supertest';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import {
   EnrolledActivitySummary,
@@ -12,7 +12,6 @@ import {
 import { EventController } from './event.controller';
 import { EventService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
-const request = require('supertest');
 
 describe('EventController (HTTP Integration)', () => {
   let app: INestApplication;
@@ -51,8 +50,8 @@ describe('EventController (HTTP Integration)', () => {
       })
     );
 
-    app.use((req: any, _res: any, next: () => void) => {
-      req.user = mockCurrentUser;
+    app.use((req: Record<string, unknown>, _res: unknown, next: () => void) => {
+      req['user'] = mockCurrentUser;
       next();
     });
 
@@ -87,6 +86,7 @@ describe('EventController (HTTP Integration)', () => {
             endDate: new Date().toISOString(),
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            years: [2026]
           },
         ],
         nextPageToken: 'next_token_evt',
@@ -169,6 +169,65 @@ describe('EventController (HTTP Integration)', () => {
 
       expect(mockEventService.createEvent).not.toHaveBeenCalled();
     });
+  });
+
+  it('should reject with 400 when type is PROJECT but projectId is omitted', async () => {
+    const payloadMissingProjectId = {
+      name: 'Project Sub-Event',
+      description: 'Missing parent project link',
+      facultyId: FacultyId.FIT,
+      type: EventFundingType.PROJECT,
+      budgetCap: 5000000,
+      initialSpent: 0,
+      startDate: new Date('2026-10-01').toISOString(),
+      endDate: new Date('2026-10-03').toISOString(),
+    };
+
+    const response = await request(app.getHttpServer())
+      .post('/events')
+      .send(payloadMissingProjectId)
+      .expect(400);
+
+    // Verify class-validator intercepts before reaching the service layer
+    expect(mockEventService.createEvent).not.toHaveBeenCalled();
+    expect(response.body.message).toEqual(
+      expect.arrayContaining([expect.stringContaining('projectId is mandatory when event funding type is PROJECT')])
+    );
+  });
+
+  it('should create event successfully and return 201 when type is PROJECT and projectId is provided', async () => {
+    const validProjectFundedPayload = {
+      name: 'Linked Sub-Event',
+      facultyId: FacultyId.FIT,
+      type: EventFundingType.PROJECT,
+      projectId: 'PRJ-FIT-001',
+      budgetCap: 5000000,
+      initialSpent: 0,
+      startDate: new Date('2026-10-01').toISOString(),
+      endDate: new Date('2026-10-03').toISOString(),
+    };
+
+    const createdEvent: Partial<EventItem> = {
+      id: 'EVT-FIT-100',
+      ...validProjectFundedPayload,
+      status: EventStatus.UPCOMING,
+    };
+
+    mockEventService.createEvent.mockResolvedValueOnce(createdEvent);
+
+    const response = await request(app.getHttpServer())
+      .post('/events')
+      .send(validProjectFundedPayload)
+      .expect(201);
+
+    expect(mockEventService.createEvent).toHaveBeenCalledWith(
+      mockCurrentUser,
+      expect.objectContaining({
+        type: EventFundingType.PROJECT,
+        projectId: 'PRJ-FIT-001',
+      })
+    );
+    expect(response.body.id).toBe('EVT-FIT-100');
   });
 
   describe('PATCH /events/:id/approve', () => {

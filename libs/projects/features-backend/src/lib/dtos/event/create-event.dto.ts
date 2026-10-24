@@ -1,5 +1,5 @@
 import { CreateEventPayload, EventFundingType } from '@school-expense-ecosystem/projects/types';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 import { BaseActivityDto } from '../shared/base-activity.dto';
 
 export class CreateEventDto extends BaseActivityDto implements CreateEventPayload {
@@ -7,8 +7,8 @@ export class CreateEventDto extends BaseActivityDto implements CreateEventPayloa
   @IsNotEmpty()
   type!: EventFundingType;
 
-  // Optional reference linking event under a parent project scope
-  @IsOptional()
+  @ValidateIf((o: CreateEventDto) => o.type === EventFundingType.PROJECT)
+  @IsNotEmpty({ message: 'projectId is mandatory when event funding type is PROJECT' })
   @IsString()
   projectId?: string;
 }

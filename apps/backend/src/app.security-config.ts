@@ -9,6 +9,6 @@ export const throttlerConfig: ThrottlerModuleOptions = [
   {
     name: 'medium', 
     ttl: 60000,     
-    limit: 30,      
+    limit: 60,      
   }
 ];

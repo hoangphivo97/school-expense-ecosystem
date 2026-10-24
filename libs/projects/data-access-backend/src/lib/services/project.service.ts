@@ -1,14 +1,14 @@
-import { Injectable, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import { AddParticipantsDto, CreateProjectDto, GenerateJoinCodeDto, JoinByCodeDto, ProjectQueryDto, RejectProjectDto, UpdateProjectDto } from '@school-expense-ecosystem/projects/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
-import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary, ProjectQueryPayload, PaginatedProjectResult, EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
-import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
-import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentAlreadyEnrolledException, ProjectStudentNotEnrolledException } from '../exceptions/project.exception';
+import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary, ProjectQueryPayload, PaginatedProjectResult, EnrolledActivitySummary, UpdateProjectPayload, CreateProjectPayload, JoinByCodePayload, AddParticipantsPayload, GenerateJoinCodePayload, RejectProjectPayload } from '@school-expense-ecosystem/projects/types';
+import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentNotEnrolledException, ProjectStudentNotFoundException } from '../exceptions/project.exception';
 import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
+import { calculateSpannedYears } from '../helpers/calculate-years.helper';
+import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
 
 @Injectable()
 export class ProjectService {
@@ -18,66 +18,70 @@ export class ProjectService {
     private readonly joinCodeService: JoinCodeService
   ) { }
 
-  async createProject(user: AuthenticatedUser, dto: CreateProjectDto): Promise<ProjectItem> {
-    const isSchoolFunded = dto.type === ProjectFundingType.SCHOOL;
+  async createProject(user: AuthenticatedUser, payload: CreateProjectPayload): Promise<ProjectItem> {
+    const isSchoolFunded = payload.type === ProjectFundingType.SCHOOL;
+    const isOutsrouce = payload.type === ProjectFundingType.OUTSOURCE;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
     const isDean = user.role === Role.LEVEL_2_DEAN;
 
     let initialStatus: ProjectStatus;
-    if (!isSchoolFunded || isFinance) {
-      // Non-school funded projects or projects directly created by Finance are immediately active
+
+    if (isOutsrouce || isFinance) {
       initialStatus = ProjectStatus.ACTIVE;
     } else if (isDean) {
-      // Dean creating a school-funded project must route to Finance approval
-      initialStatus = ProjectStatus.PENDING_FINANCE_APPROVAL;
+      // Deans possess authority over Faculty funds; School-funded projects escalate to Finance
+      initialStatus = isSchoolFunded
+        ? ProjectStatus.PENDING_FINANCE_APPROVAL
+        : ProjectStatus.ACTIVE;
     } else {
-      // Teachers/Mentors creating a school-funded project route to Dean approval first
+      // Teachers creating Faculty or School projects must first route to Dean approval
       initialStatus = ProjectStatus.PENDING_DEAN_APPROVAL;
     }
 
-    const facultyPrefix = dto.facultyId.toUpperCase();
+    const facultyPrefix = payload.facultyId.toUpperCase();
     const shortHash = randomBytes(3).toString('hex').toUpperCase();
     const projectId = `PRJ-${facultyPrefix}-${shortHash}`;
 
-    const initialSpent = dto.initialSpent ?? 0;
-    if (initialSpent > dto.budgetCap) {
+    const initialSpent = payload.initialSpent ?? 0;
+    if (initialSpent > payload.budgetCap) {
       throw new ProjectInitialSpentExceedsCapException();
     }
 
-    const joinConfig = dto.joinCodeConfig
-      ? this.joinCodeService.generateInlineConfig(dto.joinCodeConfig, dto.startDate, dto.endDate)
+    const joinConfig = payload.joinCodeConfig
+      ? this.joinCodeService.generateInlineConfig(payload.joinCodeConfig, payload.startDate, payload.endDate)
       : null;
 
     const newProject: ProjectItem = {
       id: projectId,
-      name: dto.name,
-      description: dto.description,
-      type: dto.type,
-      budgetCap: dto.budgetCap,
+      name: payload.name,
+      description: payload.description,
+      type: payload.type,
+      budgetCap: payload.budgetCap,
       initialSpent: initialSpent,
       currentSpent: initialSpent,
       pendingSpent: 0,
       status: initialStatus,
-      mentorId: dto.mentorId ?? user.uid,
-      facultyId: dto.facultyId,
-      startDate: new Date(dto.startDate).toISOString(),
-      endDate: new Date(dto.endDate).toISOString(),
+      mentorId: payload.mentorId ?? user.uid,
+      facultyId: payload.facultyId,
+      startDate: new Date(payload.startDate).toISOString(),
+      endDate: new Date(payload.endDate).toISOString(),
       joinedStudentIds: [],
       joinConfig: joinConfig,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      years: calculateSpannedYears(payload.startDate, payload.endDate)
     };
 
-    if (dto.type === ProjectFundingType.FACULTY) {
+    if (payload.type === ProjectFundingType.FACULTY) {
       const currentYear = new Date().getFullYear();
-      const departmentFundId = `${dto.facultyId.toUpperCase()}_DEPT_${currentYear}`;
+      const departmentFundId = `${payload.facultyId.toUpperCase()}_DEPT_${currentYear}`;
       return this.projectRepo.createWithFacultyFund(newProject, departmentFundId);
     }
 
     return this.projectRepo.create(newProject);
   }
 
-  async updateProject(projectId: string, user: AuthenticatedUser, dto: UpdateProjectDto): Promise<ProjectItem> {
+  async updateProject(projectId: string, user: AuthenticatedUser, payload: UpdateProjectPayload): Promise<ProjectItem> {
     const project = await this.validateProjectAccess(projectId, user);
 
     if (project.status === ProjectStatus.ARCHIVED || project.status === ProjectStatus.COMPLETED) {
@@ -86,10 +90,10 @@ export class ProjectService {
 
     // Prohibit modifying core financial baselines on ACTIVE projects
     if (project.status === ProjectStatus.ACTIVE) {
-      if (dto.initialSpent !== undefined && dto.initialSpent !== project.initialSpent) {
+      if (payload.initialSpent !== undefined && payload.initialSpent !== project.initialSpent) {
         throw new ProjectActiveFinancialModificationException('initialSpent');
       }
-      if (dto.budgetCap !== undefined && dto.budgetCap !== project.budgetCap) {
+      if (payload.budgetCap !== undefined && payload.budgetCap !== project.budgetCap) {
         throw new ProjectActiveFinancialModificationException('budgetCap');
       }
     }
@@ -97,35 +101,44 @@ export class ProjectService {
     const isDeanOrFinance = user.role === Role.LEVEL_2_DEAN || user.role === Role.LEVEL_1_FINANCE;
     const isExtendingSchoolProject =
       project.type === ProjectFundingType.SCHOOL &&
-      dto.endDate &&
-      new Date(dto.endDate) > new Date(project.endDate);
+      payload.endDate &&
+      new Date(payload.endDate) > new Date(project.endDate);
 
     const nextStatus = (!isDeanOrFinance && isExtendingSchoolProject)
       ? ProjectStatus.PENDING_DEAN_APPROVAL
       : project.status;
 
     // Calculate new spent baseline if initialSpent is updated in draft/pending state
-    const newInitialSpent = dto.initialSpent !== undefined ? Number(dto.initialSpent) : project.initialSpent;
-    const targetBudgetCap = dto.budgetCap !== undefined ? Number(dto.budgetCap) : project.budgetCap;
+    const newInitialSpent = payload.initialSpent !== undefined ? Number(payload.initialSpent) : project.initialSpent;
+    const targetBudgetCap = payload.budgetCap !== undefined ? Number(payload.budgetCap) : project.budgetCap;
 
     if (newInitialSpent > targetBudgetCap) {
       throw new ProjectInitialSpentExceedsCapException();
     }
 
-    const { expectedUpdatedAt, ...cleanDto } = dto;
+    const { expectedUpdatedAt, ...cleanpayload } = payload;
+
+    const targetStartDate = cleanpayload.startDate ?? project.startDate;
+    const targetEndDate = cleanpayload.endDate ?? project.endDate;
+    const isTimelineModified = Boolean(cleanpayload.startDate || cleanpayload.endDate);
 
     const updateData: Partial<ProjectItem> = {
-      ...(cleanDto.name && { name: cleanDto.name.trim() }),
-      ...(cleanDto.description !== undefined && { description: cleanDto.description ? cleanDto.description.trim() : null }),
-      ...(cleanDto.type && { type: cleanDto.type }),
-      ...(cleanDto.facultyId && { facultyId: cleanDto.facultyId }),
-      ...(cleanDto.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
-      ...(cleanDto.initialSpent !== undefined && {
+      ...(cleanpayload.name && { name: cleanpayload.name.trim() }),
+      ...(cleanpayload.description !== undefined && { description: cleanpayload.description ? cleanpayload.description.trim() : null }),
+      ...(cleanpayload.type && { type: cleanpayload.type }),
+      ...(cleanpayload.facultyId && { facultyId: cleanpayload.facultyId }),
+      ...(cleanpayload.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
+      ...(cleanpayload.initialSpent !== undefined && {
         initialSpent: newInitialSpent,
         currentSpent: newInitialSpent, // Sync initial baseline to current spent
       }),
-      ...(cleanDto.startDate && { startDate: new Date(cleanDto.startDate).toISOString() }),
-      ...(cleanDto.endDate && { endDate: new Date(cleanDto.endDate).toISOString() }),
+      ...(cleanpayload.startDate && { startDate: new Date(cleanpayload.startDate).toISOString() }),
+      ...(cleanpayload.endDate && { endDate: new Date(cleanpayload.endDate).toISOString() }),
+      ...(cleanpayload.startDate && { startDate: new Date(cleanpayload.startDate).toISOString() }),
+      ...(cleanpayload.endDate && { endDate: new Date(cleanpayload.endDate).toISOString() }),
+      ...(isTimelineModified && {
+        years: calculateSpannedYears(targetStartDate, targetEndDate),
+      }),
       status: nextStatus,
       updatedAt: new Date().toISOString(),
     };
@@ -147,8 +160,8 @@ export class ProjectService {
     await this.projectRepo.update(projectId, { status: ProjectStatus.ARCHIVED });
   }
 
-  async joinProjectByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<EnrolledActivitySummary> {
-    const project = await this.projectRepo.findByJoinCode(joinDto.code);
+  async joinProjectByCode(user: AuthenticatedUser, payload: JoinByCodePayload): Promise<EnrolledActivitySummary> {
+    const project = await this.projectRepo.findByJoinCode(payload.code);
     if (!project) {
       throw new InvalidJoinCodeException();
     }
@@ -161,7 +174,7 @@ export class ProjectService {
     const enrolled = await this.projectRepo.enrollStudentViaCode(
       project.id,
       user.uid,
-      joinDto.code,
+      payload.code,
       [ProjectStatus.ACTIVE]
     );
 
@@ -178,27 +191,54 @@ export class ProjectService {
     await this.projectRepo.removeStudent(projectId, studentId);
   }
 
-  async addStudents(projectId: string, user: AuthenticatedUser, dto: AddParticipantsDto): Promise<void> {
+  async addStudents(projectId: string, user: AuthenticatedUser, payload: AddParticipantsPayload): Promise<void> {
     const project = await this.validateProjectAccess(projectId, user);
 
     if (project.status === ProjectStatus.PENDING_DEAN_APPROVAL) {
       throw new ProjectRosterLockedException();
     }
 
-    await this.projectRepo.addStudentsBulk(projectId, dto.userIds);
+    const requestedIds = [...new Set(payload.userIds)];
+    if (requestedIds.length === 0) return;
+
+    const existingUsers = await this.userRepo.findByIds(requestedIds);
+    const foundUserMap = new Map(existingUsers.map((u) => [u.uid, u]));
+
+    const missingIds = requestedIds.filter((id) => !foundUserMap.has(id));
+    if (missingIds.length > 0) {
+      throw new ProjectStudentNotFoundException(missingIds);
+    }
+
+    const nonStudentAccounts = existingUsers.filter((u) => u.userType !== UserType.STUDENT);
+    if (nonStudentAccounts.length > 0) {
+      // Map to emails so the Teacher/Dean immediately knows which accounts are invalid
+      const invalidEmails = nonStudentAccounts.map(
+        (u) => u.email || `${u.fullName} (${u.uid})`
+      );
+      throw new BadRequestException(
+        `Cannot assign non-student accounts to roster: ${invalidEmails.join(', ')}`
+      );
+    }
+
+    const currentEnrolledSet = new Set(project.joinedStudentIds ?? []);
+    const studentsToAdd = requestedIds.filter((id) => !currentEnrolledSet.has(id));
+
+    if (studentsToAdd.length === 0) return;
+
+    await this.projectRepo.addStudentsBulk(projectId, payload.userIds);
   }
 
   async generateNewJoinCode(
     projectId: string,
     user: AuthenticatedUser,
-    dto: GenerateJoinCodeDto
+    payload: GenerateJoinCodePayload
   ): Promise<JoinConfig> {
     const project = await this.validateProjectAccess(projectId, user);
 
     // Validate date constraints via joinCodeService
-    this.joinCodeService.validateJoinCodeSchedule(dto, project.endDate);
+    this.joinCodeService.validateJoinCodeSchedule(payload, project.endDate);
 
-    const joinConfig = this.joinCodeService.generateConfig(dto);
+    const joinConfig = this.joinCodeService.generateConfig(payload);
     await this.projectRepo.updateJoinConfig(projectId, joinConfig);
     return joinConfig;
   }
@@ -209,7 +249,7 @@ export class ProjectService {
 
   async getProjectsForUser(
     user: AuthenticatedUser,
-    query?: ProjectQueryDto
+    query?: ProjectQueryPayload
   ): Promise<PaginatedProjectResult> {
     const baseQuery: ProjectQueryPayload = {
       ...query,
@@ -288,7 +328,7 @@ export class ProjectService {
     );
   }
 
-  async rejectProject(projectId: string, user: AuthenticatedUser, dto?: RejectProjectDto): Promise<ProjectItem> {
+  async rejectProject(projectId: string, user: AuthenticatedUser, payload?: RejectProjectPayload): Promise<ProjectItem> {
     const project = await this.validateProjectAccess(projectId, user);
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && project.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
@@ -310,7 +350,7 @@ export class ProjectService {
       ProjectStatus.REJECTED,
       [ProjectStatus.PENDING_DEAN_APPROVAL, ProjectStatus.PENDING_FINANCE_APPROVAL],
       {
-        rejectionReason: dto?.reason?.trim() || null,
+        rejectionReason: payload?.reason?.trim() || null,
         rejectedBy: user.uid,
       }
     );

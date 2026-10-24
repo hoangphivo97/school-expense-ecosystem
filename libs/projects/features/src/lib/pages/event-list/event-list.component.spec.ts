@@ -1,11 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { ConfirmDialogComponent, NotificationService } from '@school-expense-ecosystem/shared/ui';
+import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   EventFundingType,
@@ -15,7 +14,10 @@ import {
 import { EventListComponent, EventViewModel } from './event-list.component';
 import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
 import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/create-event-dialog.component';
-import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
+import { createMockAuthenticatedUser, provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
+import { enEvent, twEvent } from '@school-expense-ecosystem/shared/assets';
+import { createMockEventItem } from '@school-expense-ecosystem/projects/test-utils';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 describe('EventListComponent', () => {
   let component: EventListComponent;
@@ -31,24 +33,11 @@ describe('EventListComponent', () => {
   let mockDialog: { open: jest.Mock };
   let mockNotificationService: jest.Mocked<Partial<NotificationService>>;
 
-  const dummyEvent: EventItem = {
-    id: 'EVT-FIT-001',
-    name: 'Tech Symposium 2026',
-    facultyId: FacultyId.FIT,
-    type: EventFundingType.FACULTY,
-    budgetCap: 10000000,
-    initialSpent: 0,
-    currentSpent: 0,
-    pendingSpent: 0,
-    status: EventStatus.PENDING_DEAN_APPROVAL,
-    organizerId: 'teacher-organizer-01',
+  const dummyEvent = createMockEventItem({
     joinedStudentIds: ['stu-01', 'stu-02'],
-    projectId: null,
     startDate: new Date('2026-11-01').toISOString(),
     endDate: new Date('2026-11-02').toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  })
 
   beforeEach(async () => {
     // 1. Initialize reactive state mocks
@@ -71,7 +60,7 @@ describe('EventListComponent', () => {
         value: mockEventsResourceSignal,
         isLoading: mockEventsLoadingSignal,
         reload: jest.fn(),
-      } as any),
+      } as unknown as ReturnType<EventApiService['getEventsResource']>),
       approveEvent: jest.fn().mockReturnValue(of({ success: true })),
     };
 
@@ -87,15 +76,10 @@ describe('EventListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         EventListComponent,
-        TranslocoTestingModule.forRoot({
-          langs: {},
-          translocoConfig: {
-            availableLangs: ['en'],
-            defaultLang: 'en',
-            reRenderOnLangChange: true,
-          },
-          preloadLangs: true,
-        }),
+        provideSharedTranslocoTesting({
+          en: { event: enEvent },
+          tw: { event: twEvent }
+        })
       ],
       providers: [
         { provide: EventApiService, useValue: mockEventApiService },
@@ -209,13 +193,42 @@ describe('EventListComponent', () => {
       expect(component.pageSize()).toBe(50);
       expect(component.currentPageIndex()).toBe(1);
     });
+
+    it('should format year as a numeric scalar in queryParams when selected', () => {
+      component.currentPageIndex.set(3);
+
+      // Simulate filter emit with a numeric year
+      component.onEventFiltersChanged({ year: 2026 });
+
+      expect(component.currentPageIndex()).toBe(1);
+      expect(component.queryParams().year).toBe(2026);
+    });
+
+    it('should omit year from queryParams when filter is set to ALL', () => {
+      component.onEventFiltersChanged({ year: undefined });
+
+      // Clean queryParams payload without sending ALL string to API
+      expect(component.queryParams().year).toBeUndefined();
+    });
+
+    it('should coerce stringified year values to number in queryParams', () => {
+      component.onEventFiltersChanged({ year: 2025 });
+
+      expect(component.queryParams().year).toBe(2025);
+    });
+
+    it('should pass eventType filter to queryParams when specified', () => {
+      component.onEventFiltersChanged({ eventType: EventFundingType.SCHOOL });
+
+      expect(component.queryParams().type).toBe(EventFundingType.SCHOOL);
+    });
   });
 
   describe('Dialog Actions & Approvals', () => {
     it('should trigger approval API call and reload resource when approval dialog is confirmed', () => {
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onApproveEvent(dummyEvent);
 
@@ -230,7 +243,7 @@ describe('EventListComponent', () => {
       // Simulate user clicking cancel on re-approval confirmation dialog
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(false),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.openEditModal(upcomingEvent);
 
@@ -278,7 +291,7 @@ describe('EventListComponent', () => {
       expect(createBtn).not.toBeNull();
     });
 
-    it('should hide "Create Event" button completely when logged in as a Student', () => {
+    it('should hide "Create Event" button and render "Join by Code" button for Student', () => {
       mockUserSignal.set(
         createMockAuthenticatedUser({
           role: Role.LEVEL_3_USER,
@@ -289,8 +302,10 @@ describe('EventListComponent', () => {
       fixture.detectChanges();
 
       const host: HTMLElement = fixture.nativeElement;
-      const createBtn = host.querySelector('button[primaryAction]');
-      expect(createBtn).toBeNull();
+      const primaryBtnIcon = host.querySelector('button[primaryAction] mat-icon');
+
+      // Assert that Student sees the Join by Code button with vpn_key icon
+      expect(primaryBtnIcon?.textContent?.trim()).toBe('vpn_key');
     });
 
     it('should render Approve button only for authorized Dean', () => {

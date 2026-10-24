@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { ActivityCapacityProgressComponent } from './activity-capacity-progress.component';
 
 describe('ActivityCapacityProgressComponent', () => {

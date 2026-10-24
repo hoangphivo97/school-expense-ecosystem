@@ -18,6 +18,14 @@ export class ProjectAccessForbiddenException extends ForbiddenException {
   }
 }
 
+export class ProjectStudentNotFoundException extends NotFoundException {
+  constructor(missingIds: string[]) {
+    super(
+      `Unable to locate the specified student account(s) in the system directory (${missingIds.length} account(s) invalid).`
+    );
+  }
+}
+
 // 2. Lifecycle & Approval Exceptions
 export class ProjectApprovalForbiddenException extends ForbiddenException {
   constructor() {
@@ -47,6 +55,18 @@ export class ProjectPendingExpensesArchiveException extends ConflictException {
 export class ProjectInitialSpentExceedsCapException extends BadRequestException {
   constructor() {
     super('Initial spent baseline cannot exceed project budget cap.');
+  }
+}
+
+export class DepartmentFundNotFoundException extends NotFoundException {
+  constructor(fundId: string) {
+    super(`Department fund "${fundId}" was not found.`);
+  }
+}
+
+export class InsufficientDepartmentFundException extends BadRequestException {
+  constructor(remaining: number, requested: number) {
+    super(`Insufficient department funds. Available: ${remaining}, Requested: ${requested}.`);
   }
 }
 

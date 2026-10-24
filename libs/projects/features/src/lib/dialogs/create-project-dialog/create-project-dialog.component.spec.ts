@@ -2,11 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   ProjectFundingType,
-  ProjectItem,
   ProjectStatus,
 } from '@school-expense-ecosystem/projects/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
@@ -23,6 +22,7 @@ import {
   CreateProjectDialogComponent,
   CreateProjectDialogData,
 } from './create-project-dialog.component';
+import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
 
 describe('CreateProjectDialogComponent', () => {
   let component: CreateProjectDialogComponent;
@@ -31,25 +31,21 @@ describe('CreateProjectDialogComponent', () => {
   let mockDialogRef: jest.Mocked<Partial<MatDialogRef<CreateProjectDialogComponent>>>;
   let mockDialog: { open: jest.Mock };
   let mockProjectApiService: jest.Mocked<Partial<ProjectApiService>>;
-  let mockFacultyApiService: { facultiesResource: { value: WritableSignal<any[]>; isLoading: WritableSignal<boolean> } };
+  let mockFacultyApiService: {
+    facultiesResource: {
+      value: WritableSignal<{ id: FacultyId; name: string }[]>;
+      isLoading: WritableSignal<boolean>;
+    };
+  };
   let mockUserSignal: WritableSignal<AuthenticatedUser | null>;
 
-  const dummyProject: ProjectItem = {
-    id: 'PRJ-FIT-001',
-    name: 'AI Research Platform',
+  const dummyProject = createMockProjectItem({
+    facultyId: FacultyId.FIT,
     type: ProjectFundingType.FACULTY,
     status: ProjectStatus.ACTIVE,
-    budgetCap: 20000000,
-    initialSpent: 5000000,
-    currentSpent: 5000000,
-    mentorId: 'mentor-01',
-    facultyId: FacultyId.FIT,
-    joinedStudentIds: [],
     startDate: new Date('2026-11-01').toISOString(),
     endDate: new Date('2026-11-30').toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  })
 
   beforeEach(async () => {
     mockDialogRef = {
@@ -204,7 +200,7 @@ describe('CreateProjectDialogComponent', () => {
 
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onSubmit();
 
@@ -236,7 +232,7 @@ describe('CreateProjectDialogComponent', () => {
 
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(false),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onSubmit();
 
@@ -247,7 +243,7 @@ describe('CreateProjectDialogComponent', () => {
 
     it('should dispatch updateProject API directly when in edit mode', () => {
       component.action.set(DialogActionEnum.Edit);
-      (component as any).data = {
+      (component as unknown as { data: CreateProjectDialogData }).data = {
         action: DialogActionEnum.Edit,
         project: dummyProject,
       };
@@ -280,7 +276,7 @@ describe('CreateProjectDialogComponent', () => {
 
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onCancel();
 

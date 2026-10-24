@@ -4,15 +4,16 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslocoModule } from '@ngneat/transloco';
+import { TranslocoModule } from '@jsverse/transloco';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { FacultyId } from '@school-expense-ecosystem/shared/types';
+import { DepartmentFundSummary, FacultyId } from '@school-expense-ecosystem/shared/types';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 export interface FacultyOption {
   id: FacultyId;
@@ -22,7 +23,7 @@ export interface FacultyOption {
 @Component({
   selector: 'lib-activity-form-layout',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatSlideToggleModule, MatIconModule, TranslocoModule, MatFormFieldModule, FormErrorPipe, MatDatepickerModule, MatInputModule, MatSelectModule, MatButtonModule],
+  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatSlideToggleModule, MatIconModule, TranslocoModule, MatFormFieldModule, FormErrorPipe, MatDatepickerModule, MatInputModule, MatSelectModule, MatButtonModule, MatProgressSpinnerModule],
   templateUrl: './activity-form-layout.component.html',
   styleUrl: './activity-form-layout.component.scss',
   providers: [FormErrorPipe,
@@ -52,6 +53,9 @@ export class ActivityFormLayoutComponent {
   readonly submitForm = output<void>();
   readonly cancelForm = output<void>();
   readonly amountInput = output<{ event: Event; controlName: 'budgetCap' | 'initialSpent' }>();
+
+  readonly departmentFund = input<DepartmentFundSummary | null>(null);
+  readonly isFundLoading = input<boolean>(false);
 
   onAmountChange(event: Event, controlName: 'budgetCap' | 'initialSpent'): void {
     this.amountInput.emit({ event, controlName });

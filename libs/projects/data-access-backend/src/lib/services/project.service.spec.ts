@@ -2,15 +2,14 @@ import { ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ProjectFundingType, ProjectStatus } from '@school-expense-ecosystem/projects/types';
-import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
 import { ProjectService } from './project.service';
-import { JoinCodeService } from './join-code.service';
+import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
+import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
 
 describe('ProjectService', () => {
   let service: ProjectService;
   let projectRepo: jest.Mocked<ProjectRepository>;
-  let joinCodeService: JoinCodeService;
 
   const mockProjectRepo = {
     findWithQuery: jest.fn(),
@@ -28,7 +27,6 @@ describe('ProjectService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProjectService,
-        JoinCodeService,
         { provide: ProjectRepository, useValue: mockProjectRepo },
         { provide: UserRepository, useValue: mockUserRepo },
       ],
@@ -36,7 +34,6 @@ describe('ProjectService', () => {
 
     service = module.get<ProjectService>(ProjectService);
     projectRepo = module.get(ProjectRepository);
-    joinCodeService = module.get<JoinCodeService>(JoinCodeService);
     jest.clearAllMocks();
   });
 
@@ -111,13 +108,14 @@ describe('ProjectService', () => {
   describe('approveProject - Guard Constraints', () => {
     it('Mentor cannot approve their own project', async () => {
       const user = { uid: 't1', role: Role.LEVEL_2_DEAN, facultyId: FacultyId.FIT } as AuthenticatedUser;
-      projectRepo.findById.mockResolvedValueOnce({
-        id: 'PRJ-1',
-        mentorId: 't1',
-        facultyId: FacultyId.FIT,
-        status: ProjectStatus.PENDING_DEAN_APPROVAL,
-        joinedStudentIds: [],
-      } as any);
+      projectRepo.findById.mockResolvedValueOnce(
+        createMockProjectItem({
+          id: 'PRJ-1',
+          mentorId: 't1',
+          facultyId: FacultyId.FIT,
+          status: ProjectStatus.PENDING_DEAN_APPROVAL,
+          joinedStudentIds: [],
+        }));
 
       await expect(service.approveProject('PRJ-1', user)).rejects.toThrow(ForbiddenException);
     });

@@ -1,15 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { NotificationService } from '@school-expense-ecosystem/shared/ui';
-import { TranslocoTestingModule } from '@ngneat/transloco';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { ProjectFundingType, ProjectItem, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { ProjectItem, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { ProjectListComponent, ProjectViewModel } from './project-list.component';
-import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
+import { createMockAuthenticatedUser, provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
+import { enProject, twProject } from '@school-expense-ecosystem/shared/assets';
+import { createMockProjectItem } from '@school-expense-ecosystem/projects/test-utils';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 describe('ProjectListComponent', () => {
   let component: ProjectListComponent;
@@ -24,22 +25,7 @@ describe('ProjectListComponent', () => {
   let mockDialog: { open: jest.Mock };
   let mockNotificationService: jest.Mocked<Partial<NotificationService>>;
 
-  const dummyProject: ProjectItem = {
-    id: 'PRJ-FIT-001',
-    name: 'AI Research Platform',
-    type: ProjectFundingType.FACULTY,
-    status: ProjectStatus.PENDING_DEAN_APPROVAL,
-    budgetCap: 20000000,
-    initialSpent: 0,
-    currentSpent: 0,
-    mentorId: 'mentor-uid-01',
-    facultyId: FacultyId.FIT,
-    startDate: new Date().toISOString(),
-    endDate: new Date().toISOString(),
-    joinedStudentIds: ['stu-01'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  const dummyProject = createMockProjectItem();
 
   beforeEach(async () => {
     // 1. Initialize reactive mock signals
@@ -63,7 +49,7 @@ describe('ProjectListComponent', () => {
         value: mockProjectsResourceSignal,
         isLoading: mockProjectsLoadingSignal,
         reload: jest.fn(),
-      } as any),
+      } as unknown as ReturnType<ProjectApiService['getProjectsResource']>),
       approveProject: jest.fn().mockReturnValue(of({ success: true })),
       rejectProject: jest.fn().mockReturnValue(of({ success: true })),
     };
@@ -81,15 +67,10 @@ describe('ProjectListComponent', () => {
       imports: [
         ProjectListComponent,
         // Provides full mock environment for *transloco directive and | transloco pipe
-        TranslocoTestingModule.forRoot({
-          langs: {},
-          translocoConfig: {
-            availableLangs: ['en'],
-            defaultLang: 'en',
-            reRenderOnLangChange: true,
-          },
-          preloadLangs: true,
-        }),
+        provideSharedTranslocoTesting({
+          en: {project: enProject},
+          tw: {project: twProject}
+        })
       ],
       providers: [
         { provide: ProjectApiService, useValue: mockProjectApiService },
@@ -169,6 +150,29 @@ describe('ProjectListComponent', () => {
         })
       );
     });
+
+    it('should format year as a numeric scalar in queryParams when a specific year is selected', () => {
+      component.currentPageIndex.set(4);
+
+      // Simulate filter emit from child FilterComponent
+      component.onProjectFiltersChanged({ year: 2026 });
+
+      expect(component.currentPageIndex()).toBe(1);
+      expect(component.queryParams().year).toBe(2026);
+    });
+
+    it('should omit year parameter from queryParams when filter is set to ALL', () => {
+      component.onProjectFiltersChanged({ year: undefined });
+
+      // Ensure query string is not polluted with sentinel ALL value
+      expect(component.queryParams().year).toBeUndefined();
+    });
+
+    it('should coerce stringified year values to number in queryParams', () => {
+      component.onProjectFiltersChanged({ year: 2025 });
+
+      expect(component.queryParams().year).toBe(2025);
+    });
   });
 
   describe('Project Approval Flow', () => {
@@ -176,7 +180,7 @@ describe('ProjectListComponent', () => {
       // Mock user confirming the dialog
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onApproveProject(dummyProject);
 
@@ -189,7 +193,7 @@ describe('ProjectListComponent', () => {
       // Mock user cancelling the dialog
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(false),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onApproveProject(dummyProject);
 

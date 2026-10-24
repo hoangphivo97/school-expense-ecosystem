@@ -3,7 +3,7 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
 import { HTTP_ERROR_DELEGATE } from '@school-expense-ecosystem/shared/tokens';
 import { DialogError, ErrorResponse } from '@school-expense-ecosystem/shared/types';
-import { NotificationService } from '@school-expense-ecosystem/shared/ui';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 type ErrorModalDelegate = (payload: DialogError) => void;
 

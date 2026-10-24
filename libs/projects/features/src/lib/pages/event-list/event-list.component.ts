@@ -6,16 +6,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData } from '@school-expense-ecosystem/projects/types';
+import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, EventFundingType } from '@school-expense-ecosystem/projects/types';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
-import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
+import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import {
   ConfirmDialogData,
   DialogActionEnum,
   FacultyId,
-  FilterMode,
+  FilterFieldConfig,
+  FilterOption,
   Role,
   SharedFilterFields,
   UserType,
@@ -25,13 +26,13 @@ import {
   CopyToClipboardDirective,
   FilterComponent,
   LoadingDirective,
-  NotificationService,
   PaginationComponent,
 } from '@school-expense-ecosystem/shared/ui';
-import { ActivityCapacityProgressComponent } from '@school-expense-ecosystem/projects/ui';
+import { ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent } from '@school-expense-ecosystem/projects/ui';
 import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/create-event-dialog.component';
 import { ManageJoinCodeDialogComponent, ManageJoinCodeDialogData, ManageJoinCodeDialogResult } from '../../dialogs/manage-join-code-dialog/manage-join-code-dialog.component';
 import { JoinCodeDialogComponent } from '../../dialogs/join-code-dialog/join-code-dialog.component';
+import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 export interface EventViewModel extends EventItem, BaseActivityViewModel {
   canManage: boolean;
@@ -54,7 +55,8 @@ export interface EventViewModel extends EventItem, BaseActivityViewModel {
     PaginationComponent,
     LoadingDirective,
     CopyToClipboardDirective,
-    ActivityCapacityProgressComponent
+    ActivityCapacityProgressComponent,
+    BudgetExhaustionProgressComponent
   ],
   templateUrl: './event-list.component.html',
   styleUrl: './event-list.component.scss',
@@ -63,21 +65,21 @@ export interface EventViewModel extends EventItem, BaseActivityViewModel {
 })
 export class EventListComponent {
   private readonly authSignalStore = inject(AuthSignalStore);
-  private readonly facultyApiService = inject(FacultyApiService);
   private readonly eventService = inject(EventApiService)
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
   private readonly translocoService = inject(TranslocoService);
+  private readonly masterDataStore = inject(MasterDataStore);
 
-  readonly filterModeEnum = FilterMode;
   readonly currentUser = this.authSignalStore.user;
   readonly isStudent = computed(() => this.currentUser()?.userType === UserType.STUDENT);
 
   // Pagination & Filter States
   readonly pageSize = signal<number>(10);
   readonly currentPageIndex = signal<number>(1);
-  readonly filterParams = signal<SharedFilterFields>({});
-  readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
+  readonly filterParams = signal<SharedFilterFields>({
+    facultyId: this.currentUser()?.facultyId
+  });
 
   readonly queryParams = computed<EventQueryPayload>(() => {
     const filters = this.filterParams();
@@ -87,20 +89,90 @@ export class EventListComponent {
       ...(filters.searchTerm ? { search: filters.searchTerm.trim() } : {}),
       ...(filters.facultyId ? { facultyId: filters.facultyId as FacultyId } : {}),
       ...(filters.status ? { status: filters.status as EventStatus } : {}),
+      ...(filters.year ? { year: Number(filters.year) } : {}),
+      ...(filters.eventType ? { type: filters.eventType as EventFundingType } : {}),
     };
   });
+
+  readonly statusOptions: FilterOption[] = [
+    { value: 'ALL', labelKey: 'shared.filter.options.eventStatus.ALL', label: 'All Statuses' },
+    ...Object.values(EventStatus).map((status) => ({
+      value: status,
+      label: status,
+      labelKey: `shared.filter.options.eventStatus.${status}`
+    }))
+  ];
+
+  readonly isFacultyDisabled = computed(() => {
+    const user = this.currentUser();
+    return user?.role === Role.LEVEL_2_DEAN || user?.userType === UserType.STUDENT;
+  });
+
+  readonly availableYearsSignal = signal<number[]>([2024, 2025, 2026]);
+
+  readonly eventTypeOptions: FilterOption[] = [
+    { value: 'ALL', labelKey: 'shared.filter.options.eventType.ALL', label: 'All Types' },
+    { value: 'SCHOOL', labelKey: 'shared.filter.options.eventType.SCHOOL', label: 'School Funded' },
+    { value: 'FACULTY', labelKey: 'shared.filter.options.eventType.FACULTY', label: 'Faculty Funded' },
+    { value: 'PROJECT', labelKey: 'shared.filter.options.eventType.PROJECT', label: 'Project Funded' },
+    { value: 'OUTSOURCE', labelKey: 'shared.filter.options.eventType.OUTSOURCE', label: 'Outsourced / External' },
+  ];
+
+  readonly yearOptions = computed<FilterOption[]>(() => [
+    { value: 'ALL', labelKey: 'shared.filter.options.years.ALL', label: 'All Years' },
+    ...this.availableYearsSignal().map((year) => ({
+      value: year,
+      label: `${year}`
+    }))
+  ]);
+
+  // Declarative schema for Event list toolbar
+  readonly eventFilterConfigs = computed<FilterFieldConfig[]>(() => [
+    {
+      key: 'searchTerm',
+      type: 'search',
+      labelKey: 'shared.filter.searchLabel',
+      placeholderKey: 'shared.filter.searchPlaceholder',
+      defaultValue: ''
+    },
+    {
+      key: 'facultyId',
+      type: 'select',
+      labelKey: 'shared.filter.labels.faculty',
+      defaultValue: this.currentUser()?.facultyId ?? 'ALL',
+      disabled: this.isFacultyDisabled,
+      options: this.masterDataStore.facultyOptions,
+      customWidth: '220px'
+    },
+    {
+      key: 'status',
+      type: 'select',
+      labelKey: 'shared.filter.labels.eventStatus',
+      defaultValue: 'ALL',
+      options: this.statusOptions,
+      customWidth: '180px'
+    },
+    {
+      key: 'year',
+      type: 'select',
+      labelKey: 'shared.filter.labels.year',
+      defaultValue: 'ALL',
+      options: this.yearOptions,
+      customWidth: '140px'
+    },
+    {
+      key: 'eventType',
+      type: 'select',
+      labelKey: 'shared.filter.labels.eventType',
+      defaultValue: 'ALL',
+      options: this.eventTypeOptions,
+      customWidth: '180px'
+    },
+  ]);
 
   // Reactive resource call via signal getter
   readonly eventResource = this.eventService.getEventsResource(() => this.queryParams());
   readonly isGridDataLoading = this.eventResource.isLoading;
-
-  // Dynamic Lookup for faculties
-  readonly facultiesListSignal = computed(() =>
-    this.facultyApiService.facultiesResource.value().map((faculty) => ({
-      facultyId: faculty.id,
-      facultyName: faculty.name,
-    }))
-  );
 
   // Derive total items and event records directly from API resource
   readonly allowedRoles = [Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN];
@@ -155,14 +227,27 @@ export class EventListComponent {
     'facultyId',
     'budgetCap',
     'currentSpent',
+    'pendingSpent',
     'timeline',
     'participants',
+    'budgetExhaustion',
     'status',
     'action',
   ];
 
   onEventFiltersChanged(filters: SharedFilterFields): void {
-    this.filterParams.set(filters);
+    const rawStatus = filters.status as unknown;
+    const rawFaculty = filters.facultyId as unknown;
+    const rawYear = filters.year as unknown;
+    const rawType = filters.eventType as unknown;
+
+    this.filterParams.set({
+      searchTerm: filters.searchTerm?.trim() || '',
+      status: rawStatus === 'ALL' || !rawStatus ? undefined : (rawStatus as EventStatus),
+      facultyId: rawFaculty === 'ALL' || !rawFaculty ? undefined : (rawFaculty as FacultyId),
+      year: rawYear === 'ALL' || !rawYear ? undefined : Number(rawYear),
+      eventType: rawType === 'ALL' || !rawType ? undefined : (rawType as EventFundingType),
+    });
     this.currentPageIndex.set(1);
   }
 

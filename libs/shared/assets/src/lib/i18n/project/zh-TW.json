@@ -24,6 +24,8 @@
       "budgetCap": "預算上限",
       "currentSpent": "目前累計支出",
       "enrolledStudents": "參與學生",
+      "pendingSpent": "待審核支出",
+      "budgetExhaustion": "預算支用率",
       "timeline": "執行期間",
       "status": "專案狀態"
     },
@@ -127,8 +129,11 @@
         "label": "預算上限（總額限制）",
         "errors": {
           "required": "預算上限為必填項目",
-          "min": "預算上限必須大於 0"
-        }
+          "min": "預算上限必須大於 0",
+          "insufficientDepartmentBudget":"系所可用經費不足（剩餘：{{available}} TWD，申請：{{requested}} TWD）。"
+        },
+        "remainingHint": "可用餘額：{{amount}} TWD",
+        "checkingHint": "正在讀取可用餘額..."
       },
       "initialSpent": {
         "label": "期初已支用金額",
@@ -166,7 +171,9 @@
     }
   },
   "manageMembersDialog": {
-    "title": "專案成員名冊與招募管理",
+    "titleProject": "管理專案成員",
+    "titleEvent": "管理活動成員",
+    "title": "管理成員",
     "close": "關閉",
     "tabs": {
       "roster": "成員名冊",
@@ -177,12 +184,17 @@
       "searchPlaceholder": "輸入學生姓名、學號或電子郵件...",
       "noStudentsFound": "查無符合條件的學生。",
       "addButton": "加入",
+      "adding": "處理中...",
       "emptyState": "目前尚未有學生加入此專案。",
       "copyIdTooltip": "複製學生學號",
       "removeTooltip": "自專案中移除此學生",
       "alreadyEnrolled": "該學生已加入此專案。",
       "addSuccess": "成功將學生加入專案。",
-      "removeSuccess": "已自專案中移除該學生。"
+      "removeSuccess": "已自專案中移除該學生。",
+      "confirmRemoveTitle": "移除成員確認",
+      "confirmRemoveMessage": "您確定要將「{{name}}」從此專案名單中移除嗎？",
+      "confirmRemoveAction": "確認移除",
+      "cancelAction": "取消"
     },
     "code": {
       "clickToCopy": "點擊複製專案邀請碼",
@@ -234,6 +246,8 @@
       "currentSpent": "已核銷額度",
       "timeline": "活動期程",
       "participants": "參與名額 / 上限",
+      "pendingSpent": "待審核支出",
+      "budgetExhaustion": "預算支用率",
       "status": "活動狀態"
     },
     "actions": {

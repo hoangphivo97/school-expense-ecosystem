@@ -1,5 +1,5 @@
-import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -15,7 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   CreateEventPayload,
@@ -28,8 +28,15 @@ import {
 } from '@school-expense-ecosystem/projects/types';
 import { ActivityFormLayoutComponent } from '@school-expense-ecosystem/projects/ui';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
-import { ConfirmDialogData, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
+import { ConfirmDialogData, DepartmentFundSummary, DialogActionEnum, FacultyId, Role } from '@school-expense-ecosystem/shared/types';
 import { ConfirmDialogComponent, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
+import { departmentBudgetLimitValidator } from '../../validators/department-budget.validator';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
+import { catchError, merge, of, switchMap } from 'rxjs';
+import { validateDateRange, validateInitialSpent, validateJoinCodeSchedule } from '../../validators/activity-form.validators';
+import { handleCurrencyInput } from '../../validators/currency-input.util';
+import { setupJoinCodeDialogSync } from '../../validators/join-code-sync.util';
 
 export interface CreateEventDialogData {
   facultyId?: FacultyId;
@@ -51,7 +58,8 @@ export interface CreateEventDialogData {
     TranslocoModule,
     FormErrorPipe,
     ActivityFormLayoutComponent,
-    DecimalPipe
+    DecimalPipe,
+    DatePipe
   ],
   templateUrl: './create-event-dialog.component.html',
   styleUrl: './create-event-dialog.component.scss',
@@ -73,6 +81,7 @@ export class CreateEventDialogComponent {
   private readonly dialog = inject(MatDialog);
   private readonly authStore = inject(AuthSignalStore);
   private readonly translocoService = inject(TranslocoService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly WARNING_RULES: Partial<Record<Role, Partial<Record<EventFundingType, string>>>> = {
     [Role.LEVEL_2_DEAN]: {
@@ -112,6 +121,16 @@ export class CreateEventDialogComponent {
 
   readonly selectedFundingType = signal<EventFundingType>(EventFundingType.SCHOOL);
   readonly isProjectFunded = computed(() => this.selectedFundingType() === EventFundingType.PROJECT);
+  readonly selectedProjectId = signal<string | null>(null);
+
+  readonly selectedProject = computed<ProjectItem | null>(() => {
+    const parentId = this.selectedProjectId();
+    if (!parentId) return null;
+    return this.availableProjects().find((p) => p.id === parentId) ?? null;
+  });
+
+  readonly departmentFund = signal<DepartmentFundSummary | null>(null);
+  readonly isFundLoading = signal<boolean>(false);
 
   readonly isImmediatelyActive = computed(() => {
     const role = this.authStore.user()?.role;
@@ -127,7 +146,12 @@ export class CreateEventDialogComponent {
       type: [EventFundingType.SCHOOL, [Validators.required]],
       projectId: [null],
       facultyId: [this.data?.facultyId ?? FacultyId.FIT, [Validators.required]],
-      budgetCap: [0, [Validators.required, Validators.min(1)]],
+      budgetCap: [0, [Validators.required, Validators.min(1),
+      departmentBudgetLimitValidator({
+        getRemainingBudget: () => this.departmentFund()?.remainingBudget,
+        isFacultyFunding: () => this.form?.get('type')?.value === EventFundingType.FACULTY,
+      }),
+      ]],
       initialSpent: [0, [Validators.min(0)]],
       startDate: [new Date(), [Validators.required]],
       endDate: [null, [Validators.required]],
@@ -137,58 +161,78 @@ export class CreateEventDialogComponent {
     },
     {
       validators: [
-        this.validateDateRange,
-        this.validateInitialSpent,
-        this.validateJoinCodeSchedule,
+        validateDateRange,
+        validateInitialSpent,
+        validateJoinCodeSchedule,
         (control) => this.validateParentProjectBudget(control),
+        (control) => this.validateParentProjectTimeline(control)
       ],
     }
   );
 
   constructor() {
-    const initialJoinCodeState = Boolean(this.form.get('generateJoinCode')?.value);
-    this.updateDialogLayout(initialJoinCodeState);
+    const typeControl = this.form.get('type');
+    const facultyControl = this.form.get('facultyId');
 
-    // Sync signal when faculty changes to reload parent projects
-    this.form.get('facultyId')?.valueChanges.subscribe((facId: FacultyId) => {
-      this.selectedFacultyId.set(facId);
-      this.form.get('projectId')?.setValue(null);
-    });
+    if (typeControl && facultyControl) {
+      merge(typeControl.valueChanges, facultyControl.valueChanges)
+        .pipe(
+          switchMap(() => {
+            if (this.isDetailMode()) return of(null);
+
+            const type = typeControl.value as EventFundingType;
+            const facultyId = facultyControl.value as FacultyId;
+
+            // Reset balance if conditions are not met
+            if (type !== EventFundingType.FACULTY || !facultyId) {
+              return of(null);
+            }
+
+            // switchMap automatically cancels any pending in-flight request when a new selection occurs
+            return this.facultyApiService.getDepartmentFundBalance(facultyId).pipe(
+              trackLoading(this.isFundLoading),
+              catchError(() => of(null))
+            );
+          }),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe((fund) => {
+          this.departmentFund.set(fund);
+          // Instant sync validation evaluation
+          this.form.get('budgetCap')?.updateValueAndValidity();
+        });
+    }
+
+    setupJoinCodeDialogSync(this.form, this.dialogRef, this.destroyRef);
+
+    this.form.get('projectId')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((projectId: string | null) => {
+        this.selectedProjectId.set(projectId);
+      });
 
     // Handle funding type modifications
-    this.form.get('type')?.valueChanges.subscribe((type: EventFundingType) => {
-      this.selectedFundingType.set(type);
-      const projectControl = this.form.get('projectId');
-      if (type === EventFundingType.PROJECT) {
-        projectControl?.setValidators([Validators.required]);
-      } else {
-        projectControl?.clearValidators();
-        projectControl?.setValue(null);
-      }
-      projectControl?.updateValueAndValidity();
-    });
+    this.form.get('facultyId')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((facId: FacultyId) => {
+        this.selectedFacultyId.set(facId);
+        this.form.get('projectId')?.setValue(null);
+      });
 
     // Auto-sync join code layout and defaults
-    this.form.get('generateJoinCode')?.valueChanges.subscribe((enabled: boolean) => {
-      this.updateDialogLayout(Boolean(enabled));
-      if (enabled) {
-        const eventEndDate = this.form.get('endDate')?.value;
-        if (eventEndDate && !this.form.get('expiresAt')?.value) {
-          this.form.patchValue({ expiresAt: eventEndDate }, { emitEvent: false });
+    this.form.get('type')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((type: EventFundingType) => {
+        this.selectedFundingType.set(type);
+        const projectControl = this.form.get('projectId');
+        if (type === EventFundingType.PROJECT) {
+          projectControl?.setValidators([Validators.required]);
+        } else {
+          projectControl?.clearValidators();
+          projectControl?.setValue(null);
         }
-      } else {
-        this.form.patchValue({ maxUses: null, expiresAt: null }, { emitEvent: false });
-        this.form.get('maxUses')?.setErrors(null);
-        this.form.get('expiresAt')?.setErrors(null);
-        this.form.updateValueAndValidity();
-      }
-    });
-
-    this.form.get('endDate')?.valueChanges.subscribe((newEndDate) => {
-      if (this.form.get('generateJoinCode')?.value && newEndDate) {
-        this.form.patchValue({ expiresAt: newEndDate }, { emitEvent: false });
-      }
-    });
+        projectControl?.updateValueAndValidity();
+      });
 
     if (this.data?.event) {
       this.patchExistingData(this.data.event);
@@ -225,54 +269,6 @@ export class CreateEventDialogComponent {
     }
   }
 
-  private validateDateRange(control: AbstractControl): ValidationErrors | null {
-    const start = control.get('startDate')?.value;
-    const end = control.get('endDate')?.value;
-
-    if (start && end) {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
-
-      if (startDate > endDate) {
-        return { invalidDateRange: true };
-      }
-    }
-    return null;
-  }
-
-  private validateJoinCodeSchedule(control: AbstractControl): ValidationErrors | null {
-    const generateCode = control.get('generateJoinCode')?.value;
-    if (!generateCode) return null;
-
-    const expiresAtVal = control.get('expiresAt')?.value;
-    const endDateVal = control.get('endDate')?.value;
-
-    if (expiresAtVal && endDateVal) {
-      const expiresAt = new Date(expiresAtVal);
-      const endDate = new Date(endDateVal);
-      expiresAt.setHours(23, 59, 59, 999);
-      endDate.setHours(23, 59, 59, 999);
-
-      if (expiresAt > endDate) {
-        return { invalidJoinCodeExpiration: true };
-      }
-    }
-    return null;
-  }
-
-  private validateInitialSpent(control: AbstractControl): ValidationErrors | null {
-    const budget = Number(control.get('budgetCap')?.value || 0);
-    const initial = Number(control.get('initialSpent')?.value || 0);
-
-    if (initial > budget) {
-      control.get('initialSpent')?.setErrors({ initialSpentExceedsBudget: true });
-      return { initialSpentExceedsBudget: true };
-    }
-    return null;
-  }
-
   private validateParentProjectBudget(control: AbstractControl): ValidationErrors | null {
     const parentProjectId = control.get('projectId')?.value;
     const budgetCap = Number(control.get('budgetCap')?.value || 0);
@@ -297,29 +293,7 @@ export class CreateEventDialogComponent {
   }
 
   onInputAmount(event: Event, controlName: 'budgetCap' | 'initialSpent'): void {
-    const inputElement = event.target as HTMLInputElement;
-    const sanitized = inputElement.value.replace(/,/g, '').replace(/[^0-9.]/g, '').trim();
-    const control = this.form.get(controlName);
-
-    control?.markAsTouched();
-
-    if (!sanitized || sanitized === '.') {
-      control?.setValue(null);
-      inputElement.value = '';
-      this.form.updateValueAndValidity();
-      return;
-    }
-
-    const numericValue = parseFloat(sanitized);
-    if (!isNaN(numericValue)) {
-      control?.setValue(numericValue);
-      inputElement.value = this.decimalPipe.transform(numericValue, '1.0-2') || '';
-    } else {
-      control?.setValue(null);
-      inputElement.value = '';
-    }
-
-    this.form.updateValueAndValidity();
+    handleCurrencyInput(event, controlName, this.form, this.decimalPipe)
   }
 
   onSubmit(): void {
@@ -340,7 +314,7 @@ export class CreateEventDialogComponent {
         initialSpent: Number(formValue.initialSpent || 0),
         startDate: new Date(formValue.startDate).toISOString(),
         endDate: new Date(formValue.endDate).toISOString(),
-        expectedUpdatedAt: this.data.event.updatedAt, 
+        expectedUpdatedAt: this.data.event.updatedAt,
       };
 
       this.eventApiService.updateEvent(this.data.event.id, updatePayload).subscribe({
@@ -369,9 +343,9 @@ export class CreateEventDialogComponent {
       endDate: new Date(formValue.endDate).toISOString(),
       joinCodeConfig: isJoinCodeEnabled
         ? {
-            maxUses: formValue.maxUses ? Number(formValue.maxUses) : null,
-            expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : null,
-          }
+          maxUses: formValue.maxUses ? Number(formValue.maxUses) : null,
+          expiresAt: formValue.expiresAt ? new Date(formValue.expiresAt).toISOString() : null,
+        }
         : null,
     };
 
@@ -444,15 +418,33 @@ export class CreateEventDialogComponent {
       next: (createdEvent) => {
         this.isSubmitting.set(false);
         this.dialogRef.close(createdEvent);
-      },
-      error: (err) => {
-        this.isSubmitting.set(false);
-        this.errorMessage.set(err?.error?.message || 'Failed to initialize event. Please try again.');
-      },
+      }
     });
   }
 
-  private updateDialogLayout(isExpanded: boolean): void {
-    this.dialogRef.updateSize(isExpanded ? '1020px' : '600px');
+  private validateParentProjectTimeline(control: AbstractControl): ValidationErrors | null {
+    const type = control.get('type')?.value;
+    const parentProjectId = control.get('projectId')?.value;
+    const startVal = control.get('startDate')?.value;
+    const endVal = control.get('endDate')?.value;
+
+    // Only enforce when funded by parent project
+    if (type !== EventFundingType.PROJECT || !parentProjectId || !startVal || !endVal) {
+      return null;
+    }
+
+    const parentProject = this.availableProjects().find((p) => p.id === parentProjectId);
+    if (!parentProject) return null;
+
+    const eventStart = new Date(startVal).setHours(0, 0, 0, 0);
+    const eventEnd = new Date(endVal).setHours(23, 59, 59, 999);
+    const projectStart = new Date(parentProject.startDate).setHours(0, 0, 0, 0);
+    const projectEnd = new Date(parentProject.endDate).setHours(23, 59, 59, 999);
+
+    if (eventStart < projectStart || eventEnd > projectEnd) {
+      return { eventOutsideParentProjectTimeline: true };
+    }
+
+    return null;
   }
 }

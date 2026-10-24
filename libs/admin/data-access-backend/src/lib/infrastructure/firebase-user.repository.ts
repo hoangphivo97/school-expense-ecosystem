@@ -77,9 +77,15 @@ export class FirebaseUserRepository implements UserRepository {
     };
   }
 
-  async findById(uid: string): Promise<any | null> {
+  async findById(uid: string): Promise<UserBase | null> {
     const doc = await this.db.collection('users').doc(uid).get();
-    return doc.exists ? doc.data() : null;
+    if (!doc.exists) return null;
+
+    const data = doc.data() ?? {};
+    return {
+      id: doc.id,
+      ...data,
+    } as unknown as UserBase;
   }
 
   async updateUserFields(uid: string, updateData: UpdateUserInput): Promise<void> {
@@ -116,8 +122,9 @@ export class FirebaseUserRepository implements UserRepository {
 
       const authRecord = await admin.auth().createUser(config);
       return authRecord.uid;
-    } catch (error: any) {
-      if (error.code === 'auth/email-already-exists') {
+    } catch (error: unknown) {
+      const authError = error as { code?: string };
+      if (authError?.code === 'auth/email-already-exists') {
         throw new ConflictException('The email address is already in use by another account.');
       }
       throw error;
@@ -125,15 +132,15 @@ export class FirebaseUserRepository implements UserRepository {
   }
 
   async updateStatus(uid: string, status: UserStatus, reason?: string): Promise<void> {
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status,
       updatedAt: new Date()
     };
 
     if (reason) {
-      updateData.reason = reason;
+      updateData['reason'] = reason;
     } else if (status === UserStatus.ACTIVE) {
-      updateData.reason = admin.firestore.FieldValue.delete();
+      updateData['reason'] = admin.firestore.FieldValue.delete();
     }
 
     await this.db.collection('users').doc(uid).update(updateData);
@@ -146,8 +153,9 @@ export class FirebaseUserRepository implements UserRepository {
   async deleteAuthAccount(uid: string): Promise<void> {
     try {
       await admin.auth().deleteUser(uid);
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
+    } catch (error: unknown) {
+      const authError = error as { code?: string };
+      if (authError?.code === 'auth/user-not-found') {
         return;
       }
       throw error;
@@ -163,7 +171,7 @@ export class FirebaseUserRepository implements UserRepository {
     return snapshots
       .filter((snap) => snap.exists)
       .map((snap) => {
-        const data = snap.data()!;
+        const data = snap.data() ?? {};
         return {
           id: snap.id,
           uid: snap.id,

@@ -6,18 +6,8 @@ import {
 } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
-import {
-  AddParticipantsDto,
-  CreateEventDto,
-  EventQueryDto,
-  GenerateJoinCodeDto,
-  JoinByCodeDto,
-  RejectEventDto,
-  UpdateEventDto,
-} from '@school-expense-ecosystem/projects/features-backend';
 import { EventRepository } from '../repositories/abstracts/event.repository';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
-import { UserRepository } from '@school-expense-ecosystem/admin/features-backend';
 import {
   EventItem,
   EventFundingType,
@@ -28,6 +18,12 @@ import {
   PaginatedEventResult,
   EventQueryPayload,
   EnrolledActivitySummary,
+  CreateEventPayload,
+  UpdateEventPayload,
+  GenerateJoinCodePayload,
+  JoinByCodePayload,
+  RejectEventPayload,
+  AddParticipantsPayload,
 } from '@school-expense-ecosystem/projects/types';
 import {
   EventActiveFinancialModificationException,
@@ -35,6 +31,8 @@ import {
   EventForbiddenException,
   EventInitialSpentExceedsCapException,
   EventNotFoundException,
+  EventOutsideParentProjectTimelineException,
+  EventParentProjectRequiredException,
   EventPendingExpensesArchiveException,
   EventStudentNotEnrolledException,
   InvalidEventStateException,
@@ -42,6 +40,9 @@ import {
 import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
+import { calculateSpannedYears } from '../helpers/calculate-years.helper';
+import { ProjectStudentNotFoundException } from '../exceptions/project.exception';
+import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
 
 @Injectable()
 export class EventService {
@@ -55,84 +56,97 @@ export class EventService {
   /**
    * Create an event supporting both Standalone and Sub-event (Project-linked) models
    */
-  async createEvent(user: AuthenticatedUser, dto: CreateEventDto): Promise<EventItem> {
-    const facultyPrefix = dto.facultyId.toUpperCase();
+  async createEvent(user: AuthenticatedUser, payload: CreateEventPayload): Promise<EventItem> {
+    const facultyPrefix = payload.facultyId.toUpperCase();
     const shortHash = randomBytes(3).toString('hex').toUpperCase();
     const eventId = `EVT-${facultyPrefix}-${shortHash}`;
 
-    const initialSpent = dto.initialSpent ?? 0;
-    if (initialSpent > dto.budgetCap) {
+    const initialSpent = payload.initialSpent ?? 0;
+    if (initialSpent > payload.budgetCap) {
       throw new EventInitialSpentExceedsCapException();
     }
 
     let initialStatus: EventStatus;
 
     // 1. Case A: Sub-event linked to a Parent Project
-    if (dto.projectId) {
-      const parentProject = await this.projectRepository.findById(dto.projectId);
+    if (payload.type === EventFundingType.PROJECT) {
+      if (!payload.projectId) {
+        throw new EventParentProjectRequiredException();
+      }
+
+      const parentProject = await this.projectRepository.findById(payload.projectId);
       if (!parentProject) {
-        throw new NotFoundException(`Parent Project with ID ${dto.projectId} not found.`);
+        throw new NotFoundException(`Parent Project with ID ${payload.projectId} not found.`);
       }
 
       if (parentProject.status !== ProjectStatus.ACTIVE) {
         throw new BadRequestException('Cannot attach an event to an inactive project.');
       }
 
-      if (parentProject.facultyId !== dto.facultyId) {
+      if (parentProject.facultyId !== payload.facultyId) {
         throw new BadRequestException('EventItem faculty must match parent project faculty.');
       }
 
-      const eventStart = new Date(dto.startDate);
-      const eventEnd = new Date(dto.endDate);
-      const projectStart = new Date(parentProject.startDate);
-      const projectEnd = new Date(parentProject.endDate);
+      // Normalize date boundaries: start of day for start date, end of day for end date
+      const eventStart = new Date(payload.startDate).setHours(0, 0, 0, 0);
+      const eventEnd = new Date(payload.endDate).setHours(23, 59, 59, 999);
+      const projectStart = new Date(parentProject.startDate).setHours(0, 0, 0, 0);
+      const projectEnd = new Date(parentProject.endDate).setHours(23, 59, 59, 999);
 
       if (eventStart < projectStart || eventEnd > projectEnd) {
-        throw new BadRequestException('EventItem timeline must stay within the parent project duration.');
+        throw new EventOutsideParentProjectTimelineException(
+          payload.startDate,
+          payload.endDate,
+          parentProject.startDate,
+          parentProject.endDate
+        );
       }
 
       const availableBudget =
         parentProject.budgetCap - (parentProject.currentSpent + (parentProject.pendingSpent ?? 0));
-      if (dto.budgetCap > availableBudget) {
+      if (payload.budgetCap > availableBudget) {
         throw new BadRequestException(
           `EventItem budget cap exceeds available project budget headroom (${availableBudget}).`
         );
       }
 
-      // Sub-events under active projects are immediately upcoming
-      initialStatus = EventStatus.UPCOMING;
-
       // Reserve project budget headroom via pendingSpent delta
-      await this.projectRepository.updateSpentCounters(dto.projectId, {
-        pendingSpentDelta: dto.budgetCap,
+      await this.projectRepository.updateSpentCounters(payload.projectId, {
+        pendingSpentDelta: payload.budgetCap,
       });
+
+      const isDeanOrFinance = user.role === Role.LEVEL_2_DEAN || user.role === Role.LEVEL_1_FINANCE;
+      initialStatus = isDeanOrFinance ? EventStatus.UPCOMING : EventStatus.PENDING_DEAN_APPROVAL;
     } else {
-      // 2. Case B: Standalone EventItem (Routes through approval workflow)
-      const isSchoolFunded = dto.type === EventFundingType.SCHOOL;
+      // 2. Case B: Standalone Event (Routes through governance workflow)
       const isFinance = user.role === Role.LEVEL_1_FINANCE;
       const isDean = user.role === Role.LEVEL_2_DEAN;
 
-      if (!isSchoolFunded || isFinance) {
+      if (payload.type === EventFundingType.OUTSOURCE || isFinance) {
         initialStatus = EventStatus.UPCOMING;
       } else if (isDean) {
-        initialStatus = EventStatus.PENDING_FINANCE_APPROVAL;
+        // Dean creating a School-funded event routes to Finance; Faculty-funded activates directly
+        initialStatus = payload.type === EventFundingType.SCHOOL
+          ? EventStatus.PENDING_FINANCE_APPROVAL
+          : EventStatus.UPCOMING;
       } else {
+        // Teachers creating Faculty or School events must route to Dean first
         initialStatus = EventStatus.PENDING_DEAN_APPROVAL;
       }
     }
 
-    const joinConfig = dto.joinCodeConfig
-      ? this.joinCodeService.generateInlineConfig(dto.joinCodeConfig, dto.startDate, dto.endDate)
+    const joinConfig = payload.joinCodeConfig
+      ? this.joinCodeService.generateInlineConfig(payload.joinCodeConfig, payload.startDate, payload.endDate)
       : null;
 
     const newEvent: EventItem = {
       id: eventId,
-      name: dto.name.trim(),
-      description: dto.description ? dto.description.trim() : undefined,
-      projectId: dto.projectId ?? null,
-      facultyId: dto.facultyId,
-      type: dto.type,
-      budgetCap: dto.budgetCap,
+      name: payload.name.trim(),
+      description: payload.description ? payload.description.trim() : undefined,
+      projectId: payload.projectId ?? null,
+      facultyId: payload.facultyId,
+      type: payload.type,
+      budgetCap: payload.budgetCap,
       initialSpent: initialSpent,
       currentSpent: initialSpent,
       pendingSpent: 0,
@@ -142,14 +156,15 @@ export class EventService {
       joinConfig: joinConfig,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      startDate: new Date(dto.startDate).toISOString(),
-      endDate: new Date(dto.endDate).toISOString(),
+      startDate: new Date(payload.startDate).toISOString(),
+      endDate: new Date(payload.endDate).toISOString(),
+      years: calculateSpannedYears(payload.startDate, payload.endDate),
     };
 
     // Encumber faculty fund if it is a standalone faculty-funded event
-    if (!dto.projectId && dto.type === EventFundingType.FACULTY) {
+    if (!payload.projectId && payload.type === EventFundingType.FACULTY) {
       const currentYear = new Date().getFullYear();
-      const departmentFundId = `${dto.facultyId.toUpperCase()}_DEPT_${currentYear}`;
+      const departmentFundId = `${payload.facultyId.toUpperCase()}_DEPT_${currentYear}`;
       return this.eventRepository.createWithFacultyFund(newEvent, departmentFundId);
     }
 
@@ -159,7 +174,7 @@ export class EventService {
   /**
    * Update event details with financial baseline locks
    */
-  async updateEvent(id: string, user: AuthenticatedUser, dto: UpdateEventDto): Promise<EventItem> {
+  async updateEvent(id: string, user: AuthenticatedUser, payload: UpdateEventPayload): Promise<EventItem> {
     const event = await this.validateEventAccess(id, user);
 
     // 1. Guard editable lifecycle statuses
@@ -174,10 +189,10 @@ export class EventService {
 
     // Prohibit direct modifications to financial baselines on active/upcoming events
     if (event.status === EventStatus.UPCOMING || event.status === EventStatus.ONGOING) {
-      if (dto.initialSpent !== undefined && dto.initialSpent !== event.initialSpent) {
+      if (payload.initialSpent !== undefined && payload.initialSpent !== event.initialSpent) {
         throw new EventActiveFinancialModificationException('initialSpent');
       }
-      if (dto.budgetCap !== undefined && dto.budgetCap !== event.budgetCap) {
+      if (payload.budgetCap !== undefined && payload.budgetCap !== event.budgetCap) {
         throw new EventActiveFinancialModificationException('budgetCap');
       }
     }
@@ -193,27 +208,53 @@ export class EventService {
       }
     }
 
-    const newInitialSpent = dto.initialSpent !== undefined ? Number(dto.initialSpent) : event.initialSpent;
-    const targetBudgetCap = dto.budgetCap !== undefined ? Number(dto.budgetCap) : event.budgetCap;
+    const newInitialSpent = payload.initialSpent !== undefined ? Number(payload.initialSpent) : event.initialSpent;
+    const targetBudgetCap = payload.budgetCap !== undefined ? Number(payload.budgetCap) : event.budgetCap;
 
     if (newInitialSpent > targetBudgetCap) {
       throw new EventInitialSpentExceedsCapException();
     }
 
-    const { expectedUpdatedAt, ...cleanDto } = dto;
+    const { expectedUpdatedAt, ...cleanpayload } = payload;
+
+    const targetStartDate = cleanpayload.startDate ?? event.startDate;
+    const targetEndDate = cleanpayload.endDate ?? event.endDate;
+    const isTimelineModified = Boolean(cleanpayload.startDate || cleanpayload.endDate);
+
+    if (isTimelineModified && event.type === EventFundingType.PROJECT && event.projectId) {
+      const parentProject = await this.projectRepository.findById(event.projectId);
+      if (parentProject) {
+        const eventStart = new Date(targetStartDate).setHours(0, 0, 0, 0);
+        const eventEnd = new Date(targetEndDate).setHours(23, 59, 59, 999);
+        const projectStart = new Date(parentProject.startDate).setHours(0, 0, 0, 0);
+        const projectEnd = new Date(parentProject.endDate).setHours(23, 59, 59, 999);
+
+        if (eventStart < projectStart || eventEnd > projectEnd) {
+          throw new EventOutsideParentProjectTimelineException(
+            targetStartDate,
+            targetEndDate,
+            parentProject.startDate,
+            parentProject.endDate
+          );
+        }
+      }
+    }
 
     const updateData: Partial<EventItem> = {
-      ...(cleanDto.name && { name: cleanDto.name.trim() }),
-      ...(cleanDto.description !== undefined && { description: cleanDto.description ? cleanDto.description.trim() : undefined }),
-      ...(cleanDto.type && { type: cleanDto.type }),
-      ...(cleanDto.facultyId && { facultyId: cleanDto.facultyId }),
-      ...(cleanDto.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
-      ...(cleanDto.initialSpent !== undefined && {
+      ...(cleanpayload.name && { name: cleanpayload.name.trim() }),
+      ...(cleanpayload.description !== undefined && { description: cleanpayload.description ? cleanpayload.description.trim() : undefined }),
+      ...(cleanpayload.type && { type: cleanpayload.type }),
+      ...(cleanpayload.facultyId && { facultyId: cleanpayload.facultyId }),
+      ...(cleanpayload.budgetCap !== undefined && { budgetCap: targetBudgetCap }),
+      ...(cleanpayload.initialSpent !== undefined && {
         initialSpent: newInitialSpent,
         currentSpent: newInitialSpent,
       }),
-      ...(cleanDto.startDate && { startDate: new Date(cleanDto.startDate).toISOString() }),
-      ...(cleanDto.endDate && { endDate: new Date(cleanDto.endDate).toISOString() }),
+      ...(cleanpayload.startDate && { startDate: new Date(cleanpayload.startDate).toISOString() }),
+      ...(cleanpayload.endDate && { endDate: new Date(cleanpayload.endDate).toISOString() }),
+      ...(isTimelineModified && {
+        years: calculateSpannedYears(targetStartDate, targetEndDate),
+      }),
       status: nextStatus,
     };
 
@@ -226,7 +267,7 @@ export class EventService {
    */
   async getEventsForUser(
     user: AuthenticatedUser,
-    query?: EventQueryDto
+    query?: EventQueryPayload
   ): Promise<PaginatedEventResult> {
     const baseQuery: EventQueryPayload = {
       ...query,
@@ -262,7 +303,7 @@ export class EventService {
   async generateJoinCode(
     id: string,
     user: AuthenticatedUser,
-    dto: GenerateJoinCodeDto
+    payload: GenerateJoinCodePayload
   ): Promise<JoinConfig> {
     const event = await this.validateEventAccess(id, user);
 
@@ -270,9 +311,9 @@ export class EventService {
       throw new InvalidEventStateException('generate join code', event.status);
     }
 
-    this.joinCodeService.validateJoinCodeSchedule(dto, event.endDate);
+    this.joinCodeService.validateJoinCodeSchedule(payload, event.endDate);
 
-    const joinConfig = this.joinCodeService.generateConfig(dto);
+    const joinConfig = this.joinCodeService.generateConfig(payload);
     await this.eventRepository.updateJoinConfig(id, joinConfig);
     return joinConfig;
   }
@@ -280,8 +321,8 @@ export class EventService {
   /**
    * Student self-registration via code
    */
-  async joinEventByCode(user: AuthenticatedUser, joinDto: JoinByCodeDto): Promise<EnrolledActivitySummary> {
-    const event = await this.eventRepository.findByJoinCode(joinDto.code);
+  async joinEventByCode(user: AuthenticatedUser, payload: JoinByCodePayload): Promise<EnrolledActivitySummary> {
+    const event = await this.eventRepository.findByJoinCode(payload.code);
     if (!event) {
       throw new InvalidJoinCodeException();
     }
@@ -293,7 +334,7 @@ export class EventService {
     const enrolled = await this.eventRepository.enrollStudentViaCode(
       event.id,
       user.uid,
-      joinDto.code,
+      payload.code,
       [EventStatus.ONGOING, EventStatus.UPCOMING]
     );
 
@@ -341,7 +382,7 @@ export class EventService {
   /**
    * Reject or cancel event with required reason
    */
-  async rejectEvent(id: string, user: AuthenticatedUser, dto: RejectEventDto): Promise<EventItem> {
+  async rejectEvent(id: string, user: AuthenticatedUser, payload: RejectEventPayload): Promise<EventItem> {
     const event = await this.validateEventAccess(id, user);
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && event.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
@@ -363,7 +404,7 @@ export class EventService {
       EventStatus.REJECTED,
       [EventStatus.PENDING_DEAN_APPROVAL, EventStatus.PENDING_FINANCE_APPROVAL, EventStatus.UPCOMING],
       {
-        rejectionReason: dto.reason.trim(),
+        rejectionReason: payload.reason.trim(),
         rejectedBy: user.uid,
       }
     );
@@ -399,14 +440,39 @@ export class EventService {
     return toStudentSummaryList(users);
   }
 
-  async addStudentsManually(id: string, user: AuthenticatedUser, dto: AddParticipantsDto): Promise<void> {
+  async addStudentsManually(id: string, user: AuthenticatedUser, payload: AddParticipantsPayload): Promise<void> {
     const event = await this.validateEventAccess(id, user);
 
     if (event.status === EventStatus.PENDING_DEAN_APPROVAL) {
       throw new InvalidEventStateException('modify roster during', event.status);
     }
 
-    await this.eventRepository.addStudentsBulk(id, dto.userIds);
+    const requestedIds = [...new Set(payload.userIds)];
+    if (requestedIds.length === 0) return;
+
+    // Verify system accounts exist
+    const existingUsers = await this.userRepository.findByIds(requestedIds);
+    const foundUserMap = new Map(existingUsers.map((u) => [u.uid, u]));
+
+    const missingIds = requestedIds.filter((id) => !foundUserMap.has(id));
+    if (missingIds.length > 0) {
+      throw new ProjectStudentNotFoundException(missingIds);
+    }
+
+    // Restrict additions strictly to students
+    const nonStudentAccounts = existingUsers.filter((u) => u.userType !== UserType.STUDENT);
+    if (nonStudentAccounts.length > 0) {
+      const invalidEmails = nonStudentAccounts.map((u) => u.email || `${u.fullName} (${u.uid})`);
+      throw new BadRequestException(`Cannot assign non-student accounts to roster: ${invalidEmails.join(', ')}`);
+    }
+
+    // Filter out already enrolled members
+    const currentEnrolledSet = new Set(event.joinedStudentIds ?? []);
+    const studentsToAdd = requestedIds.filter((uid) => !currentEnrolledSet.has(uid));
+
+    if (studentsToAdd.length === 0) return;
+
+    await this.eventRepository.addStudentsBulk(id, studentsToAdd);
   }
 
   async removeStudent(id: string, studentUid: string, user: AuthenticatedUser): Promise<void> {

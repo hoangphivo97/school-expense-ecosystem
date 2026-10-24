@@ -1,7 +1,7 @@
 import { ActivityCapacityMetrics, BaseActivityItem } from "@school-expense-ecosystem/projects/types";
 
 export function calculateActivityCapacity(
-  item: Pick<BaseActivityItem<any, any>, 'joinedStudentIds' | 'joinConfig'>
+  item: Pick<BaseActivityItem<unknown, unknown>, 'joinedStudentIds' | 'joinConfig'>
 ): ActivityCapacityMetrics {
   const participantCount = item.joinedStudentIds?.length ?? 0;
   const maxParticipants = item.joinConfig?.maxUses ?? null;

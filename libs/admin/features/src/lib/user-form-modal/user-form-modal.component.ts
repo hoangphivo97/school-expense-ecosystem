@@ -13,10 +13,10 @@ import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/cor
 import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
-import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
-import { FormErrorSignalPipe, LoadingDirective, NotificationService } from '@school-expense-ecosystem/shared/ui';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
 import { email, form, FormField, required, submit, disabled, validate } from '@angular/forms/signals';
-import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
+import { NotificationService, trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
 
 @Component({
   selector: 'lib-user-form-modal',

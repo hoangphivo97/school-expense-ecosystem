@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { ActivityFormLayoutComponent } from './activity-form-layout.component';
 
 describe('ActivityFormLayoutComponent', () => {
@@ -152,6 +152,15 @@ describe('ActivityFormLayoutComponent', () => {
 
       const warningBanner = fixture.debugElement.query(By.css('.alert-warning'));
       expect(warningBanner.nativeElement.textContent).toContain('Initial spent cannot exceed budget cap');
+    });
+
+    it('should render parent timeline warning banner when event dates exceed parent project bounds', () => {
+      testForm.setErrors({ eventOutsideParentProjectTimeline: true });
+      testForm.get('endDate')?.markAsTouched();
+      fixture.detectChanges();
+
+      const warningBanner = fixture.debugElement.query(By.css('.alert-warning'));
+      expect(warningBanner).toBeTruthy();
     });
   });
 

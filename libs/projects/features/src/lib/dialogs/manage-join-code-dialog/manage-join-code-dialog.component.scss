@@ -1,10 +1,14 @@
-.manage-members-modal {
-  max-width: 540px;
-  overflow: hidden;
+:host {
+  display: block;
 
   ::ng-deep .mat-mdc-tab-body-content {
     overflow: hidden !important;
   }
+}
+
+.manage-members-modal {
+  max-width: 540px;
+  overflow: hidden;
 
   .tab-content-wrapper {
     overflow: hidden;

@@ -1,4 +1,4 @@
-import { inject, Injectable, Signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams, httpResource, HttpResourceRef } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
@@ -8,7 +8,6 @@ import {
   GenerateJoinCodePayload,
   JoinByCodePayload,
   JoinConfig,
-  ManageParticipantsPayload,
   StudentSummary,
   UpdateEventPayload,
 } from '@school-expense-ecosystem/projects/types';
@@ -100,7 +99,7 @@ export class EventApiService {
   }
 
   addStudents(id: string, studentIds: string[]): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${id}/students`, { studentIds });
+    return this.http.post<void>(`${this.apiUrl}/${id}/students`, { userIds: studentIds });
   }
 
   removeStudent(id: string, studentUid: string): Observable<void> {
