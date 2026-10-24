@@ -197,9 +197,6 @@ export class ProjectListComponent {
     'action',
   ]);
 
-  ngOnInit(): void {
-  }
-
   canManageJoinCode(project: ProjectItem): boolean {
     const user = this.currentUser();
     if (!user) return false;

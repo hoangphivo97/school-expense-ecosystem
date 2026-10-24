@@ -26,6 +26,7 @@ export default [
                 'scope:finance',
                 'scope:dashboard',
                 'scope:admin',
+                'scope:projects',
               ],
             }, //Backend Rules
             {
@@ -37,6 +38,7 @@ export default [
                 'scope:shared',
                 'scope:admin',
                 'scope:expenses',
+                'scope:projects'
               ],
             },
             // Rules Domain Auth

@@ -8,9 +8,9 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, ProjectFundingType, EventFundingType } from '@school-expense-ecosystem/projects/types';
+import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, EventFundingType } from '@school-expense-ecosystem/projects/types';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
-import { AuthSignalStore, FacultyApiService, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
+import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import {
   ConfirmDialogData,
   DialogActionEnum,

@@ -31,7 +31,12 @@ describe('CreateProjectDialogComponent', () => {
   let mockDialogRef: jest.Mocked<Partial<MatDialogRef<CreateProjectDialogComponent>>>;
   let mockDialog: { open: jest.Mock };
   let mockProjectApiService: jest.Mocked<Partial<ProjectApiService>>;
-  let mockFacultyApiService: { facultiesResource: { value: WritableSignal<any[]>; isLoading: WritableSignal<boolean> } };
+  let mockFacultyApiService: {
+    facultiesResource: {
+      value: WritableSignal<{ id: FacultyId; name: string }[]>;
+      isLoading: WritableSignal<boolean>;
+    };
+  };
   let mockUserSignal: WritableSignal<AuthenticatedUser | null>;
 
   const dummyProject = createMockProjectItem({
@@ -195,7 +200,7 @@ describe('CreateProjectDialogComponent', () => {
 
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onSubmit();
 
@@ -227,7 +232,7 @@ describe('CreateProjectDialogComponent', () => {
 
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(false),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onSubmit();
 
@@ -238,7 +243,7 @@ describe('CreateProjectDialogComponent', () => {
 
     it('should dispatch updateProject API directly when in edit mode', () => {
       component.action.set(DialogActionEnum.Edit);
-      (component as any).data = {
+      (component as unknown as { data: CreateProjectDialogData }).data = {
         action: DialogActionEnum.Edit,
         project: dummyProject,
       };
@@ -271,7 +276,7 @@ describe('CreateProjectDialogComponent', () => {
 
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onCancel();
 

@@ -6,6 +6,7 @@ export interface CreateEventPayload extends BaseActivityPayload<EventFundingType
 }
 
 export interface UpdateEventPayload extends BaseUpdateActivityPayload<EventFundingType> {
+  projectId?: string;
   status?: EventStatus;
 }
 

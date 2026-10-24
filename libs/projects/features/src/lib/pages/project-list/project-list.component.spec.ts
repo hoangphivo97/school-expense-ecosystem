@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AuthenticatedUser, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { AuthSignalStore, FacultyApiService } from '@school-expense-ecosystem/shared/data-access';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
@@ -49,7 +49,7 @@ describe('ProjectListComponent', () => {
         value: mockProjectsResourceSignal,
         isLoading: mockProjectsLoadingSignal,
         reload: jest.fn(),
-      } as any),
+      } as unknown as ReturnType<ProjectApiService['getProjectsResource']>),
       approveProject: jest.fn().mockReturnValue(of({ success: true })),
       rejectProject: jest.fn().mockReturnValue(of({ success: true })),
     };
@@ -180,7 +180,7 @@ describe('ProjectListComponent', () => {
       // Mock user confirming the dialog
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(true),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onApproveProject(dummyProject);
 
@@ -193,7 +193,7 @@ describe('ProjectListComponent', () => {
       // Mock user cancelling the dialog
       mockDialog.open.mockReturnValue({
         afterClosed: () => of(false),
-      } as any);
+      } as unknown as MatDialogRef<unknown>);
 
       component.onApproveProject(dummyProject);
 
