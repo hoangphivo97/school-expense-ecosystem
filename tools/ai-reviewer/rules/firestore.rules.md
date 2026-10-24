@@ -37,3 +37,11 @@ Enforce strict encapsulation, cost guardrails, and transactional consistency for
 - **Mandatory Safe Limit**: All list and search queries must enforce a hard upper bound via `.limit(safeLimit)` (e.g., `Math.min(100, limit)`) to prevent quota exhaustion.
 - **Cursor Pagination**: Large dataset queries must implement token-based or cursor-based pagination using `.startAfter(startDoc)`.
 - **Materialized Queries**: Avoid client-side filtering on large result sets; leverage materialized array fields (e.g., `years: array-contains`) and prefix search indexes.
+
+## 4. OUTPUT CONTRACT
+
+If any database leak, un-bound query limit, or missing transaction boundary is detected, start immediately with:
+`VERDICT: CHANGES_REQUESTED`
+
+If all Firestore persistence rules are satisfied, start immediately with:
+`VERDICT: APPROVED`
