@@ -15,7 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import {
   CreateEventPayload,

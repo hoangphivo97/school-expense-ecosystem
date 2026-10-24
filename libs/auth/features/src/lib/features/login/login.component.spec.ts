@@ -6,7 +6,7 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;

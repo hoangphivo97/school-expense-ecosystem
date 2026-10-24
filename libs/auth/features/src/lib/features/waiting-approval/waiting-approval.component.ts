@@ -4,7 +4,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthRealtimeService, AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { MatButton } from '@angular/material/button';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
-import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'lib-waiting-approval',

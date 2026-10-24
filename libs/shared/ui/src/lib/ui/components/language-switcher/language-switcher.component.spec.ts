@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LanguageSwitcherComponent } from './language-switcher.component';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 
 describe('LanguageSwitcherComponent', () => {
   let component: LanguageSwitcherComponent;

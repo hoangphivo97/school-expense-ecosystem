@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslocoModule } from '@ngneat/transloco';
+import { TranslocoModule } from '@jsverse/transloco';
 import { ChangelogService, ProjectLedgerService } from '@school-expense-ecosystem/dashboard/data-access';
 import { ChangelogRelease, ChangelogSection, TimelineGroup } from '@school-expense-ecosystem/dashboard/types';
 import { HeaderComponent } from '@school-expense-ecosystem/shared/ui';

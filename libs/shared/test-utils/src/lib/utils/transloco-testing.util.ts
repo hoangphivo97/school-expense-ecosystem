@@ -1,4 +1,4 @@
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 
 // Load real translation files directly using Node require
 import { enCommon, enShared, twShared, twCommon } from '@school-expense-ecosystem/shared/assets';

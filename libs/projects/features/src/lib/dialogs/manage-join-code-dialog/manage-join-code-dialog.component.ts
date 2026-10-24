@@ -12,7 +12,7 @@ import {
   ProjectItem,
   StudentSummary,
 } from '@school-expense-ecosystem/projects/types';
-import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
 import { ConfirmDialogData } from '@school-expense-ecosystem/shared/types';
 

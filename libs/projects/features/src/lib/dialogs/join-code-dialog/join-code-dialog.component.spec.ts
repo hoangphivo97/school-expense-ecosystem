@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { JoinCodeDialogComponent } from './join-code-dialog.component';
 import { JoinCodeDialogData, JoinCodeDialogResult } from '@school-expense-ecosystem/projects/types';
-import { TranslocoTestingModule } from '@ngneat/transloco';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 import { HttpErrorResponse } from '@angular/common/http';
