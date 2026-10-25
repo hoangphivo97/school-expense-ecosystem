@@ -1,143 +1,82 @@
 # School Expense Ecosystem
 
-An enterprise-grade, full-stack, distributed **Micro Front-End (MFE)** and **Domain-Driven Architecture** platform designed to manage institutional university budgets and multi-level expense approvals. 
+An Nx monorepo project for managing institutional budgets and expense approvals. The system is **in active development**; some documented workflows are implemented, some are partial, and some remain planned.
 
-Built inside an **Nx Monorepo Workspace**, the ecosystem coordinates a secure host environment, modular frontend micro-apps, and a decoupled, resilient NestJS cloud backend.
+## Current implementation status
 
-### Live: [Link Live](https://expense-tracker-web-app-7c1d1.web.app/) 
----
+- Implemented: Nx monorepo, Angular host shell, React remote widget, NestJS backend, core auth, projects/events, expense request endpoints.
+- Partial: frontend integration, expense review workflow, tests, and CI automation.
+- Planned/Target: full budget hold/settle reconciliation, payout/disbursement, and several documented Phase 2–4 features.
 
-## 🏛️ Architectural & System Design
+See `ARCHITECTURE.md` for the current-state architecture and roadmap.
 
-This platform enforces a strict **Role-Based Access Control (RBAC)** matrix across four distinct tiers of user hierarchy (Level 0 to Level 3) combined with real-time financial budget tracking denominated in New Taiwan Dollars (NTD/TWD).
+## Architecture
 
-### 🔑 Key Enterprise Features
-*   **Federated Micro Front-Ends:** Angular controls the robust Shell host application (routing, global guards, UI layout), while React drives granular remote sub-apps (UI features, interactive dashboard widgets) seamlessly wrapped together using Webpack Module Federation.
-*   **Immutable Financial Auditing:** Built-in decoupled infrastructure layer tracking system executors (`admin-executor`) and transaction logs asynchronously written to Cloud Firestore (`firebase-audit-log.repository`).
-*   **Anti-Spam Security Firewall:** Defensive middleware filtering logic inside NestJS coupled with Firebase OAuth to immediately block unauthorized registration, isolate bad inputs with hard purges, and drop malicious attempts via an active database blacklist entry.
-### Detail Diagram Link: [ARCHITECTURE](https://github.com/hoangphivo97/school-expense-ecosystem/blob/main/ARCHITECTURE.md)
----
- 
-## 🔌 Database-Agnostic Persistence Layer (Ports & Adapters)
-Domain services and business controllers depend exclusively on abstract repository contracts (Dependency Inversion Principle), isolating business rules from underlying database engines.
-```text
-┌────────────────────────────────────────────────────────┐
-│                   Domain & Service Layer               │
-│               (ProjectService, AuthService)            │
-└───────────────────────────┬────────────────────────────┘
-                            │ depends on (Ports)
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│               Abstract Repository Contracts            │
-│            (ProjectRepository, AuthUserRepository)     │
-└───────────────────────────┬────────────────────────────┘
-                            │ implemented by (Adapters)
-        ┌───────────────────┴───────────────────┐
-        ▼                                       ▼
-┌──────────────────────────────┐    ┌─────────────────────────────────────┐
-│  FirestoreProjectRepository  │    │  SupabaseProjectRepository          │
-│   (Current NoSQL Driver)     │    │  (PostgreSQL ACID / RPC)(Planned)   │
-└──────────────────────────────┘    └─────────────────────────────────────┘
-```
-* **Zero Business Mutation**: Switching between cloud storage engines (e.g., Google Cloud Firestore $\leftrightarrow$ Supabase PostgreSQL / MongoDB) requires zero changes to core domain logic, controllers, or frontend API contracts.
-* **Modular Provider Swapping**: Swapping data drivers is isolated to a single provider token binding change inside the corresponding NestJS Data Access module (useClass: SupabaseProjectRepository).
-* **Encapsulated Concurrency**: Concurrency controls (such as atomic budget counters and multi-record updates) are implemented natively inside infrastructure adapters without leaking vendor SDK primitives into the domain layer.
-* **Streamlined Unit Testing**: Repository ports allow seamless mocking using fast in-memory adapters for isolated unit tests without spinning up heavy database emulators.
+- Backend: modular monolith NestJS app deployed as one Firebase Function v2.
+- Frontend: Angular shell with Module Federation remote React widget.
+- Persistence: Cloud Firestore, Firebase Auth, Firebase Storage.
+- Libraries are organized by domain under `libs/`.
 
-
-## 📂 System Topology & Library Boundaries
-
-The workspace uses an elegant Domain-Driven structure managed entirely by Nx. Pure business capabilities are isolated strictly into decoupled functional libraries (`libs/`), preventing dependency bleeding and optimizing computational cache hits during builds.
+## System topology
 
 ```text
 school-expense-ecosystem/
-├── 📱 apps/
-│   ├── mfe-shell-angular/      # 🏠 Main Host Portal (Angular Shell, Guard, RBAC Routing)
-│   ├── mfe-remote-react/       # 🧩 Remote Micro-App (React Features, Data Visualization)
-│   ├── backend/                # ⚙️ Decoupled API Server Engine (NestJS App Engine)
-│   ├── mfe-shell-angular-e2e/  # 🧪 End-to-End Test Suite for Host Layer (Cypress)
-│   ├── mfe-remote-react-e2e/   # 🧪 End-to-End Test Suite for Remote Layer (Cypress)
-│   └── backend-e2e/            # 🧪 Integration End-to-End Test Suite for Core APIs (Jest)
-│
-├── 📦 libs/
-│   ├── 👥 admin/               # Administrative Business Context (User Lists, Controls)
-│   ├── 🔐 auth/                # Identity & Security Engine (Guards, JWT Strategies, Interceptors)
-│   ├── 📊 dashboard/           # Metrics & Aggregations Data Domain
-│   ├── 💰 expenses/            # Expense Claim Workflows (Requests, File Compressors, Audits)
-│   ├── 🏛️ finance/             # Fiscal Control Domain (Budget Allocation, Department Caps)
-│   └── 🛠️ shared/              # Central System Infrastructure (Firestore Modules, Tokens, Core Cross-Cutting Utils)
-│
-├── firebase.json               # Cloud Resource Maps
-├── nx.json                     # Smart Monorepo Graph Directives
-├── package.json                # Explicit Workspace Manifest
-└── tsconfig.base.json          # Root Inheritance Path Rules
+├── apps/
+│   ├── mfe-shell-angular/      # Angular host shell
+│   ├── mfe-remote-react/       # React remote widget
+│   ├── backend/                # NestJS API
+│   └── backend-e2e/            # Backend e2e suite
+├── libs/
+│   ├── admin/
+│   ├── auth/
+│   ├── dashboard/
+│   ├── expenses/
+│   ├── finance/
+│   ├── projects/
+│   └── shared/
+├── firebase.json
+├── nx.json
+└── package.json
 ```
 
-## 🛠️ Technological Blueprints
+## Technology
+
+- Frontend: Angular, React, TypeScript, SCSS, Module Federation.
+- Backend: NestJS, Passport JWT, Firebase Admin SDK.
+- Infrastructure: Nx, Firebase Auth, Firestore, Firebase Storage, Firebase Hosting/Functions.
+- Testing: Jest, Cypress, Storybook where configured.
+
+## Getting started
+
+Prerequisites:
+
+- Node.js v22.x or newer
+- Yarn
+
+Install and run:
+
 ```text
-Frontend Ecosystem: Angular (22), React (v19), TypeScript(6.0), Native SCSS Modules, Angular Signals State Store, Webpack Module Federation, ApexCharts Engine.
-
-Backend Ecosystem: NestJS Server Framework, Clean Architecture Core Patterns, Passport JWT Security, Custom Performance Throttlers.
-
-Infrastructure & Tooling: Nx Workspace Orchestrator, Firebase Auth Provider, Cloud Firestore NoSQL Instance, Yarn Workspaces.
-
-Verification Foundations: Jest for isolated Unit Testing, Cypress for browser-level behavioral Automation, Storybook for UI isolated component specification.
-
-Hosting: FE - Firebase Hosting, BE - Firebase Functions
+yarn install
+yarn nx run-many -t serve
 ```
 
-## 🚀 Execution & Vitals
-Prerequisites
+Individual apps:
+
 ```text
-
-### Prerequisites
-- Node.js: v22.x or more.
-- Nx CLI: yarn add nx (recommend).
-
+yarn nx serve backend
+yarn nx serve mfe-shell-angular
+yarn nx serve mfe-remote-react
 ```
 
-##  Getting Started
-  ### Start project using NX
-  ```
-  yarn nx run-many -t serve
-  ```
-  React run at: localhost:5000
-  Angular run at: localhost:4200
-  backend run at: localhost:3000
+Tests:
 
-  ### Start each project (If you prefer)
-  ```
-  yarn nx serve backend
-  yarn nx serve mfe-shell-angular
-  yarn nx serve mfe-react-remote 
-  ```
-  For each new terminal
-
-  ### Unit Test whole App
-  ```
-  yarn nx run-many -t test
-  ```
-
-  ### Unit test specific on backend
-  ```
-  yarn nx test backend
-  ```
-  ### E2E Test Angular App
-  ```
-  yarn nx e2e mfe-shell-angular-e2e
-  ```
-
-  ### run Storybook React Remote App
-  ```
-  yarn nx storybook mfe-remote-react
-  ```
-
-### Clone the repo
-
-```
-git clone https://github.com/hoangphivo97/school-expense-ecosystem.git
+```text
+yarn nx run-many -t test
+yarn nx test backend
 ```
 
-### Note
-- This project is for learning & demonstration purposes only.
+## Notes
+
+- This project is for learning and demonstration purposes.
 - Work in progress.
+- Some older documentation described target architecture; `ARCHITECTURE.md` now separates current implementation from roadmap.
