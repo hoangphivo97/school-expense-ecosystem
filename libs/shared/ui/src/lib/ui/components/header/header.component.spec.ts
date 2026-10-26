@@ -3,7 +3,7 @@ import { HeaderComponent } from './header.component';
 
 import { Router, NavigationEnd } from '@angular/router';
 import { Observable, ReplaySubject } from 'rxjs';
-import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
+import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils-frontend';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;

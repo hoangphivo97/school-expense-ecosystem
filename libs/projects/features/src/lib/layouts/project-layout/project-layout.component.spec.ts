@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProjectLayoutComponent } from './project-layout.component';
-import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
+import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils-frontend';
 
 describe('ProjectLayoutComponent', () => {
   let component: ProjectLayoutComponent;
