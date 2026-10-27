@@ -3,10 +3,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { onRequest } from 'firebase-functions/v2/https';
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
+import helmet from 'helmet';
 
 let cachedServer: (req: unknown, res: unknown) => void;
 
 function configureNestApp(app: INestApplication) {
+  app.use(helmet());
   app.enableCors({
     origin: true,
     credentials: true,
