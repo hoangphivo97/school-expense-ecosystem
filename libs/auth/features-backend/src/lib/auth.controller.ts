@@ -1,7 +1,8 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService, OnboardingDto } from '@school-expense-ecosystem/auth/data-access-backend';
-import { JwtAuthGuard , AppCheckGuard, Public} from '@school-expense-ecosystem/shared/guards-backend';
+import { AppCheckGuard, Public, AllowStatuses } from '@school-expense-ecosystem/shared/guards-backend';
 import { OnboardingResponse } from '@school-expense-ecosystem/auth/types';
+import { UserStatus } from '@school-expense-ecosystem/shared/types';
 
 @Controller('auth')
 @UseGuards(AppCheckGuard)
@@ -29,15 +30,16 @@ export class AuthController {
   }
 
   @Post('onboarding')
+  @AllowStatuses(UserStatus.ONBOARDING)
   async completeOnboarding(@Req() req: any, @Body() dto: OnboardingDto): Promise<OnboardingResponse> {
-    const uid = req.user.uid; 
+    const uid = req.user.uid;
     const email = req.user.email;
 
     const result = await this.authService.completeOnboarding(uid, email, dto);
 
     return {
-    message: 'Onboarding completed successfully. Registration is now pending approval.',
-    ...result
-  };
+      message: 'Onboarding completed successfully. Registration is now pending approval.',
+      ...result
+    };
   }
 }

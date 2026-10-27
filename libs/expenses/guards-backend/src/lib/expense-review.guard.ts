@@ -7,8 +7,8 @@ export class ExpenseReviewGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user: UserBase = request.user;
 
-    // Reject students and low-level roles from participating in the review workflow
-    if (!user || user.role === Role.LEVEL_3_USER || user.userType === UserType.STUDENT) {
+    // Reject students and admin roles from participating in the review workflow
+    if (!user || user.role === Role.LEVEL_0_ADMIN || user.userType === UserType.STUDENT) {
       throw new ForbiddenException('Access Denied: Students are not authorized to review expense claims.');
     }
 
