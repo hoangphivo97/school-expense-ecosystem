@@ -3,7 +3,7 @@ import { signal } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { FilterFieldConfig } from '@school-expense-ecosystem/shared/types';
 import { FilterComponent } from './filter.component';
-import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
+import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils-frontend';
 
 
 describe('FilterComponent', () => {

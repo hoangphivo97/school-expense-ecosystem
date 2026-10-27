@@ -177,6 +177,9 @@
       ],
       "@school-expense-ecosystem/projects/test-utils": [
         "./libs/projects/test-utils/src/index.ts"
+      ],
+      "@school-expense-ecosystem/shared/test-utils-frontend": [
+        "./libs/shared/test-utils/src/frontend.ts"
       ]
     }
   },

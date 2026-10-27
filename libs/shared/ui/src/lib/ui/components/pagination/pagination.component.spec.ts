@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PaginationComponent } from './pagination.component';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
-import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils';
+import { provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils-frontend';
 
 
 describe('PaginationComponent', () => {
