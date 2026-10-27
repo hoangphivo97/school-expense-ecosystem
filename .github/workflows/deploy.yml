@@ -44,4 +44,5 @@ jobs:
       - name: Deploy Affected Applications Only
         env:
           NODE_OPTIONS: "--max-old-space-size=6144"
-        run: yarn nx affected -t deploy --token "${{ secrets.FIREBASE_TOKEN }}"
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: yarn nx affected -t deploy
