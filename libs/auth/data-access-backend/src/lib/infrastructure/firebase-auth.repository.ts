@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { AuthUserRepository } from '../auth-user.repository';
 import * as admin from 'firebase-admin';
 import { ConflictReason, IAuthIdentityCheck, IConflictResolution } from '@school-expense-ecosystem/auth/types';
 import { UserBase, UserStatus } from '@school-expense-ecosystem/shared/types';
+import { AuthUserRepository } from './auth-user.repository';
 
 @Injectable()
 export class FirebaseAuthRepository implements AuthUserRepository {

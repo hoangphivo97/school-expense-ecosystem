@@ -1,8 +1,9 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { AuthService, OnboardingDto } from '@school-expense-ecosystem/auth/data-access-backend';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access-backend';
 import { AppCheckGuard, Public, AllowStatuses } from '@school-expense-ecosystem/shared/guards-backend';
 import { OnboardingResponse } from '@school-expense-ecosystem/auth/types';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
+import { OnboardingDto } from '../DTO/onboarding.dto';
 
 @Controller('auth')
 @UseGuards(AppCheckGuard)

@@ -1,4 +1,4 @@
 export * from './lib/features-backend.module';
-export * from './lib/auth.controller';
-export * from './lib/guards/custom-throttler.guard';
-export * from './lib/guards/demo-sandbox.guard';
+export * from './lib/DTO/login.dto';
+export * from './lib/DTO/onboarding.dto';
+export * from './lib/controllers/auth.controller';

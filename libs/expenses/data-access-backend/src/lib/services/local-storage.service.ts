@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { StorageProvider } from './storage-provider';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
+import { StorageProvider } from '../storage-provider';
 
 @Injectable()
 export class LocalStorageAdapter implements StorageProvider {

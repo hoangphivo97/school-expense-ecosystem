@@ -14,10 +14,11 @@ import {
 import { EventListComponent, EventViewModel } from './event-list.component';
 import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
 import { CreateEventDialogComponent } from '../../dialogs/create-event-dialog/create-event-dialog.component';
-import { createMockAuthenticatedUser, provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils-frontend';
+import {  provideSharedTranslocoTesting } from '@school-expense-ecosystem/shared/test-utils-frontend';
 import { enEvent, twEvent } from '@school-expense-ecosystem/shared/assets';
 import { createMockEventItem } from '@school-expense-ecosystem/projects/test-utils';
 import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
+import { createMockAuthenticatedUser } from '@school-expense-ecosystem/shared/test-utils';
 
 describe('EventListComponent', () => {
   let component: EventListComponent;

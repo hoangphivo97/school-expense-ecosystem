@@ -2,14 +2,13 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { OnboardingDto } from './DTO/onboarding.dto';
-import { ConflictReason, OnboardingData } from '@school-expense-ecosystem/auth/types';
-import { AuthUserRepository } from './auth-user.repository';
-import { IdentityProvider } from './interface/identify-provider.interface';
-import { UserStatus, Role, UserBase } from '@school-expense-ecosystem/shared/types';
-import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
+import { ConflictReason, IdentityProvider, OnboardingData } from '@school-expense-ecosystem/auth/types';
+import { UserStatus, Role, UserBase, UserType } from '@school-expense-ecosystem/shared/types';
 import { AccountRestrictedException } from '@school-expense-ecosystem/shared/utils-backend';
 import { FirebaseError } from 'firebase/app';
+import { AuthUserRepository } from '../infrastructure/auth-user.repository';
+import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from '../exceptions/auth.exception';
+import { OnboardingDto } from '@school-expense-ecosystem/auth/features-backend';
 
 @Injectable()
 export class AuthService {
@@ -87,7 +86,19 @@ export class AuthService {
   }
 
   async completeOnboarding(uid: string, email: string, dto: OnboardingDto) {
-    // 1. Dispatch identity conflict assessment via context-aware abstraction layer
+    const existingUser = await this.authUserRepo.findByUid(uid);
+
+    if (!existingUser) {
+      throw new UserNotFoundException();
+    }
+
+    if (existingUser.status !== UserStatus.ONBOARDING) {
+      throw new AccountRestrictedException(
+        existingUser.status,
+        'User is not in ONBOARDING status.'
+      );
+    }
+
     const resolution = await this.authUserRepo.validateIdentityConflict({
       uid,
       email,
@@ -106,7 +117,7 @@ export class AuthService {
     const onboardingPayload: OnboardingData = {
       fullName: dto.fullName,     // Derived from strict registration form configurations
       facultyId: dto.facultyId,   // Validated system enumeration references
-      userType: dto.userType,     // Access tier categorizations
+      userType: UserType.STUDENT,
       userCode: dto.userCode,     // Unique organizational identifiers
       dateOfBirth: dto.dateOfBirth, // Core user identity metadata
     };
