@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@a
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OnboardingData } from '@school-expense-ecosystem/auth/types';
-import { UserType, FacultyId } from '@school-expense-ecosystem/shared/types';
+import { UserType } from '@school-expense-ecosystem/shared/types';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,7 +13,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { ErrorModalService, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
-import { AuthSignalStore, FacultyApiService, MasterDataStore } from '@school-expense-ecosystem/shared/data-access'
+import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access'
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
