@@ -48,7 +48,10 @@
         "options": {
           "FIT": "資訊工程學院 (FIT)",
           "FBE": "企業管理學院 (FBE)",
-          "FLL": "外國語學院 (FLL)"
+          "FLL": "外國語學院 (FLL)",
+          "FET": "工程與技術學院 (FET)",
+          "FAD": "建築與設計學院 (FAD)",
+          "FLA": "法律與公共行政學院 (FLA)"
         },
         "errors": {
           "required": "請選擇您的所屬院系。"

@@ -43,11 +43,6 @@
       "TEACHER": "專任教師",
       "STUDENT": "在校學生"
     },
-    "faculties": {
-      "FIT": "資訊工程學院 (FIT)",
-      "FBE": "商業與經濟學院 (FBE)",
-      "FLL": "外國語言學院 (FLL)"
-    },
     "status": {
       "ACTIVE": "啟用",
       "PENDING": "審核中",

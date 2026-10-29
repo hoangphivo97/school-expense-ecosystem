@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OnboardingData } from '@school-expense-ecosystem/auth/types';
@@ -13,7 +13,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { ErrorModalService, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
-import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access'
+import { AuthSignalStore, FacultyApiService, MasterDataStore } from '@school-expense-ecosystem/shared/data-access'
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -35,20 +35,26 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
   styleUrl: './onboarding.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    { provide: TRANSLOCO_SCOPE, useValue: 'auth' }
+    { provide: TRANSLOCO_SCOPE, useValue: ['auth', { scope: 'shared', alias: 'shared' }] }
   ]
 })
 
 export class OnboardingComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   protected readonly authService = inject(AuthService);
-  private readonly router = inject(Router)
-  private readonly authStore = inject(AuthSignalStore)
-  private readonly errorModalService = inject(ErrorModalService)
+  private readonly router = inject(Router);
+  private readonly authStore = inject(AuthSignalStore);
+  private readonly errorModalService = inject(ErrorModalService);
+  private readonly masterDataStore = inject(MasterDataStore);
 
   onboardingForm!: FormGroup;
 
-  faculties = Object.values(FacultyId);
+  readonly facultyOptions = computed(() =>
+    this.masterDataStore.facultyOptions().filter((option) => option.value !== 'ALL')
+  );
+
+  readonly isFacultiesLoading = this.masterDataStore.isLoading;
+
   userTypes = Object.values(UserType);
 
   ngOnInit(): void {
@@ -67,7 +73,6 @@ export class OnboardingComponent implements OnInit {
         ]
       ],
       facultyId: ['', Validators.required],
-      userType: ['', Validators.required],
       userCode: ['', Validators.required],
       dateOfBirth: ['', Validators.required]
     });

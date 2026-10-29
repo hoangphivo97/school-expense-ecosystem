@@ -16,10 +16,6 @@ export class OnboardingDto {
   facultyId!: FacultyId;
 
   @IsNotEmpty()
-  @IsEnum(UserType, { message: 'Invalid institutional user type.' })
-  userType!: UserType;
-
-  @IsNotEmpty()
   @IsString()
   userCode!: string;
 

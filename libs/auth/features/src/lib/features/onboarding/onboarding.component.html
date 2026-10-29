@@ -28,8 +28,16 @@
                 <mat-form-field appearance="outline" class="w-100">
                     <mat-label>{{ t('fields.faculty.label') }}</mat-label>
                     <mat-select formControlName="facultyId">
-                        @for (faculty of faculties; track faculty) {
-                        <mat-option [value]="faculty">{{ t('fields.faculty.options.' + faculty) }}</mat-option>
+                        @if (isFacultiesLoading()) {
+                            <mat-option disabled>
+                                <mat-spinner diameter="18" class="me-2 d-inline-block align-middle"></mat-spinner>
+                            </mat-option>
+                        } @else {
+                            @for (opt of facultyOptions(); track opt.value) {
+                                <mat-option [value]="opt.value">
+                                    {{ opt.labelKey | transloco: { defaultValue: opt.label } }}
+                                </mat-option>
+                            }
                         }
                     </mat-select>
                     <mat-error>
@@ -39,7 +47,7 @@
                 </mat-form-field>
             </div>
 
-            <div class="mb-3">
+            <!-- <div class="mb-3">
                 <mat-form-field appearance="outline" class="w-100">
                     <mat-label>{{ t('fields.userType.label') }}</mat-label>
                     <mat-select formControlName="userType">
@@ -50,7 +58,7 @@
                     <mat-error>{{ onboardingForm.get('userType')?.errors | formError: { required:
                         t('fields.userType.errors.required') } }}</mat-error>
                 </mat-form-field>
-            </div>
+            </div> -->
 
             <div class="mb-3">
                 <mat-form-field appearance="outline" class="w-100">
