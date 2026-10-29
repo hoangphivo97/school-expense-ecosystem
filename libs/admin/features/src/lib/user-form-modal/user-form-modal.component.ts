@@ -12,11 +12,12 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
-import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { FormErrorSignalPipe, LoadingDirective } from '@school-expense-ecosystem/shared/ui';
 import { email, form, FormField, required, submit, disabled, validate } from '@angular/forms/signals';
 import { NotificationService, trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'lib-user-form-modal',
@@ -24,13 +25,13 @@ import { NotificationService, trackLoading } from '@school-expense-ecosystem/sha
   imports: [
     MatButtonModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatDatepickerModule, MatSnackBarModule, MatIconModule, TranslocoModule,
-    FormErrorSignalPipe, FormField, LoadingDirective
+    FormErrorSignalPipe, FormField, LoadingDirective, MatProgressSpinner
   ],
   templateUrl: './user-form-modal.component.html',
   providers: [
     provideNativeDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
-    { provide: TRANSLOCO_SCOPE, useValue: 'admin' }
+    { provide: TRANSLOCO_SCOPE, useValue: ['admin', 'shared'] }
   ],
 })
 export class UserFormModalComponent implements OnInit {
@@ -40,6 +41,7 @@ export class UserFormModalComponent implements OnInit {
   private readonly authStore = inject(AuthSignalStore);
   private readonly translocoService = inject(TranslocoService);
   private readonly notify = inject(NotificationService);
+  private readonly masterDataStore = inject(MasterDataStore);
 
   // Unify Component State into Modern Angular Signals
   protected readonly mode = signal<'create' | 'edit' | 'detail'>('create');
@@ -58,8 +60,12 @@ export class UserFormModalComponent implements OnInit {
 
   protected readonly roleOptions = [Role.LEVEL_0_ADMIN, Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER];
   protected readonly userTypeOptions = [UserType.STAFF, UserType.TEACHER, UserType.STUDENT];
-  protected readonly facultyOptions = [FacultyId.FIT, FacultyId.FBE, FacultyId.FLL];
   protected readonly statusOptions = [UserStatus.ACTIVE, UserStatus.PENDING, UserStatus.ONBOARDING];
+
+  protected readonly isFacultiesLoading = this.masterDataStore.isLoading;
+  protected readonly facultyOptions = computed(() =>
+    this.masterDataStore.facultyOptions().filter((option) => option.value !== 'ALL')
+  );
 
   protected readonly canEditProfile = computed(() =>
     this.isDetailMode() &&

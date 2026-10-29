@@ -35,7 +35,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
   styleUrl: './onboarding.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    { provide: TRANSLOCO_SCOPE, useValue: ['auth', { scope: 'shared', alias: 'shared' }] }
+    { provide: TRANSLOCO_SCOPE, useValue: ['auth', 'shared'] }
   ]
 })
 

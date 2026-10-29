@@ -139,8 +139,16 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>{{ 'admin.userForm.facultyScope' | transloco }}</mat-label>
             <mat-select [formField]="userForm.facultyId">
-              @for (fac of facultyOptions; track fac) {
-              <mat-option [value]="fac">{{ 'admin.userForm.faculties.' + fac | transloco }}</mat-option>
+              @if (isFacultiesLoading()) {
+                <mat-option disabled>
+                  <mat-spinner diameter="18" class="me-2 d-inline-block align-middle"></mat-spinner>
+                </mat-option>
+              } @else {
+                @for (opt of facultyOptions(); track opt.value) {
+                  <mat-option [value]="opt.value">
+                    {{ opt.labelKey | transloco: { defaultValue: opt.label } }}
+                  </mat-option>
+                }
               }
             </mat-select>
             <mat-error>
