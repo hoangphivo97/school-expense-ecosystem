@@ -1,4 +1,4 @@
-import { IAuthIdentityCheck, IConflictResolution } from '@school-expense-ecosystem/auth/types';
+import { IAuthIdentityCheck, IConflictResolution, OnboardingData } from '@school-expense-ecosystem/auth/types';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 
 export abstract class AuthUserRepository {
@@ -6,5 +6,5 @@ export abstract class AuthUserRepository {
   abstract createUser(userData: UserBase): Promise<UserBase>;
   abstract updateUser(uid: string, updateData: Partial<UserBase>): Promise<UserBase>;
   abstract validateIdentityConflict(check: IAuthIdentityCheck): Promise<IConflictResolution>;
-  abstract executeOnboarding(uid: string, data: any, shouldLink: boolean): Promise<void>;
+  abstract executeOnboarding(uid: string, data: OnboardingData, shouldLink: boolean): Promise<void>;
 }

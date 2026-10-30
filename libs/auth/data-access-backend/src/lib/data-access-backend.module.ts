@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { AuthUserRepository } from './auth-user.repository';
 import { FirebaseAuthRepository } from './infrastructure/firebase-auth.repository';
 import { FirebaseIdentityProvider } from './infrastructure/firebase-identity.provider';
-import { IdentityProvider } from './interface/identify-provider.interface';
+import { AuthService } from './services/auth.service';
+import { AuthUserRepository } from './infrastructure/auth-user.repository';
+import { IdentityProvider } from '@school-expense-ecosystem/auth/types';
 
 @Module({
   imports: [

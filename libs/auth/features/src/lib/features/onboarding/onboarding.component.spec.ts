@@ -1,33 +1,45 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { OnboardingComponent } from './onboarding.component';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
-import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
-import { FacultyId, UserType } from '@school-expense-ecosystem/shared/types';
+import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
+import { FacultyId } from '@school-expense-ecosystem/shared/types';
+import { TranslocoTestingModule } from '@jsverse/transloco';
+import { signal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 
-describe('Onboarding', () => {
+
+describe('OnboardingComponent', () => {
   let component: OnboardingComponent;
   let fixture: ComponentFixture<OnboardingComponent>;
 
   const mockRouter = {
-    navigate: jest.fn()
+    navigate: jest.fn(),
   };
 
   const mockAuthService = {
     completeOnboarding: jest.fn<(formData: any) => Promise<any>>(),
-    isOnboardingSubmitting: jest.fn(() => false)
+    isOnboardingSubmitting: jest.fn(() => false),
   };
 
   const mockAuthStore = {
-    updateAuthState: jest.fn()
+    updateAuthState: jest.fn(),
   };
 
   const mockErrorModalService = {
-    openErrorModal: jest.fn()
+    openErrorModal: jest.fn(),
+  };
+
+  const mockMasterDataStore = {
+    isLoading: signal(false),
+    facultyOptions: signal([
+      { value: 'ALL', labelKey: 'shared:filter.options.faculties.ALL', label: 'All Faculties' },
+      { value: FacultyId.FIT, labelKey: `shared:filter.options.faculties.${FacultyId.FIT}`, label: 'Faculty of Information Technology' },
+      { value: FacultyId.FBE, labelKey: `shared:filter.options.faculties.${FacultyId.FBE}`, label: 'Faculty of Business and Economics' },
+    ]),
   };
 
   beforeEach(async () => {
@@ -35,21 +47,29 @@ describe('Onboarding', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        OnboardingComponent, 
-        ReactiveFormsModule, 
-        NoopAnimationsModule
+        OnboardingComponent,
+        ReactiveFormsModule,
+        NoopAnimationsModule,
+        TranslocoTestingModule.forRoot({
+          langs: { en: {}, vi: {} },
+          translocoConfig: {
+            availableLangs: ['en', 'vi'],
+            defaultLang: 'en',
+          },
+        }),
       ],
       providers: [
         { provide: Router, useValue: mockRouter },
         { provide: AuthService, useValue: mockAuthService },
         { provide: AuthSignalStore, useValue: mockAuthStore },
-        { provide: ErrorModalService, useValue: mockErrorModalService }
-      ]
+        { provide: ErrorModalService, useValue: mockErrorModalService },
+        { provide: MasterDataStore, useValue: mockMasterDataStore },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(OnboardingComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges(); 
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 
@@ -57,7 +77,15 @@ describe('Onboarding', () => {
     expect(component).toBeTruthy();
     expect(component.onboardingForm).toBeDefined();
     expect(component.onboardingForm.get('fullName')?.value).toBe('');
-    expect(component.onboardingForm.invalid).toBe(true); 
+    expect(component.onboardingForm.get('userType')).toBeNull(); // userType control should not exist
+    expect(component.onboardingForm.invalid).toBe(true);
+  });
+
+  it('should filter out ALL option from MasterDataStore facultyOptions', () => {
+    const options = component.facultyOptions();
+    expect(options.length).toBe(2);
+    expect(options.some((opt) => opt.value === 'ALL')).toBe(false);
+    expect(options[0].value).toBe(FacultyId.FIT);
   });
 
   describe('Form Validation Logic', () => {
@@ -92,9 +120,8 @@ describe('Onboarding', () => {
 
     it('should require all institutional fields', () => {
       const form = component.onboardingForm;
-      
+
       expect(form.get('facultyId')?.hasError('required')).toBe(true);
-      expect(form.get('userType')?.hasError('required')).toBe(true);
       expect(form.get('userCode')?.hasError('required')).toBe(true);
       expect(form.get('dateOfBirth')?.hasError('required')).toBe(true);
     });
@@ -104,20 +131,18 @@ describe('Onboarding', () => {
     const validFormData = {
       fullName: 'Hoang Phi',
       facultyId: FacultyId.FIT,
-      userType: UserType.STUDENT,
       userCode: 'FIT97001',
-      dateOfBirth: '1997-01-11'
+      dateOfBirth: '1997-01-11',
     };
 
     it('should mark all fields as touched and stop submission if form is invalid', async () => {
       const spyMarkAllAsTouched = jest.spyOn(component.onboardingForm, 'markAllAsTouched');
-      
+
       component.onboardingForm.setValue({
-        fullName: '', // Invalid
+        fullName: '',
         facultyId: '',
-        userType: '',
         userCode: '',
-        dateOfBirth: ''
+        dateOfBirth: '',
       });
 
       await component.onSubmit();
@@ -136,7 +161,10 @@ describe('Onboarding', () => {
       await component.onSubmit();
 
       expect(mockAuthService.completeOnboarding).toHaveBeenCalledWith(validFormData);
-      expect(mockAuthStore.updateAuthState).toHaveBeenCalledWith(mockResponse.token, mockResponse.user);
+      expect(mockAuthStore.updateAuthState).toHaveBeenCalledWith(
+        mockResponse.token,
+        mockResponse.user
+      );
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth/waiting-approval']);
     });
 

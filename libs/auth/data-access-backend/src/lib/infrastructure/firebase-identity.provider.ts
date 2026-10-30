@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import  { IdentityProvider, ExternalIdentityProfile } from '../interface/identify-provider.interface'
+import { ExternalIdentityProfile, IdentityProvider } from '@school-expense-ecosystem/auth/types';
 import * as admin from 'firebase-admin';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class FirebaseIdentityProvider implements IdentityProvider {
 
     return {
       uid,
-      email: email!,
+      email: email ?? '',
       name,
       createdAt: nativeDate
     };

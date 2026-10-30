@@ -48,7 +48,10 @@
         "options": {
           "FIT": "Faculty of Information Technology (FIT)",
           "FBE": "Faculty of Business Administration (FBE)",
-          "FLL": "Faculty of Foreign Languages (FLL)"
+          "FLL": "Faculty of Foreign Languages (FLL)",
+          "FET": "Faculty of Engineering and Technology",
+          "FAD": "Faculty of Architecture and Design",
+          "FLA": "Faculty of Law and Public Administration"
         },
         "errors": {
           "required": "Please select your faculty."

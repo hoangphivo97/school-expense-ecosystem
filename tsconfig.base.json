@@ -180,6 +180,9 @@
       ],
       "@school-expense-ecosystem/shared/test-utils-frontend": [
         "./libs/shared/test-utils/src/frontend.ts"
+      ],
+      "@school-expense-ecosystem/auth/guards-backend": [
+        "./libs/auth/guards-backend/src/index.ts"
       ]
     }
   },

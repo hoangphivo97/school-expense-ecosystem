@@ -2,14 +2,12 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { OnboardingDto } from './DTO/onboarding.dto';
-import { ConflictReason, OnboardingData } from '@school-expense-ecosystem/auth/types';
-import { AuthUserRepository } from './auth-user.repository';
-import { IdentityProvider } from './interface/identify-provider.interface';
-import { UserStatus, Role, UserBase } from '@school-expense-ecosystem/shared/types';
-import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from './exceptions/auth.exception';
+import { CompleteOnboardingPayload, ConflictReason, IdentityProvider, OnboardingData } from '@school-expense-ecosystem/auth/types';
+import { UserStatus, Role, UserBase, UserType } from '@school-expense-ecosystem/shared/types';
 import { AccountRestrictedException } from '@school-expense-ecosystem/shared/utils-backend';
 import { FirebaseError } from 'firebase/app';
+import { AuthUserRepository } from '../infrastructure/auth-user.repository';
+import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from '../exceptions/auth.exception';
 
 @Injectable()
 export class AuthService {
@@ -86,29 +84,41 @@ export class AuthService {
     }
   }
 
-  async completeOnboarding(uid: string, email: string, dto: OnboardingDto) {
-    // 1. Dispatch identity conflict assessment via context-aware abstraction layer
+  async completeOnboarding(uid: string, email: string, payload: CompleteOnboardingPayload) {
+    const existingUser = await this.authUserRepo.findByUid(uid);
+
+    if (!existingUser) {
+      throw new UserNotFoundException();
+    }
+
+    if (existingUser.status !== UserStatus.ONBOARDING) {
+      throw new AccountRestrictedException(
+        existingUser.status,
+        'User is not in ONBOARDING status.'
+      );
+    }
+
     const resolution = await this.authUserRepo.validateIdentityConflict({
       uid,
       email,
-      userCode: dto.userCode // Mapped directly from frontend input boundaries
+      userCode: payload.userCode // Mapped directly from frontend input boundaries
     });
 
     // 2. Terminate pipeline and throw explicit standard REST HTTP 409 exceptions upon conflict triggers
     if (resolution.isConflict) {
       if (resolution.reason === ConflictReason.EMWP) {
-        throw new IdentityConflictEmailException(dto.userCode)
+        throw new IdentityConflictEmailException(payload.userCode)
       }
-      throw new IdentityConflictClaimedException(dto.userCode);
+      throw new IdentityConflictClaimedException(payload.userCode);
     }
 
     // 3. Assemble clean domain mutation payload strictly isolating structural parameters
     const onboardingPayload: OnboardingData = {
-      fullName: dto.fullName,     // Derived from strict registration form configurations
-      facultyId: dto.facultyId,   // Validated system enumeration references
-      userType: dto.userType,     // Access tier categorizations
-      userCode: dto.userCode,     // Unique organizational identifiers
-      dateOfBirth: dto.dateOfBirth, // Core user identity metadata
+      fullName: payload.fullName,     // Derived from strict registration form configurations
+      facultyId: payload.facultyId,   // Validated system enumeration references
+      userType: UserType.STUDENT,
+      userCode: payload.userCode,     // Unique organizational identifiers
+      dateOfBirth: payload.dateOfBirth, // Core user identity metadata
     };
 
     // 4. Delegate transactional database commit execution

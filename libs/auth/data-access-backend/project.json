@@ -1,5 +1,5 @@
 {
-  "name": "data-access-backend",
+  "name": "auth-data-access-backend",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/auth/data-access-backend/src",
   "projectType": "library",

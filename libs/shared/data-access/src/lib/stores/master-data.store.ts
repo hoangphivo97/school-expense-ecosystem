@@ -1,5 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { tap } from 'rxjs/operators';
+import { Injectable, computed, inject } from '@angular/core';
 import { FacultyApiService } from '../faculty-service/faculty-api.service';
 import { FilterOption } from '@school-expense-ecosystem/shared/types';
 

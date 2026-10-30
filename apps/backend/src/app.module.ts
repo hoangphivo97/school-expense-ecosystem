@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AuthFeaturesBackendModule, CustomThrottlerGuard, DemoSandboxGuard } from '@school-expense-ecosystem/auth/features-backend';
+import { AuthFeaturesBackendModule } from '@school-expense-ecosystem/auth/features-backend';
 import { UserListBackendModule } from '@school-expense-ecosystem/admin/features-backend';
 import { FirestoreModule } from '@school-expense-ecosystem/shared/firestore';
 import { ExpenseFeaturesBackendModule } from '@school-expense-ecosystem/expenses/feature-backend';
@@ -10,6 +10,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AppCheckGuard, JwtAuthGuard } from '@school-expense-ecosystem/shared/guards-backend';
 import { ProjectBackendModule } from '@school-expense-ecosystem/projects/features-backend';
 import { FinanceBackendModule } from '@school-expense-ecosystem/finance/features-backend';
+import { CustomThrottlerGuard, DemoSandboxGuard } from '@school-expense-ecosystem/auth/guards-backend';
 
 
 @Module({

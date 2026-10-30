@@ -43,11 +43,6 @@
       "TEACHER": "Teacher",
       "STUDENT": "Student"
     },
-    "faculties": {
-      "FIT": "Faculty of Information Technology (FIT)",
-      "FBE": "Faculty of Business and Economics (FBE)",
-      "FLL": "Faculty of Foreign Languages (FLL)"
-    },
     "status": {
       "ACTIVE": "Active",
       "PENDING": "Pending",

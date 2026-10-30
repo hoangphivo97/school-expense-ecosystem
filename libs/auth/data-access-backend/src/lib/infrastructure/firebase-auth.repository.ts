@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { AuthUserRepository } from '../auth-user.repository';
 import * as admin from 'firebase-admin';
-import { ConflictReason, IAuthIdentityCheck, IConflictResolution } from '@school-expense-ecosystem/auth/types';
+import { ConflictReason, IAuthIdentityCheck, IConflictResolution, OnboardingData } from '@school-expense-ecosystem/auth/types';
 import { UserBase, UserStatus } from '@school-expense-ecosystem/shared/types';
+import { AuthUserRepository } from './auth-user.repository';
 
 @Injectable()
 export class FirebaseAuthRepository implements AuthUserRepository {
@@ -43,7 +43,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
     async updateUser(uid: string, updateData: Partial<UserBase>): Promise<UserBase> {
         const docRef = this.db.collection('users').doc(uid);
 
-        const firestoreUpdateData: Record<string, any> = { ...updateData };
+        const firestoreUpdateData: Record<string, unknown> = { ...updateData };
 
         if (updateData.createdAt) {
             firestoreUpdateData['createdAt'] = admin.firestore.Timestamp.fromDate(new Date(updateData.createdAt));
@@ -97,7 +97,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
         return { isConflict: true, reason: ConflictReason.CAD, shouldLinkPreCreatedAccount: false };
     }
 
-    async executeOnboarding(uid: string, data: any, shouldLink: boolean): Promise<void> {
+    async executeOnboarding(uid: string, data: OnboardingData, shouldLink: boolean): Promise<void> {
         // Utilize Firestore Transactions to isolate the mutation and guard against parallel write race conditions
         await this.db.runTransaction(async (transaction) => {
             if (shouldLink) {
