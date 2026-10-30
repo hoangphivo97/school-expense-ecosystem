@@ -3,13 +3,14 @@ import { describe, beforeEach, it, expect, jest } from '@jest/globals';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { ErrorModalService } from '@school-expense-ecosystem/shared/ui';
 import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
+
 
 describe('OnboardingComponent', () => {
   let component: OnboardingComponent;

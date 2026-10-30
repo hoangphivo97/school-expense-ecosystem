@@ -4,7 +4,7 @@
   "sourceRoot": "libs/auth/guards-backend/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["scope:auth","type:guard"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",

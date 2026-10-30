@@ -1,2 +1,2 @@
-export * from './lib/auth-data-access/services/auth.service';
-export * from './lib/auth-data-access/services/auth-realtime.service';
+export * from './lib/services/auth.service';
+export * from './lib/services/auth-realtime.service';

@@ -1,9 +1,9 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access-backend';
-import { AppCheckGuard, Public, AllowStatuses } from '@school-expense-ecosystem/shared/guards-backend';
+import { AppCheckGuard, Public, AllowStatuses, CurrentUser } from '@school-expense-ecosystem/shared/guards-backend';
 import { OnboardingResponse } from '@school-expense-ecosystem/auth/types';
-import { UserStatus } from '@school-expense-ecosystem/shared/types';
-import { OnboardingDto } from '../DTO/onboarding.dto';
+import { AuthenticatedUser, UserStatus } from '@school-expense-ecosystem/shared/types';
+import { OnboardingDto } from '../dtos/onboarding.dto';
 
 @Controller('auth')
 @UseGuards(AppCheckGuard)
@@ -32,15 +32,25 @@ export class AuthController {
 
   @Post('onboarding')
   @AllowStatuses(UserStatus.ONBOARDING)
-  async completeOnboarding(@Req() req: any, @Body() dto: OnboardingDto): Promise<OnboardingResponse> {
-    const uid = req.user.uid;
-    const email = req.user.email;
+  async completeOnboarding(@CurrentUser() user: AuthenticatedUser, @Body() dto: OnboardingDto): Promise<OnboardingResponse> {
+    const payload = {
+      fullName: dto.fullName,
+      facultyId: dto.facultyId,
+      userCode: dto.userCode,
+      dateOfBirth: dto.dateOfBirth
+    };
 
-    const result = await this.authService.completeOnboarding(uid, email, dto);
+    const result = await this.authService.completeOnboarding(user.uid, user.email, payload);
+
+    const isApproved = result.user.status === UserStatus.ACTIVE;
+    const message = isApproved
+      ? 'Onboarding completed and account activated successfully.'
+      : 'Onboarding completed successfully. Registration is now pending approval.';
 
     return {
-      message: 'Onboarding completed successfully. Registration is now pending approval.',
-      ...result
+      message,
+      token: result.token,
+      user: result.user
     };
   }
 }

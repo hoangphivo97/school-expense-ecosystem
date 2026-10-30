@@ -15,7 +15,7 @@ export class FirebaseIdentityProvider implements IdentityProvider {
 
     return {
       uid,
-      email: email!,
+      email: email ?? '',
       name,
       createdAt: nativeDate
     };

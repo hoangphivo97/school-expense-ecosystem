@@ -29,7 +29,7 @@ export interface CursorPaginationParams {
 }
 
 export type AuthenticatedUser = Required<
-  Pick<UserBase, 'uid' | 'role' | 'userType' | 'fullName' | 'userCode' | 'facultyId' | 'status'>
+  Pick<UserBase, 'uid' | 'role' | 'userType' | 'fullName' | 'userCode' | 'facultyId' | 'status' | 'email'>
 >;
 
 export interface UserBase {

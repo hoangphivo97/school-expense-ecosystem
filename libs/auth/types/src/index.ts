@@ -2,3 +2,4 @@ export * from './lib/auth-types';
 export * from './lib/interfaces/user.interface';
 export * from './lib/enums/auth.enum';
 export * from './lib/interfaces/identify-provider.interface';
+export * from './lib/payloads/auth.payload';

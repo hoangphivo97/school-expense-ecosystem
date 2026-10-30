@@ -1,7 +1,8 @@
 import { IsNotEmpty, IsString, MinLength, MaxLength, Matches, IsEnum, IsDateString } from 'class-validator';
-import { FacultyId, UserType } from '@school-expense-ecosystem/shared/types';
+import { FacultyId } from '@school-expense-ecosystem/shared/types';
+import { CompleteOnboardingPayload } from '@school-expense-ecosystem/auth/types';
 
-export class OnboardingDto {
+export class OnboardingDto implements CompleteOnboardingPayload{
   @IsNotEmpty()
   @IsString()
   @MinLength(2)

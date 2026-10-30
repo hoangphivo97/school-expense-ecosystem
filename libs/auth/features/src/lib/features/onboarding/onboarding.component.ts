@@ -11,10 +11,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthService } from '@school-expense-ecosystem/auth/data-access';
+
 import { ErrorModalService, FormErrorPipe } from '@school-expense-ecosystem/shared/ui';
 import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access'
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 
 @Component({
   selector: 'lib-onboarding',
