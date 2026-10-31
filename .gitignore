@@ -89,3 +89,8 @@ storybook-static
 
 # Local AI Review Artifacts
 pr-review-report.md
+
+# AI Tools & Local Dumps
+.archify/
+.claude/
+.kilo/
