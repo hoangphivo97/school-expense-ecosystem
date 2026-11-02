@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
-import { StorageProvider } from '../storage-provider';
+import { StorageProviderRepository } from '../infrastructure/abtracts/storage-provider.repository';
 
 @Injectable()
-export class LocalStorageAdapter implements StorageProvider {
+export class LocalStorageAdapter implements StorageProviderRepository {
   private readonly baseDir = path.join(process.cwd(), 'uploads');
 
   constructor() {

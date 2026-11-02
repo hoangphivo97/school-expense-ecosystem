@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ExpenseRepository } from '../expense.repository';
 import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AuditAction, ExpenseAuditLogDocument, PersonalExpenseRequestFilters, ReviewerExpenseRequestFilters, CreateExpenseInput, ExpenseAnalyticsQueryPayload } from '@school-expense-ecosystem/expenses/types';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseStatus } from '@school-expense-ecosystem/shared/types';
 import { ExpenseAmountLimitExceededException, ExpenseInvalidDisbursementActionException, ExpenseMissingRejectionReasonException, ExpenseNotFoundException, ExpenseWorkflowLockedException } from '../exceptions/expense.exception';
 import { randomBytes } from 'crypto';
+import { ExpenseRepository } from '../infrastructure/abtracts/expense.repository';
 
 @Injectable()
 export class ExpenseBackendService {
@@ -31,13 +31,7 @@ export class ExpenseBackendService {
     const userType = user.userType;
     const userRole = user.role;
 
-    // Generate cryptographically secure expense code matching template: EXP-[FACULTY]-[MMYY]-[CRYPTO]
-    const now = new Date();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const yy = String(now.getFullYear()).slice(-2);
-    const cryptoToken = randomBytes(3).toString('hex').toUpperCase(); // Generates 6 secure hex characters for collision avoidance
-    const expenseCode = `EXP-${user.facultyId || 'GEN'}-${mm}${yy}-${cryptoToken}`;
-
+    // Fail-fast validation based on tier/user type maximum expense limits
     if (userRole === Role.LEVEL_3_USER) {
       if (userType === UserType.STUDENT && amount > 2000) {
         throw new ExpenseAmountLimitExceededException(UserType.STUDENT, 2000);
@@ -48,8 +42,16 @@ export class ExpenseBackendService {
       }
     }
 
+    // Generate cryptographically unique expense tracking code
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yy = String(now.getFullYear()).slice(-2);
+    const cryptoToken = randomBytes(3).toString('hex').toUpperCase();
+    const expenseCode = `EXP-${user.facultyId || 'GEN'}-${mm}${yy}-${cryptoToken}`;
+    const nowIso = now.toISOString();
+
     const fullExpenseData: Omit<ExpenseList, 'id'> = {
-      expenseCode: expenseCode,
+      expenseCode,
       amount: dto.amount,
       purpose: dto.purpose,
       description: dto.description,
@@ -61,15 +63,15 @@ export class ExpenseBackendService {
       facultyId: user.facultyId,
       status: initialStatus,
       paidMethod: dto.paidMethod,
-      date: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      date: nowIso,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      activityId: dto.activityId,
+      activityType: dto.activityType,
     };
 
-    const freshExpense = await this.expenseRepo.create(fullExpenseData);
-
     const submitLog: Omit<ExpenseAuditLogDocument, 'id'> = {
-      expenseId: freshExpense.id,
+      expenseId: '',
       expenseCode,
       actorId: user.uid,
       actorName: user.fullName,
@@ -79,12 +81,21 @@ export class ExpenseBackendService {
       facultyId: user.facultyId,
       action: AuditAction.SUBMIT,
       status: initialStatus,
-      createdAt: new Date().toISOString()
+      createdAt: nowIso,
     };
 
-    await this.expenseRepo.createAuditLog(submitLog);
+    // Global administrative roles bypass specific activity roster requirements
+    const bypassMembershipCheck =
+      user.role === Role.LEVEL_0_ADMIN ||
+      user.role === Role.LEVEL_1_FINANCE ||
+      user.role === Role.LEVEL_2_DEAN;
 
-    return freshExpense;
+    // Delegate execution to the repository layer
+    return this.expenseRepo.create(
+      fullExpenseData,
+      submitLog,
+      bypassMembershipCheck
+    );
   }
 
   // async updateExpense(id: string, userId: string, user: AuthenticatedUser, dto: UpdateExpenseInput): Promise<ExpenseList> {

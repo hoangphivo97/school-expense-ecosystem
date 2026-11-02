@@ -8,7 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { EventApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, EventFundingType } from '@school-expense-ecosystem/projects/types';
+import { EventQueryPayload, EventStatus, EventItem, BaseActivityViewModel, JoinCodeDialogResult, JoinCodeDialogData, EventFundingType, JoinContextType } from '@school-expense-ecosystem/projects/types';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
 import {
@@ -382,7 +382,7 @@ export class EventListComponent {
       JoinCodeDialogData,
       JoinCodeDialogResult>(JoinCodeDialogComponent, {
         width: '420px',
-        data: { context: 'EVENT' },
+        data: { context: JoinContextType.EVENT },
       });
 
     dialogRef.afterClosed().subscribe((result: JoinCodeDialogResult | undefined) => {

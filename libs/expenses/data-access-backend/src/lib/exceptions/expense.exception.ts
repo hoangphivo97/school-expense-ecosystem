@@ -48,3 +48,33 @@ export class ExpenseAmountLimitExceededException extends BaseExpenseException {
         );
     }
 }
+
+export class ActivityNotFoundException extends BaseExpenseException {
+    constructor(activityType: string, activityId: string) {
+        super(
+            'ACTIVITY_NOT_FOUND',
+            `Target ${activityType} resource with ID ${activityId} could not be found.`,
+            { activityType, activityId }
+        );
+    }
+}
+
+export class RequesterNotActivityMemberException extends BaseExpenseException {
+    constructor(userId: string, activityId: string) {
+        super(
+            'REQUESTER_NOT_ACTIVITY_MEMBER',
+            `Access Denied: User ${userId} is not an enrolled member, mentor, or organizer of activity ${activityId}.`,
+            { userId, activityId }
+        );
+    }
+}
+
+export class ActivityBudgetExceededException extends BaseExpenseException {
+    constructor(requestedAmount: number, availableBudget: number) {
+        super(
+            'ACTIVITY_BUDGET_EXCEEDED',
+            `Budget Cap Exceeded: Requested expense of ${requestedAmount} exceeds the remaining available budget of ${availableBudget}.`,
+            { requestedAmount, availableBudget }
+        );
+    }
+}

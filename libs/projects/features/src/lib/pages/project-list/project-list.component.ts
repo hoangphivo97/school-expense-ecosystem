@@ -11,7 +11,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TRANSLOCO_SCOPE, TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MatMenuModule } from '@angular/material/menu';
 import { ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { JoinCodeDialogData, JoinCodeDialogResult, ProjectFundingType, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
+import { JoinCodeDialogData, JoinCodeDialogResult, JoinContextType, ProjectFundingType, ProjectItem, ProjectQueryPayload, ProjectStatus } from '@school-expense-ecosystem/projects/types';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { calculateActivityCapacity } from '@school-expense-ecosystem/projects/utils';
 import { ActivityCapacityProgressComponent, BudgetExhaustionProgressComponent } from '@school-expense-ecosystem/projects/ui';
@@ -393,7 +393,7 @@ export class ProjectListComponent {
       JoinCodeDialogResult
     >(JoinCodeDialogComponent, {
       width: '420px',
-      data: { context: 'PROJECT' },
+      data: { context:  JoinContextType.PROJECT },
     });
 
     dialogRef.afterClosed().subscribe((result: JoinCodeDialogResult | undefined) => {

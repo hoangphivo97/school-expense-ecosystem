@@ -8,3 +8,5 @@ export * from './lib/repositories/infrastructure/firebase-event.repository';
 export * from './lib/services/event.service';
 
 export * from './lib/services/join-code.service';
+
+export * from './lib/project-data-access-backend.module';

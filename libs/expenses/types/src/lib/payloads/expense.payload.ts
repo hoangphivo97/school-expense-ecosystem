@@ -4,7 +4,7 @@ import { ExpenseList } from '../interfaces/expense.interface';
 // Base creation payload extracting writable fields from ExpenseList
 export type CreateExpensePayload = Pick<
   ExpenseList,
-  'amount' | 'purpose' | 'description' | 'proofUrls' | 'paidMethod'
+  'amount' | 'purpose' | 'description' | 'proofUrls' | 'paidMethod' | 'activityId' | 'activityType'
 >;
 
 // Partial mutation payload

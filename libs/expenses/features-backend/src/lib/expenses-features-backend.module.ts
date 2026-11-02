@@ -1,20 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ExpenseController } from './controllers/expense.controller';
-import { FirebaseExpenseRepository, ExpenseRepository, ExpenseBackendService, StorageProvider, FirebaseStorageAdapter } from '@school-expense-ecosystem/expenses/data-access-backend'; 
+import { ExpensesDataAccessBackendModule } from '@school-expense-ecosystem/expenses/data-access-backend';
 
 @Module({
+  imports: [ExpensesDataAccessBackendModule],
   controllers: [ExpenseController],
-  providers: [
-    ExpenseBackendService,
-    {
-      provide: ExpenseRepository,
-      useClass: FirebaseExpenseRepository,
-    },
-    {
-      provide: StorageProvider,
-      useClass: FirebaseStorageAdapter,
-    }
-  ],
-  exports: [ExpenseBackendService],
+  exports: [ExpenseFeaturesBackendModule],
 })
-export class ExpenseFeaturesBackendModule {}
+export class ExpenseFeaturesBackendModule { }
