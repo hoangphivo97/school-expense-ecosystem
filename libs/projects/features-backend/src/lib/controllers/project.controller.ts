@@ -19,13 +19,21 @@ import { ProjectQueryDto } from '../dtos/project/project-query.dto';
 import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/shared/manage-members.dto';
 import { UpdateProjectDto } from '../dtos/project/update-project.dto';
 import { RejectProjectDto } from '../dtos/project/reject-project.dto';
-import { EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
+import { EnrolledActivityOption, EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller('projects')
 @UseGuards(RolesGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
+
+  @Get('my-active-summary')
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  async getMyActiveActivitySummaries(
+    @CurrentUser() user: AuthenticatedUser
+  ): Promise<EnrolledActivityOption[]> {
+    return this.projectService.getMyActiveActivitySummaries(user);
+  }
 
   // 1. Get Project List (Accessible to Teachers, Students, Deans, Finance)
   @Get()

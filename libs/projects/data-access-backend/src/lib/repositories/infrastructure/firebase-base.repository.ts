@@ -86,11 +86,24 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
 
   protected mapBaseFields(doc: admin.firestore.DocumentSnapshot): Record<string, unknown> {
     const data = doc.data() ?? {};
+    const formattedEndDate = this.formatDate(data['endDate']);
+
+    // Dynamically evaluate status based on timeline expiration
+    let status = data['status'];
+    if (status === 'ACTIVE' && data['endDate']) {
+      const now = new Date();
+      const endDate = new Date(formattedEndDate);
+      if (endDate < now) {
+        status = 'EXPIRED';
+      }
+    }
+
     return {
       ...data,
       id: doc.id,
+      status,
       startDate: this.formatDate(data['startDate']),
-      endDate: this.formatDate(data['endDate']),
+      endDate: formattedEndDate,
       createdAt: this.formatDate(data['createdAt']),
       updatedAt: this.formatDate(data['updatedAt']),
       joinConfig: data['joinConfig']

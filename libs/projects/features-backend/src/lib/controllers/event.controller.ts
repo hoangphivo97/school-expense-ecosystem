@@ -14,7 +14,7 @@ import {
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { EventService } from '@school-expense-ecosystem/projects/data-access-backend';
 import { CurrentUser, Roles, RolesGuard, UserTypes } from '@school-expense-ecosystem/shared/guards-backend';
-import { EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
+import { EnrolledActivityOption, EnrolledActivitySummary } from '@school-expense-ecosystem/projects/types';
 import { EventQueryDto } from '../dtos/event/event-query.dto';
 import { AddParticipantsDto, GenerateJoinCodeDto, JoinByCodeDto } from '../dtos/shared/manage-members.dto';
 import { CreateEventDto } from '../dtos/event/create-event.dto';
@@ -25,6 +25,15 @@ import { RejectEventDto } from '../dtos/event/reject-event.dto';
 @UseGuards(RolesGuard)
 export class EventController {
   constructor(private readonly eventService: EventService) { }
+
+  @Get('my-active-summary')
+  @Roles(Role.LEVEL_1_FINANCE, Role.LEVEL_2_DEAN, Role.LEVEL_3_USER)
+  async getMyActiveActivitySummaries(
+    @CurrentUser() user: AuthenticatedUser
+  ): Promise<EnrolledActivityOption[]> {
+    return this.eventService.getMyActiveActivitySummaries(user);
+  }
+
 
   // 1. Get EventItem List (Scoped access)
   @Get()

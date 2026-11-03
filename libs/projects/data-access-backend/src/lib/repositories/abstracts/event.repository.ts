@@ -1,4 +1,4 @@
-import { EventItem, EventQueryPayload, StudentSummary, PaginatedEventResult, EventStatus } from '@school-expense-ecosystem/projects/types';
+import { EventItem, EventQueryPayload, StudentSummary, PaginatedEventResult, EventStatus, EnrolledActivityOption } from '@school-expense-ecosystem/projects/types';
 
 export abstract class EventRepository {
   abstract create(event: EventItem): Promise<EventItem>;
@@ -38,4 +38,6 @@ export abstract class EventRepository {
     allowedCurrentStatuses: string[],
     additionalData?: Record<string, unknown>
   ): Promise<EventItem>;
+
+  abstract findActiveSummariesForUser(userId: string): Promise<EnrolledActivityOption[]>;
 }

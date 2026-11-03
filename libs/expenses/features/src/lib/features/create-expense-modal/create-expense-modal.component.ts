@@ -22,6 +22,9 @@ import {
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ConfirmDialogComponent } from '@school-expense-ecosystem/shared/ui';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { ActivityType, EnrolledActivityOption } from '@school-expense-ecosystem/projects/types';
+import { catchError, forkJoin, of } from 'rxjs';
+import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
 
 export const MY_DATE_FORMATS = {
   parse: { dateInput: 'DD/MM/YYYY' },
@@ -64,6 +67,8 @@ export class CreateExpenseModalComponent implements OnInit {
   private readonly decimalPipe = inject(DecimalPipe);
   private readonly destroyRef = inject(DestroyRef);
   private readonly authStore = inject(AuthSignalStore);
+  private readonly projectApiService = inject(ProjectApiService);
+  private readonly eventApiService = inject(EventApiService);
 
   //Upload Feature
   readonly MAX_FILE_SIZE_BYTE = 5 * 1024 * 1024; // 5MB per file
@@ -72,6 +77,9 @@ export class CreateExpenseModalComponent implements OnInit {
   readonly ALLOWED_EXTENSIONS = ['application/pdf', 'image/png', 'image/jpeg'];
   readonly minLimit = signal<number>(1000); // Base institutional floor constraint
   readonly maxLimit = signal<number>(10000);
+  readonly isLoadingActivities = signal<boolean>(false);
+  readonly activities = signal<EnrolledActivityOption[]>([]);
+  readonly selectedActivity = signal<EnrolledActivityOption | null>(null);
 
   // Constants & Enums
   readonly Action = DialogActionEnum;
@@ -86,11 +94,14 @@ export class CreateExpenseModalComponent implements OnInit {
     purpose: ['', [Validators.required]],
     paidMethod: [PaidMethod.CASH, [Validators.required]],
     amount: [0, [Validators.required]],
-    proofUrls: [[] as string[], Validators.required]
+    proofUrls: [[] as string[], Validators.required],
+    activityId: ['', [Validators.required]],
+    activityType: [ActivityType.PROJECT, [Validators.required]]
   });
 
   ngOnInit(): void {
     this.resolveDynamicValidationLimits();
+    this.loadUserActivities();
     if (this.dialogData.action === this.Action.Edit) {
       this.patchFormValue();
     }
@@ -124,6 +135,54 @@ export class CreateExpenseModalComponent implements OnInit {
     amountControl.updateValueAndValidity();
   }
 
+  private loadUserActivities(): void {
+    this.isLoadingActivities.set(true);
+
+    forkJoin({
+      projects: this.projectApiService.getMyActiveProjectsSummary().pipe(catchError(() => of([]))),
+      events: this.eventApiService.getMyActiveEventsSummary().pipe(catchError(() => of([]))),
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ projects, events }) => {
+          const combinedOptions: EnrolledActivityOption[] = [...projects, ...events];
+          this.activities.set(combinedOptions);
+          this.isLoadingActivities.set(false);
+
+          // Auto-select and calculate budget constraints if exactly 1 activity exists
+          if (combinedOptions.length === 1) {
+            this.onActivityChange(combinedOptions[0].id);
+          }
+        },
+        error: () => {
+          this.activities.set([]);
+          this.isLoadingActivities.set(false);
+        },
+      });
+  }
+
+  onActivityChange(activityId: string): void {
+    const selected = this.activities().find((a) => a.id === activityId) || null;
+    this.selectedActivity.set(selected);
+
+    if (selected) {
+      this.expenseForm.controls.activityId.setValue(selected.id);
+      this.expenseForm.controls.activityType.setValue(selected.type);
+
+      // Clamp amount limit against remaining available budget
+      const currentRoleMax = this.maxLimit();
+      const effectiveMax = Math.min(currentRoleMax, selected.availableBudget);
+
+      const amountControl = this.expenseForm.controls.amount;
+      amountControl.setValidators([
+        Validators.required,
+        Validators.min(this.minLimit()),
+        Validators.max(effectiveMax),
+      ]);
+      amountControl.updateValueAndValidity();
+    }
+  }
+
   private patchFormValue() {
     const data = this.dialogData.data as ExpenseList;
     this.expenseForm.patchValue({
@@ -132,6 +191,8 @@ export class CreateExpenseModalComponent implements OnInit {
       paidMethod: data.paidMethod,
       amount: data.amount,
       date: new Date(data.date),
+      activityId: data.activityId,
+      activityType: data.activityType,
     });
   }
 
@@ -145,7 +206,9 @@ export class CreateExpenseModalComponent implements OnInit {
       purpose: formValue.purpose,
       description: formValue.description,
       proofUrls: formValue.proofUrls || [],
-      paidMethod: formValue.paidMethod
+      paidMethod: formValue.paidMethod,
+      activityId: formValue.activityId,
+      activityType: formValue.activityType,
     };
 
     // if (this.dialogData.action === this.Action.Create) {

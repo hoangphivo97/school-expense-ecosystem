@@ -9,7 +9,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { DialogActionEnum } from '@school-expense-ecosystem/shared/types';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CreateUserInput } from '@school-expense-ecosystem/admin/types';
 import { AuthSignalStore, MasterDataStore } from '@school-expense-ecosystem/shared/data-access';
@@ -29,8 +28,6 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
   ],
   templateUrl: './user-form-modal.component.html',
   providers: [
-    provideNativeDateAdapter(),
-    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
     { provide: TRANSLOCO_SCOPE, useValue: ['admin', 'shared'] }
   ],
 })

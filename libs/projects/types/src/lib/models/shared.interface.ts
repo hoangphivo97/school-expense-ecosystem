@@ -77,3 +77,10 @@ export interface EnrolledActivitySummary {
   joinedStudentIds: string[];
   updatedAt: string;
 }
+
+export interface EnrolledActivityOption {
+  id: string;
+  name: string;
+  type: JoinContextType;
+  availableBudget: number;
+}

@@ -21,6 +21,6 @@ import { StorageProviderRepository } from './infrastructure/abtracts/storage-pro
       useClass: FirebaseStorageRepository,
     },
   ],
-  exports: [ExpenseBackendService, ExpenseRepository],
+  exports: [ExpenseBackendService, ExpenseRepository, StorageProviderRepository],
 })
 export class ExpensesDataAccessBackendModule {}

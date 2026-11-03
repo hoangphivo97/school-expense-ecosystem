@@ -11,7 +11,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { DepartmentFundSummary, FacultyId } from '@school-expense-ecosystem/shared/types';
-import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -27,8 +26,6 @@ export interface FacultyOption {
   templateUrl: './activity-form-layout.component.html',
   styleUrl: './activity-form-layout.component.scss',
   providers: [FormErrorPipe,
-    provideNativeDateAdapter(),
-    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
   ]
 })
 export class ActivityFormLayoutComponent {

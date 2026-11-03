@@ -17,4 +17,4 @@ import { FirebaseEventRepository } from './repositories/infrastructure/firebase-
   ],
   exports: [ProjectRepository, EventRepository],
 })
-export class ProjectsDataAccessBackendModule {}
+export class ProjectsDataAccessBackendModule { }

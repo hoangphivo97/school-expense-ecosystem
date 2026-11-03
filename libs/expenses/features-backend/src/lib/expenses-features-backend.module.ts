@@ -5,6 +5,6 @@ import { ExpensesDataAccessBackendModule } from '@school-expense-ecosystem/expen
 @Module({
   imports: [ExpensesDataAccessBackendModule],
   controllers: [ExpenseController],
-  exports: [ExpenseFeaturesBackendModule],
+  exports: [],
 })
 export class ExpenseFeaturesBackendModule { }
