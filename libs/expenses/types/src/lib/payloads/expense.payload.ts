@@ -1,14 +1,28 @@
 import { BaseFilterParams, CursorPaginationParams, ExpenseStatus, FacultyId, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ExpenseList } from '../interfaces/expense.interface';
+import { ExcessHandlingOption } from '../enums/expense.enum';
 
 // Base creation payload extracting writable fields from ExpenseList
-export type CreateExpensePayload = Pick<
-  ExpenseList,
-  'amount' | 'purpose' | 'description' | 'proofUrls' | 'paidMethod' | 'activityId' | 'activityType'
->;
+export type CreateExpensePayload = Omit<
+  Pick<
+    ExpenseList,
+    'amount' | 'purpose' | 'description' | 'paidMethod' | 'activityId' | 'activityType'
+  >,
+  'proofUrls'
+> & {
+  proofUrls?: string[];
+};
 
 // Partial mutation payload
 export type UpdateExpensePayload = Partial<CreateExpensePayload>;
+
+export interface SettleExpensePayload {
+  expenseId: string;
+  actualInvoiceAmount: number;
+  proofUrls: string[];
+  excessHandling?: ExcessHandlingOption | null;
+  excessReason?: string | null;
+}
 
 // Base filter parameters for expense queries
 export interface FilterExpenseParams extends BaseFilterParams {

@@ -1,5 +1,5 @@
 import { FacultyId, UserType } from "@school-expense-ecosystem/shared/types";
-import { PaidMethod } from "../enums/expense.enum";
+import { ExcessHandlingOption, PaidMethod } from "../enums/expense.enum";
 import { ExpenseStatus } from "@school-expense-ecosystem/shared/types";
 import { ActivityType } from "@school-expense-ecosystem/projects/types";
 
@@ -23,6 +23,15 @@ export interface ExpenseList {
   date: string;
   activityId:string;
   activityType: ActivityType;
+  approvedAmount?: number;
+  actualInvoiceAmount?: number;
+  settlementAmount?: number;
+  excessHandling?: ExcessHandlingOption | null;
+  excessReason?: string | null;
+  procurementDeadline?: string | null;
+  teacherApprovedAt?: string | null;
+  deanApprovedAt?: string | null;
+  settledAt?: string | null;
 }
 
 export interface PaginatedExpensesResponse {
