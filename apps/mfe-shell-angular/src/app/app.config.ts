@@ -18,6 +18,7 @@ import { DialogError } from '@school-expense-ecosystem/shared/types';
 import { provideAppCheck, initializeAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check';
 import { provideTranslocoConfig } from './transloco.provider';
 import { errorInterceptor } from '@school-expense-ecosystem/shared/guards-frontend';
+import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,13 +30,15 @@ export const appConfig: ApplicationConfig = {
       },
       deps: [ErrorModalService]
     },
+    provideNativeDateAdapter(),
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
 
     provideAppCheck(() => {
       // if (!environment.production) {
       //   (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '';
       // }
-      
+
       const provider = new ReCaptchaV3Provider(environment.recaptchaSiteKey);
       return initializeAppCheck(undefined, {
         provider,

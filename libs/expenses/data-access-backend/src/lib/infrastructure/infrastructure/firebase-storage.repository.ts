@@ -1,12 +1,11 @@
-// firebase-storage.service.ts
 import { Injectable } from '@nestjs/common';
-import { StorageProvider } from '../storage-provider';
 import { randomUUID } from 'crypto';
 import * as path from 'path';
-import * as admin from 'firebase-admin'; // Ensure firebase-admin is installed via npm
+import * as admin from 'firebase-admin';
+import { StorageProviderRepository } from '../abtracts/storage-provider.repository';
 
 @Injectable()
-export class FirebaseStorageAdapter implements StorageProvider {
+export class FirebaseStorageRepository implements StorageProviderRepository {
     private get bucket() {
         // Retrieve the default authenticated Firebase Storage bucket instance
         const bucketName = process.env['FIREBASE_SDK_STORAGE_BUCKET'];

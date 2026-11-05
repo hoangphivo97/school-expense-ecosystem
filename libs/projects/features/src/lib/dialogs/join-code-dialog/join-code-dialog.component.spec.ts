@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { JoinCodeDialogComponent } from './join-code-dialog.component';
-import { JoinCodeDialogData, JoinCodeDialogResult } from '@school-expense-ecosystem/projects/types';
+import { JoinCodeDialogData, JoinCodeDialogResult, JoinContextType } from '@school-expense-ecosystem/projects/types';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
@@ -24,7 +24,7 @@ describe('JoinCodeDialogComponent', () => {
   };
 
   const defaultDialogData: JoinCodeDialogData = {
-    context: 'PROJECT',
+    context: JoinContextType.PROJECT,
   };
 
   const configureTestBed = async (dialogData: JoinCodeDialogData = defaultDialogData) => {
@@ -58,7 +58,7 @@ describe('JoinCodeDialogComponent', () => {
     });
 
     it('should configure metadata for PROJECT context', async () => {
-      await configureTestBed({ context: 'PROJECT' });
+      await configureTestBed({ context: JoinContextType.PROJECT });
       expect(component.contextMeta()).toEqual({
         icon: 'folder_special',
         translocoKey: 'shared.joinDialog.project',
@@ -66,7 +66,7 @@ describe('JoinCodeDialogComponent', () => {
     });
 
     it('should configure metadata for EVENT context', async () => {
-      await configureTestBed({ context: 'EVENT' });
+      await configureTestBed({ context: JoinContextType.EVENT });
       expect(component.contextMeta()).toEqual({
         icon: 'event_available',
         translocoKey: 'shared.joinDialog.event',
@@ -105,13 +105,13 @@ describe('JoinCodeDialogComponent', () => {
 
   describe('Dialog Actions & API Delegation', () => {
     it('should close dialog with success: false on cancel', async () => {
-      await configureTestBed({ context: 'PROJECT' });
+      await configureTestBed({ context: JoinContextType.PROJECT });
 
       component.onCancel();
 
       expect(mockDialogRef.close).toHaveBeenCalledWith({
         success: false,
-        context: 'PROJECT',
+        context: JoinContextType.PROJECT,
       });
     });
 
@@ -126,7 +126,7 @@ describe('JoinCodeDialogComponent', () => {
     });
 
     it('should call ProjectApiService and close dialog on PROJECT success', async () => {
-      await configureTestBed({ context: 'PROJECT' });
+      await configureTestBed({ context: JoinContextType.PROJECT });
       const mockProject = { id: 'prj-uuid-123' };
       mockProjectApiService.joinProjectByCode.mockReturnValue(of(mockProject));
 
@@ -137,13 +137,13 @@ describe('JoinCodeDialogComponent', () => {
       expect(mockProjectApiService.joinProjectByCode).toHaveBeenCalledWith({ code: 'PRJ-9821' });
       expect(mockDialogRef.close).toHaveBeenCalledWith<[JoinCodeDialogResult]>({
         success: true,
-        context: 'PROJECT',
+        context: JoinContextType.PROJECT,
         entityId: 'prj-uuid-123',
       });
     });
 
     it('should call EventApiService and close dialog on EVENT success', async () => {
-      await configureTestBed({ context: 'EVENT' });
+      await configureTestBed({ context: JoinContextType.EVENT });
       const mockEvent = { id: 'evt-uuid-456' };
       mockEventApiService.joinByCode.mockReturnValue(of(mockEvent));
 
@@ -154,13 +154,13 @@ describe('JoinCodeDialogComponent', () => {
       expect(mockEventApiService.joinByCode).toHaveBeenCalledWith({ code: 'EVT-5566' });
       expect(mockDialogRef.close).toHaveBeenCalledWith<[JoinCodeDialogResult]>({
         success: true,
-        context: 'EVENT',
+        context: JoinContextType.EVENT,
         entityId: 'evt-uuid-456',
       });
     });
 
     it('should set errorMessage and stop loading when API returns an HttpErrorResponse', async () => {
-      await configureTestBed({ context: 'PROJECT' });
+      await configureTestBed({ context: JoinContextType.PROJECT });
       const errorResponse = new HttpErrorResponse({
         error: { errorMsg: 'Join code has expired' },
         status: 400,

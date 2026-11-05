@@ -3,6 +3,7 @@ import { HttpClient, HttpParams, httpResource, HttpResourceRef } from '@angular/
 import { Observable } from 'rxjs';
 import {
   CreateEventPayload,
+  EnrolledActivityOption,
   EventItem,
   EventQueryPayload,
   GenerateJoinCodePayload,
@@ -104,5 +105,9 @@ export class EventApiService {
 
   removeStudent(id: string, studentUid: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}/students/${studentUid}`);
+  }
+
+  getMyActiveEventsSummary(): Observable<EnrolledActivityOption[]> {
+    return this.http.get<EnrolledActivityOption[]>(`${this.apiUrl}/my-active-summary`);
   }
 }

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
-import { CreateProjectPayload, GenerateJoinCodePayload, JoinByCodePayload, JoinConfig, ProjectItem, ProjectQueryPayload, StudentSummary, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
+import { CreateProjectPayload, EnrolledActivityOption, GenerateJoinCodePayload, JoinByCodePayload, JoinConfig, ProjectItem, ProjectQueryPayload, StudentSummary, UpdateProjectPayload } from '@school-expense-ecosystem/projects/types';
 
 @Injectable({
   providedIn: 'root',
@@ -104,5 +104,9 @@ export class ProjectApiService {
 
   getProjectStudents(projectId: string): Observable<StudentSummary[]> {
     return this.http.get<StudentSummary[]>(`${this.apiUrl}/${projectId}/students`);
+  }
+
+  getMyActiveProjectsSummary(): Observable<EnrolledActivityOption[]> {
+    return this.http.get<EnrolledActivityOption[]>(`${this.apiUrl}/my-active-summary`);
   }
 }

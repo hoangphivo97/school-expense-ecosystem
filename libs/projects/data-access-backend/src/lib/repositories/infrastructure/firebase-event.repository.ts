@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import {
+  ActivityType,
+  EnrolledActivityOption,
   EventItem,
   EventQueryPayload,
   PaginatedEventResult,
@@ -76,6 +78,47 @@ export class FirebaseEventRepository
     const nextPageToken = lastDoc ? lastDoc.id : null;
 
     return { items, nextPageToken, totalItems };
+  }
+
+  async findActiveSummariesForUser(userId: string): Promise<EnrolledActivityOption[]> {
+    // Query events where user is either an enrolled student or organizer
+    const [studentSnap, organizerSnap] = await Promise.all([
+      this.collection
+        .where('joinedStudentIds', 'array-contains', userId)
+        .select('name', 'budgetCap', 'currentSpent', 'pendingSpent', 'status', 'endDate')
+        .get(),
+      this.collection
+        .where('organizerId', '==', userId)
+        .select('name', 'budgetCap', 'currentSpent', 'pendingSpent', 'status', 'endDate')
+        .get(),
+    ]);
+
+    const docsMap = new Map<string, admin.firestore.DocumentSnapshot>();
+    [...studentSnap.docs, ...organizerSnap.docs].forEach((doc) => docsMap.set(doc.id, doc));
+
+    const options: EnrolledActivityOption[] = [];
+
+    docsMap.forEach((doc) => {
+      const data = doc.data();
+      if (!data) return;
+
+      const status = data['status'];
+      if (status === 'REJECTED' || status === 'ARCHIVED') return;
+
+      const budgetCap = Number(data['budgetCap']) || 0;
+      const currentSpent = Number(data['currentSpent']) || 0;
+      const pendingSpent = Number(data['pendingSpent']) || 0;
+      const availableBudget = Math.max(0, budgetCap - (currentSpent + pendingSpent));
+
+      options.push({
+        id: doc.id,
+        name: String(data['name'] || ''),
+        type: ActivityType.EVENT,
+        availableBudget,
+      });
+    });
+
+    return options;
   }
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): EventItem {

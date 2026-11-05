@@ -15,6 +15,44 @@
   <mat-dialog-content class="custom-content">
     <form [formGroup]="expenseForm" class="w-100 py-2">
       <div class="row g-4 m-0">
+        <div class="col-12">
+          @if (activities().length > 1) {
+            <mat-form-field appearance="outline" class="w-100 custom-field">
+              <mat-label>Associated Activity (Project / Event)</mat-label>
+              <mat-icon matIconPrefix class="field-icon">account_tree</mat-icon>
+              <mat-select formControlName="activityId" (selectionChange)="onActivityChange($event.value)">
+                @for (act of activities(); track act.id) {
+                  <mat-option [value]="act.id">
+                    <span class="fw-semibold">[{{ act.type }}]</span> {{ act.name }}
+                    <span class="text-muted small ms-2">(Available: {{ act.availableBudget | number }} TWD)</span>
+                  </mat-option>
+                }
+              </mat-select>
+              @if (selectedActivity()) {
+                <mat-hint>Available Budget: {{ selectedActivity()?.availableBudget | number }} TWD</mat-hint>
+              }
+              <mat-error>Please select an associated activity</mat-error>
+            </mat-form-field>
+          } @else if (activities().length === 1) {
+            <!-- Single activity auto-bound badge -->
+            <div class="p-3 border rounded bg-light d-flex align-items-center justify-content-between mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <mat-icon color="primary">account_tree</mat-icon>
+                <div>
+                  <div class="fw-semibold small">[{{ activities()[0].type }}] {{ activities()[0].name }}</div>
+                  <div class="text-muted small">Available Budget: {{ activities()[0].availableBudget | number }} TWD</div>
+                </div>
+              </div>
+              <span class="badge bg-success-subtle text-success border border-success-subtle">Auto-Linked</span>
+            </div>
+          } @else if (!isLoadingActivities() && activities().length === 0) {
+            <!-- Blocking warning when not enrolled in any activity -->
+            <div class="alert alert-warning py-2 px-3 mb-2 small d-flex align-items-center">
+              <mat-icon class="fs-6 h-auto w-auto me-2">warning</mat-icon>
+              <span>You are not enrolled in any active project or event. Expense creation is disabled until you join an activity.</span>
+            </div>
+          }
+        </div>
 
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100 custom-field">

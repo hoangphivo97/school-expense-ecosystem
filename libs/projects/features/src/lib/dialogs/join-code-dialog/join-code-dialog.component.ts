@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { EventApiService, ProjectApiService } from '@school-expense-ecosystem/projects/data-access';
-import { EventItem, JoinCodeDialogData, JoinCodeDialogResult, ProjectItem } from '@school-expense-ecosystem/projects/types';
+import { EventItem, JoinCodeDialogData, JoinCodeDialogResult, JoinContextType, ProjectItem } from '@school-expense-ecosystem/projects/types';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -57,7 +57,7 @@ export class JoinCodeDialogComponent {
 
   // Dynamic visual cues based on context
   readonly contextMeta = computed(() => {
-    return this.data.context === 'PROJECT'
+    return this.data.context === JoinContextType.PROJECT
       ? { icon: 'folder_special', translocoKey: 'shared.joinDialog.project' }
       : { icon: 'event_available', translocoKey: 'shared.joinDialog.event' };
   });
@@ -78,7 +78,7 @@ export class JoinCodeDialogComponent {
 
     const code = this.joinModel().code;
 
-    const join$: Observable<ProjectItem | EventItem> = this.data.context === 'PROJECT'
+    const join$: Observable<ProjectItem | EventItem> = this.data.context === JoinContextType.PROJECT
       ? this.projectApiService.joinProjectByCode({ code })
       : this.eventApiService.joinByCode({ code });
 

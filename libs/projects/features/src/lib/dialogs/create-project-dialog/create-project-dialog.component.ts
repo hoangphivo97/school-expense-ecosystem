@@ -7,7 +7,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -59,8 +58,6 @@ export interface CreateProjectDialogData {
   styleUrl: './create-project-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    provideNativeDateAdapter(),
-    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
     { provide: TRANSLOCO_SCOPE, useValue: 'project' },
     DecimalPipe,
   ],

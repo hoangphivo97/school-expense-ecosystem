@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { randomBytes } from 'node:crypto';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
 import { ProjectRepository } from '../repositories/abstracts/project.repository';
-import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary, ProjectQueryPayload, PaginatedProjectResult, EnrolledActivitySummary, UpdateProjectPayload, CreateProjectPayload, JoinByCodePayload, AddParticipantsPayload, GenerateJoinCodePayload, RejectProjectPayload } from '@school-expense-ecosystem/projects/types';
+import { JoinConfig, ProjectItem, ProjectFundingType, ProjectStatus, StudentSummary, ProjectQueryPayload, PaginatedProjectResult, EnrolledActivitySummary, UpdateProjectPayload, CreateProjectPayload, JoinByCodePayload, AddParticipantsPayload, GenerateJoinCodePayload, RejectProjectPayload, EnrolledActivityOption } from '@school-expense-ecosystem/projects/types';
 import { ProjectActiveFinancialModificationException, ProjectAlreadyArchivedException, ProjectApprovalForbiddenException, ProjectInitialSpentExceedsCapException, ProjectInvalidStatusTransitionException, ProjectPendingExpensesArchiveException, ProjectRosterLockedException, ProjectStudentNotEnrolledException, ProjectStudentNotFoundException } from '../exceptions/project.exception';
 import { JoinCodeService } from './join-code.service';
 import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
@@ -372,5 +372,9 @@ export class ProjectService {
     const users = await this.userRepo.findByIds(studentIds);
 
     return toStudentSummaryList(users);
+  }
+
+  async getMyActiveActivitySummaries(user: AuthenticatedUser): Promise<EnrolledActivityOption[]> {
+    return this.projectRepo.findActiveSummariesForUser(user.uid);
   }
 }

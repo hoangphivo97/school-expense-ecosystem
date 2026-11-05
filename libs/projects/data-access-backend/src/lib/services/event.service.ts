@@ -24,6 +24,7 @@ import {
   JoinByCodePayload,
   RejectEventPayload,
   AddParticipantsPayload,
+  EnrolledActivityOption,
 } from '@school-expense-ecosystem/projects/types';
 import {
   EventActiveFinancialModificationException,
@@ -512,4 +513,8 @@ export class EventService {
 
     return event;
   }
+
+    async getMyActiveActivitySummaries(user: AuthenticatedUser): Promise<EnrolledActivityOption[]> {
+      return this.eventRepository.findActiveSummariesForUser(user.uid);
+    }
 }

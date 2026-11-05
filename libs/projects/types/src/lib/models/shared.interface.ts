@@ -1,4 +1,7 @@
 import { FacultyId } from "@school-expense-ecosystem/shared/types";
+import { JoinContextType } from "../enums/join-code.enum";
+
+export { JoinContextType as ActivityType } from '../enums/join-code.enum';
 
 export interface JoinConfig {
   code: string;
@@ -51,7 +54,6 @@ export interface BaseActivityViewModel extends ActivityCapacityMetrics {
   canReject?: boolean;
 }
 
-export type JoinContextType = 'PROJECT' | 'EVENT';
 
 export interface JoinCodeDialogData {
   context: JoinContextType;
@@ -74,4 +76,11 @@ export interface EnrolledActivitySummary {
   endDate: string;
   joinedStudentIds: string[];
   updatedAt: string;
+}
+
+export interface EnrolledActivityOption {
+  id: string;
+  name: string;
+  type: JoinContextType;
+  availableBudget: number;
 }

@@ -3,6 +3,7 @@ import { CreateExpenseInput, PaidMethod, PersonalExpenseRequestFilters, Reviewer
 import { IsNotEmpty, IsNumber, IsString, IsArray, IsUrl, MaxLength, Min, IsEnum, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ExpenseStatus, FacultyId, UserType } from '@school-expense-ecosystem/shared/types';
+import { ActivityType } from '@school-expense-ecosystem/projects/types';
 
 export class CreateExpenseDto implements CreateExpenseInput {
   @IsNotEmpty()
@@ -27,6 +28,14 @@ export class CreateExpenseDto implements CreateExpenseInput {
   @IsNotEmpty()
   @IsEnum(PaidMethod)
   paidMethod!: PaidMethod;
+
+  @IsNotEmpty()
+  @IsString()
+  activityId!: string;
+
+  @IsNotEmpty()
+  @IsEnum(ActivityType)
+  activityType!: ActivityType;
 }
 
 export class UpdateExpenseDto extends PartialType(CreateExpenseDto) implements UpdateExpenseInput {}

@@ -1,4 +1,4 @@
-import { PaginatedProjectResult, ProjectItem, ProjectQueryPayload, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
+import { EnrolledActivityOption, PaginatedProjectResult, ProjectItem, ProjectQueryPayload, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
 
 export abstract class ProjectRepository {
   abstract create(project: ProjectItem): Promise<ProjectItem>;
@@ -34,4 +34,6 @@ export abstract class ProjectRepository {
     allowedCurrentStatuses: string[],
     additionalData?: Record<string, unknown>
   ): Promise<ProjectItem>;
+
+  abstract findActiveSummariesForUser(userId: string): Promise<EnrolledActivityOption[]>;
 }

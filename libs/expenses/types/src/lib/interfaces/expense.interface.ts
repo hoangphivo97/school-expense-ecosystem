@@ -1,7 +1,7 @@
-// ... 1-2 lines above
 import { FacultyId, UserType } from "@school-expense-ecosystem/shared/types";
 import { PaidMethod } from "../enums/expense.enum";
 import { ExpenseStatus } from "@school-expense-ecosystem/shared/types";
+import { ActivityType } from "@school-expense-ecosystem/projects/types";
 
 export interface ExpenseList {
   id: string;
@@ -21,6 +21,8 @@ export interface ExpenseList {
   requesterType: UserType;
   paidMethod: PaidMethod;
   date: string;
+  activityId:string;
+  activityType: ActivityType;
 }
 
 export interface PaginatedExpensesResponse {

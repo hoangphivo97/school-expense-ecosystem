@@ -89,3 +89,7 @@ storybook-static
 
 # Local AI Review Artifacts
 pr-review-report.md
+
+.archify
+.claude
+.kilo

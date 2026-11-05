@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ProjectRepository } from '../abstracts/project.repository';
-import { PaginatedProjectResult, ProjectItem, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
+import { ActivityType, EnrolledActivityOption, PaginatedProjectResult, ProjectItem, ProjectQueryPayload } from '@school-expense-ecosystem/projects/types';
 import { FirebaseBaseRepository } from './firebase-base.repository';
 
 @Injectable()
@@ -74,10 +74,52 @@ export class FirestoreProjectRepository
     return { items, nextPageToken, totalItems };
   }
 
-  async findProjectsByMentorId(mentorUid: string): Promise<ProjectItem[]> {
-    const snapshot = await this.collection.where('mentorId', '==', mentorUid).get();
-    return snapshot.docs.map((doc) => this.mapDoc(doc));
+  async findActiveSummariesForUser(userId: string): Promise<EnrolledActivityOption[]> {
+    // Query projects where user is either an enrolled student or faculty mentor
+    const [studentSnap, mentorSnap] = await Promise.all([
+      this.collection
+        .where('joinedStudentIds', 'array-contains', userId)
+        .select('name', 'budgetCap', 'currentSpent', 'pendingSpent', 'status', 'endDate')
+        .get(),
+      this.collection
+        .where('mentorId', '==', userId)
+        .select('name', 'budgetCap', 'currentSpent', 'pendingSpent', 'status', 'endDate')
+        .get(),
+    ]);
+
+    const docsMap = new Map<string, admin.firestore.DocumentSnapshot>();
+    [...studentSnap.docs, ...mentorSnap.docs].forEach((doc) => docsMap.set(doc.id, doc));
+
+    const options: EnrolledActivityOption[] = [];
+
+    docsMap.forEach((doc) => {
+      const data = doc.data();
+      if (!data) return;
+
+      // Filter out rejected or archived projects
+      const status = data['status'];
+      if (status === 'REJECTED' || status === 'ARCHIVED') return;
+
+      const budgetCap = Number(data['budgetCap']) || 0;
+      const currentSpent = Number(data['currentSpent']) || 0;
+      const pendingSpent = Number(data['pendingSpent']) || 0;
+      const availableBudget = Math.max(0, budgetCap - (currentSpent + pendingSpent));
+
+      options.push({
+        id: doc.id,
+        name: String(data['name'] || ''),
+        type: ActivityType.PROJECT,
+        availableBudget,
+      });
+    });
+
+    return options;
   }
+
+  // async findProjectsByMentorId(mentorUid: string): Promise<ProjectItem[]> {
+  //   const snapshot = await this.collection.where('mentorId', '==', mentorUid).get();
+  //   return snapshot.docs.map((doc) => this.mapDoc(doc));
+  // }
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): ProjectItem {
     return this.mapBaseFields(doc) as unknown as ProjectItem;

@@ -1,8 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { ExpenseRepository } from '../expense.repository';
 import { ExpenseList, PaginatedExpensesResponse, ExpenseAnalyticsDto, AnalyticsFilters, PersonalExpenseRequestFilters, ExpenseAuditLogDocument, ReviewerExpenseRequestFilters } from '@school-expense-ecosystem/expenses/types';
 import { AuthenticatedUser, Role, UserType } from '@school-expense-ecosystem/shared/types';
+import { ExpenseRepository } from '../abtracts/expense.repository';
+import { ActivityBudgetExceededException, ActivityNotFoundException, RequesterNotActivityMemberException } from '../../exceptions/expense.exception';
+import { ActivityType } from '@school-expense-ecosystem/projects/types';
 
 @Injectable()
 export class FirebaseExpenseRepository implements ExpenseRepository {
@@ -318,6 +320,91 @@ export class FirebaseExpenseRepository implements ExpenseRepository {
     await docRef.set({
       ...log,
       createdAt: admin.firestore.Timestamp.fromDate(new Date(log.createdAt))
+    });
+  }
+
+  async createExpenseWithActivity(
+    expenseData: Omit<ExpenseList, 'id'>,
+    auditLog: Omit<ExpenseAuditLogDocument, 'id'>,
+    bypassMembershipCheck = false
+  ): Promise<ExpenseList> {
+    const collectionName = expenseData.activityType === ActivityType.PROJECT ? 'projects' : 'events';
+    const activityRef = this.db.collection(collectionName).doc(expenseData.activityId);
+    const expenseRef = this.collection.doc();
+    const auditLogRef = this.auditLogsCollection.doc();
+
+    const expenseDate = new Date(expenseData.date);
+    const nowIso = new Date().toISOString();
+    const nowTimestamp = admin.firestore.Timestamp.now();
+
+    return this.db.runTransaction(async (transaction) => {
+      // 1. Fetch target activity document snapshot
+      const activityDoc = await transaction.get(activityRef);
+      if (!activityDoc.exists) {
+        throw new ActivityNotFoundException(expenseData.activityType, expenseData.activityId);
+      }
+
+      const activityData = activityDoc.data() ?? {};
+
+      // 2. Validate membership if not bypassed by privileged roles
+      if (!bypassMembershipCheck) {
+        const joinedStudentIds: string[] = Array.isArray(activityData['joinedStudentIds'])
+          ? activityData['joinedStudentIds']
+          : [];
+        const mentorId = activityData['mentorId'];
+        const organizerId = activityData['organizerId'];
+
+        const isAuthorizedMember =
+          joinedStudentIds.includes(expenseData.userId) ||
+          mentorId === expenseData.userId ||
+          organizerId === expenseData.userId;
+
+        if (!isAuthorizedMember) {
+          throw new RequesterNotActivityMemberException(expenseData.userId, expenseData.activityId);
+        }
+      }
+
+      // 3. Enforce budget cap verification
+      const budgetCap = Number(activityData['budgetCap']) || 0;
+      const currentSpent = Number(activityData['currentSpent']) || 0;
+      const pendingSpent = Number(activityData['pendingSpent']) || 0;
+      const availableBalance = budgetCap - (currentSpent + pendingSpent);
+
+      if (expenseData.amount > availableBalance) {
+        throw new ActivityBudgetExceededException(expenseData.amount, availableBalance);
+      }
+
+      // 4. Reserve budget on activity by incrementing pendingSpent counter
+      transaction.update(activityRef, {
+        pendingSpent: admin.firestore.FieldValue.increment(expenseData.amount),
+        updatedAt: nowIso,
+      });
+
+      // 5. Persist the new expense document
+      const firestorePayload = {
+        ...expenseData,
+        date: admin.firestore.Timestamp.fromDate(expenseDate),
+        filterYearMonth: this.formatYearMonth(expenseDate.getUTCFullYear(), expenseDate.getUTCMonth() + 1),
+        createdAt: nowTimestamp,
+        updatedAt: nowTimestamp,
+      };
+      transaction.set(expenseRef, firestorePayload);
+
+      // 6. Persist audit log entry associated with the fresh expense document
+      const auditLogPayload = {
+        ...auditLog,
+        expenseId: expenseRef.id,
+        createdAt: admin.firestore.Timestamp.fromDate(new Date(auditLog.createdAt)),
+      };
+      transaction.set(auditLogRef, auditLogPayload);
+
+      return {
+        ...expenseData,
+        id: expenseRef.id,
+        date: expenseDate.toISOString(),
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
     });
   }
 }

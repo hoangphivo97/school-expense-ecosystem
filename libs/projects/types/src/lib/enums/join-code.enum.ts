@@ -4,3 +4,8 @@ export enum JoinCodeStatus {
     FULL = 'FULL',
     EXPIRED = 'EXPIRED',
 }
+
+export enum JoinContextType{
+    PROJECT = 'PROJECT',
+    EVENT = 'EVENT'
+}
