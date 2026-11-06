@@ -162,8 +162,7 @@ export class EventService {
       years: calculateSpannedYears(payload.startDate, payload.endDate),
     };
 
-    // Encumber faculty fund if it is a standalone faculty-funded event
-    if (!payload.projectId && payload.type === EventFundingType.FACULTY) {
+    if (initialStatus === EventStatus.UPCOMING && payload.type === EventFundingType.FACULTY) {
       const currentYear = new Date().getFullYear();
       const departmentFundId = `${payload.facultyId.toUpperCase()}_DEPT_${currentYear}`;
       return this.eventRepository.createWithFacultyFund(newEvent, departmentFundId);
@@ -355,28 +354,50 @@ export class EventService {
     }
 
     let nextStatus: EventStatus;
+    let requiresFundAllocation = false;
 
     if (event.status === EventStatus.PENDING_DEAN_APPROVAL) {
       if (!isFacultyDean) throw new EventApprovalForbiddenException();
-      nextStatus =
-        event.type === EventFundingType.SCHOOL
-          ? EventStatus.PENDING_FINANCE_APPROVAL
-          : EventStatus.UPCOMING;
+      if (event.type === EventFundingType.SCHOOL) {
+        nextStatus = EventStatus.PENDING_FINANCE_APPROVAL;
+      } else {
+        nextStatus = EventStatus.UPCOMING;
+        // Chỉ trừ quỹ khoa nếu nguồn tiền là FACULTY
+        requiresFundAllocation = event.type === EventFundingType.FACULTY;
+      }
     } else if (event.status === EventStatus.PENDING_FINANCE_APPROVAL) {
       if (!isFinance) throw new EventApprovalForbiddenException();
+      // Finance duyệt sự kiện cấp Trường: Trực tiếp UPCOMING, không trừ department_funds
       nextStatus = EventStatus.UPCOMING;
+      requiresFundAllocation = false;
     } else {
       throw new InvalidEventStateException('approve', event.status);
+    }
+
+    const auditData = {
+      approvedBy: user.uid,
+      approvedAt: new Date().toISOString(),
+    };
+
+    if (requiresFundAllocation) {
+      const currentYear = new Date().getFullYear();
+      const fundId = `${event.facultyId.toUpperCase()}_DEPT_${currentYear}`;
+
+      return this.eventRepository.approveWithFundAllocation(
+        id,
+        fundId,
+        event.budgetCap,
+        EventStatus.UPCOMING,
+        [event.status],
+        auditData
+      );
     }
 
     return this.eventRepository.transitionStatus(
       id,
       nextStatus,
       [event.status],
-      {
-        approvedBy: user.uid,
-        approvedAt: new Date().toISOString(),
-      }
+      auditData
     );
   }
 
@@ -514,7 +535,7 @@ export class EventService {
     return event;
   }
 
-    async getMyActiveActivitySummaries(user: AuthenticatedUser): Promise<EnrolledActivityOption[]> {
-      return this.eventRepository.findActiveSummariesForUser(user.uid);
-    }
+  async getMyActiveActivitySummaries(user: AuthenticatedUser): Promise<EnrolledActivityOption[]> {
+    return this.eventRepository.findActiveSummariesForUser(user.uid);
+  }
 }

@@ -72,7 +72,7 @@ export class ProjectService {
       years: calculateSpannedYears(payload.startDate, payload.endDate)
     };
 
-    if (payload.type === ProjectFundingType.FACULTY) {
+    if (initialStatus === ProjectStatus.ACTIVE && payload.type === ProjectFundingType.FACULTY) {
       const currentYear = new Date().getFullYear();
       const departmentFundId = `${payload.facultyId.toUpperCase()}_DEPT_${currentYear}`;
       return this.projectRepo.createWithFacultyFund(newProject, departmentFundId);
@@ -256,22 +256,18 @@ export class ProjectService {
       limit: query?.limit ?? 10,
     };
 
-    // 1. Level 1 (Finance): Global Auditing Scope
     if (user.role === Role.LEVEL_1_FINANCE) {
       return this.projectRepo.findWithQuery(baseQuery);
     }
 
-    // 2. Student Context: Enrolled Projects Scope
     if (user.userType === UserType.STUDENT) {
       return this.projectRepo.findWithQuery({ ...baseQuery, studentId: user.uid });
     }
 
-    // 3. Level 2 (Dean): Faculty Boundary Scope
     if (user.role === Role.LEVEL_2_DEAN) {
       return this.projectRepo.findWithQuery({ ...baseQuery, facultyId: user.facultyId });
     }
 
-    // 4. Level 3 (Teacher/Mentor): Personal Projects Scope
     return this.projectRepo.findWithQuery({ ...baseQuery, mentorId: user.uid });
   }
 
@@ -303,28 +299,50 @@ export class ProjectService {
     }
 
     let nextStatus: ProjectStatus;
+    let requiresFundAllocation = false;
 
     if (project.status === ProjectStatus.PENDING_DEAN_APPROVAL) {
       if (!isFacultyDean) throw new ProjectApprovalForbiddenException();
-      // Route to Finance if school-funded, otherwise activate directly
-      nextStatus = project.type === ProjectFundingType.SCHOOL
-        ? ProjectStatus.PENDING_FINANCE_APPROVAL
-        : ProjectStatus.ACTIVE;
+
+      if (project.type === ProjectFundingType.SCHOOL) {
+        nextStatus = ProjectStatus.PENDING_FINANCE_APPROVAL;
+      } else {
+        nextStatus = ProjectStatus.ACTIVE;
+
+        requiresFundAllocation = project.type === ProjectFundingType.FACULTY;
+      }
     } else if (project.status === ProjectStatus.PENDING_FINANCE_APPROVAL) {
       if (!isFinance) throw new ProjectApprovalForbiddenException();
       nextStatus = ProjectStatus.ACTIVE;
+      requiresFundAllocation = false;
     } else {
       throw new ProjectInvalidStatusTransitionException('ProjectItem is not in a pending approval state.');
+    }
+
+    const auditData = {
+      approvedBy: user.uid,
+      approvedAt: new Date().toISOString(),
+    };
+
+    if (requiresFundAllocation) {
+      const currentYear = new Date().getFullYear();
+      const fundId = `${project.facultyId.toUpperCase()}_DEPT_${currentYear}`;
+
+      return this.projectRepo.approveWithFundAllocation(
+        projectId,
+        fundId,
+        project.budgetCap,
+        nextStatus,
+        [project.status],
+        auditData
+      );
     }
 
     return this.projectRepo.transitionStatus(
       projectId,
       nextStatus,
       [project.status],
-      {
-        approvedBy: user.uid,
-        approvedAt: new Date().toISOString(),
-      }
+      auditData
     );
   }
 

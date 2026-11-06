@@ -36,4 +36,12 @@ export abstract class ProjectRepository {
   ): Promise<ProjectItem>;
 
   abstract findActiveSummariesForUser(userId: string): Promise<EnrolledActivityOption[]>;
+  abstract approveWithFundAllocation(
+    id: string,
+    departmentFundId: string,
+    budgetCap: number,
+    targetStatus: ProjectStatus,
+    allowedCurrentStatuses: ProjectStatus[],
+    auditData?: Record<string, unknown>
+  ): Promise<ProjectItem>;
 }

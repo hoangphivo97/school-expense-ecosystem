@@ -40,4 +40,12 @@ export abstract class EventRepository {
   ): Promise<EventItem>;
 
   abstract findActiveSummariesForUser(userId: string): Promise<EnrolledActivityOption[]>;
+  abstract approveWithFundAllocation(
+    id: string,
+    departmentFundId: string,
+    budgetCap: number,
+    targetStatus: EventStatus,
+    allowedCurrentStatuses: EventStatus[],
+    auditData?: Record<string, unknown>
+  ): Promise<EventItem>;
 }

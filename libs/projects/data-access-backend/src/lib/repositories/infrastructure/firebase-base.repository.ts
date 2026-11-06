@@ -3,7 +3,7 @@ import { UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { JoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/types';
 import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedException, JoinCodeExpiredException, JoinCodeNotStartedException, StudentAlreadyEnrolledException } from '../../exceptions/join-code.exception';
 import { BaseFirestoreRepository } from '@school-expense-ecosystem/shared/data-access-backend';
-import { DepartmentFundNotFoundException, InsufficientDepartmentFundException } from '../../exceptions/project.exception';
+import { DepartmentFundNotFoundException, InsufficientDepartmentFundException, ProjectInvalidStatusTransitionException } from '../../exceptions/project.exception';
 
 export interface JoinableEntity<TStatus extends string = string> {
   id: string;
@@ -189,10 +189,10 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
   protected formatDate(dateVal: unknown): string {
     if (!dateVal) return new Date().toISOString();
     if (typeof dateVal === 'string') return dateVal;
-    if (typeof dateVal === 'object' && 
+    if (typeof dateVal === 'object' &&
       dateVal !== null &&
       'toDate' in dateVal &&
-      typeof(dateVal as { toDate: () => Date}).toDate === 'function'
+      typeof (dateVal as { toDate: () => Date }).toDate === 'function'
     ) {
       return (dateVal as { toDate: () => Date }).toDate().toISOString();
     }
@@ -292,6 +292,69 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
 
       transaction.set(entityRef, entity);
       return entity;
+    });
+  }
+
+  async approveWithFundAllocation(
+    id: string,
+    departmentFundId: string,
+    budgetCap: number,
+    targetStatus: TStatus,
+    allowedCurrentStatuses: TStatus[],
+    auditData?: Record<string, unknown>
+  ): Promise<T> {
+    const entityRef = this.collection.doc(id);
+    const fundRef = this.departmentFundsCollection.doc(departmentFundId);
+
+    return this.db.runTransaction(async (transaction) => {
+      const [entityDoc, fundDoc] = await Promise.all([
+        transaction.get(entityRef),
+        transaction.get(fundRef),
+      ]);
+
+      if (!entityDoc.exists) {
+        throw new EntityNotFoundException(this.collectionName, id);
+      }
+      if (!fundDoc.exists) {
+        throw new DepartmentFundNotFoundException(departmentFundId);
+      }
+
+      const entityData = entityDoc.data() ?? {};
+      const currentStatus = entityData['status'] as TStatus;
+
+      if (!allowedCurrentStatuses.includes(currentStatus)) {
+        throw new ProjectInvalidStatusTransitionException(
+          `Cannot approve entity from status "${currentStatus}". Allowed: ${allowedCurrentStatuses.join(', ')}`
+        );
+      }
+
+      const fundData = fundDoc.data() ?? {};
+      const remainingBudget = Number(fundData['remainingBudget'] || 0);
+
+      if (remainingBudget < budgetCap) {
+        throw new InsufficientDepartmentFundException(remainingBudget, budgetCap);
+      }
+
+      const timestampIso = new Date().toISOString();
+
+      transaction.update(fundRef, {
+        remainingBudget: admin.firestore.FieldValue.increment(-budgetCap),
+        allocatedBudget: admin.firestore.FieldValue.increment(budgetCap),
+        updatedAt: timestampIso,
+      });
+
+      const updatePayload: Record<string, unknown> = {
+        status: targetStatus,
+        updatedAt: timestampIso,
+        ...(auditData ?? {}),
+      };
+
+      transaction.update(entityRef, updatePayload);
+
+      return this.mapDoc({
+        ...entityDoc,
+        data: () => ({ ...entityData, ...updatePayload }),
+      } as admin.firestore.DocumentSnapshot);
     });
   }
 }
