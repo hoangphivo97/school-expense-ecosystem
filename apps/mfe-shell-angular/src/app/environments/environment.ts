@@ -24,4 +24,5 @@ export const environment = {
   reactRemoteURL: 'http://localhost:5000/remoteEntry.js',
   recaptchaSiteKey: "6LfVCSotAAAAADbtB1Eq7U63KNXsModgHFuu74bl",
   productionUrl: "",
+  appCheckDebugToken: "ba0fd2b7-8177-42a7-ba48-3aa0f8b30f4d",
 };

@@ -15,41 +15,36 @@ export class AuthSignalStore {
    */
   readonly token = this.tokenSignal.asReadonly();
   readonly user = this.userSignal.asReadonly();
-
   readonly isAuthenticated = computed(() => !!this.userSignal());
 
   constructor() {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        this.updateAuthState(token, this.decodeTokenPayload(token));
-      }
-    }
   }
 
   /**
    * Synchronizes authentication metrics and atomic client persistent properties simultaneously
    */
   updateAuthState(token: string | null, user?: UserBase | null): void {
-    const resolvedUser = user !== undefined ? user : (token ? this.decodeTokenPayload(token) : null);
+    const resolvedUser =
+      user !== undefined ? user : token ? this.decodeTokenPayload(token) : null;
 
     this.tokenSignal.set(token);
     this.userSignal.set(resolvedUser);
-
-    if (typeof window !== 'undefined') {
-      if (token) {
-        localStorage.setItem('token', token);
-      } else {
-        localStorage.removeItem('token');
-      }
-    }
   }
 
   private decodeTokenPayload(token: string): UserBase | null {
     try {
       const payloadPart = token.split('.')[1];
-      const decodedJson = atob(payloadPart);
-      return JSON.parse(decodedJson) as UserBase;
+      if (!payloadPart) return null;
+
+      const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+
+      return JSON.parse(jsonPayload) as UserBase;
     } catch {
       return null;
     }

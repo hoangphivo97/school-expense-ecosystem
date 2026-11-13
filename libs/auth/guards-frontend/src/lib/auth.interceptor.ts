@@ -8,13 +8,16 @@ import {
 } from '@angular/common/http';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { Router } from '@angular/router';
-import { catchError, from, Observable, switchMap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, from, Observable, switchMap, take, throwError } from 'rxjs';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { HTTP_ERROR_DELEGATE } from '@school-expense-ecosystem/shared/tokens';
 import { DialogError, ErrorResponse, RestrictedAccountError } from '@school-expense-ecosystem/shared/types';
 import { NotificationService } from '@school-expense-ecosystem/shared/utils-frontend';
 
 type ErrorModalDelegate = (payload: DialogError) => void;
+
+let isRefreshing = false;
+const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
@@ -110,18 +113,38 @@ function handle401Error(
   showErrorModal: ErrorModalDelegate | null
 ): Observable<HttpEvent<unknown>> {
   const isOnboardingRequest = err.url?.includes('/auth/onboarding');
-  const isLoginRequest = err.url?.includes('/auth/google-login');
+  const isLoginRequest =
+    err.url?.includes('/auth/login') || err.url?.includes('/auth/google-login');
 
   if (isLoginRequest) {
     return throwError(() => err);
   }
 
-  const attach = (token: string | null) =>
-    token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+  const attach = (token: string) =>
+    req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
 
-  return from(Promise.resolve(auth.getFirebaseToken(true))).pipe(
-    switchMap((newToken) => next(attach(newToken))),
+  if (isRefreshing) {
+    return refreshTokenSubject.pipe(
+      filter((token): token is string => token !== null),
+      take(1),
+      switchMap((newToken) => next(attach(newToken)))
+    );
+  }
+
+  isRefreshing = true;
+  refreshTokenSubject.next(null);
+
+  return from(auth.restoreOrRefreshSession()).pipe(
+    switchMap((newNestToken) => {
+      isRefreshing = false;
+      if (!newNestToken) {
+        return throwError(() => err);
+      }
+      refreshTokenSubject.next(newNestToken);
+      return next(attach(newNestToken));
+    }),
     catchError(async (err2) => {
+      isRefreshing = false;
       await auth.signOut();
 
       if (showErrorModal) {
@@ -135,20 +158,20 @@ function handle401Error(
             ...basePayload,
             title: 'Account Setup Failed',
             errorMsg: 'We could not verify your temporary onboarding session.',
-            hint: 'Please try signing in with Google again to restart your registration.'
+            hint: 'Please try signing in with Google again to restart your registration.',
           });
         } else {
           showErrorModal({
             ...basePayload,
             title: 'Session Expired',
             errorMsg: 'Your active authorization session has expired or become invalid.',
-            hint: 'Please log back into your account to securely resume your work.'
+            hint: 'Please log back into your account to securely resume your work.',
           });
         }
       }
 
       router.navigate(['/auth']);
       throw err2;
-    }),
+    })
   );
 }

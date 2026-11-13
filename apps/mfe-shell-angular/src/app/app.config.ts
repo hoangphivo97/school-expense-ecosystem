@@ -1,5 +1,5 @@
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
-import { provideRouter, withEnabledBlockingInitialNavigation } from '@angular/router';
+import { ApplicationConfig, importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideFirebaseApp } from '@angular/fire/app';
@@ -19,6 +19,8 @@ import { provideAppCheck, initializeAppCheck, ReCaptchaV3Provider } from '@angul
 import { provideTranslocoConfig } from './transloco.provider';
 import { errorInterceptor } from '@school-expense-ecosystem/shared/guards-frontend';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
+import { AuthService } from '@school-expense-ecosystem/auth/data-access';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -35,9 +37,9 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
 
     provideAppCheck(() => {
-      // if (!environment.production) {
-      //   (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '';
-      // }
+      if (!environment.production) {
+        (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = environment.appCheckDebugToken;
+      }
 
       const provider = new ReCaptchaV3Provider(environment.recaptchaSiteKey);
       return initializeAppCheck(undefined, {
@@ -53,7 +55,18 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([authInterceptor, appCheckInterceptor, errorInterceptor])),
     provideStore(),
-    provideRouter(routes, withEnabledBlockingInitialNavigation()),
-    provideTranslocoConfig()
+    provideAppInitializer(async () => {
+      const authService = inject(AuthService);
+      const authStore = inject(AuthSignalStore);
+
+      try {
+        await authService.restoreOrRefreshSession();
+      } catch (error){
+        console.error
+        authStore.updateAuthState(null, null);
+      }
+    }),
+    provideRouter(routes),
+    provideTranslocoConfig(),
   ],
 };
