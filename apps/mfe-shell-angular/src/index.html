@@ -1,28 +1,59 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>ExpenseTrackerApp</title>
-    <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Rock+Salt&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet"
-    />
-  </head>
 
-  <body class="mat-typography">
-    <app-root></app-root>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <title>ExpenseTrackerApp</title>
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Rock+Salt&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+</head>
+
+<body class="mat-typography">
+  <app-root>
+    <style>
+      .app-boot-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background-color: #f8fafc;
+        font-family: system-ui, -apple-system, sans-serif;
+        color: #475569;
+        font-size: 14px;
+        z-index: 9999;
+      }
+
+      .app-boot-spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid #e2e8f0;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: boot-spin 0.75s linear infinite;
+      }
+
+      @keyframes boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <div class="app-boot-splash">
+      <div class="app-boot-spinner"></div>
+      <span>Restoring session...</span>
+    </div>
+  </app-root>
+</body>
+
 </html>
