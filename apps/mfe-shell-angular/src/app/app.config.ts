@@ -61,8 +61,7 @@ export const appConfig: ApplicationConfig = {
 
       try {
         await authService.restoreOrRefreshSession();
-      } catch (error){
-        console.error
+      } catch {
         authStore.updateAuthState(null, null);
       }
     }),

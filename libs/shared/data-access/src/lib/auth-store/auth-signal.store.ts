@@ -17,9 +17,6 @@ export class AuthSignalStore {
   readonly user = this.userSignal.asReadonly();
   readonly isAuthenticated = computed(() => !!this.userSignal());
 
-  constructor() {
-  }
-
   /**
    * Synchronizes authentication metrics and atomic client persistent properties simultaneously
    */
