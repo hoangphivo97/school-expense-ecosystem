@@ -2,8 +2,9 @@ import { InitializeDepartmentFundPayload } from '@school-expense-ecosystem/finan
 import { FacultyId } from '@school-expense-ecosystem/shared/types';
 import { Transform, Type } from 'class-transformer';
 import { IsEnum, IsInt, IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { AuditableBudgetDto } from '../auditable-budget.dto';
 
-export class InitializeDepartmentFundDto implements InitializeDepartmentFundPayload {
+export class InitializeDepartmentFundDto extends AuditableBudgetDto implements InitializeDepartmentFundPayload {
   @Transform(({ value }) => (typeof value === 'string' ? value.toUpperCase() : value))
   @IsEnum(FacultyId)
   @IsNotEmpty()
