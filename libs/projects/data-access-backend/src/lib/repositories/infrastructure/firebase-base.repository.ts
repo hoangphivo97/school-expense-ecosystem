@@ -5,6 +5,7 @@ import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedE
 import { BaseFirestoreRepository } from '@school-expense-ecosystem/shared/data-access-backend';
 import { DepartmentFundNotFoundException, InsufficientDepartmentFundException, ProjectInvalidStatusTransitionException } from '../../exceptions/project.exception';
 import { BadRequestException } from '@nestjs/common';
+import { BudgetAuditLog, BudgetLedgerSourceType, BudgetTransactionType, DepartmentFundStatus } from '@school-expense-ecosystem/finance/types';
 
 export interface JoinableEntity<TStatus extends string = string> {
   id: string;
@@ -339,8 +340,8 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
       }
 
       const fundData = fundDoc.data() ?? {};
-      const fundStatus = String(fundData['status'] ?? 'ACTIVE');
-      if (fundStatus !== 'ACTIVE') {
+      const fundStatus = (fundData['status'] as DepartmentFundStatus) ?? DepartmentFundStatus.ACTIVE;
+      if (fundStatus !== DepartmentFundStatus.ACTIVE) {
         throw new BadRequestException(
           `Cannot allocate budget from department fund "${departmentFundId}" because its status is ${fundStatus}.`
         );
@@ -357,6 +358,7 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
       const newAllocated = prevAllocated + budgetCap;
       const newRemaining = prevRemaining - budgetCap;
       const timestampIso = new Date().toISOString();
+      const isProject = this.collectionName === 'projects';
 
       transaction.update(fundRef, {
         allocatedBudget: newAllocated,
@@ -372,15 +374,18 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
 
       transaction.update(entityRef, updatePayload);
 
-      // Ghi bút toán bất biến vào budget_audit_logs (đối chiếu tên enum trong budget-audit.interface.ts)
-      transaction.set(auditLogRef, {
+      const auditEntry: BudgetAuditLog = {
         id: auditLogRef.id,
         fundId: departmentFundId,
         facultyId: fundData['facultyId'],
         year: Number(fundData['year']),
-        type: 'ACTIVITY_ALLOCATION', // Thay bằng enum BudgetTransactionType tương ứng của bạn
-        sourceType: this.collectionName === 'projects' ? 'PROJECT' : 'EVENT', // Thay bằng enum BudgetLedgerSourceType tương ứng
-        sourceId: id,
+        type: isProject
+          ? BudgetTransactionType.PROJECT_ALLOCATION
+          : BudgetTransactionType.EVENT_ALLOCATION,
+        sourceType: isProject
+          ? BudgetLedgerSourceType.PROJECT
+          : BudgetLedgerSourceType.EVENT,
+        sourceEntityId: id,
         amount: -budgetCap,
         previousTotalBudget: totalBudget,
         newTotalBudget: totalBudget,
@@ -388,11 +393,13 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
         newAllocatedBudget: newAllocated,
         previousRemainingBudget: prevRemaining,
         newRemainingBudget: newRemaining,
-        reason: `Budget allocated upon approval of ${this.collectionName.slice(0, -1)} "${id}"`,
+        reason: `Budget allocated upon approval of ${isProject ? 'project' : 'event'} "${id}"`,
         performedByUid: auditData.approvedBy,
         performedByEmail: auditData.approvedByEmail ?? '',
         createdAt: timestampIso,
-      });
+      };
+      
+      transaction.set(auditLogRef, auditEntry);
 
       return this.mapDoc({
         ...entityDoc,

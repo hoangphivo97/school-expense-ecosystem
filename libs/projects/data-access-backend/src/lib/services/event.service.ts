@@ -45,6 +45,27 @@ import { calculateSpannedYears } from '../helpers/calculate-years.helper';
 import { ProjectStudentNotFoundException } from '../exceptions/project.exception';
 import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
 
+type StandaloneEventFundingType = Exclude<EventFundingType, EventFundingType.PROJECT>;
+
+type EventStatusRule = Partial<Record<Role, EventStatus>> & {
+  default: EventStatus;
+};
+
+const INITIAL_EVENT_STATUS_MATRIX: Record<StandaloneEventFundingType, EventStatusRule> = {
+  [EventFundingType.FACULTY]: {
+    // AC 1: Zero-mutation on creation
+    default: EventStatus.PENDING_DEAN_APPROVAL,
+  },
+  [EventFundingType.SCHOOL]: {
+    [Role.LEVEL_1_FINANCE]: EventStatus.UPCOMING,
+    [Role.LEVEL_2_DEAN]: EventStatus.PENDING_FINANCE_APPROVAL,
+    default: EventStatus.PENDING_DEAN_APPROVAL,
+  },
+  [EventFundingType.OUTSOURCE]: {
+    default: EventStatus.UPCOMING,
+  },
+};
+
 @Injectable()
 export class EventService {
   constructor(
@@ -120,20 +141,8 @@ export class EventService {
       initialStatus = isDeanOrFinance ? EventStatus.UPCOMING : EventStatus.PENDING_DEAN_APPROVAL;
     } else {
       // 2. Case B: Standalone Event (Routes through governance workflow)
-      const isFinance = user.role === Role.LEVEL_1_FINANCE;
-      const isDean = user.role === Role.LEVEL_2_DEAN;
-
-      if (payload.type === EventFundingType.OUTSOURCE || isFinance) {
-        initialStatus = EventStatus.UPCOMING;
-      } else if (isDean) {
-        // Dean creating a School-funded event routes to Finance; Faculty-funded activates directly
-        initialStatus = payload.type === EventFundingType.SCHOOL
-          ? EventStatus.PENDING_FINANCE_APPROVAL
-          : EventStatus.UPCOMING;
-      } else {
-        // Teachers creating Faculty or School events must route to Dean first
-        initialStatus = EventStatus.PENDING_DEAN_APPROVAL;
-      }
+      const statusRule = INITIAL_EVENT_STATUS_MATRIX[payload.type as StandaloneEventFundingType];
+      initialStatus = statusRule[user.role] ?? statusRule.default;
     }
 
     const joinConfig = payload.joinCodeConfig
@@ -376,6 +385,7 @@ export class EventService {
 
     const auditData = {
       approvedBy: user.uid,
+      approvedByEmail: user.email ?? '',
       approvedAt: new Date().toISOString(),
     };
 

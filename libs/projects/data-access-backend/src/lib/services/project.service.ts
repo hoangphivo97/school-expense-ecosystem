@@ -10,6 +10,24 @@ import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activ
 import { calculateSpannedYears } from '../helpers/calculate-years.helper';
 import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
 
+type ProjectStatusRule = Partial<Record<Role, ProjectStatus>> & {
+  default: ProjectStatus;
+};
+
+const INITIAL_PROJECT_STATUS_MATRIX: Record<ProjectFundingType, ProjectStatusRule> = {
+  [ProjectFundingType.FACULTY]: {
+    default: ProjectStatus.PENDING_DEAN_APPROVAL,
+  },
+  [ProjectFundingType.SCHOOL]: {
+    [Role.LEVEL_1_FINANCE]: ProjectStatus.ACTIVE,
+    [Role.LEVEL_2_DEAN]: ProjectStatus.PENDING_FINANCE_APPROVAL,
+    default: ProjectStatus.PENDING_DEAN_APPROVAL,
+  },
+  [ProjectFundingType.OUTSOURCE]: {
+    default: ProjectStatus.ACTIVE,
+  },
+};
+
 @Injectable()
 export class ProjectService {
   constructor(
@@ -19,24 +37,8 @@ export class ProjectService {
   ) { }
 
   async createProject(user: AuthenticatedUser, payload: CreateProjectPayload): Promise<ProjectItem> {
-    const isSchoolFunded = payload.type === ProjectFundingType.SCHOOL;
-    const isOutsrouce = payload.type === ProjectFundingType.OUTSOURCE;
-    const isFinance = user.role === Role.LEVEL_1_FINANCE;
-    const isDean = user.role === Role.LEVEL_2_DEAN;
-
-    let initialStatus: ProjectStatus;
-
-    if (isOutsrouce || isFinance) {
-      initialStatus = ProjectStatus.ACTIVE;
-    } else if (isDean) {
-      // Deans possess authority over Faculty funds; School-funded projects escalate to Finance
-      initialStatus = isSchoolFunded
-        ? ProjectStatus.PENDING_FINANCE_APPROVAL
-        : ProjectStatus.ACTIVE;
-    } else {
-      // Teachers creating Faculty or School projects must first route to Dean approval
-      initialStatus = ProjectStatus.PENDING_DEAN_APPROVAL;
-    }
+    const statusRule = INITIAL_PROJECT_STATUS_MATRIX[payload.type];
+    const initialStatus = statusRule[user.role] ?? statusRule.default;
 
     const facultyPrefix = payload.facultyId.toUpperCase();
     const shortHash = randomBytes(3).toString('hex').toUpperCase();
@@ -71,12 +73,6 @@ export class ProjectService {
       updatedAt: new Date().toISOString(),
       years: calculateSpannedYears(payload.startDate, payload.endDate)
     };
-
-    if (initialStatus === ProjectStatus.ACTIVE && payload.type === ProjectFundingType.FACULTY) {
-      const currentYear = new Date().getFullYear();
-      const departmentFundId = `${payload.facultyId.toUpperCase()}_DEPT_${currentYear}`;
-      return this.projectRepo.createWithFacultyFund(newProject, departmentFundId);
-    }
 
     return this.projectRepo.create(newProject);
   }
@@ -321,6 +317,7 @@ export class ProjectService {
 
     const auditData = {
       approvedBy: user.uid,
+      approvedByEmail: user.email ?? '',
       approvedAt: new Date().toISOString(),
     };
 
