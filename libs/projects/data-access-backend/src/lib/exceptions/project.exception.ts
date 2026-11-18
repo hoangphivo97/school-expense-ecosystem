@@ -64,7 +64,7 @@ export class DepartmentFundNotFoundException extends NotFoundException {
   }
 }
 
-export class InsufficientDepartmentFundException extends BadRequestException {
+export class InsufficientDepartmentFundException extends ConflictException {
   constructor(remaining: number, requested: number) {
     super(`Insufficient department funds. Available: ${remaining}, Requested: ${requested}.`);
   }

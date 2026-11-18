@@ -4,6 +4,7 @@ import { JoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/t
 import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedException, JoinCodeExpiredException, JoinCodeNotStartedException, StudentAlreadyEnrolledException } from '../../exceptions/join-code.exception';
 import { BaseFirestoreRepository } from '@school-expense-ecosystem/shared/data-access-backend';
 import { DepartmentFundNotFoundException, InsufficientDepartmentFundException, ProjectInvalidStatusTransitionException } from '../../exceptions/project.exception';
+import { BadRequestException } from '@nestjs/common';
 
 export interface JoinableEntity<TStatus extends string = string> {
   id: string;
@@ -34,6 +35,10 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
       .where(field, '>=', term)
       .where(field, '<=', `${term}\uf8ff`)
       .orderBy(field);
+  }
+
+  protected get budgetAuditLogsCollection() {
+    return this.db.collection('budget_audit_logs');
   }
 
   /**
@@ -301,10 +306,15 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
     budgetCap: number,
     targetStatus: TStatus,
     allowedCurrentStatuses: TStatus[],
-    auditData?: Record<string, unknown>
+    auditData: Record<string, unknown> & {
+      approvedBy: string;
+      approvedByEmail?: string;
+      approvedAt: string;
+    }
   ): Promise<T> {
     const entityRef = this.collection.doc(id);
     const fundRef = this.departmentFundsCollection.doc(departmentFundId);
+    const auditLogRef = this.budgetAuditLogsCollection.doc();
 
     return this.db.runTransaction(async (transaction) => {
       const [entityDoc, fundDoc] = await Promise.all([
@@ -329,27 +339,60 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
       }
 
       const fundData = fundDoc.data() ?? {};
-      const remainingBudget = Number(fundData['remainingBudget'] || 0);
-
-      if (remainingBudget < budgetCap) {
-        throw new InsufficientDepartmentFundException(remainingBudget, budgetCap);
+      const fundStatus = String(fundData['status'] ?? 'ACTIVE');
+      if (fundStatus !== 'ACTIVE') {
+        throw new BadRequestException(
+          `Cannot allocate budget from department fund "${departmentFundId}" because its status is ${fundStatus}.`
+        );
       }
 
+      const totalBudget = Number(fundData['totalBudget'] || 0);
+      const prevAllocated = Number(fundData['allocatedBudget'] || 0);
+      const prevRemaining = Number(fundData['remainingBudget'] || 0);
+
+      if (prevRemaining < budgetCap) {
+        throw new InsufficientDepartmentFundException(prevRemaining, budgetCap);
+      }
+
+      const newAllocated = prevAllocated + budgetCap;
+      const newRemaining = prevRemaining - budgetCap;
       const timestampIso = new Date().toISOString();
 
       transaction.update(fundRef, {
-        remainingBudget: admin.firestore.FieldValue.increment(-budgetCap),
-        allocatedBudget: admin.firestore.FieldValue.increment(budgetCap),
+        allocatedBudget: newAllocated,
+        remainingBudget: newRemaining,
         updatedAt: timestampIso,
       });
 
       const updatePayload: Record<string, unknown> = {
         status: targetStatus,
         updatedAt: timestampIso,
-        ...(auditData ?? {}),
+        ...auditData,
       };
 
       transaction.update(entityRef, updatePayload);
+
+      // Ghi bút toán bất biến vào budget_audit_logs (đối chiếu tên enum trong budget-audit.interface.ts)
+      transaction.set(auditLogRef, {
+        id: auditLogRef.id,
+        fundId: departmentFundId,
+        facultyId: fundData['facultyId'],
+        year: Number(fundData['year']),
+        type: 'ACTIVITY_ALLOCATION', // Thay bằng enum BudgetTransactionType tương ứng của bạn
+        sourceType: this.collectionName === 'projects' ? 'PROJECT' : 'EVENT', // Thay bằng enum BudgetLedgerSourceType tương ứng
+        sourceId: id,
+        amount: -budgetCap,
+        previousTotalBudget: totalBudget,
+        newTotalBudget: totalBudget,
+        previousAllocatedBudget: prevAllocated,
+        newAllocatedBudget: newAllocated,
+        previousRemainingBudget: prevRemaining,
+        newRemainingBudget: newRemaining,
+        reason: `Budget allocated upon approval of ${this.collectionName.slice(0, -1)} "${id}"`,
+        performedByUid: auditData.approvedBy,
+        performedByEmail: auditData.approvedByEmail ?? '',
+        createdAt: timestampIso,
+      });
 
       return this.mapDoc({
         ...entityDoc,

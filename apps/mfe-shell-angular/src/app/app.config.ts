@@ -38,7 +38,7 @@ export const appConfig: ApplicationConfig = {
 
     provideAppCheck(() => {
       if (!environment.production) {
-        (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = environment.appCheckDebugToken;
+        (globalThis as Record<string, unknown>)['FIREBASE_APPCHECK_DEBUG_TOKEN'] = true
       }
 
       const provider = new ReCaptchaV3Provider(environment.recaptchaSiteKey);
