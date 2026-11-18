@@ -1,3 +1,4 @@
+import { BudgetLedgerSourceType, BudgetTransactionType } from '@school-expense-ecosystem/finance/types';
 import { EventItem, EventQueryPayload, StudentSummary, PaginatedEventResult, EventStatus, EnrolledActivityOption } from '@school-expense-ecosystem/projects/types';
 
 export abstract class EventRepository {
@@ -18,7 +19,6 @@ export abstract class EventRepository {
   abstract findWithQuery(query: EventQueryPayload): Promise<PaginatedEventResult>;
   abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
   abstract enrollStudentViaCode(eventId: string, studentId: string, expectedCode: string, allowedStatuses: EventStatus[]): Promise<EventItem>;
-  abstract createWithFacultyFund(event: EventItem, departmentFundId: string): Promise<EventItem>;
 
   /**
    * Optimistic Concurrency Control update contract
@@ -40,4 +40,28 @@ export abstract class EventRepository {
   ): Promise<EventItem>;
 
   abstract findActiveSummariesForUser(userId: string): Promise<EnrolledActivityOption[]>;
+  abstract approveWithFundAllocation(
+    id: string,
+    departmentFundId: string,
+    targetStatus: EventStatus,
+    allowedCurrentStatuses: EventStatus[],
+    ledgerMeta: {
+      transactionType: BudgetTransactionType;
+      sourceType: BudgetLedgerSourceType;
+    },
+    auditData: Record<string, unknown> & {
+      approvedBy: string;
+      approvedByEmail?: string;
+      approvedAt: string;
+    }
+  ): Promise<EventItem>;
+  abstract createSubEventWithProjectReservation(event: EventItem, projectId: string): Promise<EventItem>
+  abstract rejectSubEventWithProjectRelease(
+    id: string,
+    allowedCurrentStatuses: EventStatus[],
+    auditData: {
+      rejectionReason: string;
+      rejectedBy: string;
+    }
+  ): Promise<EventItem>;
 }

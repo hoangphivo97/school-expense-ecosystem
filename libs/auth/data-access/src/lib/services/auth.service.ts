@@ -5,13 +5,14 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from '@angular/fire/auth';
-import { firstValueFrom} from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LoginResponse, OnboardingData, OnboardingResponse } from '@school-expense-ecosystem/auth/types';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { API_BASE_URL } from '@school-expense-ecosystem/shared/tokens';
 import { GoogleAuthProvider } from 'firebase/auth';
+import { UserBase } from '@school-expense-ecosystem/shared/types';
 
 @Injectable({
   providedIn: 'root',
@@ -26,7 +27,6 @@ export class AuthService {
   private apiUrl = `${this.baseUrl}/api/auth`;
 
   readonly isAuthInitializing = signal<boolean>(true);
-
   readonly isLoggingInWithEmail = signal<boolean>(false);
   readonly isLoggingInWithGoogle = signal<boolean>(false);
   readonly isOnboardingSubmitting = signal<boolean>(false);
@@ -83,7 +83,7 @@ export class AuthService {
       this.isOnboardingSubmitting.set(false);
     }
   }
-  
+
   async signOut() {
     try {
       await this.auth.signOut();
@@ -98,5 +98,39 @@ export class AuthService {
   getFirebaseToken(forceRefresh = false) {
     const user = this.auth.currentUser;
     return user ? user.getIdToken(forceRefresh) : '';
+  }
+
+  async restoreOrRefreshSession(): Promise<string | null> {
+    await this.auth.authStateReady();
+    const currentUser = this.auth.currentUser;
+
+    if (!currentUser) {
+      this.authStore.updateAuthState(null, null);
+      return null;
+    }
+
+    const firebaseToken = await currentUser.getIdToken(true);
+    const isGoogleUser = currentUser.providerData.some(
+      (provider) => provider.providerId === 'google.com'
+    );
+    const endpoint = isGoogleUser
+      ? `${this.apiUrl}/google-login`
+      : `${this.apiUrl}/login`;
+
+    const res = await firstValueFrom(
+      this.http.post<{ token?: string; accessToken?: string; user?: UserBase }>(
+        endpoint,
+        { uid: currentUser.uid, token: firebaseToken }
+      )
+    );
+
+    const nestToken = res.token ?? res.accessToken ?? null;
+    if (!nestToken) {
+      this.authStore.updateAuthState(null, null);
+      return null;
+    }
+
+    this.authStore.updateAuthState(nestToken, res.user);
+    return nestToken;
   }
 }

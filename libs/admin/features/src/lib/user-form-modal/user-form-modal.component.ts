@@ -241,7 +241,7 @@ export class UserFormModalComponent implements OnInit {
       userType: user.userType ?? '' as UserType,
       fullName: user.fullName ?? '',
       dateOfBirth: user.dateOfBirth ?? '',
-      userCode: (user as any).userCode ?? '',
+      userCode: user.userCode ?? '',
       facultyId: user.facultyId ?? null,
       password: '',
       confirmPassword: '',

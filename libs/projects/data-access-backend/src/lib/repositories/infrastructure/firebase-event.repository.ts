@@ -1,14 +1,17 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import {
   ActivityType,
   EnrolledActivityOption,
   EventItem,
   EventQueryPayload,
+  EventStatus,
   PaginatedEventResult,
+  ProjectStatus,
 } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
 import { FirebaseBaseRepository } from './firebase-base.repository';
+import { EventNotFoundException, EventOutsideParentProjectTimelineException, InvalidEventStateException } from '../../exceptions/event.exception';
 
 @Injectable()
 export class FirebaseEventRepository
@@ -108,7 +111,7 @@ export class FirebaseEventRepository
       const budgetCap = Number(data['budgetCap']) || 0;
       const currentSpent = Number(data['currentSpent']) || 0;
       const pendingSpent = Number(data['pendingSpent']) || 0;
-      const availableBudget = Math.max(0, budgetCap - (currentSpent + pendingSpent));
+      const availableBudget = budgetCap - (currentSpent + pendingSpent);
 
       options.push({
         id: doc.id,
@@ -123,5 +126,178 @@ export class FirebaseEventRepository
 
   protected mapDoc(doc: admin.firestore.DocumentSnapshot): EventItem {
     return this.mapBaseFields(doc) as unknown as EventItem;
+  }
+
+  async createSubEventWithProjectReservation(
+    event: EventItem,
+    projectId: string
+  ): Promise<EventItem> {
+    if (!Number.isFinite(event.budgetCap) || event.budgetCap <= 0) {
+      throw new BadRequestException('Sub-event budgetCap must be a positive finite number.');
+    }
+
+    const projectRef = this.db.collection('projects').doc(projectId);
+    const eventRef = this.collection.doc(event.id);
+
+    return this.db.runTransaction(async (transaction) => {
+      const [projectDoc, eventDoc] = await Promise.all([
+        transaction.get(projectRef),
+        transaction.get(eventRef),
+      ]);
+
+      if (eventDoc.exists) {
+        throw new ConflictException(
+          `Event with ID "${event.id}" already exists. Please retry creation.`
+        );
+      }
+
+      if (!projectDoc.exists) {
+        throw new NotFoundException(`Parent Project with ID ${projectId} not found.`);
+      }
+
+      const projectData = projectDoc.data() ?? {};
+      if (projectData['status'] !== ProjectStatus.ACTIVE) {
+        throw new BadRequestException('Cannot attach an event to an inactive project.');
+      }
+
+      if (projectData['facultyId'] !== event.facultyId) {
+        throw new BadRequestException('EventItem faculty must match parent project faculty.');
+      }
+
+      const projectStartStr = this.formatDate(projectData['startDate']);
+      const projectEndStr = this.formatDate(projectData['endDate']);
+      const eventStart = new Date(event.startDate).setHours(0, 0, 0, 0);
+      const eventEnd = new Date(event.endDate).setHours(23, 59, 59, 999);
+      const projectStart = new Date(projectStartStr).setHours(0, 0, 0, 0);
+      const projectEnd = new Date(projectEndStr).setHours(23, 59, 59, 999);
+
+      if (eventStart < projectStart || eventEnd > projectEnd) {
+        throw new EventOutsideParentProjectTimelineException(
+          event.startDate,
+          event.endDate,
+          projectStartStr,
+          projectEndStr
+        );
+      }
+
+      const budgetCap = this.parseLedgerCounter(
+        projectData['budgetCap'],
+        'budgetCap',
+        `Parent project "${projectId}"`
+      );
+      const currentSpent = this.parseLedgerCounter(
+        projectData['currentSpent'],
+        'currentSpent',
+        `Parent project "${projectId}"`
+      );
+      const pendingSpent = this.parseLedgerCounter(
+        projectData['pendingSpent'],
+        'pendingSpent',
+        `Parent project "${projectId}"`
+      );
+
+      const availableBudget = budgetCap - (currentSpent + pendingSpent);
+
+      if (event.budgetCap > availableBudget) {
+        throw new BadRequestException(
+          `EventItem budget cap exceeds available project budget headroom (${availableBudget}).`
+        );
+      }
+
+      const timestampIso = new Date().toISOString();
+
+      transaction.update(projectRef, {
+        pendingSpent: pendingSpent + event.budgetCap,
+        updatedAt: timestampIso,
+      });
+
+      transaction.create(eventRef, {
+        ...event,
+        createdAt: timestampIso,
+        updatedAt: timestampIso,
+      });
+
+      return {
+        ...event,
+        createdAt: timestampIso,
+        updatedAt: timestampIso,
+      };
+    });
+  }
+
+  async rejectSubEventWithProjectRelease(
+    id: string,
+    allowedCurrentStatuses: EventStatus[],
+    auditData: {
+      rejectionReason: string;
+      rejectedBy: string;
+    }
+  ): Promise<EventItem> {
+    const eventRef = this.collection.doc(id);
+
+    return this.db.runTransaction(async (transaction) => {
+      const eventDoc = await transaction.get(eventRef);
+      if (!eventDoc.exists) {
+        throw new EventNotFoundException(id);
+      }
+
+      const eventData = eventDoc.data() ?? {};
+      const currentStatus = eventData['status'] as EventStatus;
+
+      if (!allowedCurrentStatuses.includes(currentStatus)) {
+        throw new InvalidEventStateException('reject', currentStatus);
+      }
+
+      const projectId = eventData['projectId'] as string | null | undefined;
+      const budgetCap = Number(eventData['budgetCap']);
+      const timestampIso = new Date().toISOString();
+
+      if (projectId) {
+        if (!Number.isFinite(budgetCap) || budgetCap <= 0) {
+          throw new BadRequestException(
+            `Invalid budgetCap (${eventData['budgetCap']}) on sub-event "${id}".`
+          );
+        }
+
+        const projectRef = this.db.collection('projects').doc(projectId);
+        const projectDoc = await transaction.get(projectRef);
+
+        if (!projectDoc.exists) {
+          throw new NotFoundException(`Parent Project with ID ${projectId} not found.`);
+        }
+
+        const projectData = projectDoc.data() ?? {};
+        const currentPending = this.parseLedgerCounter(
+          projectData['pendingSpent'],
+          'pendingSpent',
+          `Parent project "${projectId}"`
+        );
+
+        if (currentPending < budgetCap) {
+          throw new ConflictException(
+            `Ledger inconsistency: Parent project "${projectId}" pendingSpent (${currentPending}) is lower than sub-event reservation (${budgetCap}).`
+          );
+        }
+
+        transaction.update(projectRef, {
+          pendingSpent: currentPending - budgetCap,
+          updatedAt: timestampIso,
+        });
+      }
+
+      const updatePayload: Record<string, unknown> = {
+        status: EventStatus.REJECTED,
+        rejectionReason: auditData.rejectionReason,
+        rejectedBy: auditData.rejectedBy,
+        updatedAt: timestampIso,
+      };
+
+      transaction.update(eventRef, updatePayload);
+
+      return this.mapDoc({
+        ...eventDoc,
+        data: () => ({ ...eventData, ...updatePayload }),
+      } as admin.firestore.DocumentSnapshot);
+    });
   }
 }

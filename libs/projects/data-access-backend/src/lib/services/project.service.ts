@@ -9,6 +9,25 @@ import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
 import { calculateSpannedYears } from '../helpers/calculate-years.helper';
 import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
+import { BudgetLedgerSourceType, BudgetTransactionType } from '@school-expense-ecosystem/finance/types';
+
+type ProjectStatusRule = Partial<Record<Role, ProjectStatus>> & {
+  default: ProjectStatus;
+};
+
+const INITIAL_PROJECT_STATUS_MATRIX: Record<ProjectFundingType, ProjectStatusRule> = {
+  [ProjectFundingType.FACULTY]: {
+    default: ProjectStatus.PENDING_DEAN_APPROVAL,
+  },
+  [ProjectFundingType.SCHOOL]: {
+    [Role.LEVEL_1_FINANCE]: ProjectStatus.ACTIVE,
+    [Role.LEVEL_2_DEAN]: ProjectStatus.PENDING_FINANCE_APPROVAL,
+    default: ProjectStatus.PENDING_DEAN_APPROVAL,
+  },
+  [ProjectFundingType.OUTSOURCE]: {
+    default: ProjectStatus.ACTIVE,
+  },
+};
 
 @Injectable()
 export class ProjectService {
@@ -19,24 +38,8 @@ export class ProjectService {
   ) { }
 
   async createProject(user: AuthenticatedUser, payload: CreateProjectPayload): Promise<ProjectItem> {
-    const isSchoolFunded = payload.type === ProjectFundingType.SCHOOL;
-    const isOutsrouce = payload.type === ProjectFundingType.OUTSOURCE;
-    const isFinance = user.role === Role.LEVEL_1_FINANCE;
-    const isDean = user.role === Role.LEVEL_2_DEAN;
-
-    let initialStatus: ProjectStatus;
-
-    if (isOutsrouce || isFinance) {
-      initialStatus = ProjectStatus.ACTIVE;
-    } else if (isDean) {
-      // Deans possess authority over Faculty funds; School-funded projects escalate to Finance
-      initialStatus = isSchoolFunded
-        ? ProjectStatus.PENDING_FINANCE_APPROVAL
-        : ProjectStatus.ACTIVE;
-    } else {
-      // Teachers creating Faculty or School projects must first route to Dean approval
-      initialStatus = ProjectStatus.PENDING_DEAN_APPROVAL;
-    }
+    const statusRule = INITIAL_PROJECT_STATUS_MATRIX[payload.type];
+    const initialStatus = statusRule[user.role] ?? statusRule.default;
 
     const facultyPrefix = payload.facultyId.toUpperCase();
     const shortHash = randomBytes(3).toString('hex').toUpperCase();
@@ -71,12 +74,6 @@ export class ProjectService {
       updatedAt: new Date().toISOString(),
       years: calculateSpannedYears(payload.startDate, payload.endDate)
     };
-
-    if (payload.type === ProjectFundingType.FACULTY) {
-      const currentYear = new Date().getFullYear();
-      const departmentFundId = `${payload.facultyId.toUpperCase()}_DEPT_${currentYear}`;
-      return this.projectRepo.createWithFacultyFund(newProject, departmentFundId);
-    }
 
     return this.projectRepo.create(newProject);
   }
@@ -132,8 +129,6 @@ export class ProjectService {
         initialSpent: newInitialSpent,
         currentSpent: newInitialSpent, // Sync initial baseline to current spent
       }),
-      ...(cleanpayload.startDate && { startDate: new Date(cleanpayload.startDate).toISOString() }),
-      ...(cleanpayload.endDate && { endDate: new Date(cleanpayload.endDate).toISOString() }),
       ...(cleanpayload.startDate && { startDate: new Date(cleanpayload.startDate).toISOString() }),
       ...(cleanpayload.endDate && { endDate: new Date(cleanpayload.endDate).toISOString() }),
       ...(isTimelineModified && {
@@ -256,22 +251,18 @@ export class ProjectService {
       limit: query?.limit ?? 10,
     };
 
-    // 1. Level 1 (Finance): Global Auditing Scope
     if (user.role === Role.LEVEL_1_FINANCE) {
       return this.projectRepo.findWithQuery(baseQuery);
     }
 
-    // 2. Student Context: Enrolled Projects Scope
     if (user.userType === UserType.STUDENT) {
       return this.projectRepo.findWithQuery({ ...baseQuery, studentId: user.uid });
     }
 
-    // 3. Level 2 (Dean): Faculty Boundary Scope
     if (user.role === Role.LEVEL_2_DEAN) {
       return this.projectRepo.findWithQuery({ ...baseQuery, facultyId: user.facultyId });
     }
 
-    // 4. Level 3 (Teacher/Mentor): Personal Projects Scope
     return this.projectRepo.findWithQuery({ ...baseQuery, mentorId: user.uid });
   }
 
@@ -303,28 +294,54 @@ export class ProjectService {
     }
 
     let nextStatus: ProjectStatus;
+    let requiresFundAllocation = false;
 
     if (project.status === ProjectStatus.PENDING_DEAN_APPROVAL) {
       if (!isFacultyDean) throw new ProjectApprovalForbiddenException();
-      // Route to Finance if school-funded, otherwise activate directly
-      nextStatus = project.type === ProjectFundingType.SCHOOL
-        ? ProjectStatus.PENDING_FINANCE_APPROVAL
-        : ProjectStatus.ACTIVE;
+
+      if (project.type === ProjectFundingType.SCHOOL) {
+        nextStatus = ProjectStatus.PENDING_FINANCE_APPROVAL;
+      } else {
+        nextStatus = ProjectStatus.ACTIVE;
+
+        requiresFundAllocation = project.type === ProjectFundingType.FACULTY;
+      }
     } else if (project.status === ProjectStatus.PENDING_FINANCE_APPROVAL) {
       if (!isFinance) throw new ProjectApprovalForbiddenException();
       nextStatus = ProjectStatus.ACTIVE;
+      requiresFundAllocation = false;
     } else {
       throw new ProjectInvalidStatusTransitionException('ProjectItem is not in a pending approval state.');
+    }
+
+    const auditData = {
+      approvedBy: user.uid,
+      approvedByEmail: user.email ?? '',
+      approvedAt: new Date().toISOString(),
+    };
+
+    if (requiresFundAllocation) {
+      const currentYear = new Date().getFullYear();
+      const fundId = `${project.facultyId.toUpperCase()}_DEPT_${currentYear}`;
+
+      return this.projectRepo.approveWithFundAllocation(
+        projectId,
+        fundId,
+        nextStatus,
+        [project.status],
+        {
+          transactionType: BudgetTransactionType.PROJECT_ALLOCATION,
+          sourceType: BudgetLedgerSourceType.PROJECT,
+        },
+        auditData
+      );
     }
 
     return this.projectRepo.transitionStatus(
       projectId,
       nextStatus,
       [project.status],
-      {
-        approvedBy: user.uid,
-        approvedAt: new Date().toISOString(),
-      }
+      auditData
     );
   }
 

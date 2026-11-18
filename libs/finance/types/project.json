@@ -4,7 +4,7 @@
   "sourceRoot": "libs/finance/types/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["scope:finance", "type:types"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

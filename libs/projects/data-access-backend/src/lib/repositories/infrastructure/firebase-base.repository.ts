@@ -3,7 +3,9 @@ import { UserStatus, UserType } from '@school-expense-ecosystem/shared/types';
 import { JoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/types';
 import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedException, JoinCodeExpiredException, JoinCodeNotStartedException, StudentAlreadyEnrolledException } from '../../exceptions/join-code.exception';
 import { BaseFirestoreRepository } from '@school-expense-ecosystem/shared/data-access-backend';
-import { DepartmentFundNotFoundException, InsufficientDepartmentFundException } from '../../exceptions/project.exception';
+import { DepartmentFundNotFoundException, InsufficientDepartmentFundException, ProjectInvalidStatusTransitionException } from '../../exceptions/project.exception';
+import { BadRequestException, ConflictException } from '@nestjs/common';
+import { BudgetAuditLog, BudgetLedgerSourceType, BudgetTransactionType, DepartmentFundStatus } from '@school-expense-ecosystem/finance/types';
 
 export interface JoinableEntity<TStatus extends string = string> {
   id: string;
@@ -34,6 +36,24 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
       .where(field, '>=', term)
       .where(field, '<=', `${term}\uf8ff`)
       .orderBy(field);
+  }
+
+  protected get budgetAuditLogsCollection() {
+    return this.db.collection('budget_audit_logs');
+  }
+
+  protected parseLedgerCounter(
+    raw: unknown,
+    fieldName: string,
+    entityLabel: string
+  ): number {
+    const parsed = raw == null ? 0 : typeof raw === 'number' ? raw : Number.NaN;
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      throw new ConflictException(
+        `Ledger inconsistency: ${entityLabel} has an invalid "${fieldName}" counter (${String(raw)}).`
+      );
+    }
+    return parsed;
   }
 
   /**
@@ -189,10 +209,10 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
   protected formatDate(dateVal: unknown): string {
     if (!dateVal) return new Date().toISOString();
     if (typeof dateVal === 'string') return dateVal;
-    if (typeof dateVal === 'object' && 
+    if (typeof dateVal === 'object' &&
       dateVal !== null &&
       'toDate' in dateVal &&
-      typeof(dateVal as { toDate: () => Date}).toDate === 'function'
+      typeof (dateVal as { toDate: () => Date }).toDate === 'function'
     ) {
       return (dateVal as { toDate: () => Date }).toDate().toISOString();
     }
@@ -265,33 +285,127 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
     });
   }
 
-  async createWithFacultyFund(entity: T, departmentFundId: string): Promise<T> {
+  async approveWithFundAllocation(
+    id: string,
+    departmentFundId: string,
+    targetStatus: TStatus,
+    allowedCurrentStatuses: TStatus[],
+    ledgerMeta: {
+      transactionType: BudgetTransactionType;
+      sourceType: BudgetLedgerSourceType;
+    },
+    auditData: Record<string, unknown> & {
+      approvedBy: string;
+      approvedByEmail?: string;
+      approvedAt: string;
+    }
+  ): Promise<T> {
+    const entityRef = this.collection.doc(id);
     const fundRef = this.departmentFundsCollection.doc(departmentFundId);
-    const entityRef = this.collection.doc(entity.id);
+    const auditLogRef = this.budgetAuditLogsCollection.doc();
 
     return this.db.runTransaction(async (transaction) => {
-      const fundDoc = await transaction.get(fundRef);
+      const [entityDoc, fundDoc] = await Promise.all([
+        transaction.get(entityRef),
+        transaction.get(fundRef),
+      ]);
+
+      if (!entityDoc.exists) {
+        throw new EntityNotFoundException(this.collectionName, id);
+      }
       if (!fundDoc.exists) {
         throw new DepartmentFundNotFoundException(departmentFundId);
       }
 
-      const fundData = fundDoc.data() ?? {};
-      const remainingBudget = Number(fundData['remainingBudget'] || 0);
+      const entityData = entityDoc.data() ?? {};
+      const currentStatus = entityData['status'] as TStatus;
 
-      // Snapshot balance availability check
-      if (remainingBudget < entity.budgetCap) {
-        throw new InsufficientDepartmentFundException(remainingBudget, entity.budgetCap);
+      if (!allowedCurrentStatuses.includes(currentStatus)) {
+        throw new ProjectInvalidStatusTransitionException(
+          `Cannot approve entity from status "${currentStatus}". Allowed: ${allowedCurrentStatuses.join(', ')}`
+        );
       }
 
-      // Synchronously update department allocation counters
+      const authorizedAmount = Number(entityData['budgetCap']);
+      if (!Number.isFinite(authorizedAmount) || authorizedAmount <= 0) {
+        throw new BadRequestException(
+          `Invalid budgetCap (${entityData['budgetCap']}) on entity "${id}". Allocation amount must be a positive finite number.`
+        );
+      }
+
+      const fundData = fundDoc.data() ?? {};
+      const fundStatus = (fundData['status'] as DepartmentFundStatus) ?? DepartmentFundStatus.ACTIVE;
+      if (fundStatus !== DepartmentFundStatus.ACTIVE) {
+        throw new BadRequestException(
+          `Cannot allocate budget from department fund "${departmentFundId}" because its status is ${fundStatus}.`
+        );
+      }
+
+      const totalBudget = this.parseLedgerCounter(
+        fundData['totalBudget'],
+        'totalBudget',
+        `Department fund "${departmentFundId}"`
+      );
+      const prevAllocated = this.parseLedgerCounter(
+        fundData['allocatedBudget'],
+        'allocatedBudget',
+        `Department fund "${departmentFundId}"`
+      );
+      const prevRemaining = this.parseLedgerCounter(
+        fundData['remainingBudget'],
+        'remainingBudget',
+        `Department fund "${departmentFundId}"`
+      );
+
+      if (prevRemaining < authorizedAmount) {
+        throw new InsufficientDepartmentFundException(prevRemaining, authorizedAmount);
+      }
+
+      const newAllocated = prevAllocated + authorizedAmount;
+      const newRemaining = prevRemaining - authorizedAmount;
+      const timestampIso = new Date().toISOString();
+
       transaction.update(fundRef, {
-        remainingBudget: admin.firestore.FieldValue.increment(-entity.budgetCap),
-        allocatedBudget: admin.firestore.FieldValue.increment(entity.budgetCap),
-        updatedAt: new Date().toISOString(),
+        allocatedBudget: newAllocated,
+        remainingBudget: newRemaining,
+        updatedAt: timestampIso,
       });
 
-      transaction.set(entityRef, entity);
-      return entity;
+      const updatePayload: Record<string, unknown> = {
+        status: targetStatus,
+        updatedAt: timestampIso,
+        ...auditData,
+      };
+
+      transaction.update(entityRef, updatePayload);
+
+      const auditEntry: BudgetAuditLog = {
+        id: auditLogRef.id,
+        fundId: departmentFundId,
+        facultyId: fundData['facultyId'],
+        year: Number(fundData['year']),
+        type: ledgerMeta.transactionType,
+        sourceType: ledgerMeta.sourceType,
+        sourceEntityId: id,
+        amount: -authorizedAmount,
+        previousTotalBudget: totalBudget,
+        newTotalBudget: totalBudget,
+        previousAllocatedBudget: prevAllocated,
+        newAllocatedBudget: newAllocated,
+        previousRemainingBudget: prevRemaining,
+        newRemainingBudget: newRemaining,
+        reason: `Budget allocated upon approval of ${ledgerMeta.sourceType.toLowerCase()} "${id}"`,
+        performedByUid: auditData.approvedBy,
+        performedByEmail: auditData.approvedByEmail ?? '',
+        createdAt: timestampIso,
+      };
+
+      transaction.set(auditLogRef, auditEntry);
+
+      return this.mapDoc({
+        ...entityDoc,
+        data: () => ({ ...entityData, ...updatePayload }),
+      } as admin.firestore.DocumentSnapshot);
     });
   }
 }

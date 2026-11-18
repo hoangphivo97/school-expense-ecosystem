@@ -44,6 +44,28 @@ import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activ
 import { calculateSpannedYears } from '../helpers/calculate-years.helper';
 import { ProjectStudentNotFoundException } from '../exceptions/project.exception';
 import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
+import { BudgetLedgerSourceType, BudgetTransactionType } from '@school-expense-ecosystem/finance/types';
+
+type StandaloneEventFundingType = Exclude<EventFundingType, EventFundingType.PROJECT>;
+
+type EventStatusRule = Partial<Record<Role, EventStatus>> & {
+  default: EventStatus;
+};
+
+const INITIAL_EVENT_STATUS_MATRIX: Record<StandaloneEventFundingType, EventStatusRule> = {
+  [EventFundingType.FACULTY]: {
+    // AC 1: Zero-mutation on creation
+    default: EventStatus.PENDING_DEAN_APPROVAL,
+  },
+  [EventFundingType.SCHOOL]: {
+    [Role.LEVEL_1_FINANCE]: EventStatus.UPCOMING,
+    [Role.LEVEL_2_DEAN]: EventStatus.PENDING_FINANCE_APPROVAL,
+    default: EventStatus.PENDING_DEAN_APPROVAL,
+  },
+  [EventFundingType.OUTSOURCE]: {
+    default: EventStatus.UPCOMING,
+  },
+};
 
 @Injectable()
 export class EventService {
@@ -67,79 +89,29 @@ export class EventService {
       throw new EventInitialSpentExceedsCapException();
     }
 
+    const isSubEvent = payload.type === EventFundingType.PROJECT;
+    if (isSubEvent && !payload.projectId) {
+      throw new EventParentProjectRequiredException();
+    }
+
     let initialStatus: EventStatus;
-
-    // 1. Case A: Sub-event linked to a Parent Project
-    if (payload.type === EventFundingType.PROJECT) {
-      if (!payload.projectId) {
-        throw new EventParentProjectRequiredException();
-      }
-
-      const parentProject = await this.projectRepository.findById(payload.projectId);
-      if (!parentProject) {
-        throw new NotFoundException(`Parent Project with ID ${payload.projectId} not found.`);
-      }
-
-      if (parentProject.status !== ProjectStatus.ACTIVE) {
-        throw new BadRequestException('Cannot attach an event to an inactive project.');
-      }
-
-      if (parentProject.facultyId !== payload.facultyId) {
-        throw new BadRequestException('EventItem faculty must match parent project faculty.');
-      }
-
-      // Normalize date boundaries: start of day for start date, end of day for end date
-      const eventStart = new Date(payload.startDate).setHours(0, 0, 0, 0);
-      const eventEnd = new Date(payload.endDate).setHours(23, 59, 59, 999);
-      const projectStart = new Date(parentProject.startDate).setHours(0, 0, 0, 0);
-      const projectEnd = new Date(parentProject.endDate).setHours(23, 59, 59, 999);
-
-      if (eventStart < projectStart || eventEnd > projectEnd) {
-        throw new EventOutsideParentProjectTimelineException(
-          payload.startDate,
-          payload.endDate,
-          parentProject.startDate,
-          parentProject.endDate
-        );
-      }
-
-      const availableBudget =
-        parentProject.budgetCap - (parentProject.currentSpent + (parentProject.pendingSpent ?? 0));
-      if (payload.budgetCap > availableBudget) {
-        throw new BadRequestException(
-          `EventItem budget cap exceeds available project budget headroom (${availableBudget}).`
-        );
-      }
-
-      // Reserve project budget headroom via pendingSpent delta
-      await this.projectRepository.updateSpentCounters(payload.projectId, {
-        pendingSpentDelta: payload.budgetCap,
-      });
-
+    if (isSubEvent) {
       const isDeanOrFinance = user.role === Role.LEVEL_2_DEAN || user.role === Role.LEVEL_1_FINANCE;
       initialStatus = isDeanOrFinance ? EventStatus.UPCOMING : EventStatus.PENDING_DEAN_APPROVAL;
     } else {
-      // 2. Case B: Standalone Event (Routes through governance workflow)
-      const isFinance = user.role === Role.LEVEL_1_FINANCE;
-      const isDean = user.role === Role.LEVEL_2_DEAN;
-
-      if (payload.type === EventFundingType.OUTSOURCE || isFinance) {
-        initialStatus = EventStatus.UPCOMING;
-      } else if (isDean) {
-        // Dean creating a School-funded event routes to Finance; Faculty-funded activates directly
-        initialStatus = payload.type === EventFundingType.SCHOOL
-          ? EventStatus.PENDING_FINANCE_APPROVAL
-          : EventStatus.UPCOMING;
-      } else {
-        // Teachers creating Faculty or School events must route to Dean first
-        initialStatus = EventStatus.PENDING_DEAN_APPROVAL;
-      }
+      const statusRule = INITIAL_EVENT_STATUS_MATRIX[payload.type as StandaloneEventFundingType];
+      initialStatus = statusRule[user.role] ?? statusRule.default;
     }
 
     const joinConfig = payload.joinCodeConfig
-      ? this.joinCodeService.generateInlineConfig(payload.joinCodeConfig, payload.startDate, payload.endDate)
+      ? this.joinCodeService.generateInlineConfig(
+          payload.joinCodeConfig,
+          payload.startDate,
+          payload.endDate
+        )
       : null;
 
+    const nowIso = new Date().toISOString();
     const newEvent: EventItem = {
       id: eventId,
       name: payload.name.trim(),
@@ -148,25 +120,25 @@ export class EventService {
       facultyId: payload.facultyId,
       type: payload.type,
       budgetCap: payload.budgetCap,
-      initialSpent: initialSpent,
+      initialSpent,
       currentSpent: initialSpent,
       pendingSpent: 0,
       status: initialStatus,
       organizerId: user.uid,
       joinedStudentIds: [],
-      joinConfig: joinConfig,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      joinConfig,
+      createdAt: nowIso,
+      updatedAt: nowIso,
       startDate: new Date(payload.startDate).toISOString(),
       endDate: new Date(payload.endDate).toISOString(),
       years: calculateSpannedYears(payload.startDate, payload.endDate),
     };
 
-    // Encumber faculty fund if it is a standalone faculty-funded event
-    if (!payload.projectId && payload.type === EventFundingType.FACULTY) {
-      const currentYear = new Date().getFullYear();
-      const departmentFundId = `${payload.facultyId.toUpperCase()}_DEPT_${currentYear}`;
-      return this.eventRepository.createWithFacultyFund(newEvent, departmentFundId);
+    if (isSubEvent && payload.projectId) {
+      return this.eventRepository.createSubEventWithProjectReservation(
+        newEvent,
+        payload.projectId
+      );
     }
 
     return this.eventRepository.create(newEvent);
@@ -355,35 +327,58 @@ export class EventService {
     }
 
     let nextStatus: EventStatus;
+    let requiresFundAllocation = false;
 
     if (event.status === EventStatus.PENDING_DEAN_APPROVAL) {
       if (!isFacultyDean) throw new EventApprovalForbiddenException();
-      nextStatus =
-        event.type === EventFundingType.SCHOOL
-          ? EventStatus.PENDING_FINANCE_APPROVAL
-          : EventStatus.UPCOMING;
+      if (event.type === EventFundingType.SCHOOL) {
+        nextStatus = EventStatus.PENDING_FINANCE_APPROVAL;
+      } else {
+        nextStatus = EventStatus.UPCOMING;
+        requiresFundAllocation = event.type === EventFundingType.FACULTY;
+      }
     } else if (event.status === EventStatus.PENDING_FINANCE_APPROVAL) {
       if (!isFinance) throw new EventApprovalForbiddenException();
       nextStatus = EventStatus.UPCOMING;
+      requiresFundAllocation = false;
     } else {
       throw new InvalidEventStateException('approve', event.status);
     }
 
-    return this.eventRepository.transitionStatus(
-      id,
-      nextStatus,
-      [event.status],
-      {
-        approvedBy: user.uid,
-        approvedAt: new Date().toISOString(),
-      }
-    );
+    const auditData = {
+      approvedBy: user.uid,
+      approvedByEmail: user.email ?? '',
+      approvedAt: new Date().toISOString(),
+    };
+
+    if (requiresFundAllocation) {
+      const currentYear = new Date().getFullYear();
+      const fundId = `${event.facultyId.toUpperCase()}_DEPT_${currentYear}`;
+
+      return this.eventRepository.approveWithFundAllocation(
+        id,
+        fundId,
+        EventStatus.UPCOMING,
+        [event.status],
+        {
+          transactionType: BudgetTransactionType.EVENT_ALLOCATION,
+          sourceType: BudgetLedgerSourceType.EVENT,
+        },
+        auditData
+      );
+    }
+
+    return this.eventRepository.transitionStatus(id, nextStatus, [event.status], auditData);
   }
 
   /**
    * Reject or cancel event with required reason
    */
-  async rejectEvent(id: string, user: AuthenticatedUser, payload: RejectEventPayload): Promise<EventItem> {
+  async rejectEvent(
+    id: string,
+    user: AuthenticatedUser,
+    payload: RejectEventPayload
+  ): Promise<EventItem> {
     const event = await this.validateEventAccess(id, user);
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && event.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
@@ -393,21 +388,29 @@ export class EventService {
       throw new EventApprovalForbiddenException();
     }
 
-    // Release encumbered parent project budget if sub-event is rejected/cancelled
+    const allowedStatuses = [
+      EventStatus.PENDING_DEAN_APPROVAL,
+      EventStatus.PENDING_FINANCE_APPROVAL,
+      EventStatus.UPCOMING,
+    ];
+    const rejectionAudit = {
+      rejectionReason: payload.reason.trim(),
+      rejectedBy: user.uid,
+    };
+
     if (event.projectId) {
-      await this.projectRepository.updateSpentCounters(event.projectId, {
-        pendingSpentDelta: -event.budgetCap,
-      });
+      return this.eventRepository.rejectSubEventWithProjectRelease(
+        id,
+        allowedStatuses,
+        rejectionAudit
+      );
     }
 
     return this.eventRepository.transitionStatus(
       id,
       EventStatus.REJECTED,
-      [EventStatus.PENDING_DEAN_APPROVAL, EventStatus.PENDING_FINANCE_APPROVAL, EventStatus.UPCOMING],
-      {
-        rejectionReason: payload.reason.trim(),
-        rejectedBy: user.uid,
-      }
+      allowedStatuses,
+      rejectionAudit
     );
   }
 
@@ -514,7 +517,7 @@ export class EventService {
     return event;
   }
 
-    async getMyActiveActivitySummaries(user: AuthenticatedUser): Promise<EnrolledActivityOption[]> {
-      return this.eventRepository.findActiveSummariesForUser(user.uid);
-    }
+  async getMyActiveActivitySummaries(user: AuthenticatedUser): Promise<EnrolledActivityOption[]> {
+    return this.eventRepository.findActiveSummariesForUser(user.uid);
+  }
 }
