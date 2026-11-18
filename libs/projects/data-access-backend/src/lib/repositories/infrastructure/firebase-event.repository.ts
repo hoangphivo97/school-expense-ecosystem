@@ -1,16 +1,17 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import {
   ActivityType,
   EnrolledActivityOption,
   EventItem,
   EventQueryPayload,
+  EventStatus,
   PaginatedEventResult,
   ProjectStatus,
 } from '@school-expense-ecosystem/projects/types';
 import { EventRepository } from '../abstracts/event.repository';
 import { FirebaseBaseRepository } from './firebase-base.repository';
-import { EventOutsideParentProjectTimelineException } from '../../exceptions/event.exception';
+import { EventNotFoundException, EventOutsideParentProjectTimelineException, InvalidEventStateException } from '../../exceptions/event.exception';
 
 @Injectable()
 export class FirebaseEventRepository
@@ -139,7 +140,17 @@ export class FirebaseEventRepository
     const eventRef = this.collection.doc(event.id);
 
     return this.db.runTransaction(async (transaction) => {
-      const projectDoc = await transaction.get(projectRef);
+      const [projectDoc, eventDoc] = await Promise.all([
+        transaction.get(projectRef),
+        transaction.get(eventRef),
+      ]);
+
+      if (eventDoc.exists) {
+        throw new ConflictException(
+          `Event with ID "${event.id}" already exists. Please retry creation.`
+        );
+      }
+
       if (!projectDoc.exists) {
         throw new NotFoundException(`Parent Project with ID ${projectId} not found.`);
       }
@@ -187,7 +198,7 @@ export class FirebaseEventRepository
         updatedAt: timestampIso,
       });
 
-      transaction.set(eventRef, {
+      transaction.create(eventRef, {
         ...event,
         createdAt: timestampIso,
         updatedAt: timestampIso,
@@ -198,6 +209,67 @@ export class FirebaseEventRepository
         createdAt: timestampIso,
         updatedAt: timestampIso,
       };
+    });
+  }
+
+  async rejectSubEventWithProjectRelease(
+    id: string,
+    allowedCurrentStatuses: EventStatus[],
+    auditData: {
+      rejectionReason: string;
+      rejectedBy: string;
+    }
+  ): Promise<EventItem> {
+    const eventRef = this.collection.doc(id);
+
+    return this.db.runTransaction(async (transaction) => {
+      const eventDoc = await transaction.get(eventRef);
+      if (!eventDoc.exists) {
+        throw new EventNotFoundException(id);
+      }
+
+      const eventData = eventDoc.data() ?? {};
+      const currentStatus = eventData['status'] as EventStatus;
+
+      if (!allowedCurrentStatuses.includes(currentStatus)) {
+        throw new InvalidEventStateException('reject', currentStatus);
+      }
+
+      const projectId = eventData['projectId'] as string | null | undefined;
+      const budgetCap = Number(eventData['budgetCap'] || 0);
+      const timestampIso = new Date().toISOString();
+
+      if (projectId) {
+        const projectRef = this.db.collection('projects').doc(projectId);
+        const projectDoc = await transaction.get(projectRef);
+
+        if (!projectDoc.exists) {
+          throw new NotFoundException(`Parent Project with ID ${projectId} not found.`);
+        }
+
+        const projectData = projectDoc.data() ?? {};
+        const currentPending = Number(projectData['pendingSpent'] || 0);
+        const nextPending = Math.max(0, currentPending - budgetCap);
+
+        transaction.update(projectRef, {
+          pendingSpent: nextPending,
+          updatedAt: timestampIso,
+        });
+      }
+
+      const updatePayload: Record<string, unknown> = {
+        status: EventStatus.REJECTED,
+        rejectionReason: auditData.rejectionReason,
+        rejectedBy: auditData.rejectedBy,
+        updatedAt: timestampIso,
+      };
+
+      transaction.update(eventRef, updatePayload);
+
+      return this.mapDoc({
+        ...eventDoc,
+        data: () => ({ ...eventData, ...updatePayload }),
+      } as admin.firestore.DocumentSnapshot);
     });
   }
 }

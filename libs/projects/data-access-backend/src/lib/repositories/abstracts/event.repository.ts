@@ -56,4 +56,12 @@ export abstract class EventRepository {
     }
   ): Promise<EventItem>;
   abstract createSubEventWithProjectReservation(event: EventItem, projectId: string): Promise<EventItem>
+  abstract rejectSubEventWithProjectRelease(
+    id: string,
+    allowedCurrentStatuses: EventStatus[],
+    auditData: {
+      rejectionReason: string;
+      rejectedBy: string;
+    }
+  ): Promise<EventItem>;
 }

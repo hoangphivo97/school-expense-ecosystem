@@ -5,6 +5,7 @@ import {
   HttpHandlerFn,
   HttpErrorResponse,
   HttpEvent,
+  HttpContextToken,
 } from '@angular/common/http';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { Router } from '@angular/router';
@@ -24,6 +25,8 @@ type RefreshTokenState =
 
 let isRefreshing = false;
 let refreshTokenState$ = new BehaviorSubject<RefreshTokenState>({ status: 'idle' });
+
+const IS_RETRY_AFTER_REFRESH = new HttpContextToken<boolean>(() => false);
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
@@ -109,6 +112,44 @@ function handle403Error(
   return throwError(() => err);
 }
 
+function handleSessionExpired(
+  err: unknown,
+  isOnboardingRequest: boolean,
+  auth: AuthService,
+  router: Router,
+  showErrorModal: ErrorModalDelegate | null
+): Observable<never> {
+  return from(auth.signOut()).pipe(
+    switchMap(() => {
+      if (showErrorModal) {
+        const basePayload = {
+          statusCode: 401,
+          errorCode: 'FE_SESSION_EXPIRED',
+        };
+
+        if (isOnboardingRequest) {
+          showErrorModal({
+            ...basePayload,
+            title: 'Account Setup Failed',
+            errorMsg: 'We could not verify your temporary onboarding session.',
+            hint: 'Please try signing in with Google again to restart your registration.',
+          });
+        } else {
+          showErrorModal({
+            ...basePayload,
+            title: 'Session Expired',
+            errorMsg: 'Your active authorization session has expired or become invalid.',
+            hint: 'Please log back into your account to securely resume your work.',
+          });
+        }
+      }
+
+      router.navigate(['/auth']);
+      return throwError(() => err);
+    })
+  );
+}
+
 // Error 401 
 function handle401Error(
   err: HttpErrorResponse,
@@ -118,7 +159,7 @@ function handle401Error(
   router: Router,
   showErrorModal: ErrorModalDelegate | null
 ): Observable<HttpEvent<unknown>> {
-  const isOnboardingRequest = err.url?.includes('/auth/onboarding');
+  const isOnboardingRequest = Boolean(err.url?.includes('/auth/onboarding'));
   const isLoginRequest =
     err.url?.includes('/auth/login') || err.url?.includes('/auth/google-login');
 
@@ -126,8 +167,15 @@ function handle401Error(
     return throwError(() => err);
   }
 
+  if (req.context.get(IS_RETRY_AFTER_REFRESH)) {
+    return handleSessionExpired(err, isOnboardingRequest, auth, router, showErrorModal);
+  }
+
   const attach = (token: string) =>
-    req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
+    req.clone({
+      context: req.context.set(IS_RETRY_AFTER_REFRESH, true),
+      setHeaders: { Authorization: `Bearer ${token}` },
+    });
 
   if (isRefreshing) {
     return refreshTokenState$.pipe(
@@ -153,7 +201,7 @@ function handle401Error(
       isRefreshing = false;
       if (!newNestToken) {
         refreshTokenState$.next({ status: 'failed', error: err });
-        return throwError(() => err);
+        return handleSessionExpired(err, isOnboardingRequest, auth, router, showErrorModal);
       }
       refreshTokenState$.next({ status: 'success', token: newNestToken });
       return next(attach(newNestToken));
@@ -161,36 +209,7 @@ function handle401Error(
     catchError((err2) => {
       isRefreshing = false;
       refreshTokenState$.next({ status: 'failed', error: err2 });
-
-      return from(auth.signOut()).pipe(
-        switchMap(() => {
-          if (showErrorModal) {
-            const basePayload = {
-              statusCode: 401,
-              errorCode: 'FE_SESSION_EXPIRED',
-            };
-
-            if (isOnboardingRequest) {
-              showErrorModal({
-                ...basePayload,
-                title: 'Account Setup Failed',
-                errorMsg: 'We could not verify your temporary onboarding session.',
-                hint: 'Please try signing in with Google again to restart your registration.',
-              });
-            } else {
-              showErrorModal({
-                ...basePayload,
-                title: 'Session Expired',
-                errorMsg: 'Your active authorization session has expired or become invalid.',
-                hint: 'Please log back into your account to securely resume your work.',
-              });
-            }
-          }
-
-          router.navigate(['/auth']);
-          return throwError(() => err2);
-        })
-      );
+      return handleSessionExpired(err2, isOnboardingRequest, auth, router, showErrorModal);
     })
   );
 }

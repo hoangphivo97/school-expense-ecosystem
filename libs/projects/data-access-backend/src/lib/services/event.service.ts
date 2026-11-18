@@ -374,7 +374,11 @@ export class EventService {
   /**
    * Reject or cancel event with required reason
    */
-  async rejectEvent(id: string, user: AuthenticatedUser, payload: RejectEventPayload): Promise<EventItem> {
+  async rejectEvent(
+    id: string,
+    user: AuthenticatedUser,
+    payload: RejectEventPayload
+  ): Promise<EventItem> {
     const event = await this.validateEventAccess(id, user);
     const isFacultyDean = user.role === Role.LEVEL_2_DEAN && event.facultyId === user.facultyId;
     const isFinance = user.role === Role.LEVEL_1_FINANCE;
@@ -384,21 +388,29 @@ export class EventService {
       throw new EventApprovalForbiddenException();
     }
 
-    // Release encumbered parent project budget if sub-event is rejected/cancelled
+    const allowedStatuses = [
+      EventStatus.PENDING_DEAN_APPROVAL,
+      EventStatus.PENDING_FINANCE_APPROVAL,
+      EventStatus.UPCOMING,
+    ];
+    const rejectionAudit = {
+      rejectionReason: payload.reason.trim(),
+      rejectedBy: user.uid,
+    };
+
     if (event.projectId) {
-      await this.projectRepository.updateSpentCounters(event.projectId, {
-        pendingSpentDelta: -event.budgetCap,
-      });
+      return this.eventRepository.rejectSubEventWithProjectRelease(
+        id,
+        allowedStatuses,
+        rejectionAudit
+      );
     }
 
     return this.eventRepository.transitionStatus(
       id,
       EventStatus.REJECTED,
-      [EventStatus.PENDING_DEAN_APPROVAL, EventStatus.PENDING_FINANCE_APPROVAL, EventStatus.UPCOMING],
-      {
-        rejectionReason: payload.reason.trim(),
-        rejectedBy: user.uid,
-      }
+      allowedStatuses,
+      rejectionAudit
     );
   }
 
