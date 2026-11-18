@@ -111,7 +111,7 @@ export class FirebaseEventRepository
       const budgetCap = Number(data['budgetCap']) || 0;
       const currentSpent = Number(data['currentSpent']) || 0;
       const pendingSpent = Number(data['pendingSpent']) || 0;
-      const availableBudget = Math.max(0, budgetCap - (currentSpent + pendingSpent));
+      const availableBudget = budgetCap - (currentSpent + pendingSpent);
 
       options.push({
         id: doc.id,
@@ -236,10 +236,16 @@ export class FirebaseEventRepository
       }
 
       const projectId = eventData['projectId'] as string | null | undefined;
-      const budgetCap = Number(eventData['budgetCap'] || 0);
+      const budgetCap = Number(eventData['budgetCap']);
       const timestampIso = new Date().toISOString();
 
       if (projectId) {
+        if (!Number.isFinite(budgetCap) || budgetCap <= 0) {
+          throw new BadRequestException(
+            `Invalid budgetCap (${eventData['budgetCap']}) on sub-event "${id}".`
+          );
+        }
+
         const projectRef = this.db.collection('projects').doc(projectId);
         const projectDoc = await transaction.get(projectRef);
 
@@ -249,10 +255,15 @@ export class FirebaseEventRepository
 
         const projectData = projectDoc.data() ?? {};
         const currentPending = Number(projectData['pendingSpent'] || 0);
-        const nextPending = Math.max(0, currentPending - budgetCap);
+
+        if (currentPending < budgetCap) {
+          throw new ConflictException(
+            `Ledger inconsistency: Parent project "${projectId}" pendingSpent (${currentPending}) is lower than sub-event reservation (${budgetCap}).`
+          );
+        }
 
         transaction.update(projectRef, {
-          pendingSpent: nextPending,
+          pendingSpent: currentPending - budgetCap,
           updatedAt: timestampIso,
         });
       }
