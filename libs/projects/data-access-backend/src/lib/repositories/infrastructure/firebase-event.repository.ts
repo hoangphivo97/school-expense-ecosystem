@@ -180,9 +180,22 @@ export class FirebaseEventRepository
         );
       }
 
-      const budgetCap = Number(projectData['budgetCap'] || 0);
-      const currentSpent = Number(projectData['currentSpent'] || 0);
-      const pendingSpent = Number(projectData['pendingSpent'] || 0);
+      const budgetCap = this.parseLedgerCounter(
+        projectData['budgetCap'],
+        'budgetCap',
+        `Parent project "${projectId}"`
+      );
+      const currentSpent = this.parseLedgerCounter(
+        projectData['currentSpent'],
+        'currentSpent',
+        `Parent project "${projectId}"`
+      );
+      const pendingSpent = this.parseLedgerCounter(
+        projectData['pendingSpent'],
+        'pendingSpent',
+        `Parent project "${projectId}"`
+      );
+
       const availableBudget = budgetCap - (currentSpent + pendingSpent);
 
       if (event.budgetCap > availableBudget) {
@@ -254,7 +267,11 @@ export class FirebaseEventRepository
         }
 
         const projectData = projectDoc.data() ?? {};
-        const currentPending = Number(projectData['pendingSpent'] || 0);
+        const currentPending = this.parseLedgerCounter(
+          projectData['pendingSpent'],
+          'pendingSpent',
+          `Parent project "${projectId}"`
+        );
 
         if (currentPending < budgetCap) {
           throw new ConflictException(

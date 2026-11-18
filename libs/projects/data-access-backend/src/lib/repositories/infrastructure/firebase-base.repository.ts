@@ -4,7 +4,7 @@ import { JoinConfig, StudentSummary } from '@school-expense-ecosystem/projects/t
 import { EntityNotFoundException, InvalidJoinCodeException, JoinCapacityReachedException, JoinCodeExpiredException, JoinCodeNotStartedException, StudentAlreadyEnrolledException } from '../../exceptions/join-code.exception';
 import { BaseFirestoreRepository } from '@school-expense-ecosystem/shared/data-access-backend';
 import { DepartmentFundNotFoundException, InsufficientDepartmentFundException, ProjectInvalidStatusTransitionException } from '../../exceptions/project.exception';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { BudgetAuditLog, BudgetLedgerSourceType, BudgetTransactionType, DepartmentFundStatus } from '@school-expense-ecosystem/finance/types';
 
 export interface JoinableEntity<TStatus extends string = string> {
@@ -40,6 +40,20 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
 
   protected get budgetAuditLogsCollection() {
     return this.db.collection('budget_audit_logs');
+  }
+
+  protected parseLedgerCounter(
+    raw: unknown,
+    fieldName: string,
+    entityLabel: string
+  ): number {
+    const parsed = raw == null ? 0 : typeof raw === 'number' ? raw : Number.NaN;
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      throw new ConflictException(
+        `Ledger inconsistency: ${entityLabel} has an invalid "${fieldName}" counter (${String(raw)}).`
+      );
+    }
+    return parsed;
   }
 
   /**
@@ -327,9 +341,21 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
         );
       }
 
-      const totalBudget = Number(fundData['totalBudget'] || 0);
-      const prevAllocated = Number(fundData['allocatedBudget'] || 0);
-      const prevRemaining = Number(fundData['remainingBudget'] || 0);
+      const totalBudget = this.parseLedgerCounter(
+        fundData['totalBudget'],
+        'totalBudget',
+        `Department fund "${departmentFundId}"`
+      );
+      const prevAllocated = this.parseLedgerCounter(
+        fundData['allocatedBudget'],
+        'allocatedBudget',
+        `Department fund "${departmentFundId}"`
+      );
+      const prevRemaining = this.parseLedgerCounter(
+        fundData['remainingBudget'],
+        'remainingBudget',
+        `Department fund "${departmentFundId}"`
+      );
 
       if (prevRemaining < authorizedAmount) {
         throw new InsufficientDepartmentFundException(prevRemaining, authorizedAmount);
