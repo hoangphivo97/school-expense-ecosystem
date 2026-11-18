@@ -271,42 +271,15 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
     });
   }
 
-  async createWithFacultyFund(entity: T, departmentFundId: string): Promise<T> {
-    const fundRef = this.departmentFundsCollection.doc(departmentFundId);
-    const entityRef = this.collection.doc(entity.id);
-
-    return this.db.runTransaction(async (transaction) => {
-      const fundDoc = await transaction.get(fundRef);
-      if (!fundDoc.exists) {
-        throw new DepartmentFundNotFoundException(departmentFundId);
-      }
-
-      const fundData = fundDoc.data() ?? {};
-      const remainingBudget = Number(fundData['remainingBudget'] || 0);
-
-      // Snapshot balance availability check
-      if (remainingBudget < entity.budgetCap) {
-        throw new InsufficientDepartmentFundException(remainingBudget, entity.budgetCap);
-      }
-
-      // Synchronously update department allocation counters
-      transaction.update(fundRef, {
-        remainingBudget: admin.firestore.FieldValue.increment(-entity.budgetCap),
-        allocatedBudget: admin.firestore.FieldValue.increment(entity.budgetCap),
-        updatedAt: new Date().toISOString(),
-      });
-
-      transaction.set(entityRef, entity);
-      return entity;
-    });
-  }
-
   async approveWithFundAllocation(
     id: string,
     departmentFundId: string,
-    budgetCap: number,
     targetStatus: TStatus,
     allowedCurrentStatuses: TStatus[],
+    ledgerMeta: {
+      transactionType: BudgetTransactionType;
+      sourceType: BudgetLedgerSourceType;
+    },
     auditData: Record<string, unknown> & {
       approvedBy: string;
       approvedByEmail?: string;
@@ -339,6 +312,13 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
         );
       }
 
+      const authorizedAmount = Number(entityData['budgetCap']);
+      if (!Number.isFinite(authorizedAmount) || authorizedAmount <= 0) {
+        throw new BadRequestException(
+          `Invalid budgetCap (${entityData['budgetCap']}) on entity "${id}". Allocation amount must be a positive finite number.`
+        );
+      }
+
       const fundData = fundDoc.data() ?? {};
       const fundStatus = (fundData['status'] as DepartmentFundStatus) ?? DepartmentFundStatus.ACTIVE;
       if (fundStatus !== DepartmentFundStatus.ACTIVE) {
@@ -351,14 +331,13 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
       const prevAllocated = Number(fundData['allocatedBudget'] || 0);
       const prevRemaining = Number(fundData['remainingBudget'] || 0);
 
-      if (prevRemaining < budgetCap) {
-        throw new InsufficientDepartmentFundException(prevRemaining, budgetCap);
+      if (prevRemaining < authorizedAmount) {
+        throw new InsufficientDepartmentFundException(prevRemaining, authorizedAmount);
       }
 
-      const newAllocated = prevAllocated + budgetCap;
-      const newRemaining = prevRemaining - budgetCap;
+      const newAllocated = prevAllocated + authorizedAmount;
+      const newRemaining = prevRemaining - authorizedAmount;
       const timestampIso = new Date().toISOString();
-      const isProject = this.collectionName === 'projects';
 
       transaction.update(fundRef, {
         allocatedBudget: newAllocated,
@@ -379,26 +358,22 @@ export abstract class FirebaseBaseRepository<T extends JoinableEntity<TStatus>, 
         fundId: departmentFundId,
         facultyId: fundData['facultyId'],
         year: Number(fundData['year']),
-        type: isProject
-          ? BudgetTransactionType.PROJECT_ALLOCATION
-          : BudgetTransactionType.EVENT_ALLOCATION,
-        sourceType: isProject
-          ? BudgetLedgerSourceType.PROJECT
-          : BudgetLedgerSourceType.EVENT,
+        type: ledgerMeta.transactionType,
+        sourceType: ledgerMeta.sourceType,
         sourceEntityId: id,
-        amount: -budgetCap,
+        amount: -authorizedAmount,
         previousTotalBudget: totalBudget,
         newTotalBudget: totalBudget,
         previousAllocatedBudget: prevAllocated,
         newAllocatedBudget: newAllocated,
         previousRemainingBudget: prevRemaining,
         newRemainingBudget: newRemaining,
-        reason: `Budget allocated upon approval of ${isProject ? 'project' : 'event'} "${id}"`,
+        reason: `Budget allocated upon approval of ${ledgerMeta.sourceType.toLowerCase()} "${id}"`,
         performedByUid: auditData.approvedBy,
         performedByEmail: auditData.approvedByEmail ?? '',
         createdAt: timestampIso,
       };
-      
+
       transaction.set(auditLogRef, auditEntry);
 
       return this.mapDoc({

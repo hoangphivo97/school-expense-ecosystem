@@ -1,3 +1,4 @@
+import { BudgetLedgerSourceType, BudgetTransactionType } from '@school-expense-ecosystem/finance/types';
 import { EnrolledActivityOption, PaginatedProjectResult, ProjectItem, ProjectQueryPayload, ProjectStatus, StudentSummary } from '@school-expense-ecosystem/projects/types';
 
 export abstract class ProjectRepository {
@@ -18,7 +19,6 @@ export abstract class ProjectRepository {
   abstract findWithQuery(query: ProjectQueryPayload): Promise<PaginatedProjectResult>;
   abstract searchStudents(query: string, limitCount?: number): Promise<StudentSummary[]>;
   abstract enrollStudentViaCode(projectId: string, studentId: string, expectedCode: string, allowedStatuses: ProjectStatus[]): Promise<ProjectItem>;
-  abstract createWithFacultyFund(project: ProjectItem, departmentFundId: string): Promise<ProjectItem>;
   abstract updateWithOptimisticLock(
     id: string,
     data: Partial<ProjectItem>,
@@ -39,9 +39,16 @@ export abstract class ProjectRepository {
   abstract approveWithFundAllocation(
     id: string,
     departmentFundId: string,
-    budgetCap: number,
     targetStatus: ProjectStatus,
     allowedCurrentStatuses: ProjectStatus[],
-    auditData?: Record<string, unknown>
+    ledgerMeta: {
+      transactionType: BudgetTransactionType;
+      sourceType: BudgetLedgerSourceType;
+    },
+    auditData: Record<string, unknown> & {
+      approvedBy: string;
+      approvedByEmail?: string;
+      approvedAt: string;
+    }
   ): Promise<ProjectItem>;
 }

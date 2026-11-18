@@ -9,6 +9,7 @@ import { InvalidJoinCodeException } from '../exceptions/join-code.exception';
 import { toEnrolledActivitySummary, toStudentSummaryList } from '../mapper/activity.mapper';
 import { calculateSpannedYears } from '../helpers/calculate-years.helper';
 import { UserRepository } from '@school-expense-ecosystem/admin/data-access-backend';
+import { BudgetLedgerSourceType, BudgetTransactionType } from '@school-expense-ecosystem/finance/types';
 
 type ProjectStatusRule = Partial<Record<Role, ProjectStatus>> & {
   default: ProjectStatus;
@@ -128,8 +129,6 @@ export class ProjectService {
         initialSpent: newInitialSpent,
         currentSpent: newInitialSpent, // Sync initial baseline to current spent
       }),
-      ...(cleanpayload.startDate && { startDate: new Date(cleanpayload.startDate).toISOString() }),
-      ...(cleanpayload.endDate && { endDate: new Date(cleanpayload.endDate).toISOString() }),
       ...(cleanpayload.startDate && { startDate: new Date(cleanpayload.startDate).toISOString() }),
       ...(cleanpayload.endDate && { endDate: new Date(cleanpayload.endDate).toISOString() }),
       ...(isTimelineModified && {
@@ -328,9 +327,12 @@ export class ProjectService {
       return this.projectRepo.approveWithFundAllocation(
         projectId,
         fundId,
-        project.budgetCap,
         nextStatus,
         [project.status],
+        {
+          transactionType: BudgetTransactionType.PROJECT_ALLOCATION,
+          sourceType: BudgetLedgerSourceType.PROJECT,
+        },
         auditData
       );
     }

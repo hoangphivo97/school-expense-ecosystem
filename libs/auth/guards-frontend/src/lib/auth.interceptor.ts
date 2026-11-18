@@ -16,8 +16,14 @@ import { NotificationService } from '@school-expense-ecosystem/shared/utils-fron
 
 type ErrorModalDelegate = (payload: DialogError) => void;
 
+type RefreshTokenState =
+  | { status: 'idle' }
+  | { status: 'refreshing' }
+  | { status: 'success'; token: string }
+  | { status: 'failed'; error: unknown };
+
 let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+let refreshTokenState$ = new BehaviorSubject<RefreshTokenState>({ status: 'idle' });
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
@@ -124,54 +130,67 @@ function handle401Error(
     req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
 
   if (isRefreshing) {
-    return refreshTokenSubject.pipe(
-      filter((token): token is string => token !== null),
+    return refreshTokenState$.pipe(
+      filter(
+        (state): state is Extract<RefreshTokenState, { status: 'success' | 'failed' }> =>
+          state.status === 'success' || state.status === 'failed'
+      ),
       take(1),
-      switchMap((newToken) => next(attach(newToken)))
+      switchMap((state) => {
+        if (state.status === 'failed') {
+          return throwError(() => state.error);
+        }
+        return next(attach(state.token));
+      })
     );
   }
 
   isRefreshing = true;
-  refreshTokenSubject.next(null);
+  refreshTokenState$.next({ status: 'refreshing' });
 
   return from(auth.restoreOrRefreshSession()).pipe(
     switchMap((newNestToken) => {
       isRefreshing = false;
       if (!newNestToken) {
+        refreshTokenState$.next({ status: 'failed', error: err });
         return throwError(() => err);
       }
-      refreshTokenSubject.next(newNestToken);
+      refreshTokenState$.next({ status: 'success', token: newNestToken });
       return next(attach(newNestToken));
     }),
-    catchError(async (err2) => {
+    catchError((err2) => {
       isRefreshing = false;
-      await auth.signOut();
+      refreshTokenState$.next({ status: 'failed', error: err2 });
 
-      if (showErrorModal) {
-        const basePayload = {
-          statusCode: 401,
-          errorCode: 'FE_SESSION_EXPIRED',
-        };
+      return from(auth.signOut()).pipe(
+        switchMap(() => {
+          if (showErrorModal) {
+            const basePayload = {
+              statusCode: 401,
+              errorCode: 'FE_SESSION_EXPIRED',
+            };
 
-        if (isOnboardingRequest) {
-          showErrorModal({
-            ...basePayload,
-            title: 'Account Setup Failed',
-            errorMsg: 'We could not verify your temporary onboarding session.',
-            hint: 'Please try signing in with Google again to restart your registration.',
-          });
-        } else {
-          showErrorModal({
-            ...basePayload,
-            title: 'Session Expired',
-            errorMsg: 'Your active authorization session has expired or become invalid.',
-            hint: 'Please log back into your account to securely resume your work.',
-          });
-        }
-      }
+            if (isOnboardingRequest) {
+              showErrorModal({
+                ...basePayload,
+                title: 'Account Setup Failed',
+                errorMsg: 'We could not verify your temporary onboarding session.',
+                hint: 'Please try signing in with Google again to restart your registration.',
+              });
+            } else {
+              showErrorModal({
+                ...basePayload,
+                title: 'Session Expired',
+                errorMsg: 'Your active authorization session has expired or become invalid.',
+                hint: 'Please log back into your account to securely resume your work.',
+              });
+            }
+          }
 
-      router.navigate(['/auth']);
-      throw err2;
+          router.navigate(['/auth']);
+          return throwError(() => err2);
+        })
+      );
     })
   );
 }
