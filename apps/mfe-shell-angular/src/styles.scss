@@ -1,68 +1,16 @@
-@use '@angular/material' as mat;
-
 /* ==========================================================================
-   1. SHARED LIBRARIES & WORKSPACE PATH IMPORTS
+   1. SHARED DESIGN SYSTEM & MATERIAL THEME IMPORTS
    ========================================================================== */
-@use '@angular/material/prebuilt-themes/deeppurple-amber.css';
+@use 'libs/shared/ui/src/lib/ui/styles/tokens';
+@use 'libs/shared/ui/src/lib/ui/styles/material-theme';
+@use 'libs/shared/ui/src/lib/ui/styles/apexcharts';
 @use 'libs/shared/ui/src/lib/ui/styles/variables';
 @use 'libs/shared/ui/src/lib/ui/styles/utilities';
+@use 'libs/shared/ui/src/lib/ui/styles/badges';
+@use 'libs/shared/ui/src/lib/ui/styles/actions';
 
 /* ==========================================================================
-   2. GLOBAL CSS DESIGN TOKENS (DYNAMIC ARCHITECTURE)
-   ========================================================================== */
-
-/* --- SYSTEM LIGHT MODE SETUP (DEFAULT BRAND) --- */
-:root {
-  --bg-primary: #f8f9fa;
-  --bg-secondary: #ffffff;
-  --bg-modal-primary: #ffffff;
-  --bg-input: #f3f4f6;
-  --border-color: #e5e7eb;
-
-  --primary-color: #7d45ff;
-  --hover-bg: rgba(125, 69, 255, 0.08);
-  --purple-bland-8: color-mix(in srgb, var(--primary-color) 8%, transparent);
-
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --text-input: #111827;
-
-  --icon-color-inactive: #bdc2c5;
-  --text-color-inactive: #7d8388;
-  --color-danger: #dc2626;
-
-  --btn-disabled-bg: rgba(0, 0, 0, 0.12);
-  --btn-disabled-text: rgba(0, 0, 0, 0.26);
-}
-
-/* --- SYSTEM DARK MODE SETUP (DYNAMIC OVERRIDES) --- */
-body.dark-mode {
-  --bg-primary: #0f172a; 
-  --bg-secondary: #1e293b; 
-  --bg-input: #1e293b; 
-  --bg-modal: #2d3748; 
-
-  --text-primary: #f1f5f9; 
-  --text-secondary: #94a3b8; 
-  --text-input: #f9fafb; 
-
-  --border-color: #334155; 
-
-  --primary-color: #9d66ff; 
-  --hover-bg: rgba(157, 102, 255, 0.12);
-  --purple-bland-8: color-mix(in srgb, var(--primary-color) 12%, transparent);
-
-  --btn-disabled-bg: rgba(255, 255, 255, 0.12);
-  --btn-disabled-text: rgba(255, 255, 255, 0.38);
-
-  --mat-datepicker-calendar-container-background-color: var(--bg-primary);
-  --mat-datepicker-calendar-container-text-color: var(--text-primary);
-  --mat-datepicker-calendar-header-text-color: var(--text-primary);
-  --mat-datepicker-calendar-date-text-color: var(--text-primary);
-}
-
-/* ==========================================================================
-   3. BASE STYLES & LAYOUT RESET
+   2. BASE STYLES & LAYOUT RESET
    ========================================================================== */
 html,
 body {
@@ -79,6 +27,9 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ==========================================================================
+   3. GLOBAL UTILITY & HELPER CLASSES
+   ========================================================================== */
 .uppercase_title {
   text-transform: capitalize;
 }
@@ -87,259 +38,21 @@ body {
   font-size: 1.625rem;
 }
 
-/* ==========================================================================
-   4. MATERIAL COMPONENT DARK MODE ENHANCEMENTS (AC 2 REFACTORED)
-   ========================================================================== */
-/* Architect Fix: Anchor cascading chain directly to html element to secure natural out-scoring specificity points */
-html body.dark-mode {
+.auth-stream-badge {
+  background-color: var(--bg-primary);
+  border: 1px dashed var(--border-color);
 
-  // Sidenav Viewport Contexts
-  .mat-drawer-content,
-  .mat-sidenav-content {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-  }
-
-  // Structural Dialog Sheets
-  .mat-mdc-dialog-container {
-    .mdc-dialog__surface {
-      background-color: var(--bg-secondary);
-      color: var(--text-primary);
-    }
-    
-    h2.mat-mdc-dialog-title {
-      color: var(--text-primary);
-      border-color: var(--border-color);
-    }
-  }
-
-  // Form Fields Configuration Block
-  .mat-mdc-form-field {
-    .mat-mdc-text-field-wrapper {
-      background-color: var(--bg-input);
-      border: none;
-      box-shadow: none;
-    }
-
-    .mdc-notched-outline__leading,
-    .mdc-notched-outline__notch,
-    .mdc-notched-outline__trailing {
-      border-color: var(--border-color);
-      border-width: 1px;
-    }
-
-    &:hover {
-      .mdc-notched-outline__leading,
-      .mdc-notched-outline__notch,
-      .mdc-notched-outline__trailing {
-        border-color: var(--primary-color);
-      }
-    }
-
-    .mat-mdc-input-element,
-    input.mat-mdc-input-element,
-    .mat-mdc-select-value,
-    .mat-mdc-select-value-text {
-      color: var(--text-input);
-    }
-
-    .mat-mdc-form-field-label mat-label,
-    .mat-mdc-floating-label mat-label {
-      color: var(--text-secondary);
-    }
-
-    .mat-mdc-select-arrow svg {
-      fill: var(--text-primary);
-    }
-  }
-
-  // Authorization Stream Status Indicator Badge
-  .auth-stream-badge {
-    background-color: var(--bg-primary);
-    border: 1px dashed var(--border-color);
-
-    .text-muted {
-      color: var(--text-secondary);
-    }
-
-    .text-primary {
-      color: var(--primary-color);
-    }
-  }
-
-  // Dialog Actions Footer Anchor
-  .mat-mdc-dialog-actions {
-    border-top: 1px solid var(--border-color);
-
-    .text-secondary {
-      color: var(--text-secondary);
-    }
-  }
-
-  /* --- APEXCHARTS INTEGRATED MATRIX THEME --- */
-  // Scope components within internal canvas to lock weight alignment cleanly
-  .apexcharts-canvas {
-    .apexcharts-text,
-    .apexcharts-title-text,
-    .apexcharts-subtitle-text {
-      fill: var(--text-primary);
-    }
-
-    .apexcharts-gridline {
-      stroke: var(--border-color);
-    }
-
-    .apexcharts-legend-text {
-      color: var(--text-primary);
-      font-family: inherit;
-    }
-
-    .apexcharts-tooltip {
-      background: var(--bg-secondary);
-      border-color: var(--border-color);
-      color: var(--text-primary);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-
-      .apexcharts-tooltip-title {
-        background: var(--bg-primary);
-        border-bottom: 1px solid var(--border-color);
-        font-family: inherit;
-      }
-
-      .apexcharts-tooltip-text-y-value {
-        color: var(--text-primary);
-      }
-    }
-
-    .apexcharts-menu-icon svg {
-      fill: var(--text-primary);
-    }
-
-    .apexcharts-menu {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border-color: var(--border-color);
-
-      .apexcharts-menu-item:hover {
-        background: var(--hover-bg);
-      }
-    }
-
-    .apexcharts-xaxistooltip {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      color: var(--text-primary);
-
-      .apexcharts-xaxistooltip-text {
-        color: var(--text-primary);
-      }
-    }
-
-    .apexcharts-xaxistooltip-bottom {
-      &:before {
-        border-bottom-color: var(--border-color);
-      }
-      &:after {
-        border-bottom-color: var(--bg-secondary);
-      }
-    }
-  }
-}
-
-/* ==========================================================================
-   5. COMPONENT ENHANCEMENTS AND PSEUDO-STATES
-   ========================================================================== */
-
-/* --- A. Button Controls Custom Interactive States --- */
-/* Architect Fix: Target the structural Material button class chain directly to remove global overrides blockers */
-.mat-mdc-button,
-.mat-mdc-raised-button,
-.mat-mdc-unelevated-button,
-.mat-mdc-outlined-button {
-  &:disabled {
-    background-color: var(--btn-disabled-bg);
-    color: var(--btn-disabled-text);
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-}
-
-.mat-mdc-outlined-button:disabled {
-  background-color: transparent;
-  border-color: var(--btn-disabled-bg);
-}
-
-/* --- B. Dropdown Picker Overrides (.ct-select-dm) --- */
-.ct-select-dm {
-  --mat-select-panel-background-color: var(--bg-secondary);
-  --mat-option-label-text-color: var(--text-primary);
-  --mat-option-selected-state-label-text-color: var(--primary-color);
-
-  .mat-mdc-select-panel {
-    background: var(--bg-secondary);
-  }
-
-  .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
-    background-color: var(--hover-bg);
-  }
-}
-
-/* --- C. Fluid Calendar Control Overrides (.ct-datepicker-dm) --- */
-.ct-datepicker-dm {
-  // Elevate internal text specificity smoothly
-  .mat-calendar-period-button,
-  .mat-calendar-previous-button,
-  .mat-calendar-next-button {
-    color: var(--text-primary);
-  }
-
-  .mat-calendar-arrow {
-    fill: var(--text-primary);
-  }
-
-  .mat-calendar-table-header th {
+  .text-muted {
     color: var(--text-secondary);
   }
 
-  .mat-calendar-body td.mat-calendar-body-label {
-    color: var(--text-primary);
+  .text-primary {
+    color: var(--primary-color);
   }
-
-  .mat-datepicker-content .mat-calendar-header {
-    color: var(--text-primary);
-  }
-}
-
-/* --- D. Notification SnackBars Overrides --- */
-.toast-success {
-  @include mat.snack-bar-overrides((
-    container-color: #198754,
-    button-color: #ffffff,
-    supporting-text-color: #ffffff,
-    container-shape: var(--mat-sys-corner-extra-small)
-  ));
-}
-
-.toast-error {
-  @include mat.snack-bar-overrides((
-    container-color: #dc3545,
-    button-color: #ffffff,
-    supporting-text-color: #ffffff,
-    container-shape: var(--mat-sys-corner-extra-small)
-  ));
-}
-
-.toast-warning {
-  @include mat.snack-bar-overrides((
-    container-color: #f57c00,
-    button-color: #ffffff,
-    supporting-text-color: #ffffff,
-    container-shape: var(--mat-sys-corner-extra-small)
-  ));
 }
 
 .loading-container-blurred {
-  pointer-events: none; 
+  pointer-events: none;
   user-select: none;
   opacity: 0.65;
   transition: opacity 0.2s ease-in-out;
@@ -350,23 +63,29 @@ html body.dark-mode {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1050; 
+  z-index: 1050;
 }
 
-/* ==========================================================================
-   6. ARCHITECTURAL LAYOUT FIX HACKS
-   ========================================================================== */
-::ng-deep {
-  .mat-mdc-form-field-bottom-align {
-    display: none;
-  }
+.text-muted {
+  color: var(--text-secondary) !important;
+}
 
-  .floating-multi-modal-panel {
-  .mat-mdc-dialog-container {
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+/* Transparent surface for floating multi-card dialogs */
+.floating-multi-modal-panel {
+  max-width: 96vw !important;
+
+  .mat-mdc-dialog-container,
+  .mat-mdc-dialog-surface,
+  .mdc-dialog__surface {
     background: transparent !important;
+    background-color: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
     overflow: visible !important;
+    --mat-dialog-container-color: transparent;
   }
-}
 }

@@ -1,13 +1,16 @@
+@use '@angular/material' as mat;
 @use 'variables';
 
 :host {
+  display: block;
+
   .clickable-role-card {
-    border: 1px solid variables.$primary-grey-color;
-    background-color: variables.$primary-white-color;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-input);
 
     &:hover {
-      border-color: #0d6efd !important;
-      background-color: variables.$primary-grey-color;
+      border-color: var(--primary-color) !important;
+      background-color: var(--hover-bg);
     }
   }
 
@@ -15,22 +18,31 @@
     transition: all 0.2s ease-in-out;
   }
 
-
   .login-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: variables.$primary-background-color;
+    background-color: var(--bg-primary);
     padding: 16px;
   }
 
   .login-card {
+    @include mat.card-overrides((
+      elevated-container-color: var(--bg-secondary),
+      outlined-container-color: var(--bg-secondary),
+      outlined-outline-color: var(--border-color),
+    ));
+
     width: 100%;
     max-width: 420px;
     padding: 24px;
     border-radius: 16px;
     box-sizing: border-box;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
   }
 
   .header-center {
@@ -39,17 +51,11 @@
     margin-bottom: 24px;
   }
 
-  .title-main {
-    font-size: variables.$h1-font-size;
-    font-weight: 700;
-    color: variables.$primary-black-color;
-    text-align: center;
-  }
-
+  .title-main,
   .title-admin {
     font-size: variables.$h1-font-size;
     font-weight: 700;
-    color: variables.$secondary-black-color;
+    color: var(--text-primary);
     text-align: center;
   }
 
@@ -62,7 +68,7 @@
   }
 
   .description-text {
-    color: variables.$secondary-grey-color;
+    color: var(--text-secondary);
     font-size: variables.$text-fonr-size;
     line-height: 1.5;
     margin: 0;
@@ -74,7 +80,6 @@
     border-radius: 8px;
     font-size: 1.1rem;
     font-weight: 700;
-    box-shadow: variables.$primary-box-shadow-color;
   }
 
   .btn-inner-content {
@@ -94,21 +99,21 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: variables.$secondary-black-color;
+    color: var(--text-secondary);
     font-size: 0.8rem;
     font-weight: 500;
-    background-color: variables.$primary-white-color;
-    border: 1px solid variables.$primary-grey-color;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
     padding: 6px 16px;
     border-radius: 50px;
   }
 
   .icon-success {
-    color: #198754;
+    color: var(--color-success);
   }
 
   .icon-warn {
-    color: #ffc107;
+    color: var(--color-warning);
   }
 
   .form-layout {
@@ -133,12 +138,12 @@
     height: 48px;
     font-size: 1rem;
     font-weight: 600;
-    color: variables.$primary-white-color;
   }
 
   .sandbox-banner {
-    background-color: #f1f3f5;
-    border-left: 4px solid #0dcaf0;
+    background-color: var(--status-info-bg);
+    border: 1px solid var(--status-info-border);
+    border-left: 4px solid var(--status-info-text);
     padding: 12px 16px;
     border-radius: 8px;
     margin-bottom: 20px;
@@ -151,14 +156,14 @@
 
   .banner-notice {
     font-size: 0.8rem;
-    color: variables.$secondary-grey-color;
+    color: var(--text-secondary);
     font-style: italic;
     margin-bottom: 6px;
   }
 
   .banner-role {
     font-weight: 700;
-    color: variables.$primary-black-color;
+    color: var(--status-info-text);
     font-size: 0.85rem;
     display: flex;
     align-items: center;
@@ -168,7 +173,7 @@
 
   .banner-desc {
     font-size: 0.85rem;
-    color: variables.$secondary-black-color;
+    color: var(--text-primary);
     line-height: 1.4;
   }
 
@@ -177,24 +182,30 @@
     justify-content: center;
     margin-top: 24px;
     padding-top: 16px;
-    border-top: 1px solid variables.$primary-grey-color;
+    border-top: 1px solid var(--border-color);
   }
 
   .toggle-mode-btn {
     font-size: 0.8rem;
-    color: variables.$secondary-grey-color;
+    color: var(--text-secondary);
     display: inline-flex;
     align-items: center;
     gap: 6px;
 
-    &:hover {
+    &:hover:not(:disabled) {
+      color: var(--primary-color);
       text-decoration: underline;
     }
   }
 
   .back-portal-btn {
+    @include mat.button-overrides((
+      text-label-text-color: var(--primary-color),
+    ));
+
     font-size: 0.85rem;
     font-weight: 600;
+    color: var(--primary-color);
     display: inline-flex;
     align-items: center;
     gap: 6px;

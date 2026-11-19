@@ -1,18 +1,21 @@
-$icon-color-inactive: #bdc2c5;
-$text-color-inactive: #7d8388;
-$color-active: #7d45ff;
-$color-danger: #dc2626;
-$red-bland-8: rgba(220, 38, 38, 0.08);
-$purple-bland-8: rgba($color-active, 0.08);
+@use '@angular/material' as mat;
 
 .sidenav-container {
   height: 100vh;
   position: relative;
   font-size: 1.4rem;
+
+  @include mat.sidenav-overrides((
+    container-background-color: var(--bg-secondary),
+    container-divider-color: var(--border-color),
+    content-background-color: var(--bg-primary),
+    content-text-color: var(--text-primary),
+  ));
 }
 
 .app-sidenav {
   width: 260px;
+  border-right: 1px solid var(--border-color);
   transition: width 0.3s ease;
 
   &.collapsed {
@@ -25,6 +28,8 @@ $purple-bland-8: rgba($color-active, 0.08);
 }
 
 mat-sidenav-content {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   transition: margin-left 0.3s ease;
   margin-left: 260px !important;
 
@@ -34,22 +39,38 @@ mat-sidenav-content {
 }
 
 .collapse-btn {
+  @include mat.icon-button-overrides((
+    state-layer-size: 26px,
+    icon-size: 18px,
+    icon-color: var(--text-primary),
+  ));
+
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  background: white;
-  border: 1px solid #ccc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 50%;
   width: 26px;
   height: 26px;
   padding: 0;
-  transition: left 0.3s ease;
-  left: 245px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: left 0.3s ease, border-color 0.2s ease, background-color 0.2s ease;
+  left: 247px;
   cursor: pointer;
 
   &.collapsed {
-    left: 65px;
+    left: 67px;
+  }
+
+  &:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
   }
 }
 
@@ -57,7 +78,7 @@ mat-sidenav-content {
   animation: raceMove 0.6s ease-in-out;
 }
 
-.collapsed:hover .collapse-icon {
+.collapse-btn.collapsed:hover .collapse-icon {
   animation: raceBack 0.6s ease-in-out;
 }
 

@@ -1,0 +1,58 @@
+:host {
+  display: block;
+  background-color: var(--bg-modal-primary);
+  color: var(--text-primary);
+}
+
+.join-code-dialog {
+  background-color: var(--bg-modal-primary);
+  color: var(--text-primary);
+
+  .title-icon-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background-color: var(--purple-bland-8);
+    color: var(--primary-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .dialog-title {
+    color: var(--text-primary);
+  }
+
+  .dialog-subtitle {
+    color: var(--text-secondary);
+  }
+
+  .themed-alert.danger {
+    border-radius: 8px;
+    background-color: var(--status-danger-bg);
+    color: var(--status-danger-text);
+    border: 1px solid var(--status-danger-border);
+  }
+
+  .dialog-body {
+    padding: 6px 0 0 !important;
+    margin: 0 !important;
+    overflow: visible;
+    color: var(--text-primary);
+
+    .field-icon {
+      color: var(--text-secondary);
+    }
+  }
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}

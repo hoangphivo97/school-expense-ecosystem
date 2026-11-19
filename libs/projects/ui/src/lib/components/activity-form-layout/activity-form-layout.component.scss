@@ -1,65 +1,112 @@
 :host {
   display: block;
   background: transparent !important;
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary);
 
   .multi-modal-wrapper {
     display: flex;
     align-items: flex-start;
+    justify-content: center;
     gap: 16px;
     max-height: 90vh;
-    padding: 24px;
+    padding: 12px;
+
+    @media (max-width: 1024px) {
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+    }
 
     .primary-modal-card {
       width: 580px;
-      background: var(--bg-modal, #ffffff);
+      max-width: 100%;
+      flex: 0 0 auto;
+      background-color: var(--bg-modal-primary);
+      color: var(--text-primary);
       border-radius: 20px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border: 1px solid var(--mat-divider-color, rgba(0, 0, 0, 0.08));
+      border: 1px solid var(--border-color);
     }
 
     .secondary-modal-card {
       width: 360px;
+      max-width: 100%;
+      flex: 0 0 auto;
       height: fit-content;
-      background: var(--bg-modal, #ffffff);
+      background-color: var(--bg-modal-primary);
+      color: var(--text-primary);
       border-radius: 20px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border: 1px solid var(--mat-divider-color, rgba(0, 0, 0, 0.08));
+      border: 1px solid var(--border-color);
       animation: popInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
       .card-header-box {
         padding: 20px 20px 14px;
-        background: rgba(103, 58, 183, 0.03);
+        background-color: var(--purple-bland-8);
+        border-bottom: 1px solid var(--border-color);
       }
 
       .card-content-box {
         padding: 20px;
 
         .code-preview-card {
-          background: rgba(103, 58, 183, 0.04);
-          border: 1px dashed rgba(103, 58, 183, 0.2);
+          background-color: var(--bg-primary);
+          border: 1px dashed var(--border-color);
 
           .preview-icon {
             font-size: 24px;
             height: 24px;
             width: 24px;
+            color: var(--text-secondary);
+          }
+
+          .preview-text {
+            color: var(--text-secondary);
           }
         }
       }
     }
   }
 
+  .section-heading {
+    color: var(--text-primary);
+  }
+
+  .themed-alert {
+    border-radius: 8px;
+
+    &.danger {
+      background-color: var(--status-danger-bg);
+      color: var(--status-danger-text);
+      border: 1px solid var(--status-danger-border);
+    }
+
+    &.warning {
+      background-color: var(--status-warning-bg);
+      color: var(--status-warning-text);
+      border: 1px solid var(--status-warning-border);
+    }
+
+    &.info {
+      background-color: var(--status-info-bg);
+      color: var(--status-info-text);
+      border: 1px solid var(--status-info-border);
+    }
+  }
+
   .modal-header-box {
     padding: 24px 24px 16px;
+    border-bottom: 1px solid var(--border-color);
 
     .title-icon-wrapper {
-      background: rgba(103, 58, 183, 0.1);
+      background-color: var(--purple-bland-8);
+      color: var(--primary-color);
       padding: 12px;
       border-radius: 14px;
       display: inline-flex;
@@ -78,14 +125,13 @@
       .main-title-text {
         font-size: 22px;
         font-weight: 700;
-        color: var(--text-primary, #1e293b);
+        color: var(--text-primary);
         line-height: 1.2;
       }
 
       .sub-title-text {
         font-size: 13px;
-        color: var(--text-primary, #1e293b);
-        opacity: 0.6;
+        color: var(--text-secondary);
         margin-top: 4px;
       }
     }
@@ -96,14 +142,20 @@
     overflow-y: auto;
     margin: 0 !important;
     padding: 16px 24px !important;
-    background-color: var(--bg-modal, #ffffff);
+    background-color: var(--bg-modal-primary);
+    color: var(--text-primary);
 
     .expandable-join-box {
-      background-color: var(--bg-surface-tint, rgba(103, 58, 183, 0.03));
-      border: 1px dashed var(--mat-divider-color, rgba(103, 58, 183, 0.2));
+      background-color: var(--bg-primary);
+      border: 1px dashed var(--border-color);
+
+      p {
+        color: var(--text-secondary);
+      }
 
       .join-icon-avatar {
-        background: rgba(103, 58, 183, 0.1);
+        background-color: var(--purple-bland-8);
+        color: var(--primary-color);
         width: 38px;
         height: 38px;
         border-radius: 10px;
@@ -116,39 +168,20 @@
     ::ng-deep {
       .mdc-text-field--outlined {
         border-radius: 12px !important;
-        background-color: var(--bg-input, transparent);
+        background-color: var(--bg-input);
       }
 
       .field-icon {
-        color: var(--text-primary, #1e293b) !important;
-        opacity: 0.45;
-        transition: opacity 0.2s ease, color 0.2s ease;
+        color: var(--text-secondary) !important;
+        transition: color 0.2s ease;
       }
 
-      mat-label,
-      input::placeholder,
-      textarea::placeholder {
-        color: var(--text-primary, #64748b);
+      .mdc-text-field--focused .field-icon {
+        color: var(--primary-color) !important;
       }
 
-      mat-mdc-select-value,
-      .mdc-text-field__input,
-      .mat-mdc-select-arrow {
-        color: var(--text-primary, #1e293b);
-      }
-
-      .mdc-text-field--focused {
-        .field-icon {
-          opacity: 1;
-          color: var(--mdc-outlined-text-field-focus-border-color, #673ab7) !important;
-        }
-      }
-
-      .mat-form-field-invalid {
-        .field-icon {
-          opacity: 1;
-          color: var(--mdc-outlined-text-field-error-border-color, #f44336) !important;
-        }
+      .mat-form-field-invalid .field-icon {
+        color: var(--color-danger) !important;
       }
 
       .mat-mdc-form-field-prefix {
@@ -164,16 +197,40 @@
       .currency-suffix {
         font-weight: 600;
         font-size: 14px;
-        color: var(--text-primary, #1e293b);
-        opacity: 0.6;
+        color: var(--text-secondary);
         margin-right: 4px;
+      }
+    }
+
+    .checking-hint {
+      color: var(--text-secondary);
+    }
+
+    .expandable-join-box {
+      background-color: var(--bg-primary);
+      border: 1px dashed var(--border-color);
+
+      .join-subtitle {
+        color: var(--text-secondary);
+      }
+
+      .join-icon-avatar {
+        background-color: var(--purple-bland-8);
+        color: var(--primary-color);
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
     }
   }
 
   .modal-footer {
+    background-color: var(--bg-modal-primary);
     padding: 16px 24px 24px !important;
-    border-top: 1px solid var(--mat-divider-color, rgba(0, 0, 0, 0.08));
+    border-top: 1px solid var(--border-color);
 
     .submit-btn {
       display: inline-flex;
@@ -193,21 +250,21 @@
     padding: 0 16px !important;
 
     .mdc-list-item__primary-text {
-      color: rgba(0, 0, 0, 0.87);
+      color: var(--text-primary);
       white-space: normal;
       line-height: 1.4;
     }
 
     &:hover:not(.mdc-list-item--disabled) {
-      background-color: rgba(0, 0, 0, 0.04) !important;
+      background-color: var(--hover-bg) !important;
     }
 
     &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
-      background-color: rgba(103, 58, 183, 0.08) !important;
+      background-color: var(--purple-bland-8) !important;
 
       .mdc-list-item__primary-text {
-        color: #5b21b6 !important;
-        font-weight: 500 !important;
+        color: var(--primary-color) !important;
+        font-weight: 600 !important;
       }
     }
   }

@@ -24,7 +24,7 @@
                 @for (act of activities(); track act.id) {
                   <mat-option [value]="act.id">
                     <span class="fw-semibold">[{{ act.type }}]</span> {{ act.name }}
-                    <span class="text-muted small ms-2">(Available: {{ act.availableBudget | number }} TWD)</span>
+                    <span class="secondary-hint small ms-2">(Available: {{ act.availableBudget | number }} TWD)</span>
                   </mat-option>
                 }
               </mat-select>
@@ -35,19 +35,19 @@
             </mat-form-field>
           } @else if (activities().length === 1) {
             <!-- Single activity auto-bound badge -->
-            <div class="p-3 border rounded bg-light d-flex align-items-center justify-content-between mb-2">
+            <div class="auto-linked-card p-3 rounded d-flex align-items-center justify-content-between mb-2">
               <div class="d-flex align-items-center gap-2">
                 <mat-icon color="primary">account_tree</mat-icon>
                 <div>
                   <div class="fw-semibold small">[{{ activities()[0].type }}] {{ activities()[0].name }}</div>
-                  <div class="text-muted small">Available Budget: {{ activities()[0].availableBudget | number }} TWD</div>
+                  <div class="secondary-hint small">Available Budget: {{ activities()[0].availableBudget | number }} TWD</div>
                 </div>
               </div>
-              <span class="badge bg-success-subtle text-success border border-success-subtle">Auto-Linked</span>
+              <span class="badge auto-linked-badge">Auto-Linked</span>
             </div>
           } @else if (!isLoadingActivities() && activities().length === 0) {
             <!-- Blocking warning when not enrolled in any activity -->
-            <div class="alert alert-warning py-2 px-3 mb-2 small d-flex align-items-center">
+            <div class="themed-alert warning py-2 px-3 mb-2 small d-flex align-items-center">
               <mat-icon class="fs-6 h-auto w-auto me-2">warning</mat-icon>
               <span>You are not enrolled in any active project or event. Expense creation is disabled until you join an activity.</span>
             </div>
@@ -125,19 +125,19 @@
         </div>
 
         <div class="col-12">
-          <div class="proof-upload-zone border rounded p-3 bg-light shadow-sm">
-            <mat-label class="form-label fw-semibold text-secondary d-flex align-items-center mb-2">
+          <div class="proof-upload-zone rounded p-3 shadow-sm">
+            <mat-label class="upload-section-label fw-semibold d-flex align-items-center mb-2">
               <mat-icon class="fs-5 w-auto h-auto me-1">snippet_folder</mat-icon>
-              Proof Documents / Transaction Receipts <span class="text-danger ms-1">*</span>
+              Proof Documents / Transaction Receipts <span class="required-asterisk ms-1">*</span>
             </mat-label>
 
-            <div class="upload-trigger-box d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded bg-white text-center">
+            <div class="upload-trigger-box d-flex flex-column align-items-center justify-content-center p-4 rounded text-center">
               <button mat-stroked-button type="button" color="primary" class="px-4" 
                       [disabled]="isUploading()" (click)="hiddenFileInput.click()">
                 <mat-icon class="me-1">cloud_upload</mat-icon>
                 Attach Files
               </button>
-              <span class="text-muted small mt-2">Accepted formats: Images (PNG, JPG) or PDF documents. Maximum size: 5MB per file.</span>
+              <span class="secondary-hint small mt-2">Accepted formats: Images (PNG, JPG) or PDF documents. Maximum size: 5MB per file.</span>
               
               <input #hiddenFileInput type="file" multiple class="d-none" 
                      accept="image/png, image/jpeg, application/pdf" (change)="onFileSelected($event)">
@@ -146,14 +146,14 @@
             @if (isUploading()) {
               <div class="upload-progress-indicator mt-3">
                 <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-                <span class="text-muted small d-block mt-1">Encrypting and uploading files securely to system storage...</span>
+                <span class="secondary-hint small d-block mt-1">Encrypting and uploading files securely to system storage...</span>
               </div>
             }
 
             @if (uploadErrors().length > 0) {
-              <div class="alert alert-danger py-2 px-3 mt-3 mb-0">
+              <div class="themed-alert danger py-2 px-3 mt-3 mb-0">
                 @for (error of uploadErrors(); track error) {
-                  <div class="d-flex align-items-center text-danger small">
+                  <div class="d-flex align-items-center small">
                     <span>{{ error }}</span>
                   </div>
                 }
@@ -162,16 +162,16 @@
 
             @if (expenseForm.controls.proofUrls.value.length > 0) {
               <div class="attached-files-gallery mt-3">
-                <p class="small fw-semibold text-success mb-2 d-flex align-items-center">
+                <p class="attached-header small fw-semibold mb-2 d-flex align-items-center">
                   <mat-icon class="fs-6 h-auto w-auto me-1">verified</mat-icon>
                   Attached Assets ({{ expenseForm.controls.proofUrls.value.length }})
                 </p>
                 
                 @for (url of expenseForm.controls.proofUrls.value; track url; let idx = $index) {
-                  <div class="file-item-card d-flex align-items-center justify-content-between p-2 border rounded bg-white mb-2 shadow-sm">
+                  <div class="file-item-card d-flex align-items-center justify-content-between p-2 rounded mb-2 shadow-sm">
                     <div class="d-flex align-items-center gap-2 text-truncate pe-2">
                       <mat-icon color="primary">description</mat-icon>
-                      <a [href]="url" target="_blank" class="text-decoration-none text-dark small fw-medium text-truncate">
+                      <a [href]="url" target="_blank" class="file-link text-decoration-none small fw-medium text-truncate">
                         Receipt_Verification_Document_{{ idx + 1 }}.pdf
                       </a>
                     </div>

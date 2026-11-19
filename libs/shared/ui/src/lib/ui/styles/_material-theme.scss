@@ -1,0 +1,114 @@
+@use '@angular/material' as mat;
+
+/* ==========================================================================
+   ANGULAR MATERIAL M3 THEME & TOKEN BRIDGE
+   ========================================================================== */
+
+:root {
+  @include mat.theme((
+    color: (
+      primary: mat.$violet-palette,
+      tertiary: mat.$azure-palette,
+    ),
+    typography: (
+      plain-family: (Roboto, 'Helvetica Neue', sans-serif),
+      brand-family: (Roboto, 'Helvetica Neue', sans-serif),
+    ),
+    density: 0,
+  ));
+
+  /* Bridge Material M3 system tokens to brand purple & Slate surfaces */
+  @include mat.theme-overrides((
+    primary: var(--primary-color),
+    surface: var(--bg-primary),
+    surface-container-lowest: var(--bg-secondary),
+    surface-container-low: var(--bg-secondary),
+    surface-container: var(--bg-secondary),
+    surface-container-high: var(--bg-secondary),
+    surface-container-highest: var(--bg-modal-primary),
+    on-surface: var(--text-primary),
+    on-surface-variant: var(--text-secondary),
+    outline: var(--border-color),
+    outline-variant: var(--border-color),
+  ));
+
+  /* Global Form Field Overrides (Auto-adapts to Light & Dark tokens) */
+  @include mat.form-field-overrides((
+    outlined-outline-color: var(--border-color),
+    outlined-hover-outline-color: var(--primary-color),
+    outlined-focus-outline-color: var(--primary-color),
+    outlined-label-text-color: var(--text-secondary),
+    outlined-hover-label-text-color: var(--text-primary),
+    outlined-focus-label-text-color: var(--primary-color),
+    outlined-input-text-color: var(--text-input),
+    outlined-input-text-placeholder-color: var(--text-secondary),
+    trailing-icon-color: var(--text-secondary),
+  ));
+
+  /* Global Dialog Overrides */
+  @include mat.dialog-overrides((
+    container-color: var(--bg-modal-primary),
+    subhead-color: var(--text-primary),
+    supporting-text-color: var(--text-secondary),
+  ));
+
+  /* Global Disabled Button Overrides */
+  @include mat.button-overrides((
+    filled-disabled-container-color: var(--btn-disabled-bg),
+    filled-disabled-label-text-color: var(--btn-disabled-text),
+    outlined-disabled-outline-color: var(--btn-disabled-bg),
+    outlined-disabled-label-text-color: var(--btn-disabled-text),
+    text-disabled-label-text-color: var(--btn-disabled-text),
+  ));
+
+  /* Global Sidenav Viewport Overrides */
+  @include mat.sidenav-overrides((
+    content-background-color: var(--bg-primary),
+    content-text-color: var(--text-primary),
+  ));
+}
+
+/* Preserve soft input background fill across Light & Dark Mode */
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  background-color: var(--bg-input);
+  border-radius: var(--mat-sys-corner-extra-small, 4px);
+}
+
+/* Dialog Header & Actions Divider */
+.mat-mdc-dialog-container h2.mat-mdc-dialog-title {
+  border-color: var(--border-color);
+}
+
+.mat-mdc-dialog-actions {
+  border-top: 1px solid var(--border-color);
+}
+
+/* ==========================================================================
+   NOTIFICATION SNACKBARS OVERRIDES
+   ========================================================================== */
+.toast-success {
+  @include mat.snack-bar-overrides((
+    container-color: #198754,
+    button-color: #ffffff,
+    supporting-text-color: #ffffff,
+    container-shape: var(--mat-sys-corner-extra-small),
+  ));
+}
+
+.toast-error {
+  @include mat.snack-bar-overrides((
+    container-color: #dc3545,
+    button-color: #ffffff,
+    supporting-text-color: #ffffff,
+    container-shape: var(--mat-sys-corner-extra-small),
+  ));
+}
+
+.toast-warning {
+  @include mat.snack-bar-overrides((
+    container-color: #f57c00,
+    button-color: #ffffff,
+    supporting-text-color: #ffffff,
+    container-shape: var(--mat-sys-corner-extra-small),
+  ));
+}

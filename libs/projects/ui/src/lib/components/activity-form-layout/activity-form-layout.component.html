@@ -19,31 +19,32 @@
       <form [formGroup]="form()" class="w-100 py-2">
         <!-- Error Banners -->
         @if (errorMessage()) {
-        <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-          <mat-icon class="fs-5 w-auto h-auto text-danger flex-shrink-0">error_outline</mat-icon>
+        <div class="themed-alert danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto flex-shrink-0">error_outline</mat-icon>
           <span>{{ errorMessage() }}</span>
         </div>
         }
 
         @if (form().errors?.['invalidDateRange'] && (form().get('endDate')?.touched ||
         form().get('startDate')?.touched)) {
-        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-          <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
+        <div class="themed-alert warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto flex-shrink-0">warning_amber</mat-icon>
           <span>{{ t('warnings.invalidDateRange') }}</span>
         </div>
         }
 
         @if (form().errors?.['initialSpentExceedsBudget'] && (form().get('initialSpent')?.touched ||
         form().get('budgetCap')?.touched)) {
-        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-          <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
+        <div class="themed-alert warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto flex-shrink-0">warning_amber</mat-icon>
           <span>{{ t('warnings.initialSpentExceedsBudget') }}</span>
         </div>
         }
 
-        @if (form().errors?.['eventOutsideParentProjectTimeline'] && (form().get('endDate')?.touched || form().get('startDate')?.touched)) {
-        <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-          <mat-icon class="fs-5 w-auto h-auto text-warning flex-shrink-0">warning_amber</mat-icon>
+        @if (form().errors?.['eventOutsideParentProjectTimeline'] && (form().get('endDate')?.touched ||
+        form().get('startDate')?.touched)) {
+        <div class="themed-alert warning py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <mat-icon class="fs-5 w-auto h-auto flex-shrink-0">warning_amber</mat-icon>
           <span>{{ t('warnings.outsideParentTimeline') }}</span>
         </div>
         }
@@ -108,7 +109,7 @@
               <input matInput formControlName="budgetCap" (input)="onAmountChange($event, 'budgetCap')"
                 placeholder="0" />
               @if (isFundLoading()) {
-              <mat-hint align="end" class="text-muted d-inline-flex align-items-center gap-1">
+              <mat-hint align="end" class="checking-hint d-inline-flex align-items-center gap-1">
                 <mat-spinner diameter="12"></mat-spinner>
                 <span>{{ t('fields.budgetCap.checkingHint') }}</span>
               </mat-hint>
@@ -200,8 +201,8 @@
                   <mat-icon color="primary">qr_code_2</mat-icon>
                 </div>
                 <div>
-                  <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.toggleTitle') }}</h4>
-                  <p class="m-0 text-muted smaller">{{ t('invitationCode.toggleSubtitle') }}</p>
+                  <h4 class="m-0 fs-6 fw-bold section-heading">{{ t('invitationCode.toggleTitle') }}</h4>
+                  <p class="m-0 join-subtitle smaller">{{ t('invitationCode.toggleSubtitle') }}</p>
                 </div>
               </div>
               <mat-slide-toggle formControlName="generateJoinCode" color="primary"></mat-slide-toggle>
@@ -238,10 +239,10 @@
   <!-- Window 2: Secondary Slide-out Card for Join Code Settings -->
   @if (form().get('generateJoinCode')?.value && !isDetailMode() && !isEditMode()) {
   <div class="secondary-modal-card">
-    <div class="card-header-box d-flex align-items-center justify-content-between border-bottom p-3">
+    <div class="card-header-box d-flex align-items-center justify-content-between p-3">
       <div class="d-flex align-items-center gap-2">
         <mat-icon color="primary">settings_suggest</mat-icon>
-        <h4 class="m-0 fs-6 fw-bold text-dark">{{ t('invitationCode.panelTitle') }}</h4>
+        <h4 class="m-0 fs-6 fw-bold section-heading">{{ t('invitationCode.panelTitle') }}</h4>
       </div>
       <button mat-icon-button type="button" (click)="form().get('generateJoinCode')?.setValue(false)">
         <mat-icon class="fs-5">close</mat-icon>
@@ -250,9 +251,8 @@
 
     <div class="card-content-box p-3 d-flex flex-column gap-3" [formGroup]="form()">
       @if (!isImmediatelyActive()) {
-      <div class="alert alert-info py-2 px-3 m-0 small d-flex align-items-start gap-2">
-        <mat-icon class="fs-6 text-info flex-shrink-0 mt-1"
-          style="width: 18px; height: 18px; font-size: 18px;">info</mat-icon>
+      <div class="themed-alert info py-2 px-3 m-0 small d-flex align-items-start gap-2">
+        <mat-icon class="fs-6 flex-shrink-0 mt-1" style="width: 18px; height: 18px; font-size: 18px;">info</mat-icon>
         <span class="lh-sm">{{ t('invitationCode.pendingApprovalNotice') }}</span>
       </div>
       }
@@ -280,8 +280,8 @@
       </mat-form-field>
 
       <div class="code-preview-card mt-auto p-3 rounded-3 text-center">
-        <mat-icon class="preview-icon text-muted mb-1">lock_open</mat-icon>
-        <p class="preview-text small text-muted m-0">{{ t('invitationCode.previewNote') }}</p>
+        <mat-icon class="preview-icon mb-1">lock_open</mat-icon>
+        <p class="preview-text small m-0">{{ t('invitationCode.previewNote') }}</p>
       </div>
     </div>
   </div>

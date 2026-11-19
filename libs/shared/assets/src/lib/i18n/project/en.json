@@ -55,20 +55,6 @@
     }
   },
   "shared": {
-    "filter": {
-      "options": {
-        "projectType": {
-          "SCHOOL": "School Funded",
-          "OUTSOURCE": "Outsourced / External"
-        },
-        "projectStatus": {
-          "ACTIVE": "Active",
-          "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
-          "COMPLETED": "Completed",
-          "ARCHIVED": "Archived"
-        }
-      }
-    },
     "sidebar": {
       "menu": {
         "PROJECT_MANAGER": "Projects",

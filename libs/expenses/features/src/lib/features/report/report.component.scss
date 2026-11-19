@@ -1,81 +1,102 @@
 /* report.component.scss */
 
 :host {
-  /* 1. Nền trang chính: Dùng --bg-primary (Xanh than đậm ở dark mode) thay vì #f9f9fc */
   background-color: var(--bg-primary);
-  
-  /* Đảm bảo màu chữ mặc định là màu chính */
   color: var(--text-primary);
-  
-  /* Thêm transition để khi switch mode nó mượt */
   transition: background-color 0.3s ease;
-  display: block; /* :host cần display block để ăn background */
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 
   .header-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+    flex-wrap: wrap;
 
     .filter {
-      padding-right: 52px;
+      padding-right: 40px;
     }
   }
 
   .report-page {
+    flex: 1 0 auto;
+
     .summarize-section {
-      display: flex;
-      justify-content: space-between;
-      padding: 30px 40px 40px 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      padding: 24px 40px 32px;
 
       .total-expense,
       .num-transactions,
       .max-expense,
       .change {
-        /* 2. Nền Card: Dùng --bg-secondary thay vì #fff */
         background-color: var(--bg-secondary);
-        
-        /* 3. Viền: Dùng --border-color thay vì #dbdddd */
         border: 1px solid var(--border-color);
-        
         padding: 20px;
-        width: 350px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        
-        /* Bo góc nhẹ cho đẹp (Optional) */
-        border-radius: 8px;
+        gap: 14px;
+        border-radius: 12px;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+
+        &:hover {
+          border-color: var(--primary-color);
+          transform: translateY(-2px);
+        }
 
         mat-icon {
-          /* 4. Icon chính: Dùng --primary-color thay vì #7d45ff */
           color: var(--primary-color);
-          
-          width: 50px;
-          height: 50px;
+          width: 44px;
+          height: 44px;
           font-size: 2rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          background-color: var(--purple-bland-8);
+          flex-shrink: 0;
 
           &.good {
-            /* Dùng biến mới tạo ở Bước 1 */
-            color: var(--color-success, green);
+            color: var(--color-success);
+            background-color: color-mix(in srgb, var(--color-success) 12%, transparent);
           }
 
           &.bad {
-            /* Dùng biến có sẵn trong global */
-            color: var(--color-danger, red);
+            color: var(--color-danger);
+            background-color: color-mix(in srgb, var(--color-danger) 12%, transparent);
           }
         }
 
         .child {
-          /* Màu chữ phụ cũng cần theo theme */
-          color: var(--text-primary);
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          p {
+            margin: 0;
+          }
+
+          p:first-child {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+          }
+
+          p:last-child {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-primary);
+          }
 
           .good {
-             color: var(--color-success, green);
+            color: var(--color-success);
           }
 
           .bad {
-             color: var(--color-danger, red);
+            color: var(--color-danger);
           }
         }
       }
@@ -83,7 +104,7 @@
 
     .chart {
       --gap: 24px;
-      padding: 0px 40px 40px;
+      padding: 0 40px 40px;
       display: grid;
       grid-template-columns: 1fr;
       gap: var(--gap);
@@ -94,17 +115,13 @@
       }
 
       .card {
-        /* 5. Border và Background cho Chart Card */
-        border: 1px solid var(--border-color); /* Thay #e5e7eb */
+        border: 1px solid var(--border-color);
         border-radius: 12px;
-        background: var(--bg-secondary); /* Thay #fff */
-        
-        padding: 12px 16px;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        padding: 16px;
         overflow: hidden;
         position: relative;
-        
-        /* Màu chữ bên trong card (Title biểu đồ...) */
-        color: var(--text-primary);
 
         &.chart-large {
           height: 380px;

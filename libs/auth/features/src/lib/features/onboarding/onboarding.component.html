@@ -1,11 +1,11 @@
-<div class="vw-100 vh-100 bg-light d-flex align-items-center justify-content-center p-4"
+<div class="onboarding-wrapper min-vh-100 d-flex align-items-center justify-content-center p-4"
     *transloco="let t; read: 'auth.onboarding'">
 
-    <div class="w-full bg-white rounded-3 shadow border p-5" style="max-width: 450px;">
+    <div class="onboarding-card w-100 rounded-4 p-4 p-sm-5">
 
         <div class="text-center mb-4">
-            <h2 class="h4 font-weight-bold text-dark">{{ t('title') }}</h2>
-            <p class="text-muted small">{{ t('description') }}</p>
+            <h2 class="h4 fw-bold onboarding-title mb-2">{{ t('title') }}</h2>
+            <p class="onboarding-subtitle small mb-0">{{ t('description') }}</p>
         </div>
 
         <form [formGroup]="onboardingForm" (ngSubmit)="onSubmit()">
@@ -47,19 +47,6 @@
                 </mat-form-field>
             </div>
 
-            <!-- <div class="mb-3">
-                <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>{{ t('fields.userType.label') }}</mat-label>
-                    <mat-select formControlName="userType">
-                        @for (type of userTypes; track type) {
-                        <mat-option [value]="type">{{ t('fields.userType.options.' + type) }}</mat-option>
-                        }
-                    </mat-select>
-                    <mat-error>{{ onboardingForm.get('userType')?.errors | formError: { required:
-                        t('fields.userType.errors.required') } }}</mat-error>
-                </mat-form-field>
-            </div> -->
-
             <div class="mb-3">
                 <mat-form-field appearance="outline" class="w-100">
                     <mat-label>{{ t('fields.userCode.label') }}</mat-label>
@@ -82,7 +69,7 @@
             </div>
 
             <div class="mt-2">
-                <button type="submit" mat-raised-button color="primary"
+                <button type="submit" mat-raised-button color="primary" class="w-100 submit-btn"
                     [disabled]="onboardingForm.invalid || authService.isOnboardingSubmitting()">
 
                     @if (authService.isOnboardingSubmitting()) {

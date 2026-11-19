@@ -1,8 +1,12 @@
+@use '@angular/material' as mat;
+
 :host {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease;
 
   .projects-shell-container {
     flex: 1 0 auto;
@@ -12,8 +16,22 @@
     padding: 1.5rem 1rem;
 
     .tabs-header-wrapper {
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--border-color);
       margin-bottom: 1.25rem;
+
+      .routed-tabs {
+        @include mat.tabs-overrides((
+          active-indicator-color: var(--primary-color),
+          active-focus-indicator-color: var(--primary-color),
+          active-hover-indicator-color: var(--primary-color),
+          active-label-text-color: var(--primary-color),
+          active-focus-label-text-color: var(--primary-color),
+          active-hover-label-text-color: var(--primary-color),
+          inactive-label-text-color: var(--text-secondary),
+          inactive-hover-label-text-color: var(--text-primary),
+          divider-color: transparent,
+        ));
+      }
     }
   }
 }

@@ -11,5 +11,6 @@ export enum ProjectStatus {
     ACTIVE = 'ACTIVE',
     COMPLETED = 'COMPLETED',
     ARCHIVED = 'ARCHIVED',
-    REJECTED = 'REJECTED'
+    REJECTED = 'REJECTED',
+    EXPIRED = 'EXPIRED'
 }

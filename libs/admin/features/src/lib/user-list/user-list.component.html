@@ -11,11 +11,11 @@
 
   </lib-filter>
 
-  <div class="card shadow-sm border-0 rounded-4 overflow-hidden" [seLoading]="userResource.isLoading()">
+  <div class="card user-grid-card shadow-sm rounded-4 overflow-hidden" [seLoading]="userResource.isLoading()">
     <div class="card-body p-0">
 
       <div class="table-responsive">
-        <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
+        <table mat-table [dataSource]="dataSource()" class="w-100 synchronized-material-table">
 
           <ng-container matColumnDef="fullName">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{
@@ -24,7 +24,7 @@
               @if (user.fullName) {
               {{ user.fullName }}
               } @else {
-              <span class="text-muted fst-italic fw-normal small" style="cursor: help;"
+              <span class="pending-placeholder fst-italic fw-normal small"
                 [matTooltip]="'admin.userList.tooltips.onboarding' | transloco">
                 {{ 'admin.userList.states.onboardingPending' | transloco }}
               </span>
@@ -47,7 +47,7 @@
               @if (user.userCode) {
               <code>{{ user.userCode }}</code>
               } @else {
-              <span class="text-muted fst-italic small" style="cursor: help;"
+              <span class="pending-placeholder fst-italic small"
                 [matTooltip]="'admin.userList.tooltips.pendingId' | transloco">
                 {{ 'admin.userList.states.pending' | transloco }}
               </span>
@@ -74,7 +74,7 @@
                 {{ 'admin.userList.types.' + user.userType | transloco }}
               </span>
               } @else {
-              <span class="badge-usertype-variant usertype-unassigned" style="cursor: help;"
+              <span class="badge-usertype-variant usertype-unassigned help-cursor"
                 [matTooltip]="((isAdmin() || isFinance()) ? 'admin.userList.tooltips.unassignedOps' : 'admin.userList.tooltips.unassignedUser') | transloco">
                 {{ 'admin.userList.states.unassigned' | transloco }}
               </span>
@@ -110,13 +110,15 @@
                 <span
                   [matTooltip]="(user.isOnboarding ? 'admin.userList.tooltips.editLocked' : 'admin.userList.actions.edit') | transloco"
                   class="d-inline-block">
-                  <button mat-icon-button color="accent" [disabled]="user.isProcessing || user.isOnboarding"
+                  <button mat-icon-button class="action-icon-btn action-edit"
+                    [disabled]="user.isProcessing || user.isOnboarding"
                     (click)="openUpdateModal(user)" aria-label="Edit settings">
                     <mat-icon class="action-edit-icon">edit</mat-icon>
                   </button>
                 </span>
                 } @else {
-                <button mat-icon-button color="warn" [matTooltip]="'admin.userList.actions.delete' | transloco"
+                <button mat-icon-button class="action-icon-btn action-delete"
+                  [matTooltip]="'admin.userList.actions.delete' | transloco"
                   (click)="openDeleteModal(user)" aria-label="Delete account">
                   <mat-icon class="action-edit-icon">delete</mat-icon>
                 </button>
@@ -133,8 +135,8 @@
                 </div>
               </div>
               } @else {
-              <div class="d-flex align-items-center gap-1 text-muted ms-2 bg-light px-2 py-1 rounded border"
-                style="width: fit-content;" [matTooltip]="'admin.userList.tooltips.protectedRule' | transloco">
+              <div class="protected-badge d-flex align-items-center gap-1 ms-2 px-2 py-1 rounded"
+                [matTooltip]="'admin.userList.tooltips.protectedRule' | transloco">
                 <mat-icon class="fs-6 w-auto h-auto m-0">lock</mat-icon>
                 <span class="small-text fw-semibold">
                   {{ 'admin.userList.states.protected' | transloco }} @if(!user.isNotCurrentAdmin){ <span>({{
@@ -153,13 +155,13 @@
           <tr class="mat-mdc-no-data-row" *matNoDataRow>
             <td [attr.colspan]="displayedColumns.length">
               @if (errorMessage()) {
-              <div class="alert alert-danger d-flex align-items-center justify-content-between m-4 rounded-3"
+              <div class="themed-alert danger d-flex align-items-center justify-content-between m-4 p-3 rounded-3"
                 role="alert">
-                <div class="d-flex align-items-center">
-                  <span class="fs-4 me-2">⚠️</span>
+                <div class="d-flex align-items-center gap-2">
+                  <mat-icon class="fs-5 w-auto h-auto flex-shrink-0">error_outline</mat-icon>
                   <span>{{ errorMessage() }}</span>
                 </div>
-                <button (click)="triggerRefresh()" class="btn btn-outline-danger btn-sm fw-semibold">
+                <button mat-stroked-button type="button" class="retry-btn fw-semibold" (click)="triggerRefresh()">
                   {{ 'admin.userList.actions.retry' | transloco }}
                 </button>
               </div>
@@ -168,10 +170,10 @@
               <div
                 class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
                 <div class="empty-icon-box mb-3">
-                  <mat-icon class="material-icons-outlined text-muted">people_alt</mat-icon>
+                  <mat-icon class="material-icons-outlined">people_alt</mat-icon>
                 </div>
                 <h3 class="empty-title m-0">{{ 'admin.userList.feedback.emptyTitle' | transloco }}</h3>
-                <p class="empty-subtitle text-muted px-3">{{ 'admin.userList.feedback.emptySubtitle' | transloco }}</p>
+                <p class="empty-subtitle px-3">{{ 'admin.userList.feedback.emptySubtitle' | transloco }}</p>
               </div>
               }
             </td>
