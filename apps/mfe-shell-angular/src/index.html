@@ -20,11 +20,6 @@
   <app-root>
     <style>
       .app-boot-splash {
-        --splash-bg: #f8fafc;
-        --splash-text: #475569;
-        --splash-track: #e2e8f0;
-        --splash-accent: #2563eb;
-
         position: fixed;
         inset: 0;
         display: flex;
@@ -32,27 +27,18 @@
         align-items: center;
         justify-content: center;
         gap: 14px;
-        background-color: var(--splash-bg);
+        background-color: var(--bg-primary);
         font-family: system-ui, -apple-system, sans-serif;
-        color: var(--splash-text);
+        color: var(--text-secondary);
         font-size: 14px;
         z-index: 9999;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        .app-boot-splash {
-          --splash-bg: #0f172a;
-          --splash-text: #cbd5e1;
-          --splash-track: #1e293b;
-          --splash-accent: #60a5fa;
-        }
       }
 
       .app-boot-spinner {
         width: 36px;
         height: 36px;
-        border: 3px solid var(--splash-track);
-        border-top-color: var(--splash-accent);
+        border: 3px solid var(--border-color);
+        border-top-color: var(--primary-color);
         border-radius: 50%;
         animation: boot-spin 0.75s linear infinite;
       }

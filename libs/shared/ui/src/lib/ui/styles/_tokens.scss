@@ -80,6 +80,11 @@
   --status-neutral-bg: light-dark(#f1f5f9, rgba(148, 163, 184, 0.14));
   --status-neutral-text: light-dark(#475569, #cbd5e1);
   --status-neutral-border: light-dark(#cbd5e1, rgba(148, 163, 184, 0.3));
+
+  /* Toast / Snackbar Surfaces */
+  --toast-success-bg: light-dark(#15803d, #166534);
+  --toast-danger-bg: light-dark(#dc2626, #991b1b);
+  --toast-warning-bg: light-dark(#d97706, #b45309);
 }
 
 :root:has(body.dark-mode),

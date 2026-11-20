@@ -88,27 +88,27 @@
    ========================================================================== */
 .toast-success {
   @include mat.snack-bar-overrides((
-    container-color: #198754,
-    button-color: #ffffff,
-    supporting-text-color: #ffffff,
+    container-color: var(--toast-success-bg),
+    button-color: var(--text-on-primary),
+    supporting-text-color: var(--text-on-primary),
     container-shape: var(--mat-sys-corner-extra-small),
   ));
 }
 
 .toast-error {
   @include mat.snack-bar-overrides((
-    container-color: #dc3545,
-    button-color: #ffffff,
-    supporting-text-color: #ffffff,
+    container-color: var(--toast-danger-bg),
+    button-color: var(--text-on-primary),
+    supporting-text-color: var(--text-on-primary),
     container-shape: var(--mat-sys-corner-extra-small),
   ));
 }
 
 .toast-warning {
   @include mat.snack-bar-overrides((
-    container-color: #f57c00,
-    button-color: #ffffff,
-    supporting-text-color: #ffffff,
+    container-color: var(--toast-warning-bg),
+    button-color: var(--text-on-primary),
+    supporting-text-color: var(--text-on-primary),
     container-shape: var(--mat-sys-corner-extra-small),
   ));
 }
