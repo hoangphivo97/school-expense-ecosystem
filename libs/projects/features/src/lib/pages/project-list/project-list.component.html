@@ -1,4 +1,4 @@
-<div class="project-list" *transloco="let t; read:'project.projectList'">
+<div class="project-list" *transloco="let t; prefix:'project.projectList'">
   <lib-filter [configs]="projectFilterConfigs()" [value]="filterParams()"
     (filterChange)="onProjectFiltersChanged($event)">
     @if (!isStudent()) {

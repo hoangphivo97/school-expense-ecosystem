@@ -1,5 +1,5 @@
 <div class="onboarding-wrapper min-vh-100 d-flex align-items-center justify-content-center p-4"
-    *transloco="let t; read: 'auth.onboarding'">
+    *transloco="let t; prefix: 'auth.onboarding'">
 
     <div class="onboarding-card w-100 rounded-4 p-4 p-sm-5">
 
@@ -41,8 +41,9 @@
                         }
                     </mat-select>
                     <mat-error>
-                        {{ onboardingForm.get('facultyId')?.errors | formError:{ required:
-                        t('fields.faculty.errors.required') } }}
+                        {{ onboardingForm.get('facultyId')?.errors | formError:{
+                        required: t('fields.faculty.errors.required')
+                        } }}
                     </mat-error>
                 </mat-form-field>
             </div>
@@ -51,8 +52,11 @@
                 <mat-form-field appearance="outline" class="w-100">
                     <mat-label>{{ t('fields.userCode.label') }}</mat-label>
                     <input matInput formControlName="userCode" [placeholder]="t('fields.userCode.placeholder')">
-                    <mat-error>{{ onboardingForm.get('userCode')?.errors | formError: { required:
-                        t('fields.userCode.errors.required') } }}</mat-error>
+                    <mat-error>
+                        {{ onboardingForm.get('userCode')?.errors | formError:{
+                        required: t('fields.userCode.errors.required')
+                        } }}
+                    </mat-error>
                 </mat-form-field>
             </div>
 
@@ -63,14 +67,17 @@
                         [placeholder]="t('fields.dateOfBirth.placeholder')">
                     <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                     <mat-datepicker #picker></mat-datepicker>
-                    <mat-error>{{ onboardingForm.get("dateOfBirth")?.errors | formError: { required:
-                        t('fields.dateOfBirth.errors.required') } }}</mat-error>
+                    <mat-error>
+                        {{ onboardingForm.get('dateOfBirth')?.errors | formError:{
+                        required: t('fields.dateOfBirth.errors.required')
+                        } }}
+                    </mat-error>
                 </mat-form-field>
             </div>
 
             <div class="mt-2">
                 <button type="submit" mat-raised-button color="primary" class="w-100 submit-btn"
-                    [disabled]="onboardingForm.invalid || authService.isOnboardingSubmitting()">
+                    [disabled]="authService.isOnboardingSubmitting()">
 
                     @if (authService.isOnboardingSubmitting()) {
                     <mat-spinner diameter="20" class="me-2 d-inline-block align-middle"></mat-spinner>

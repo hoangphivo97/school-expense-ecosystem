@@ -1,23 +1,26 @@
-<div class="container d-flex justify-content-center align-items-center min-vh-100" *transloco="let t; read: 'auth.waitingApproval'">
-  <mat-card class="p-5 shadow-sm text-center waiting-card border-0">
-    <mat-card-content class="d-flex flex-column align-items-center py-4">
+<div class="waiting-wrapper d-flex justify-content-center align-items-center min-vh-100 p-4"
+  *transloco="let t;prefix: 'auth.waitingApproval'">
+  <mat-card class="p-4 p-sm-5 shadow-sm text-center waiting-card">
+    <mat-card-content class="d-flex flex-column align-items-center py-3">
 
       <mat-progress-spinner mode="indeterminate" [diameter]="80" class="mb-4 processing-spinner">
       </mat-progress-spinner>
 
-      <h2 class="text-primary fw-bold mb-1">{{ t('title') }}</h2>
-      
-      <h4 class="text-secondary fw-semibold mb-4">{{ t('greeting', { name: displayName() }) }}</h4>
+      <h2 class="waiting-title fw-bold mb-1">{{ t('title') }}</h2>
+
+      <h4 class="waiting-greeting fw-semibold mb-4">{{ t('greeting', { name: displayName() }) }}</h4>
 
       <!-- Architect Fix: Leverage dynamic innerHTML param interpolation to safely adapt to variable multi-language word orders -->
-      <p class="text-muted text-center px-4 lead fs-6" [innerHTML]="t('message', { email: displayEmail() })"></p>
+      <p class="waiting-message text-center px-2 px-sm-4 lead fs-6"
+        [innerHTML]="t('message', { email: displayEmail() })"></p>
 
-      <div class="mt-2 text-secondary small-text d-flex align-items-center gap-1">
+      <div class="mt-2 waiting-status small-text d-flex align-items-center gap-2">
         <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
-        {{ t('realtimeStatus') }}
+        <span>{{ t('realtimeStatus') }}</span>
       </div>
-      <div class="d-flex align-items-center gap-1 p-4">
-        <button mat-button color="warn" class="px-4" (click)="handleLogout()">
+
+      <div class="d-flex align-items-center justify-content-center gap-1 pt-4">
+        <button type="button" mat-button color="warn" class="px-4" (click)="handleLogout()">
           {{ t('buttons.logout') }}
         </button>
       </div>

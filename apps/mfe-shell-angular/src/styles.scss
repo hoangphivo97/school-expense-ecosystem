@@ -66,6 +66,10 @@ body {
   z-index: 1050;
 }
 
+.mat-mdc-form-field-subscript-wrapper {
+  min-height: 20px;
+}
+
 .text-muted {
   color: var(--text-secondary) !important;
 }
