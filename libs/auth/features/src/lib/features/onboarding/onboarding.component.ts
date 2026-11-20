@@ -34,9 +34,10 @@ import { AuthService } from '@school-expense-ecosystem/auth/data-access';
   ],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     { provide: TRANSLOCO_SCOPE, useValue: ['auth', 'shared'] }
-  ]
+  ],
 })
 
 export class OnboardingComponent implements OnInit {

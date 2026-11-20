@@ -17,26 +17,26 @@
     }
 
     &.badge-primary {
-      background-color: rgba(103, 58, 183, 0.1);
-      color: #673ab7;
+      background-color: var(--purple-bland-8);
+      color: var(--primary-color);
     }
 
     &.badge-warn {
-      background-color: rgba(244, 67, 54, 0.1);
-      color: #f44336;
+      background-color: var(--status-danger-bg);
+      color: var(--color-danger);
     }
 
     &.badge-warning {
-      background-color: rgba(255, 152, 0, 0.12);
-      color: #ed6c02;
+      background-color: var(--status-warning-bg);
+      color: var(--color-warning);
     }
   }
 
   .dialog-title {
-    color: var(--mat-dialog-headline-color, #1e293b);
+    color: var(--text-primary);
   }
 
   .dialog-message {
-    color: #64748b;
+    color: var(--text-secondary);
   }
 }

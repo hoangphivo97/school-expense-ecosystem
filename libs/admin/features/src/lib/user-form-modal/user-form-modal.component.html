@@ -1,5 +1,5 @@
 <ng-container *transloco="let t; scope: 'admin'">
-  <h2 mat-dialog-title class="fw-bold text-dark m-0 pb-2 border-bottom border-light">
+  <h2 mat-dialog-title class="modal-title fw-bold m-0 pb-2">
     @if (isDetailMode()) { {{ 'admin.userForm.titleDetail' | transloco }} }
     @else if (isEditMode()) { {{ 'admin.userForm.titleEdit' | transloco }} }
     @else { {{ 'admin.userForm.titleCreate' | transloco }} }
@@ -28,11 +28,10 @@
 
         @if (userForm.role().value()) {
         <div class="col-12 animate-fade-in">
-          <div
-            class="auth-stream-badge p-3 rounded border border-dashed d-flex flex-column justify-content-center bg-light">
-            <span class="text-muted small-text text-uppercase fw-semibold tracking-wider">{{
+          <div class="auth-stream-badge p-3 rounded d-flex flex-column justify-content-center">
+            <span class="badge-caption small-text text-uppercase fw-semibold tracking-wider">{{
               'admin.userForm.correspondingAuth' | transloco }}</span>
-            <span class="fw-bold text-primary fs-6 mt-1 d-flex align-items-center">
+            <span class="badge-value fw-bold fs-6 mt-1 d-flex align-items-center gap-2">
               <span class="indicator-dot" [class.bg-success]="authMethodDisplay() === 'google'"
                 [class.bg-warning]="authMethodDisplay() !== 'google'"></span>
               {{ 'admin.userForm.authMethod.' + authMethodDisplay() | transloco }}
@@ -140,15 +139,15 @@
             <mat-label>{{ 'admin.userForm.facultyScope' | transloco }}</mat-label>
             <mat-select [formField]="userForm.facultyId">
               @if (isFacultiesLoading()) {
-                <mat-option disabled>
-                  <mat-spinner diameter="18" class="me-2 d-inline-block align-middle"></mat-spinner>
-                </mat-option>
+              <mat-option disabled>
+                <mat-spinner diameter="18" class="me-2 d-inline-block align-middle"></mat-spinner>
+              </mat-option>
               } @else {
-                @for (opt of facultyOptions(); track opt.value) {
-                  <mat-option [value]="opt.value">
-                    {{ opt.labelKey | transloco: { defaultValue: opt.label } }}
-                  </mat-option>
-                }
+              @for (opt of facultyOptions(); track opt.value) {
+              <mat-option [value]="opt.value">
+                {{ opt.labelKey | transloco: { defaultValue: opt.label } }}
+              </mat-option>
+              }
               }
             </mat-select>
             <mat-error>
@@ -177,8 +176,8 @@
     </form>
   </mat-dialog-content>
 
-  <mat-dialog-actions align="end" class="px-3 pb-3 pt-0 border-top border-light gap-2">
-    <button mat-button mat-dialog-close class="px-4 py-2 text-secondary fw-semibold">
+  <mat-dialog-actions align="end" class="modal-actions px-3 pb-3 pt-2 gap-2">
+    <button mat-button mat-dialog-close class="cancel-btn px-4 py-2 fw-semibold">
       {{ 'admin.userForm.actions.cancel' | transloco }}
     </button>
 
@@ -187,7 +186,6 @@
       <mat-icon>edit</mat-icon> {{ 'admin.userForm.actions.editProfile' | transloco }}
     </button>
     } @else if(!isDetailMode()) {
-
     <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="userForm().invalid() || isLoading()"
       class="px-4 py-2 fw-semibold shadow-sm">
       {{ (isEditMode() ? 'admin.userForm.actions.update' : 'admin.userForm.actions.provision') | transloco }}

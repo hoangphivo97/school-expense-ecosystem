@@ -90,8 +90,8 @@
       }
 
       .pending-spent-cell {
-        color: light-dark(#d97706, #fbbf24);
-      }
+      color: var(--color-warning);
+    }
 
       .current-spent-cell {
         color: var(--text-secondary);

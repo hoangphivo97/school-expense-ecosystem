@@ -98,11 +98,11 @@
         &.active-page-node {
           @include mat.button-overrides((
             filled-container-color: var(--primary-color),
-            filled-label-text-color: #ffffff,
+            filled-label-text-color: var(--text-on-primary)
           ));
 
           background-color: var(--primary-color);
-          color: #ffffff;
+          color: var(--text-on-primary);
         }
       }
     }

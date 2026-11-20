@@ -57,9 +57,9 @@
     color: var(--text-primary);
 
     .auto-linked-badge {
-      background-color: light-dark(#ecfdf5, rgba(16, 185, 129, 0.14));
-      color: light-dark(#065f46, #34d399);
-      border: 1px solid light-dark(#a7f3d0, rgba(16, 185, 129, 0.3));
+      background-color: var(--status-success-bg);
+      color: var(--status-success-text);
+      border: 1px solid var(--status-success-border);
     }
   }
 
@@ -67,15 +67,15 @@
     border-radius: 8px;
 
     &.warning {
-      background-color: light-dark(#fefce8, rgba(234, 179, 8, 0.14));
-      color: light-dark(#854d0e, #facc15);
-      border: 1px solid light-dark(#fef08a, rgba(234, 179, 8, 0.3));
+      background-color: var(--status-warning-bg);
+      color: var(--status-warning-text);
+      border: 1px solid var(--status-warning-border);
     }
 
     &.danger {
-      background-color: light-dark(#fef2f2, rgba(239, 68, 68, 0.14));
-      color: light-dark(#991b1b, #f87171);
-      border: 1px solid light-dark(#fee2e2, rgba(239, 68, 68, 0.3));
+      background-color: var(--status-danger-bg);
+      color: var(--status-danger-text);
+      border: 1px solid var(--status-danger-border);
     }
   }
 
@@ -152,7 +152,7 @@
     }
 
     .attached-header {
-      color: light-dark(#059669, #34d399);
+      color: var(--status-success-text);
     }
 
     .file-item-card {

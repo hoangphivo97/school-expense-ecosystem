@@ -24,7 +24,9 @@
       background-color: var(--bg-modal-primary);
       color: var(--text-primary);
       border-radius: 20px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+      box-shadow:
+        0 20px 25px -5px color-mix(in srgb, var(--text-primary) 25%, transparent),
+        0 10px 10px -5px color-mix(in srgb, var(--text-primary) 8%, transparent);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -39,7 +41,9 @@
       background-color: var(--bg-modal-primary);
       color: var(--text-primary);
       border-radius: 20px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+      box-shadow:
+        0 20px 25px -5px color-mix(in srgb, var(--text-primary) 25%, transparent),
+        0 10px 10px -5px color-mix(in srgb, var(--text-primary) 8%, transparent);
       display: flex;
       flex-direction: column;
       overflow: hidden;

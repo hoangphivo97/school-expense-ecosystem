@@ -34,7 +34,7 @@
       }
 
       &.is-near-full {
-        background-color: light-dark(#f59e0b, #fbbf24);
+        background-color: var(--color-warning);
       }
 
       &.is-full {

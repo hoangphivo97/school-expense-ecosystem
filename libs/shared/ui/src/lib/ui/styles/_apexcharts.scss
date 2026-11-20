@@ -8,6 +8,11 @@
     fill: var(--text-primary);
   }
 
+  .apexcharts-xaxis-label,
+  .apexcharts-yaxis-label {
+    fill: var(--text-secondary);
+  }
+
   .apexcharts-gridline {
     stroke: var(--border-color);
   }

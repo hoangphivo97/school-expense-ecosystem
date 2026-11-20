@@ -22,11 +22,15 @@
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --text-input: #111827;
+  --text-on-primary: #ffffff;
   --icon-color-inactive: #bdc2c5;
   --text-color-inactive: #7d8388;
 
   /* Semantic & Interactive States */
-  --color-danger: #dc2626;
+  --color-success: light-dark(#10b981, #34d399);
+  --color-warning: light-dark(#d97706, #fbbf24);
+  --color-danger: light-dark(#dc2626, #f87171);
+  --color-info: light-dark(#2563eb, #60a5fa);
   --btn-disabled-bg: rgba(0, 0, 0, 0.12);
   --btn-disabled-text: rgba(0, 0, 0, 0.26);
 
@@ -39,8 +43,8 @@
   --border-color-muted: var(--border-color);
 
   /* ========================================================================
-  SEMANTIC STATUS BADGE TOKENS (AUTO LIGHT / DARK)
-  ======================================================================== */
+     SEMANTIC STATUS BADGE TOKENS (AUTO LIGHT / DARK)
+     ======================================================================== */
   --status-success-bg: light-dark(#ecfdf5, rgba(16, 185, 129, 0.14));
   --status-success-text: light-dark(#065f46, #34d399);
   --status-success-border: light-dark(#a7f3d0, rgba(16, 185, 129, 0.3));
@@ -61,6 +65,14 @@
   --status-purple-text: light-dark(#7e22ce, #c084fc);
   --status-purple-border: light-dark(#e9d5ff, rgba(168, 85, 247, 0.3));
 
+  --status-indigo-bg: light-dark(#e0e7ff, rgba(99, 102, 241, 0.16));
+  --status-indigo-text: light-dark(#3730a3, #a5b4fc);
+  --status-indigo-border: light-dark(#c7d2fe, rgba(99, 102, 241, 0.35));
+
+  --status-teal-bg: light-dark(#f0fdfa, rgba(20, 184, 166, 0.16));
+  --status-teal-text: light-dark(#115e59, #5eead4);
+  --status-teal-border: light-dark(#99f6e4, rgba(20, 184, 166, 0.35));
+
   --status-danger-bg: light-dark(#fef2f2, rgba(239, 68, 68, 0.14));
   --status-danger-text: light-dark(#991b1b, #f87171);
   --status-danger-border: light-dark(#fecaca, rgba(239, 68, 68, 0.3));
@@ -68,8 +80,6 @@
   --status-neutral-bg: light-dark(#f1f5f9, rgba(148, 163, 184, 0.14));
   --status-neutral-text: light-dark(#475569, #cbd5e1);
   --status-neutral-border: light-dark(#cbd5e1, rgba(148, 163, 184, 0.3));
-
-  --color-warning: light-dark(#d97706, #fbbf24);
 }
 
 :root:has(body.dark-mode),

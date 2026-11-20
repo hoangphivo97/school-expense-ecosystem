@@ -200,15 +200,15 @@
 
     $user-types: (
       'student': (
-        bg: light-dark(#e0e7ff, rgba(99, 102, 241, 0.16)),
-        text: light-dark(#3730a3, #a5b4fc),
-        border: light-dark(#c7d2fe, rgba(99, 102, 241, 0.35)),
+        bg: var(--status-indigo-bg),
+        text: var(--status-indigo-text),
+        border: var(--status-indigo-border),
         border-style: solid,
       ),
       'teacher': (
-        bg: light-dark(#f0fdfa, rgba(20, 184, 166, 0.16)),
-        text: light-dark(#115e59, #5eead4),
-        border: light-dark(#99f6e4, rgba(20, 184, 166, 0.35)),
+        bg: var(--status-teal-bg),
+        text: var(--status-teal-text),
+        border: var(--status-teal-border),
         border-style: solid,
       ),
       'staff': (
