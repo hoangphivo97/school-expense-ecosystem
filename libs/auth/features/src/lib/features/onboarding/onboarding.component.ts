@@ -37,7 +37,7 @@ import { AuthService } from '@school-expense-ecosystem/auth/data-access';
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     { provide: TRANSLOCO_SCOPE, useValue: ['auth', 'shared'] }
-  ]
+  ],
 })
 
 export class OnboardingComponent implements OnInit {

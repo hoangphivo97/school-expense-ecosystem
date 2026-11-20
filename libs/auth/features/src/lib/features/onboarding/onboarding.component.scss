@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  width: 100%;
+
+  .onboarding-wrapper {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .onboarding-card {
+    max-width: 450px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    box-shadow:
+      0 20px 25px -5px color-mix(in srgb, var(--text-primary) 12%, transparent),
+      0 8px 10px -6px color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
+
+  .onboarding-title {
+    color: var(--text-primary);
+  }
+
+  .onboarding-subtitle {
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .submit-btn.mat-mdc-raised-button {
+    height: 48px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}

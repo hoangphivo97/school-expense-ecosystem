@@ -58,7 +58,7 @@ import { trackLoading } from '@school-expense-ecosystem/shared/utils-frontend';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    { provide: TRANSLOCO_SCOPE, useValue: 'admin' }
+    { provide: TRANSLOCO_SCOPE, useValue: 'admin', }
   ]
 })
 export class UserListComponent {

@@ -6,9 +6,21 @@
   min-width: 110px;
   max-width: 140px;
 
+  .capacity-ratio {
+    color: var(--text-primary);
+
+    &.is-full {
+      color: var(--color-danger);
+    }
+  }
+
+  .capacity-percent {
+    color: var(--text-secondary);
+  }
+
   .progress-track {
     height: 6px;
-    background-color: var(--mat-divider-color, #e2e8f0);
+    background-color: var(--border-color);
     border-radius: 9999px;
     overflow: hidden;
 
@@ -16,14 +28,51 @@
       height: 100%;
       border-radius: 9999px;
       transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &.is-normal {
+        background-color: var(--primary-color);
+      }
+
+      &.is-near-full {
+        background-color: var(--color-warning);
+      }
+
+      &.is-full {
+        background-color: var(--color-danger);
+      }
     }
   }
 }
 
-.fallback-container {
-  mat-icon {
+.uncapped-container {
+  .uncapped-metrics {
+    color: var(--text-secondary);
+  }
+
+  .uncapped-icon {
     font-size: 16px;
     width: 16px;
     height: 16px;
+    color: var(--text-secondary);
+  }
+
+  .uncapped-current {
+    color: var(--text-primary);
+  }
+
+  .uncapped-divider,
+  .uncapped-infinity {
+    color: var(--text-secondary);
+  }
+
+  .free-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    font-weight: 600;
+    border-radius: 4px;
+    background-color: var(--bg-input);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
   }
 }

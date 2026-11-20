@@ -1,0 +1,31 @@
+@use '@angular/material' as mat;
+
+/* ==========================================================================
+   SHARED TABLE & TOOLBAR ACTION ICON BUTTONS (MATERIAL 3)
+   ========================================================================== */
+
+$action-button-colors: (
+  'approve': var(--color-success),
+  'reject': var(--color-danger),
+  'delete': var(--color-danger),
+  'edit': var(--color-warning),
+  'code': var(--primary-color),
+  'view': var(--primary-color),
+);
+
+.action-icon-btn {
+  @each $action, $color in $action-button-colors {
+    &.action-#{$action} {
+      @include mat.icon-button-overrides((
+        icon-color: $color,
+        state-layer-color: $color,
+        disabled-icon-color: var(--btn-disabled-text),
+      ));
+      color: $color;
+
+      &:disabled {
+        color: var(--btn-disabled-text);
+      }
+    }
+  }
+}

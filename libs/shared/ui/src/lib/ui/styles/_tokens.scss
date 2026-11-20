@@ -1,0 +1,116 @@
+/* ==========================================================================
+   GLOBAL CSS DESIGN TOKENS (LIGHT & DARK MODE)
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces & Borders */
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #ffffff;
+  --bg-modal-primary: #ffffff;
+  --bg-modal: var(--bg-modal-primary);
+  --bg-input: #f3f4f6;
+  --border-color: #e5e7eb;
+
+  /* Brand Purple Palette */
+  --primary-color: #7d45ff;
+  --hover-bg: rgba(125, 69, 255, 0.08);
+  --purple-bland-8: color-mix(in srgb, var(--primary-color) 8%, transparent);
+
+  /* Typography & Icons */
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-input: #111827;
+  --text-on-primary: #ffffff;
+  --icon-color-inactive: #bdc2c5;
+  --text-color-inactive: #7d8388;
+
+  /* Semantic & Interactive States */
+  --color-success: light-dark(#10b981, #34d399);
+  --color-warning: light-dark(#d97706, #fbbf24);
+  --color-danger: light-dark(#dc2626, #f87171);
+  --color-info: light-dark(#2563eb, #60a5fa);
+  --btn-disabled-bg: rgba(0, 0, 0, 0.12);
+  --btn-disabled-text: rgba(0, 0, 0, 0.26);
+
+  /* Compatibility Aliases for Legacy Feature Styles */
+  --bg-surface-ground: var(--bg-primary);
+  --bg-card: var(--bg-secondary);
+  --bg-neutral-light: var(--bg-input);
+  --color-primary: var(--primary-color);
+  --text-muted: var(--text-secondary);
+  --border-color-muted: var(--border-color);
+
+  /* ========================================================================
+     SEMANTIC STATUS BADGE TOKENS (AUTO LIGHT / DARK)
+     ======================================================================== */
+  --status-success-bg: light-dark(#ecfdf5, rgba(16, 185, 129, 0.14));
+  --status-success-text: light-dark(#065f46, #34d399);
+  --status-success-border: light-dark(#a7f3d0, rgba(16, 185, 129, 0.3));
+
+  --status-warning-bg: light-dark(#fefce8, rgba(234, 179, 8, 0.14));
+  --status-warning-text: light-dark(#854d0e, #facc15);
+  --status-warning-border: light-dark(#fef08a, rgba(234, 179, 8, 0.3));
+
+  --status-orange-bg: light-dark(#fff7ed, rgba(249, 115, 22, 0.14));
+  --status-orange-text: light-dark(#c2410c, #fb923c);
+  --status-orange-border: light-dark(#fed7aa, rgba(249, 115, 22, 0.3));
+
+  --status-info-bg: light-dark(#eff6ff, rgba(59, 130, 246, 0.14));
+  --status-info-text: light-dark(#1d4ed8, #60a5fa);
+  --status-info-border: light-dark(#bfdbfe, rgba(59, 130, 246, 0.3));
+
+  --status-purple-bg: light-dark(#faf5ff, rgba(168, 85, 247, 0.14));
+  --status-purple-text: light-dark(#7e22ce, #c084fc);
+  --status-purple-border: light-dark(#e9d5ff, rgba(168, 85, 247, 0.3));
+
+  --status-indigo-bg: light-dark(#e0e7ff, rgba(99, 102, 241, 0.16));
+  --status-indigo-text: light-dark(#3730a3, #a5b4fc);
+  --status-indigo-border: light-dark(#c7d2fe, rgba(99, 102, 241, 0.35));
+
+  --status-teal-bg: light-dark(#f0fdfa, rgba(20, 184, 166, 0.16));
+  --status-teal-text: light-dark(#115e59, #5eead4);
+  --status-teal-border: light-dark(#99f6e4, rgba(20, 184, 166, 0.35));
+
+  --status-danger-bg: light-dark(#fef2f2, rgba(239, 68, 68, 0.14));
+  --status-danger-text: light-dark(#991b1b, #f87171);
+  --status-danger-border: light-dark(#fecaca, rgba(239, 68, 68, 0.3));
+
+  --status-neutral-bg: light-dark(#f1f5f9, rgba(148, 163, 184, 0.14));
+  --status-neutral-text: light-dark(#475569, #cbd5e1);
+  --status-neutral-border: light-dark(#cbd5e1, rgba(148, 163, 184, 0.3));
+
+  /* Toast / Snackbar Surfaces */
+  --toast-success-bg: light-dark(#15803d, #166534);
+  --toast-danger-bg: light-dark(#dc2626, #991b1b);
+  --toast-warning-bg: light-dark(#d97706, #b45309);
+}
+
+:root:has(body.dark-mode),
+:root.dark-mode,
+body.dark-mode {
+  color-scheme: dark;
+
+  /* Surfaces & Borders (Slate Palette) */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-modal-primary: #2d3748;
+  --bg-modal: var(--bg-modal-primary);
+  --bg-input: #1e293b;
+  --border-color: #334155;
+
+  /* Brand Purple Palette (Dark Mode) */
+  --primary-color: #9d66ff;
+  --hover-bg: rgba(157, 102, 255, 0.12);
+  --purple-bland-8: color-mix(in srgb, var(--primary-color) 12%, transparent);
+
+  /* Typography & Icons */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-input: #f9fafb;
+
+  /* Interactive States */
+  --btn-disabled-bg: rgba(255, 255, 255, 0.12);
+  --btn-disabled-text: rgba(255, 255, 255, 0.38);
+}

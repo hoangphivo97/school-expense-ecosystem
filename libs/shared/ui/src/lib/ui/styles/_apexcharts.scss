@@ -1,0 +1,74 @@
+/* ==========================================================================
+   APEXCHARTS THEME INTEGRATION
+   ========================================================================== */
+.apexcharts-canvas {
+  .apexcharts-text,
+  .apexcharts-title-text,
+  .apexcharts-subtitle-text {
+    fill: var(--text-primary);
+  }
+
+  .apexcharts-xaxis-label,
+  .apexcharts-yaxis-label {
+    fill: var(--text-secondary);
+  }
+
+  .apexcharts-gridline {
+    stroke: var(--border-color);
+  }
+
+  .apexcharts-legend-text {
+    color: var(--text-primary);
+    font-family: inherit;
+  }
+
+  .apexcharts-tooltip {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+
+    .apexcharts-tooltip-title {
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+      font-family: inherit;
+    }
+
+    .apexcharts-tooltip-text-y-value {
+      color: var(--text-primary);
+    }
+  }
+
+  .apexcharts-menu-icon svg {
+    fill: var(--text-primary);
+  }
+
+  .apexcharts-menu {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+
+    .apexcharts-menu-item:hover {
+      background: var(--hover-bg);
+    }
+  }
+
+  .apexcharts-xaxistooltip {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+
+    .apexcharts-xaxistooltip-text {
+      color: var(--text-primary);
+    }
+  }
+
+  .apexcharts-xaxistooltip-bottom {
+    &:before {
+      border-bottom-color: var(--border-color);
+    }
+    &:after {
+      border-bottom-color: var(--bg-secondary);
+    }
+  }
+}

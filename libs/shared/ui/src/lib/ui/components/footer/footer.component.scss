@@ -1,4 +1,24 @@
+.footer-section {
+  border-top: 1px solid var(--border-color);
+  padding: 1.25rem 2rem;
+  margin-top: auto;
+}
+
 .footer-content {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: 0.5rem 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+
+  p {
+    margin: 0;
+  }
+
+  .coder-name {
+    font-weight: 600;
+    color: var(--primary-color);
+  }
 }

@@ -2,16 +2,15 @@
 
 .app-header {
   display: block;
-  background-color: var(--bg-secondary); 
+  background-color: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
-  padding: 1.5rem 2rem; // Spacious vertical breathing room for deep enterprise viewports
+  padding: 1.5rem 2rem;
   margin-bottom: 1.75rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px 0 color-mix(in srgb, var(--text-primary) 5%, transparent);
 
   .header-container {
     width: 100%;
-    max-width: 1440px; // Standard enterprise layout anchor cap
-    // margin: 0 auto;
+    max-width: 1440px;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -19,43 +18,24 @@
 }
 
 .page-title {
-  /* DRY Strategy: Bind system typography directly to workspace architecture font scales */
-  font-size: variables.$h1-font-size; 
+  font-size: variables.$h1-font-size;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.025em; // Tightened tracking for high-end typography look
+  letter-spacing: -0.025em;
   line-height: 1.2;
   margin: 0;
-  
-  // Optimize rendering artifacts on high-DPI / Retina monitors
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .page-subtitle {
-  font-size: variables.$text-fonr-size; 
+  font-size: variables.$text-fonr-size;
   font-weight: 400;
   color: var(--text-secondary);
   margin: 0;
 }
 
-// ==========================================================================
-// 🌟 CLEAN SPECIFICITY DARK MODE OVERRIDES (ZERO !IMPORTANT BLOCK)
-// ==========================================================================
-/* Architect Fix: Natural cascading injection eliminates forced properties safely */
-::ng-deep html body.dark-mode {
-  .app-header {
-    /* Deep contrast optimization for rich presentation dark panels layout */
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  }
-}
-
-// ==========================================================================
-// Micro-Animations (Performance-First Hardware Accelerated Transitions)
-// ==========================================================================
 .animate-fade-in {
-  // Utilizing standard cubic-bezier for snappy, elegant app response times
   animation: headerReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: opacity, transform;
 }
@@ -63,7 +43,7 @@
 @keyframes headerReveal {
   from {
     opacity: 0;
-    transform: translateY(-2px); // Minimal displacement avoids jarring content shifts
+    transform: translateY(-2px);
   }
   to {
     opacity: 1;

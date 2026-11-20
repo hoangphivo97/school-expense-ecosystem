@@ -66,10 +66,10 @@
       },
       "roles": {
         "ALL": "All Roles",
-        "LEVEL_0_ADMIN": "System Admin",
-        "LEVEL_1_FINANCE": "Finance Officer",
-        "LEVEL_2_DEAN": "Faculty Dean",
-        "LEVEL_3_USER": "End User"
+        "ADMIN": "System Admin",
+        "FINANCE_OFFICER": "Finance Officer",
+        "FACULTY_DEAN": "Faculty Dean",
+        "END_USER": "End User"
       },
       "userTypes": {
         "ALL": "All User Types",
@@ -81,6 +81,8 @@
         "ALL": "All Statuses",
         "ACTIVE": "Active",
         "ONBOARDING": "Onboarding",
+        "PENDING": "Pending Approval",
+        "SUSPENDED": "Suspended",
         "REJECTED": "Rejected"
       },
       "expenseStatus": {
@@ -98,14 +100,15 @@
         "OUTSOURCE": "External / Outsource"
       },
       "projectStatus": {
-        "ALL": "All",
+        "ALL": "All Statuses",
         "DRAFT": "Draft",
         "PENDING_DEAN_APPROVAL": "Pending Dean Approval",
         "PENDING_FINANCE_APPROVAL": "Pending Finance Approval",
         "ACTIVE": "Active",
         "COMPLETED": "Completed",
         "ARCHIVED": "Archived",
-        "REJECTED": "Rejected"
+        "REJECTED": "Rejected",
+        "EXPIRED": "Expired"
       },
       "eventType": {
         "ALL": "All",

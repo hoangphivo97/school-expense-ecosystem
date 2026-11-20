@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import DarkModeToggle from './DarkModeToggle';
+import { MuiDarkModeToggle } from './DarkModeToggle';
 
-const meta: Meta<typeof DarkModeToggle> = {
-  component: DarkModeToggle,
+const meta: Meta<typeof MuiDarkModeToggle> = {
+  component: MuiDarkModeToggle,
   title: 'Components/DarkModeToggle',
 };
 
 export default meta;
-type Story = StoryObj<typeof DarkModeToggle>;
+type Story = StoryObj<typeof MuiDarkModeToggle>;
 
 export const Default: Story = {
   args: {

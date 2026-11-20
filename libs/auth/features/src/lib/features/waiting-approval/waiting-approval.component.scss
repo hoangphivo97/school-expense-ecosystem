@@ -1,19 +1,49 @@
 @use 'variables';
 
-.waiting-card {
-  max-width: 520px;
+:host {
+  display: block;
   width: 100%;
-  border-radius: 12px;
-  background-color: var(--mat-sys-surface, variables.$common-white-color);
 
-  .status-icon {
-    font-size: 72px;
-    height: 72px;
-    width: 72px;
-    line-height: 72px;
+  .waiting-wrapper {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  .alert {
-    border-radius: 8px;
+  .waiting-card {
+    max-width: 520px;
+    width: 100%;
+    border-radius: 16px;
+    background-color: var(--bg-secondary, var(--mat-sys-surface, variables.$common-white-color));
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+
+    .status-icon {
+      font-size: 72px;
+      height: 72px;
+      width: 72px;
+      line-height: 72px;
+    }
+
+    .alert {
+      border-radius: 8px;
+    }
+  }
+
+  .waiting-title {
+    color: var(--primary-color);
+  }
+
+  .waiting-greeting {
+    color: var(--text-primary);
+  }
+
+  .waiting-message {
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .waiting-status {
+    color: var(--text-secondary);
   }
 }

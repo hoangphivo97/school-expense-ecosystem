@@ -1,0 +1,73 @@
+@use 'sass:string';
+
+/* ==========================================================================
+   SHARED DOMAIN STATUS BADGES (GLOBAL DESIGN SYSTEM)
+   ========================================================================== */
+
+$status-tones: ('success', 'warning', 'orange', 'info', 'purple', 'danger', 'neutral');
+
+/* Map every domain enum value to one of the 7 semantic tones */
+$domain-status-tone-map: (
+  // --- Expense Lifecycle ---
+  'PENDING_TEACHER_REVIEW': 'warning',
+  'PENDING_DEAN_APPROVAL': 'orange',
+  'PENDING_FINANCE_APPROVAL': 'info',
+  'PENDING_DISBURSEMENT': 'purple',
+  'DISBURSED': 'success',
+  'REJECTED': 'danger',
+
+  // --- Event & Project Lifecycle ---
+  'DRAFT': 'neutral',
+  'UPCOMING': 'info',
+  'ONGOING': 'success',
+  'ACTIVE': 'success',
+  'APPROVED': 'success',
+  'COMPLETED': 'neutral',
+  'EXPIRED': 'neutral',
+  'ARCHIVED': 'neutral',
+  'CANCELLED': 'danger',
+
+  // --- User & Account Status ---
+  'PENDING': 'warning',
+  'INACTIVE': 'neutral',
+  'SUSPENDED': 'danger',
+  'RESTRICTED': 'danger',
+  'ONBOARDING': 'info',
+);
+
+.badge-status-variant {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  padding: 0.45em 0.8em;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  line-height: 1;
+  text-transform: capitalize;
+  white-space: nowrap;
+
+  /* Default fallback if an unknown status is rendered */
+  background-color: var(--status-neutral-bg);
+  color: var(--status-neutral-text);
+  border: 1px solid var(--status-neutral-border);
+
+  /* Generic reusable tone modifiers (.status-tone-success, etc.) */
+  @each $tone in $status-tones {
+    &.status-tone-#{$tone} {
+      background-color: var(--status-#{$tone}-bg);
+      color: var(--status-#{$tone}-text);
+      border-color: var(--status-#{$tone}-border);
+    }
+  }
+
+  /* Domain-specific status classes (.status-DISBURSED, .status-ONGOING, etc.) */
+  @each $status-name, $tone in $domain-status-tone-map {
+    &.status-#{$status-name},
+    &.status-#{string.to-lower-case($status-name)} {
+      background-color: var(--status-#{$tone}-bg);
+      color: var(--status-#{$tone}-text);
+      border-color: var(--status-#{$tone}-border);
+    }
+  }
+}

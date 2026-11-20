@@ -1,10 +1,14 @@
+@use '@angular/material' as mat;
+@use 'sass:map';
+
 :host {
   display: flex;
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
   transition: background-color 0.3s ease;
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 
   .user-directory-layout-root {
     flex: 1 0 auto;
@@ -13,13 +17,19 @@
     margin: 0 auto;
   }
 
+  .user-grid-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+  }
+
   .layout-headline {
     font-size: 1.7rem;
     letter-spacing: -0.02em;
     font-family: var(--bs-font-sans-serif);
+    color: var(--text-primary);
   }
 
-  // Adaptive custom spacing widths for the interactive Filter Bar
   .filter-field {
     max-width: 100%;
 
@@ -33,58 +43,84 @@
 
     ::ng-deep {
       .mat-mdc-form-field-subscript-wrapper {
-        display: none; // Disables dynamic spacing expansion shifts on focus actions
+        display: none;
       }
     }
   }
 
   .muted-icon {
-    color: #64748b;
+    color: var(--text-secondary);
     margin-right: 6px;
   }
 
-  // Enterprise grid typography and alignment standardization overrides
   .synchronized-material-table {
-    background-color: transparent;
+    @include mat.table-overrides((
+      background-color: var(--bg-secondary),
+      header-headline-color: var(--text-secondary),
+      row-item-label-text-color: var(--text-primary),
+      row-item-outline-color: var(--border-color),
+    ));
+
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
     font-family: var(--bs-font-sans-serif);
 
     tr.mat-mdc-header-row {
-      background-color: #f1f5f9; // Light gray slate tint matching enterprise standard
-      border-bottom: 2px solid #cbd5e1;
+      background-color: var(--bg-input);
+      border-bottom: 2px solid var(--border-color);
     }
 
-    tr.mat-mdc-row:hover {
-      cursor: pointer;
-      background-color: #f0f2ff;
+    tr.mat-mdc-row {
+      background-color: var(--bg-secondary);
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        cursor: pointer;
+        background-color: var(--hover-bg);
+      }
     }
 
     th.table-column-header {
-      font-size: 0.75rem; // 12px sleek tracking titles
+      font-size: 0.75rem;
       font-weight: 600;
       letter-spacing: 0.05em;
-      color: #475569;
+      color: var(--text-secondary);
+      border-bottom-color: var(--border-color);
     }
 
     td.mat-mdc-cell {
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 0.875rem; // 14px smooth readability text cells
-    }
-
-    td.action-column {
-      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.875rem;
+      color: var(--text-primary);
     }
   }
 
   .data-text-primary {
-    color: #0f172a;
+    color: var(--text-primary);
   }
 
   .data-text-secondary {
-    color: #475569;
+    color: var(--text-secondary);
+  }
+
+  .pending-placeholder {
+    color: var(--text-secondary);
+    cursor: help;
+  }
+
+  .help-cursor {
+    cursor: help;
   }
 
   .action-edit-icon {
     font-size: 1.25rem;
+  }
+
+  .protected-badge {
+    width: fit-content;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
   }
 
   .status-feedback-wrapper {
@@ -99,238 +135,151 @@
 
   .identity-code-wrapper code {
     font-family: var(--bs-font-monospace);
-    color: #4f46e5;
-    background-color: #f5f3ff;
+    color: var(--primary-color);
+    background-color: var(--purple-bland-8);
+    border: 1px solid color-mix(in srgb, var(--primary-color) 25%, transparent);
     padding: 0.25rem 0.5rem;
     border-radius: 6px;
-    font-weight: 500;
+    font-weight: 600;
   }
 
-  // 🏷️ HUMANIZED ROLE CHIP STYLING: Light mode token registry
+  /* Role Chip Styling (Auto Light / Dark) */
   .badge-role-variant {
+    display: inline-flex;
+    align-items: center;
     font-weight: 600;
     padding: 0.45em 0.8em;
     border-radius: 6px;
     font-size: 0.75rem;
+    line-height: 1;
     white-space: nowrap;
 
     $roles: (
-      'admin': (bg: #f1f5f9, text: #0f172a, border: #cbd5e1),
-      'finance_officer': (bg: #f0fdf4, text: #166534, border: #bbf7d0),
-      'faculty_dean': (bg: #f3e8ff, text: #6b21a8, border: #e9d5ff),
-      'end_user': (bg: #f0f9ff, text: #075985, border: #bae6fd),
+      'admin': (
+        bg: var(--status-neutral-bg),
+        text: var(--text-primary),
+        border: var(--status-neutral-border),
+      ),
+      'finance_officer': (
+        bg: var(--status-success-bg),
+        text: var(--status-success-text),
+        border: var(--status-success-border),
+      ),
+      'faculty_dean': (
+        bg: var(--status-purple-bg),
+        text: var(--status-purple-text),
+        border: var(--status-purple-border),
+      ),
+      'end_user': (
+        bg: var(--status-info-bg),
+        text: var(--status-info-text),
+        border: var(--status-info-border),
+      ),
     );
 
     @each $role, $tokens in $roles {
       &.role-#{$role} {
-        background-color: map-get($tokens, bg);
-        color: map-get($tokens, text);
-        border: 1px solid map-get($tokens, border);
+        background-color: map.get($tokens, bg);
+        color: map.get($tokens, text);
+        border: 1px solid map.get($tokens, border);
       }
     }
   }
 
-  // 🏷️ ACCOUNT STATUS CHIP STYLING: Light mode token registry
-  .badge-status-variant {
-    font-weight: 600;
-    padding: 0.45em 0.8em;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    text-transform: capitalize;
-    white-space: nowrap;
-
-    $account-statuses: (
-      'active': (bg: #ecfdf5, text: #065f46, border: #a7f3d0),
-      'pending': (bg: #fefce8, text: #854d0e, border: #fef08a),
-      'onboarding': (bg: #eff6ff, text: #1e40af, border: #bfdbfe),
-      'rejected': (bg: #fef2f2, text: #991b1b, border: #fee2e2),
-      'suspended': (bg: #fef2f2, text: #991b1b, border: #fee2e2),
-    );
-
-    @each $status, $tokens in $account-statuses {
-      &.status-#{$status} {
-        background-color: map-get($tokens, bg);
-        color: map-get($tokens, text);
-        border: 1px solid map-get($tokens, border);
-      }
-    }
-  }
-
-  // 🏷️ USER TYPE CHIP STYLING: Light mode token registry
+  /* User Type Chip Styling (Auto Light / Dark) */
   .badge-usertype-variant {
+    display: inline-flex;
+    align-items: center;
     font-weight: 600;
     padding: 0.45em 0.8em;
     border-radius: 6px;
     font-size: 0.75rem;
+    line-height: 1;
     text-transform: capitalize;
     white-space: nowrap;
-    display: inline-block;
 
     $user-types: (
-      'student': (bg: #e0e7ff, text: #3730a3, border: #c7d2fe, border-style: solid),
-      'teacher': (bg: #f0fdfa, text: #115e59, border: #99f6e4, border-style: solid),
-      'staff': (bg: #fffbeb, text: #92400e, border: #fef3c7, border-style: solid),
-      'unassigned': (bg: #fafafa, text: #71717a, border: #d4d4d8, border-style: dashed),
+      'student': (
+        bg: var(--status-indigo-bg),
+        text: var(--status-indigo-text),
+        border: var(--status-indigo-border),
+        border-style: solid,
+      ),
+      'teacher': (
+        bg: var(--status-teal-bg),
+        text: var(--status-teal-text),
+        border: var(--status-teal-border),
+        border-style: solid,
+      ),
+      'staff': (
+        bg: var(--status-orange-bg),
+        text: var(--status-orange-text),
+        border: var(--status-orange-border),
+        border-style: solid,
+      ),
+      'unassigned': (
+        bg: var(--status-neutral-bg),
+        text: var(--status-neutral-text),
+        border: var(--status-neutral-border),
+        border-style: dashed,
+      ),
     );
 
     @each $type, $tokens in $user-types {
       &.usertype-#{$type} {
-        background-color: map-get($tokens, bg);
-        color: map-get($tokens, text);
-        border: 1px map-get($tokens, border-style) map-get($tokens, border);
+        background-color: map.get($tokens, bg);
+        color: map.get($tokens, text);
+        border: 1px map.get($tokens, border-style) map.get($tokens, border);
       }
+    }
+  }
+
+  .themed-alert.danger {
+    background-color: var(--status-danger-bg);
+    color: var(--status-danger-text);
+    border: 1px solid var(--status-danger-border);
+
+    .retry-btn {
+      color: var(--status-danger-text);
+      border-color: var(--status-danger-border);
+    }
+  }
+
+  .empty-state-wrapper {
+    .empty-icon-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background-color: var(--bg-input);
+      color: var(--text-secondary);
+
+      mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    .empty-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .empty-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-top: 0.35rem;
+      margin-bottom: 0;
     }
   }
 }
 
-// ==========================================================================
-// 🌟 BULLETPROOF DARK MODE OVERRIDES WITH ::ng-deep
-// ==========================================================================
-::ng-deep body.dark-mode {
-
-  // 1. Dark surface elevation for card containers
-  .card {
-    background-color: var(--bg-secondary) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
-  }
-
-  // 2. Table surface and row elevation
-  .synchronized-material-table {
-    tr.mat-mdc-header-row {
-      background-color: var(--bg-input) !important;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.15) !important;
-    }
-
-    tr.mat-mdc-row:hover {
-      background-color: var(--hover-bg) !important;
-    }
-
-    th.table-column-header {
-      color: var(--primary-color) !important;
-      background-color: var(--bg-secondary);
-    }
-
-    td.mat-mdc-cell {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
-  }
-
-  // 3. Content typography tokens
-  .data-text-primary {
-    color: var(--text-primary) !important;
-  }
-
-  .data-text-secondary {
-    color: var(--text-secondary) !important;
-  }
-
-  .identity-code-wrapper code {
-    color: var(--primary-color) !important;
-    background-color: var(--hover-bg) !important;
-  }
-
-  // 4. "Protected (You)" action indicator
-  td.action-column {
-    .bg-light.border.text-muted {
-      background-color: var(--bg-input) !important;
-      border-color: rgba(255, 255, 255, 0.15) !important;
-      color: var(--primary-color) !important;
-    }
-  }
-
-  // 5. Dark Mode Role Badges
-  .badge-role-variant {
-    $dark-roles: (
-      'admin': (bg: var(--bg-input), text: var(--text-primary), border: rgba(255, 255, 255, 0.15)),
-      'finance_officer': (bg: #064e3b, text: #34d399, border: #047857),
-      'faculty_dean': (bg: #581c87, text: #c084fc, border: #7e22ce),
-      'end_user': (bg: #0c4a6e, text: #38bdf8, border: #0369a1),
-    );
-
-    @each $role, $tokens in $dark-roles {
-      &.role-#{$role} {
-        background-color: map-get($tokens, bg) !important;
-        color: map-get($tokens, text) !important;
-        border: 1px solid map-get($tokens, border) !important;
-      }
-    }
-  }
-
-  // 6. Dark Mode Account Status Badges
-  .badge-status-variant {
-    $dark-account-statuses: (
-      'active': (bg: #064e3b, text: #34d399, border: #047857),
-      'pending': (bg: #78350f, text: #fde047, border: #a16207),
-      'onboarding': (bg: #1e3a8a, text: #60a5fa, border: #1d4ed8),
-      'rejected': (bg: #7f1d1d, text: #fca5a5, border: #991b1b),
-      'suspended': (bg: #7f1d1d, text: #fca5a5, border: #991b1b),
-    );
-
-    @each $status, $tokens in $dark-account-statuses {
-      &.status-#{$status} {
-        background-color: map-get($tokens, bg) !important;
-        color: map-get($tokens, text) !important;
-        border: 1px solid map-get($tokens, border) !important;
-      }
-    }
-  }
-
-  // 7. Dark Mode User Type Badges
-  .badge-usertype-variant {
-    $dark-user-types: (
-      'student': (bg: #1e1b4b, text: #818cf8, border: #4338ca, border-style: solid),
-      'teacher': (bg: #115e59, text: #2dd4bf, border: #0d9488, border-style: solid),
-      'staff': (bg: #7c2d12, text: #fb923c, border: #9a3412, border-style: solid),
-      'unassigned': (bg: #27272a, text: #a1a1aa, border: #52525b, border-style: dashed),
-    );
-
-    @each $type, $tokens in $dark-user-types {
-      &.usertype-#{$type} {
-        background-color: map-get($tokens, bg) !important;
-        color: map-get($tokens, text) !important;
-        border: 1px map-get($tokens, border-style) map-get($tokens, border) !important;
-      }
-    }
-  }
-
-  // 8. Paginator Dark Mode Adaptations
-  .mat-mdc-paginator,
-  .mat-mdc-paginator-container,
-  .mat-mdc-paginator-page-size-label,
-  .mat-mdc-paginator-range-label {
-    background-color: transparent !important;
-    color: var(--text-primary) !important;
-  }
-
-  .mat-mdc-paginator {
-    .mat-mdc-icon-button {
-      color: var(--text-primary) !important;
-
-      svg {
-        fill: var(--text-primary) !important;
-      }
-
-      &:disabled {
-        color: var(--text-secondary) !important;
-        opacity: 0.35;
-
-        svg {
-          fill: var(--text-secondary) !important;
-        }
-      }
-    }
-
-    .mat-mdc-select-arrow {
-      color: var(--text-primary) !important;
-
-      svg {
-        fill: var(--text-primary) !important;
-      }
-    }
-
-    .mat-mdc-select-value {
-      color: var(--text-primary) !important;
-    }
-  }
+lib-header,
+lib-footer {
+  flex: 0 0 auto;
+  flex-direction: column;
 }

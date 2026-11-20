@@ -27,9 +27,9 @@
         align-items: center;
         justify-content: center;
         gap: 14px;
-        background-color: #f8fafc;
+        background-color: var(--bg-primary, #f8f9fa);
         font-family: system-ui, -apple-system, sans-serif;
-        color: #475569;
+        color: var(--text-secondary, #6b7280);
         font-size: 14px;
         z-index: 9999;
       }
@@ -37,8 +37,8 @@
       .app-boot-spinner {
         width: 36px;
         height: 36px;
-        border: 3px solid #e2e8f0;
-        border-top-color: #2563eb;
+        border: 3px solid var(--border-color, #e5e7eb);
+        border-top-color: var(--primary-color, #7d45ff);
         border-radius: 50%;
         animation: boot-spin 0.75s linear infinite;
       }

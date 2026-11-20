@@ -1,5 +1,5 @@
 <lib-header></lib-header>
-<div class="expense-list" *transloco="let t; read:'expense.expenseList'">
+<div class="expense-list" *transloco="let t; prefix:'expense.expenseList'">
   <lib-filter [configs]="expenseFilterConfigs()" [value]="filterParams()"
     (filterChange)="onExpenseFiltersChanged($event)">
 
@@ -10,11 +10,11 @@
     }
   </lib-filter>
 
-  <div class="card shadow-sm border-0 rounded-4 overflow-hidden" [seLoading]="isGridDataLoading()">
+  <div class="card expense-grid-card shadow-sm rounded-4 overflow-hidden" [seLoading]="isGridDataLoading()">
     <div class="card-body p-0">
 
       <div class="table-responsive">
-        <table mat-table [dataSource]="dataSource()" class="w-100 table-hover synchronized-material-table">
+        <table mat-table [dataSource]="dataSource()" class="w-100 synchronized-material-table">
 
           <ng-container matColumnDef="expenseCode">
             <th mat-header-cell *matHeaderCellDef class="py-3 px-4 table-column-header">{{ t('columns.id') }}</th>
@@ -113,10 +113,10 @@
               <div
                 class="empty-state-wrapper d-flex flex-column align-items-center justify-content-center text-center py-5">
                 <div class="empty-icon-box mb-3">
-                  <mat-icon class="material-icons-outlined text-muted">receipt_long</mat-icon>
+                  <mat-icon class="material-icons-outlined">receipt_long</mat-icon>
                 </div>
                 <h3 class="empty-title m-0">{{ t('empty.title') }}</h3>
-                <p class="empty-subtitle text-muted px-3">
+                <p class="empty-subtitle px-3">
                   {{ t('empty.subtitle') }}
                 </p>
               </div>
@@ -133,7 +133,5 @@
       </div>
     </div>
   </div>
-
-
 </div>
 <lib-footer></lib-footer>

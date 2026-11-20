@@ -1,0 +1,64 @@
+:host {
+  display: block;
+  width: 100%;
+
+  .account-status-wrapper {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .status-card {
+    width: 100%;
+    max-width: 500px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+  }
+
+  .icon-suspended {
+    color: var(--color-danger);
+  }
+
+  .icon-rejected {
+    color: var(--color-warning);
+  }
+
+  .status-title {
+    color: var(--text-primary);
+  }
+
+  .status-desc,
+  .appeal-notice {
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .reason-box {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+  }
+
+  .reason-label {
+    color: var(--text-secondary);
+    letter-spacing: 0.4px;
+  }
+
+  .reason-text {
+    color: var(--text-primary);
+    word-break: break-word;
+  }
+
+  .action-btn {
+    height: 44px;
+    font-weight: 600;
+    border-radius: 8px;
+  }
+
+  .btn-inner-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+}

@@ -1,4 +1,4 @@
-<div class="manage-members-modal p-4" *transloco="let t; read: 'project.manageMembersDialog'">
+<div class="manage-members-modal p-4" *transloco="let t; prefix: 'project.manageMembersDialog'">
   <!-- Modal Header -->
   <div class="d-flex align-items-center justify-content-between mb-3">
     <div class="d-flex align-items-center gap-3">
@@ -7,15 +7,15 @@
       </div>
       <div>
         <h2 class="dialog-title m-0 fw-bold fs-5">{{ t('title') }}</h2>
-        <p class="dialog-subtitle text-secondary small m-0">{{ data.project.name }}</p>
+        <p class="dialog-subtitle secondary-text small m-0">{{ data.project.name }}</p>
       </div>
     </div>
   </div>
 
   <!-- Server Error Banner -->
   @if (errorMessage()) {
-  <div class="alert alert-danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-    <mat-icon class="fs-5 w-auto h-auto text-danger">error_outline</mat-icon>
+  <div class="themed-alert danger py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+    <mat-icon class="fs-5 w-auto h-auto flex-shrink-0">error_outline</mat-icon>
     <span>{{ errorMessage() }}</span>
   </div>
   }
@@ -48,7 +48,7 @@
               <mat-option [value]="student">
                 <div class="d-flex flex-column py-1">
                   <div class="fw-semibold lh-sm">{{ student.fullName }}</div>
-                  <small class="text-secondary lh-sm">
+                  <small class="secondary-text lh-sm">
                     @if (student.studentCode) {
                     <span>{{ student.studentCode }} • </span>
                     }
@@ -60,7 +60,7 @@
 
               <!-- No Results State -->
               @if (!studentsResource.isLoading() && studentsResource.value().length === 0 && debouncedQuery()) {
-              <mat-option disabled class="text-secondary small">
+              <mat-option disabled class="secondary-text small">
                 {{ t('roster.noStudentsFound') }}
               </mat-option>
               }
@@ -75,14 +75,14 @@
         </div>
 
         <!-- Enrolled Members List -->
-        <div class="member-list-container border rounded-3 p-2">
+        <div class="member-list-container rounded-3 p-2">
           @if (isLoadingRoster()) {
           <div class="d-flex justify-content-center align-items-center py-4">
             <mat-spinner diameter="24"></mat-spinner>
           </div>
           } @else if(joinedStudents().length === 0) {
-          <div class="text-center text-secondary py-4 small">
-            <mat-icon class="fs-2 h-auto w-auto d-block mx-auto mb-1 text-muted">person_off</mat-icon>
+          <div class="text-center secondary-text py-4 small">
+            <mat-icon class="fs-2 h-auto w-auto d-block mx-auto mb-1 secondary-text">person_off</mat-icon>
             <span>{{ t('roster.emptyState') }}</span>
           </div>
           }
@@ -91,11 +91,11 @@
             @for (student of joinedStudents(); track student.id) {
             <li class="member-item d-flex align-items-center justify-content-between p-2 rounded-2">
               <div class="d-flex align-items-center gap-2">
-                <mat-icon class="text-secondary fs-5 h-auto w-auto">school</mat-icon>
+                <mat-icon class="secondary-text fs-5 h-auto w-auto">school</mat-icon>
                 <div class="d-flex flex-column">
-                  <span class="fw-semibold small lh-sm">{{ student.fullName }}</span>
+                  <span class="member-name fw-semibold small lh-sm">{{ student.fullName }}</span>
                   @if (student.studentCode || student.email) {
-                  <small class="text-secondary lh-sm">
+                  <small class="secondary-text lh-sm">
                     {{ student.studentCode ? student.studentCode + ' • ' : '' }}{{ student.email }}
                   </small>
                   }
@@ -105,9 +105,9 @@
               <div class="d-flex align-items-center gap-1">
                 <button mat-icon-button type="button" [seCopyToClipboard]="student.studentCode || student.id"
                   [matTooltip]="t('roster.copyIdTooltip')">
-                  <mat-icon class="fs-6 h-auto w-auto text-secondary">content_copy</mat-icon>
+                  <mat-icon class="fs-6 h-auto w-auto secondary-text">content_copy</mat-icon>
                 </button>
-                <button mat-icon-button type="button" class="text-danger" [disabled]="isMemberMutating()"
+                <button mat-icon-button type="button" class="remove-member-btn" [disabled]="isMemberMutating()"
                   (click)="onRemoveStudent(student.id)" [matTooltip]="t('roster.removeTooltip')">
                   <mat-icon class="fs-6 h-auto w-auto">delete_outline</mat-icon>
                 </button>
@@ -129,39 +129,39 @@
 
       <div class="tab-content-wrapper pt-3">
         @if (joinConfig() && !isCreatingNew()) {
-        <div class="code-card p-3 rounded-3 mb-3 border">
+        <div class="code-card p-3 rounded-3 mb-3">
           <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="badge text-uppercase px-2 py-1" [ngClass]="{
-                  'bg-primary-subtle text-primary': codeStatus() === 'SCHEDULED',
-                  'bg-success-subtle text-success': codeStatus() === 'ACTIVE',
-                  'bg-warning-subtle text-warning': codeStatus() === 'FULL',
-                  'bg-danger-subtle text-danger': codeStatus() === 'EXPIRED'
+            <span class="badge-status-variant text-uppercase" [ngClass]="{
+                  'status-tone-info': codeStatus() === 'SCHEDULED',
+                  'status-tone-success': codeStatus() === 'ACTIVE',
+                  'status-tone-warning': codeStatus() === 'FULL',
+                  'status-tone-danger': codeStatus() === 'EXPIRED'
                 }">
               {{ t('code.status.' + (codeStatus() | lowercase)) }}
             </span>
-            <span class="text-secondary small">
+            <span class="secondary-text small">
               {{ joinConfig()!.startsAt | date: 'dd/MM/yyyy' }} ➔ {{ joinConfig()!.expiresAt | date: 'dd/MM/yyyy' }}
             </span>
           </div>
 
           <!-- Code Box with Click to Copy -->
           <div
-            class="code-display-box d-flex align-items-center justify-content-between p-3 rounded-2 my-2 bg-light border"
+            class="code-display-box d-flex align-items-center justify-content-between p-3 rounded-2 my-2"
             [seCopyToClipboard]="joinConfig()!.code" copySuccessKey="project.manageMembersDialog.code.copied"
             [matTooltip]="t('code.clickToCopy')">
-            <span class="invitation-code font-monospace fw-bold fs-4 text-primary tracking-wider">
+            <span class="invitation-code font-monospace fw-bold fs-4 tracking-wider">
               {{ joinConfig()!.code }}
             </span>
-            <button mat-icon-button type="button" class="text-primary" aria-label="Copy Code">
+            <button mat-icon-button type="button" class="copy-code-btn" aria-label="Copy Code">
               <mat-icon>content_copy</mat-icon>
             </button>
           </div>
 
           <!-- Recruitment Capacity Progress -->
           <div class="recruitment-progress mt-3">
-            <div class="d-flex justify-content-between text-secondary small mb-1">
+            <div class="d-flex justify-content-between secondary-text small mb-1">
               <span>{{ t('code.capacityLabel') }}</span>
-              <span class="fw-semibold">
+              <span class="fw-semibold capacity-value">
                 {{ joinConfig()!.usedCount }} / {{ joinConfig()!.maxUses }} ({{ capacityPercentage() }}%)
               </span>
             </div>
@@ -221,8 +221,8 @@
                   <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
                   <mat-datepicker #endPicker></mat-datepicker>
                   <mat-error>
-                    {{ createCodeForm.get('expiresAt')?.errors | formError: { required: t('code.fields.expiresAt.errors.required')
-                    } }}
+                    {{ createCodeForm.get('expiresAt')?.errors | formError: { required: t('code.fields.expiresAt.errors.required') }
+                    }}
                   </mat-error>
                 </mat-form-field>
               </div>

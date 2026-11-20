@@ -1,22 +1,24 @@
 <div class="join-code-dialog p-4" *transloco="let t">
   <div class="d-flex align-items-center gap-3 mb-3">
-    <mat-icon color="primary" class="fs-4">{{ contextMeta().icon }}</mat-icon>
+    <div class="title-icon-badge">
+      <mat-icon color="primary">{{ contextMeta().icon }}</mat-icon>
+    </div>
     <div>
       <h2 class="dialog-title m-0 fs-5 fw-bold">{{ t(contextMeta().translocoKey + '.title') }}</h2>
-      <p class="dialog-subtitle text-muted small m-0">{{ t(contextMeta().translocoKey + '.subtitle') }}</p>
+      <p class="dialog-subtitle small m-0">{{ t(contextMeta().translocoKey + '.subtitle') }}</p>
     </div>
   </div>
 
   @if (errorMessage()) {
-  <div class="alert alert-danger py-2 px-3 mb-3 small">
+  <div class="themed-alert danger py-2 px-3 mb-3 small">
     {{ errorMessage() }}
   </div>
   }
 
-  <mat-dialog-content class="space-y-4">
+  <mat-dialog-content class="dialog-body">
     <mat-form-field appearance="outline" class="w-100 mb-2">
       <mat-label>{{ t(contextMeta().translocoKey + '.codeLabel') }}</mat-label>
-      <mat-icon matIconPrefix class="text-secondary">vpn_key</mat-icon>
+      <mat-icon matIconPrefix class="field-icon">vpn_key</mat-icon>
       <input matInput [formField]="joinForm.code" (input)="onCodeInput($event)"
         [placeholder]="t(contextMeta().translocoKey + '.codePlaceholder')" class="font-monospace text-uppercase" />
       @if (joinForm.code().touched() && joinForm.code().invalid()) {

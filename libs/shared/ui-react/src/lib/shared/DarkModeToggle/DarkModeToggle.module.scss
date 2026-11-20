@@ -1,7 +1,13 @@
-.light {
-  color: #111827;
+.toggleLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.dark {
-  color: #f3f4f6;
+.labelText {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text-primary);
 }

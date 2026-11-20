@@ -1,5 +1,5 @@
 <!-- Main structural wrapper for the navigation sidebar -->
-<div class="sidebar-section" *transloco="let t; read: 'shared.sidebar'">
+<div class="sidebar-section" *transloco="let t; prefix: 'shared.sidebar'">
   <!-- Profile & Account Matrix Area -->
   <div class="account-section">
     <mat-icon class="account-icon">account_circle</mat-icon>
@@ -43,7 +43,7 @@
 
   <!-- Persistent Bottom Action / Sign-out Section -->
   <div class="logout-section">
-    <!-- <lib-react-wrapper></lib-react-wrapper> -->
+    <lib-react-wrapper></lib-react-wrapper>
     <button type="button" class="logout-btn" (click)="logout.emit()">
       <fa-icon [icon]="faArrowRightFromBracket" size="1x" class="logout-icon"></fa-icon>
       <span class="label" [class.hide]="collapsed()">{{ t('logout') }}</span>

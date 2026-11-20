@@ -1,0 +1,141 @@
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+  background-color: var(--bg-modal-primary);
+  color: var(--text-primary);
+
+  ::ng-deep .mat-mdc-tab-body-content {
+    overflow: hidden !important;
+  }
+}
+
+.manage-members-modal {
+  max-width: 540px;
+  overflow: hidden;
+  background-color: var(--bg-modal-primary);
+  color: var(--text-primary);
+
+  .dialog-title {
+    color: var(--text-primary);
+  }
+
+  .secondary-text {
+    color: var(--text-secondary);
+  }
+
+  .themed-alert.danger {
+    border-radius: 8px;
+    background-color: var(--status-danger-bg);
+    color: var(--status-danger-text);
+    border: 1px solid var(--status-danger-border);
+  }
+
+  .custom-field {
+    @include mat.chips-overrides((
+      elevated-container-color: var(--purple-bland-8),
+      label-text-color: var(--primary-color),
+      with-trailing-icon-trailing-icon-color: var(--primary-color),
+      outline-color: color-mix(in srgb, var(--primary-color) 30%, transparent),
+    ));
+  }
+
+  .custom-tab-group {
+    @include mat.tabs-overrides((
+      active-indicator-color: var(--primary-color),
+      active-focus-indicator-color: var(--primary-color),
+      active-hover-indicator-color: var(--primary-color),
+      active-label-text-color: var(--primary-color),
+      active-focus-label-text-color: var(--primary-color),
+      active-hover-label-text-color: var(--primary-color),
+      inactive-label-text-color: var(--text-secondary),
+      inactive-hover-label-text-color: var(--text-primary),
+      divider-color: var(--border-color),
+    ));
+  }
+
+  .tab-content-wrapper {
+    overflow: hidden;
+  }
+
+  .icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--purple-bland-8);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .member-list-container {
+    max-height: 240px;
+    overflow-y: auto;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+
+    .member-item {
+      transition: background-color 0.15s ease-in-out;
+
+      &:hover {
+        background-color: var(--hover-bg);
+      }
+
+      .member-name {
+        color: var(--text-primary);
+      }
+
+      .remove-member-btn {
+        color: var(--color-danger);
+      }
+    }
+  }
+
+  .code-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+
+    .capacity-value {
+      color: var(--text-primary);
+    }
+  }
+
+  .code-display-box {
+    cursor: pointer;
+    background-color: var(--bg-secondary);
+    border: 1px dashed var(--border-color);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: var(--hover-bg);
+      border-color: var(--primary-color);
+    }
+
+    .invitation-code {
+      letter-spacing: 2px;
+      color: var(--primary-color);
+    }
+
+    .copy-code-btn {
+      color: var(--primary-color);
+    }
+  }
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}

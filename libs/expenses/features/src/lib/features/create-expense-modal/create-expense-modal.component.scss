@@ -1,27 +1,28 @@
 :host {
   display: block;
-  background-color: var(--bg-modal);
+  background-color: var(--bg-modal-primary);
   color: var(--text-primary);
 
   .modal-wrapper {
     display: flex;
     flex-direction: column;
-    max-height: 85vh; // Forces the modal to fit safely inside the browser window
-    overflow: hidden; // KILLS the absolute first/outer scrollbar
+    max-height: 85vh;
+    overflow: hidden;
   }
 
-  // Khóa cứng cấu trúc text group để bổ trợ cho Flexbox của Bootstrap
   .modal-header-box {
     padding: 24px 24px 16px;
+    border-bottom: 1px solid var(--border-color);
 
     .title-icon-wrapper {
-      background: rgba(103, 58, 183, 0.1);
+      background: var(--purple-bland-8);
+      color: var(--primary-color);
       padding: 12px;
       border-radius: 14px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0; // Đảm bảo icon không bao giờ bị bóp méo layout
+      flex-shrink: 0;
 
       mat-icon {
         width: 26px;
@@ -40,82 +41,75 @@
 
       .sub-title-text {
         font-size: 13px;
-        color: var(--text-primary);
-        opacity: 0.6;
+        color: var(--text-secondary);
         margin-top: 4px;
       }
     }
   }
 
+  .secondary-hint {
+    color: var(--text-secondary);
+  }
+
+  .auto-linked-card {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+
+    .auto-linked-badge {
+      background-color: var(--status-success-bg);
+      color: var(--status-success-text);
+      border: 1px solid var(--status-success-border);
+    }
+  }
+
+  .themed-alert {
+    border-radius: 8px;
+
+    &.warning {
+      background-color: var(--status-warning-bg);
+      color: var(--status-warning-text);
+      border: 1px solid var(--status-warning-border);
+    }
+
+    &.danger {
+      background-color: var(--status-danger-bg);
+      color: var(--status-danger-text);
+      border: 1px solid var(--status-danger-border);
+    }
+  }
+
   .custom-content {
-    flex: 1; // Takes up all remaining vertical space dynamically
-    overflow-y: auto; // Activates the single, clean inner scrollbar when content overflows
-    margin: 0 !important; // Cleans up native material margin boxing
+    flex: 1;
+    overflow-y: auto;
+    margin: 0 !important;
     padding: 16px 24px;
   }
 
   mat-dialog-content.custom-content {
-    background-color: var(--bg-modal);
+    background-color: var(--bg-modal-primary);
+    color: var(--text-primary);
     padding: 16px 24px !important;
 
     ::ng-deep {
       .mdc-text-field--outlined {
         border-radius: 12px !important;
-        background-color: var(--bg-input, transparent);
+        background-color: var(--bg-input);
       }
 
-      // 1. Trạng thái Tĩnh (Mặc định): Icon màu xám trầm trung tính
       .field-icon {
-        color: var(--text-primary) !important;
-        opacity: 0.45;
-        transition: opacity 0.2s ease, color 0.2s ease;
+        color: var(--text-secondary) !important;
+        transition: color 0.2s ease;
       }
 
-      mat-label,
-      input::placeholder {
-        color: var(--mdc-outlined-text-field-focus-border-color);
+      .mdc-text-field--focused .field-icon {
+        color: var(--primary-color) !important;
       }
 
-      mat-mdc-select-value,
-      .mdc-text-field__input,
-      .mat-mdc-select-arrow {
-        color: var(--text-primary);
+      .mat-form-field-invalid .field-icon {
+        color: var(--color-danger) !important;
       }
 
-      .mdc-text-field__input,
-      .mat-mdc-select-arrow {
-        color: var(--text-primary);
-      }
-
-
-      // 2. Trạng thái FOCUS: Icon sáng lên màu Tím (Primary)
-      .mdc-text-field--focused {
-        .field-icon {
-          opacity: 1;
-          color: var(--mdc-outlined-text-field-focus-border-color, #673ab7) !important;
-        }
-      }
-
-      // 3. Trạng thái ERROR (Invalid): Icon phải chuyển sang màu Đỏ đồng bộ với Border
-      // Chúng ta đặt selector này ở dưới cùng hoặc tăng độ ưu tiên để đè lên trạng thái Focused
-      .mat-form-field-invalid {
-        .field-icon {
-          opacity: 1;
-          // Sử dụng biến màu error của Material hoặc màu đỏ custom của hệ thống bạn
-          color: var(--mdc-outlined-text-field-error-border-color, #f44336) !important;
-        }
-      }
-
-      .ng-valid {
-
-        mat-label,
-        .mat-form-field-appearance-outline {
-          color: var(--mdc-outlined-text-field-focus-border-color, #673ab7) !important;
-        }
-
-      }
-
-      // Cấu hình vị trí tinh chỉnh cho textarea và prefix text giữ nguyên
       .mat-mdc-form-field-prefix {
         display: inline-flex;
         align-items: center;
@@ -129,14 +123,55 @@
       .currency-suffix {
         font-weight: 600;
         font-size: 14px;
-        color: var(--text-primary);
-        opacity: 0.6;
+        color: var(--text-secondary);
         margin-right: 4px;
       }
     }
   }
 
+  .proof-upload-zone {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+
+    .upload-section-label {
+      color: var(--text-secondary);
+    }
+
+    .required-asterisk {
+      color: var(--color-danger);
+    }
+
+    .upload-trigger-box {
+      background-color: var(--bg-secondary);
+      border: 1px dashed var(--border-color);
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+
+      &:hover {
+        border-color: var(--primary-color);
+      }
+    }
+
+    .attached-header {
+      color: var(--status-success-text);
+    }
+
+    .file-item-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+
+      .file-link {
+        color: var(--text-primary);
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: var(--primary-color);
+        }
+      }
+    }
+  }
+
   mat-dialog-actions {
+    background-color: var(--bg-modal-primary);
     padding: 16px 24px 24px !important;
   }
 }
