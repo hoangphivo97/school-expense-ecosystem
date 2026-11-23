@@ -147,8 +147,8 @@
       "eyebrow": "System Architecture & R&D",
       "title": "Explore Public Architecture Dossier & Changelog"
     },
-    "sessionSecurity": "In-memory accessToken (XSS-safe) + silent refreshToken on reload",
-    "sessionSecurityTooltip": "Short-lived accessToken stays strictly in memory inside AuthSignalStore while refreshToken restores sessions seamlessly on page reload.",
+    "sessionSecurity": "In-memory accessToken (no localStorage persistence) + silent refreshToken",
+    "sessionSecurityTooltip": "Short-lived accessToken lives strictly in memory inside AuthSignalStore to eliminate storage-based token theft, while refreshToken restores sessions across page reloads.",
     "orSandbox": "Or test with Evaluator Sandbox"
   }
 }

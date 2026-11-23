@@ -147,8 +147,8 @@
       "eyebrow": "系統架構與研發藍圖",
       "title": "檢視公開技術架構檔案與部署更新日誌"
     },
-    "sessionSecurity": "記憶體內存 accessToken（防範 XSS）+ 重新整理無感更新 refreshToken",
-    "sessionSecurityTooltip": "短期 accessToken 僅存於 AuthSignalStore 記憶體中以避免 XSS 竊取，頁面重新整理時透過 refreshToken 自動續期維持登入狀態。",
+    "sessionSecurity": "記憶體內存 accessToken（不寫入 localStorage）+ 無感更新 refreshToken",
+    "sessionSecurityTooltip": "短期 accessToken 僅保存於 AuthSignalStore 記憶體中以避免本地儲存外洩風險，頁面重新整理時透過 refreshToken 自動續期維持登入狀態。",
     "orSandbox": "或使用評估者角色沙盒測試"
   }
 }

@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { LoginResponse } from '@school-expense-ecosystem/auth/types';
@@ -65,7 +65,6 @@ export class LoginComponent {
   readonly faShieldHalved = faShieldHalved;
 
   readonly isAdminMode = signal<boolean>(false);
-  readonly selectedAccount = signal<DemoAccountViewModel | null>(null);
   readonly hidePassword = signal<boolean>(true);
 
   readonly demoAccounts: DemoAccountViewModel[] = DemoAccountArr.map((acc) => {
@@ -84,6 +83,12 @@ export class LoginComponent {
     };
   });
 
+  readonly selectedAccount = computed<DemoAccountViewModel | null>(() => {
+    const currentEmail = this.adminModel().email.trim().toLowerCase();
+    if (!currentEmail) return null;
+    return this.demoAccounts.find((acc) => acc.email.toLowerCase() === currentEmail) ?? null;
+  });
+
   protected readonly adminModel = signal({
     email: '',
     password: '',
@@ -100,15 +105,12 @@ export class LoginComponent {
     this.isAdminMode.set(status);
     this.hidePassword.set(true);
     if (!status) {
-      this.selectedAccount.set(null);
       this.adminLoginForm().reset();
     }
   }
 
   /** Populates credentials when an evaluator selects a preset sandbox role. */
-  onRoleSelectionChanged(account: DemoAccountViewModel | null): void {
-    this.selectedAccount.set(account);
-
+ onRoleSelectionChanged(account: DemoAccountViewModel | null): void {
     if (account) {
       this.adminModel.set({
         email: account.email,
