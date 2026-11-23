@@ -1,4 +1,26 @@
+@if (isAuthenticated()) {
 <lib-header></lib-header>
+} @else {
+<header class="public-showcase-topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <mat-icon class="brand-icon">account_balance</mat-icon>
+      <span class="brand-name">{{ 'overview.topbar.brandName' | transloco }}</span>
+      <span class="dossier-pill">{{ 'overview.topbar.dossierBadge' | transloco }}</span>
+    </div>
+
+    <div class="topbar-actions">
+      <lib-language-switcher></lib-language-switcher>
+      <lib-react-wrapper></lib-react-wrapper>
+
+      <button type="button" mat-raised-button color="primary" class="sandbox-cta-btn" (click)="navigateToLogin()">
+        <span>{{ 'overview.topbar.trySandbox' | transloco }}</span>
+        <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </div>
+</header>
+}
 
 <div class="project-overview-container">
 
@@ -7,23 +29,16 @@
      ========================================================================== -->
   <section class="hero-banner">
     <div class="banner-content">
-      <span class="brand-badge">Academic Portfolio Gateway</span>
-      <h1 class="banner-title">School Expense Ecosystem</h1>
+      <span class="brand-badge">{{ 'overview.hero.badge' | transloco }}</span>
+      <h1 class="banner-title">{{ 'overview.hero.title' | transloco }}</h1>
 
-      <p class="banner-description">
-        Welcome to the core enterprise administration gateway. This platform is architected as an advanced,
-        high-performance <strong>Nx Monorepo</strong> utilizing <strong>Micro-frontends (Module Federation)</strong>
-        with an Angular Shell
-        application and React Remote modules, orchestrated alongside a secure NestJS backend.
-      </p>
+      <p class="banner-description" [innerHTML]="'overview.hero.description' | transloco"></p>
+      <p class="banner-notice">{{ 'overview.hero.darkModeNotice' | transloco }}</p>
 
-      <p class="banner-notice">Dark Mode optimization active for all federated views.</p>
-
-      <!-- Architectural Diagram & Docs Quicklinks Hub -->
       <div class="architecture-gateways">
         <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/blob/main/ARCHITECTURE.md"
           class="architecture-link">
-          <mat-icon>menu_book</mat-icon> View Architecture Documentation &rarr;
+          <mat-icon>menu_book</mat-icon> {{ 'overview.hero.archLink' | transloco }} &rarr;
         </a>
       </div>
 
@@ -55,68 +70,69 @@
     </div>
   </section>
 
- <section class="changelog-lane">
+  <section class="changelog-lane">
     <div class="lane-header">
       <div class="header-title-group">
         <mat-icon class="header-icon">history_edu</mat-icon>
         <div>
-          <h2 class="section-title">Production Deployment Changelog</h2>
-          <p class="section-subtitle">Real-time deployment audit trail generated from verified Git commits.</p>
+          <h2 class="section-title">{{ 'overview.sections.changelogTitle' | transloco }}</h2>
+          <p class="section-subtitle">{{ 'overview.sections.changelogSubtitle' | transloco }}</p>
         </div>
       </div>
     </div>
 
     @for (release of parsedReleases(); track release.version) {
-      <div class="release-card">
-        <!-- Release Card Header -->
-        <div class="release-header">
-          <div class="version-meta">
-            <span class="version-tag">v{{ release.version }}</span>
-            <span class="release-date"><mat-icon>event</mat-icon> {{ release.date }}</span>
-          </div>
-          <span class="commit-count-badge">{{ release.totalCommits }} Commits</span>
+    <div class="release-card">
+      <!-- Release Card Header -->
+      <div class="release-header">
+        <div class="version-meta">
+          <span class="version-tag">v{{ release.version }}</span>
+          <span class="release-date"><mat-icon>event</mat-icon> {{ release.date }}</span>
         </div>
+        <span class="commit-count-badge">{{ release.totalCommits }} Commits</span>
+      </div>
 
-        <!-- Release Body: Contained Scrollable Frame -->
-        <div class="release-body">
-          @for (section of release.sections; track section.type) {
-            <div class="section-block">
-              <h3 class="section-headline" [ngClass]="section.type === 'Bug Fixes' ? 'type-fix' : 'type-feat'">
-                <mat-icon>{{ section.type === 'Bug Fixes' ? 'build_circle' : 'stars' }}</mat-icon>
-                {{ section.type }} ({{ section.items.length }})
-              </h3>
+      <!-- Release Body: Contained Scrollable Frame -->
+      <div class="release-body">
+        @for (section of release.sections; track section.type) {
+        <div class="section-block">
+          <h3 class="section-headline" [ngClass]="section.type === 'Bug Fixes' ? 'type-fix' : 'type-feat'">
+            <mat-icon>{{ section.type === 'Bug Fixes' ? 'build_circle' : 'stars' }}</mat-icon>
+            {{ section.type }} ({{ section.items.length }})
+          </h3>
 
-              <!-- 2-Column Responsive Grid -->
-              <div class="entries-grid">
-                @for (item of section.items; track item.commitHash || item.description) {
-                  <div class="entry-item">
-                    <!-- Left Column: Scope Badge & Description Text -->
-                    <div class="entry-main">
-                      @if (item.scope) {
-                        <span class="scope-chip">{{ item.scope }}</span>
-                      }
-                      <span class="entry-text">{{ item.description }}</span>
-                    </div>
-
-                    <!-- Right Column: GitHub Commit Link -->
-                    @if (item.commitHash && item.commitUrl) {
-                      <a [href]="item.commitUrl" target="_blank" rel="noopener noreferrer" class="commit-pill" title="View on GitHub">
-                        <code>#{{ item.commitHash | slice:0:7 }}</code>
-                        <mat-icon>launch</mat-icon>
-                      </a>
-                    }
-                  </div>
+          <!-- 2-Column Responsive Grid -->
+          <div class="entries-grid">
+            @for (item of section.items; track item.commitHash || item.description) {
+            <div class="entry-item">
+              <!-- Left Column: Scope Badge & Description Text -->
+              <div class="entry-main">
+                @if (item.scope) {
+                <span class="scope-chip">{{ item.scope }}</span>
                 }
+                <span class="entry-text">{{ item.description }}</span>
               </div>
+
+              <!-- Right Column: GitHub Commit Link -->
+              @if (item.commitHash && item.commitUrl) {
+              <a [href]="item.commitUrl" target="_blank" rel="noopener noreferrer" class="commit-pill"
+                title="View on GitHub">
+                <code>#{{ item.commitHash | slice:0:7 }}</code>
+                <mat-icon>launch</mat-icon>
+              </a>
+              }
             </div>
-          }
+            }
+          </div>
         </div>
+        }
       </div>
+    </div>
     } @empty {
-      <div class="empty-state-card">
-        <mat-icon>hourglass_empty</mat-icon>
-        <p>No deployment history available.</p>
-      </div>
+    <div class="empty-state-card">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>No deployment history available.</p>
+    </div>
     }
   </section>
 
@@ -124,79 +140,58 @@
      System Components Grid Matrix (With Granular Role & UserType Containment)
      ========================================================================== -->
   <section class="components-integration-section">
-    <h2 class="section-title">Future Plan & Idea</h2>
+    <h2 class="section-title">{{ 'overview.sections.futurePlan' | transloco }}</h2>
     <div class="components-grid">
-
-      <!-- Card 1: AI Decision Support System -->
       <article class="integration-card">
         <div class="card-header">
-          <div class="card-icon-box status-info">
-            <mat-icon>psychology</mat-icon>
-          </div>
-          <span class="status-badge state-info">Research R&D</span>
+          <div class="card-icon-box status-info"><mat-icon>psychology</mat-icon></div>
+          <span class="status-badge state-info">{{ 'overview.rnd.idss.badge' | transloco }}</span>
         </div>
         <div class="card-body">
-          <h3 class="card-title">Intelligent Decision Analytics</h3>
-          <p class="card-text">
-            Integrate artificial intelligence as an <strong>Intelligent Decision Support System (IDSS)</strong> to
-            assist user decision-making, evaluate expenditure forecast caps, and automatically detect institutional
-            financial anomalies.
-          </p>
+          <h3 class="card-title">{{ 'overview.rnd.idss.title' | transloco }}</h3>
+          <p class="card-text" [innerHTML]="'overview.rnd.idss.desc' | transloco"></p>
         </div>
         <div class="card-footer">
           <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/136"
             class="action-btn">
-            View AI Proposal Blueprint
+            {{ 'overview.rnd.idss.cta' | transloco }}
           </a>
         </div>
       </article>
 
-      <!-- Card 2: Local Linux Infrastructure Simulation -->
       <article class="integration-card">
         <div class="card-header">
-          <div class="card-icon-box status-warning">
-            <mat-icon>dns</mat-icon>
-          </div>
-          <span class="status-badge state-warning">Sandbox Stage</span>
+          <div class="card-icon-box status-warning"><mat-icon>dns</mat-icon></div>
+          <span class="status-badge state-warning">{{ 'overview.rnd.linux.badge' | transloco }}</span>
         </div>
         <div class="card-body">
-          <h3 class="card-title">Bare-Metal Linux Topologies</h3>
-          <p class="card-text">
-            Experiment with establishing and hosting localized, dedicated <strong>Linux systems</strong> to measure,
-            benchmark, and optimize response latency compared to pure serverless cloud structures.
-          </p>
+          <h3 class="card-title">{{ 'overview.rnd.linux.title' | transloco }}</h3>
+          <p class="card-text" [innerHTML]="'overview.rnd.linux.desc' | transloco"></p>
         </div>
         <div class="card-footer">
           <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/141"
             class="action-btn">
-            View Infrastructure Spec
+            {{ 'overview.rnd.linux.cta' | transloco }}
           </a>
         </div>
       </article>
 
-      <!-- Card 3: Snapdragon 855 Edge Inference Pipeline -->
       <article class="integration-card">
         <div class="card-header">
-          <div class="card-icon-box status-success">
-            <mat-icon>developer_board</mat-icon>
-          </div>
-          <span class="status-badge state-success">Proof of Concept</span>
+          <div class="card-icon-box status-success"><mat-icon>developer_board</mat-icon></div>
+          <span class="status-badge state-success">{{ 'overview.rnd.edge.badge' | transloco }}</span>
         </div>
         <div class="card-body">
-          <h3 class="card-title">Edge AI Processing Hardware</h3>
-          <p class="card-text">
-            Repurpose and orchestrate legacy hardware assets powered by <strong>Snapdragon 855 processors</strong> into
-            localized edge inference pipelines for optimized on-device AI computing and data compilation.
-          </p>
+          <h3 class="card-title">{{ 'overview.rnd.edge.title' | transloco }}</h3>
+          <p class="card-text" [innerHTML]="'overview.rnd.edge.desc' | transloco"></p>
         </div>
         <div class="card-footer">
           <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/112"
             class="action-btn">
-            View Hardware Pipeline Spec
+            {{ 'overview.rnd.edge.cta' | transloco }}
           </a>
         </div>
       </article>
-
     </div>
   </section>
 
@@ -267,5 +262,18 @@
       }
     </section>
   </div>
+
+  @if (!isAuthenticated()) {
+  <section class="public-evaluator-cta">
+    <div class="cta-copy">
+      <h3>{{ 'overview.cta.title' | transloco }}</h3>
+      <p>{{ 'overview.cta.desc' | transloco }}</p>
+    </div>
+    <button type="button" mat-raised-button color="primary" class="sandbox-cta-btn" (click)="navigateToLogin()">
+      <span>{{ 'overview.cta.button' | transloco }}</span>
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </button>
+  </section>
+  }
 
 </div>

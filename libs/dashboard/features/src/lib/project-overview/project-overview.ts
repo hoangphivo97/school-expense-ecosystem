@@ -1,27 +1,37 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslocoModule } from '@jsverse/transloco';
+import { Router } from '@angular/router';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { ChangelogService, ProjectLedgerService } from '@school-expense-ecosystem/dashboard/data-access';
 import { ChangelogRelease, ChangelogSection, TimelineGroup } from '@school-expense-ecosystem/dashboard/types';
-import { HeaderComponent } from '@school-expense-ecosystem/shared/ui';
+import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
+import { HeaderComponent, LanguageSwitcherComponent, ReactWrapperComponent } from '@school-expense-ecosystem/shared/ui';
 import { map } from 'rxjs';
 
 @Component({
   selector: 'lib-project-overview',
-  imports: [CommonModule, TranslocoModule, HeaderComponent, MatIconModule],
+  imports: [CommonModule, TranslocoModule, HeaderComponent, MatIconModule, ReactWrapperComponent, LanguageSwitcherComponent, MatButtonModule],
   templateUrl: './project-overview.html',
   styleUrl: './project-overview.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true
+  standalone: true,
+    providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'overview' }
+  ]
 })
 export class ProjectOverview {
-  private ledgerService = inject(ProjectLedgerService);
-  private changelogService = inject(ChangelogService);
+  private readonly ledgerService = inject(ProjectLedgerService);
+  private readonly changelogService = inject(ChangelogService);
+  private readonly authStore = inject(AuthSignalStore);
+  private readonly router = inject(Router);
 
   readonly currentYear = new Date().getFullYear();
   readonly currentMonth = new Date().getMonth() + 1;
+
+  readonly isAuthenticated = computed(() => Boolean(this.authStore.user()));
 
   readonly changelogContent = toSignal(
     this.changelogService.getChangelog(), { initialValue: '' }
@@ -93,8 +103,8 @@ export class ProjectOverview {
       },
       {
         key: 'Defensive Security Tiers',
-        value: '4x Active Guards (AppCheck/JWT)',
-        status: 'success'
+        value: 'In-Memory JWT + Refresh & 4x Guards',
+        status: 'success',
       },
       {
         key: 'NoSQL Index Scalability',
@@ -114,7 +124,6 @@ export class ProjectOverview {
     ];
   });
 
-  // Chronological Historical Milestones Ledger (AC 3)
   private ledgerData$ = this.ledgerService.getLedgerTimelines();
 
   historicalTimeline = toSignal(
@@ -126,4 +135,8 @@ export class ProjectOverview {
     this.ledgerData$.pipe(map(data => data.roadmap)),
     { initialValue: [] as TimelineGroup[] }
   );
+
+  navigateToLogin(): void {
+    this.router.navigate(['/auth']);
+  }
 }
