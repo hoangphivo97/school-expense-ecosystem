@@ -3,28 +3,52 @@
 
 :host {
   display: block;
+  width: 100%;
 
-  .clickable-role-card {
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-input);
+  .login-split-shell {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 
-    &:hover {
-      border-color: var(--primary-color) !important;
-      background-color: var(--hover-bg);
+    @media (max-width: 960px) {
+      grid-template-columns: 1fr;
+
+      lib-login-case-study {
+        order: 2;
+      }
     }
   }
 
-  .transition-all {
-    transition: all 0.2s ease-in-out;
-  }
-
-  .login-wrapper {
+  /* Right column: Authentication portal (padded top to clear AuthLayout header) */
+  .auth-portal-panel {
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    background-color: var(--bg-primary);
-    padding: 16px;
+    padding: 80px 24px 36px;
+    background-color: var(--bg-secondary);
+
+    @media (max-width: 960px) {
+      order: 1;
+      min-height: auto;
+      padding: 84px 16px 36px;
+    }
+
+    .portal-ambient-glow {
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        color-mix(in srgb, var(--primary-color) 14%, transparent) 0%,
+        transparent 70%
+      );
+      pointer-events: none;
+    }
   }
 
   .login-card {
@@ -34,29 +58,76 @@
       outlined-outline-color: var(--border-color),
     ));
 
+    position: relative;
+    overflow: hidden;
     width: 100%;
-    max-width: 420px;
-    padding: 24px;
-    border-radius: 16px;
+    max-width: 440px;
+    padding: 32px 28px 28px;
+    border-radius: 18px;
     box-sizing: border-box;
     background-color: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     box-shadow:
-      0 20px 25px -5px color-mix(in srgb, var(--text-primary) 12%, transparent),
-      0 8px 10px -6px color-mix(in srgb, var(--text-primary) 8%, transparent);
+      0 22px 40px -10px color-mix(in srgb, var(--text-primary) 12%, transparent),
+      0 8px 16px -6px color-mix(in srgb, var(--primary-color) 10%, transparent);
+
+    .card-accent-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(
+        90deg,
+        var(--primary-color),
+        color-mix(in srgb, var(--primary-color) 55%, var(--color-info))
+      );
+    }
   }
 
   .header-center {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 0;
+
+    ::ng-deep .mat-mdc-card-header-text {
+      margin: 0;
+    }
+  }
+
+  .portal-emblem {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    margin-bottom: 24px;
+    background-color: var(--purple-bland-8);
+    color: var(--primary-color);
+    border: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);
+
+    mat-icon {
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
+    }
+
+    &.is-admin {
+      background-color: var(--status-info-bg);
+      color: var(--status-info-text);
+      border-color: var(--status-info-border);
+    }
   }
 
   .title-main,
   .title-admin {
     font-size: variables.$h1-font-size;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     color: var(--text-primary);
     text-align: center;
   }
@@ -64,30 +135,47 @@
   .content-layout {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 18px;
     text-align: center;
-    padding: 16px 0;
+    padding: 4px 0 0;
   }
 
   .description-text {
     color: var(--text-secondary);
     font-size: variables.$text-fonr-size;
-    line-height: 1.5;
+    line-height: 1.55;
     margin: 0;
   }
 
   .google-btn.mat-mdc-raised-button {
+    @include mat.button-overrides((
+      protected-container-color: var(--primary-color),
+      protected-label-text-color: var(--text-on-primary),
+      protected-container-height: 50px,
+      protected-container-shape: 10px,
+    ));
+
     width: 100%;
-    height: 56px;
-    border-radius: 8px;
-    font-size: 1.1rem;
+    height: 50px;
+    border-radius: 10px;
+    font-size: 1rem;
     font-weight: 700;
+    background-color: var(--primary-color);
+    color: var(--text-on-primary);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--primary-color) 28%, transparent);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 10px 22px color-mix(in srgb, var(--primary-color) 36%, transparent);
+    }
   }
 
   .btn-inner-content {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
 
   .spinner-align {
@@ -102,12 +190,107 @@
     align-items: center;
     gap: 8px;
     color: var(--text-secondary);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
-    background-color: var(--bg-input);
+    background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
-    padding: 6px 16px;
+    padding: 6px 14px;
     border-radius: 50px;
+  }
+
+  .session-security-note {
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: -8px;
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+      color: var(--primary-color);
+    }
+  }
+
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 2px 0;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background-color: var(--border-color);
+    }
+  }
+
+  /* Evaluator Role Sandbox callout container */
+  .sandbox-callout {
+    padding: 14px;
+    border-radius: 12px;
+    background-color: var(--bg-primary);
+    border: 1px solid color-mix(in srgb, var(--primary-color) 25%, var(--border-color));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .sandbox-roles-preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      .role-tag {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 5px;
+        color: var(--primary-color);
+        background-color: var(--purple-bland-8);
+        border: 1px solid color-mix(in srgb, var(--primary-color) 20%, transparent);
+      }
+    }
+  }
+
+  .sandbox-mode-btn.mat-mdc-outlined-button {
+    @include mat.button-overrides((
+      outlined-outline-color: color-mix(in srgb, var(--primary-color) 40%, var(--border-color)),
+      outlined-label-text-color: var(--text-primary),
+      outlined-container-height: 42px,
+      outlined-container-shape: 9px,
+    ));
+
+    width: 100%;
+    height: 42px;
+    border-radius: 9px;
+    background-color: var(--bg-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    ::ng-deep .mdc-button__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: var(--primary-color);
+      background-color: var(--hover-bg);
+      color: var(--primary-color);
+    }
   }
 
   .icon-success {
@@ -137,9 +320,19 @@
   }
 
   .submit-btn.mat-mdc-raised-button {
+    @include mat.button-overrides((
+      protected-container-color: var(--primary-color),
+      protected-label-text-color: var(--text-on-primary),
+      protected-container-height: 48px,
+      protected-container-shape: 10px,
+    ));
+
     height: 48px;
+    border-radius: 10px;
     font-size: 1rem;
     font-weight: 600;
+    background-color: var(--primary-color);
+    color: var(--text-on-primary);
   }
 
   .sandbox-banner {
@@ -187,19 +380,6 @@
     border-top: 1px solid var(--border-color);
   }
 
-  .toggle-mode-btn {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-
-    &:hover:not(:disabled) {
-      color: var(--primary-color);
-      text-decoration: underline;
-    }
-  }
-
   .back-portal-btn {
     @include mat.button-overrides((
       text-label-text-color: var(--primary-color),
@@ -208,9 +388,12 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--primary-color);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+
+    ::ng-deep .mdc-button__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
   }
 
   .animate-fade-in {

@@ -1,13 +1,16 @@
 .toggleLabel {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   cursor: pointer;
   user-select: none;
 }
 
 .labelText {
-  font-size: 1.4rem;
+  margin-left: -4px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-primary);
+  white-space: nowrap;
+  line-height: 1;
 }
