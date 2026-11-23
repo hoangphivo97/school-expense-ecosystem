@@ -16,6 +16,7 @@
     "changelogTitle": "正式環境部署更新日誌",
     "changelogSubtitle": "依據已驗證的 Git 提交紀錄自動生成的即時部署稽核軌跡。",
     "emptyChangelog": "目前尚無部署歷史紀錄。",
+    "commits": "次提交",
     "futurePlan": "未來研究規劃與構想",
     "history": "專案演進時間軸",
     "roadmap": "未來開發藍圖"
@@ -44,5 +45,13 @@
     "title": "準備好測試多層級經費審核流程了嗎？",
     "desc": "啟動互動式角色沙盒，實際檢視學生、教師、系主任、財務人員與系統管理員的權限邊界與簽核流程。",
     "button": "前往身分驗證與沙盒入口"
+  },
+  "timeline": {
+    "month": "月份",
+    "status": {
+      "completed": "已完成",
+      "in-progress": "進行中",
+      "todo": "規劃中"
+    }
   }
 }

@@ -105,18 +105,19 @@ export class LoginComponent {
     this.isAdminMode.set(status);
     this.hidePassword.set(true);
     if (!status) {
+      this.adminModel.set({ email: '', password: '' });
       this.adminLoginForm().reset();
     }
   }
 
-  /** Populates credentials when an evaluator selects a preset sandbox role. */
- onRoleSelectionChanged(account: DemoAccountViewModel | null): void {
+  onRoleSelectionChanged(account: DemoAccountViewModel | null): void {
     if (account) {
       this.adminModel.set({
         email: account.email,
         password: account.password,
       });
     } else {
+      this.adminModel.set({ email: '', password: '' });
       this.adminLoginForm().reset();
     }
   }

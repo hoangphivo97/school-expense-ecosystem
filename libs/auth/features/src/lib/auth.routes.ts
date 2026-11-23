@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@school-expense-ecosystem/auth/guards-frontend';
 import { LoginComponent } from './features/login/login.component';
 import { OnboardingComponent } from './features/onboarding/onboarding.component';
 import { WaitingApprovalComponent } from './features/waiting-approval/waiting-approval.component';
@@ -7,6 +6,7 @@ import { RejectedComponent } from './features/rejected/rejected.component';
 import { unauthGuard } from './RouteGuard/unauth.guard';
 import { onboardingGuard } from './RouteGuard/onboarding.guard';
 import { waitingApprovalGuard } from './RouteGuard/waiting-approval.guard';
+import { authGuard } from '@school-expense-ecosystem/auth/guards-frontend';
 
 export const AUTH_ROUTES: Routes = [
   {

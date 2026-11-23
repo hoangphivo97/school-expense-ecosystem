@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { WaitingApprovalComponent } from './waiting-approval';
 import { describe, beforeEach, it , expect} from '@jest/globals';
+import { WaitingApprovalComponent } from './waiting-approval.component';
 
 describe('WaitingApprovalComponent', () => {
   let component: WaitingApprovalComponent;

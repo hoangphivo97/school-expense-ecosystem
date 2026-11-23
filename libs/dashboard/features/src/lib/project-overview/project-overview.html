@@ -32,7 +32,7 @@
       <span class="brand-badge">{{ 'overview.hero.badge' | transloco }}</span>
       <h1 class="banner-title">{{ 'overview.hero.title' | transloco }}</h1>
 
-      <p class="banner-description" [innerHTML]="'overview.hero.description' | transloco"></p>
+      <p class="banner-description">{{ 'overview.hero.description' | transloco }}</p>
       <p class="banner-notice">{{ 'overview.hero.darkModeNotice' | transloco }}</p>
 
       <div class="architecture-gateways">
@@ -89,7 +89,9 @@
           <span class="version-tag">v{{ release.version }}</span>
           <span class="release-date"><mat-icon>event</mat-icon> {{ release.date }}</span>
         </div>
-        <span class="commit-count-badge">{{ release.totalCommits }} Commits</span>
+        <span class="commit-count-badge">
+          {{ release.totalCommits }} {{ 'overview.sections.commits' | transloco }}
+        </span>
       </div>
 
       <!-- Release Body: Contained Scrollable Frame -->
@@ -144,12 +146,14 @@
     <div class="components-grid">
       <article class="integration-card">
         <div class="card-header">
-          <div class="card-icon-box status-info"><mat-icon>psychology</mat-icon></div>
+          <div class="card-icon-box status-info">
+            <mat-icon>psychology</mat-icon>
+          </div>
           <span class="status-badge state-info">{{ 'overview.rnd.idss.badge' | transloco }}</span>
         </div>
         <div class="card-body">
           <h3 class="card-title">{{ 'overview.rnd.idss.title' | transloco }}</h3>
-          <p class="card-text" [innerHTML]="'overview.rnd.idss.desc' | transloco"></p>
+          <p class="card-text">{{ 'overview.rnd.idss.desc' | transloco }}</p>
         </div>
         <div class="card-footer">
           <a target="_blank" href="https://github.com/hoangphivo97/school-expense-ecosystem/issues/136"
@@ -207,7 +211,11 @@
         <h3 class="year-header">{{ group.year }}</h3>
         @for(item of group.items; track item){
         <div class="timeline-node">
-          <div class="node-meta"><span [ngClass]="'state-' + item.timelineState">Month {{ item.month }}</span></div>
+          <div class="node-meta">
+            <span [ngClass]="'state-' + item.timelineState">
+              {{ 'overview.timeline.month' | transloco }} {{ item.month }}
+            </span>
+          </div>
           <div class="node-content">
             <!-- Architect Fix: Structural header wrapper to align dynamic components cleanly -->
             <div class="node-header">
@@ -219,7 +227,7 @@
                 </a>
               </div>
               <span class="status-badge" [ngClass]="item.status">
-                {{ item.status === 'completed' ? 'Completed' : item.status === 'in-progress' ? 'In-Progress' : 'Todo' }}
+                {{ 'overview.timeline.status.' + item.status | transloco }}
               </span>
               <div [innerHTML]="item.description"></div>
             </div>

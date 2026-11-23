@@ -15,6 +15,7 @@
     "statusMatrix": "System Status Matrix",
     "changelogTitle": "Production Deployment Changelog",
     "changelogSubtitle": "Real-time deployment audit trail generated from verified Git commits.",
+    "commits": "Commits",
     "emptyChangelog": "No deployment history available.",
     "futurePlan": "Future Plan & Idea",
     "history": "Chronological History",
@@ -44,5 +45,13 @@
     "title": "Ready to test the Multi-Tier Approval Workflow?",
     "desc": "Launch the interactive Role Sandbox to inspect permissions across Student, Lecturer, Faculty Dean, Finance Officer, and SysAdmin views.",
     "button": "Open Authentication & Sandbox"
+  },
+  "timeline": {
+    "month": "Month",
+    "status": {
+      "completed": "Completed",
+      "in-progress": "In-Progress",
+      "todo": "Todo"
+    }
   }
 }
