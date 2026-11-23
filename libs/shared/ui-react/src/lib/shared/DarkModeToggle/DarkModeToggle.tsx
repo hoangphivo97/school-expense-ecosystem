@@ -19,7 +19,7 @@ const MaterialUISwitch = styled(Switch)(() => ({
       color: 'var(--text-on-primary)',
       transform: 'translateX(22px)',
       '& .MuiSwitch-thumb': {
-        backgroundColor: 'var(--primary-color)', // Dark Mode: nền tím đêm
+        backgroundColor: 'var(--primary-color)',
         '&::before': {
           WebkitMaskImage: MOON_ICON_MASK,
           maskImage: MOON_ICON_MASK,
@@ -32,7 +32,7 @@ const MaterialUISwitch = styled(Switch)(() => ({
     },
   },
   '& .MuiSwitch-thumb': {
-    backgroundColor: 'var(--color-warning)', // Light Mode: nền vàng cam nắng
+    backgroundColor: 'var(--color-warning)',
     width: 32,
     height: 32,
     transition: 'background-color 0.25s ease',
