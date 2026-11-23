@@ -14,6 +14,11 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'project-overview',
+    loadComponent: () =>
+      import('@school-expense-ecosystem/dashboard/features').then((m) => m.ProjectOverview),
+  },
+  {
     path: '',
     loadComponent: () => import('./layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     canActivate: [authGuard, activeUserGuard],

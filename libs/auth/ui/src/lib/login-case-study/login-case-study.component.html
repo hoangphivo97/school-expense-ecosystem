@@ -1,0 +1,172 @@
+<aside class="case-study-panel">
+  <!-- Top brand lockup and architecture tag -->
+  <div class="panel-topbar">
+    <div class="brand-lockup">
+      <div class="brand-mark">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <span class="brand-title">School Expense Ecosystem</span>
+    </div>
+    <span class="arch-pill">Nx MFE • RBAC</span>
+  </div>
+
+  <!-- Core workflow documentation -->
+  <div class="panel-inner">
+    <div class="case-study-badge">
+      <mat-icon>account_tree</mat-icon>
+      <span>{{ 'auth.showcase.badge' | transloco }}</span>
+    </div>
+
+    <h1 class="showcase-title">
+      {{ 'auth.showcase.title' | transloco }}
+    </h1>
+
+    <p class="showcase-subtitle">
+      {{ 'auth.showcase.subtitle' | transloco }}
+    </p>
+
+    <!-- Section 1: Ex-ante pre-approval & post-purchase reimbursement pipeline -->
+    <section class="guide-card">
+      <div class="guide-card-header">
+        <mat-icon>verified_user</mat-icon>
+        <h2>{{ 'auth.showcase.approval.heading' | transloco }}</h2>
+      </div>
+
+      <div class="pipeline-list">
+        <div class="pipeline-step">
+          <div class="step-track">
+            <span class="step-badge">L3</span>
+            <span class="step-connector"></span>
+          </div>
+          <div class="step-detail">
+            <div class="step-title-row">
+              <strong>{{ 'auth.showcase.approval.l3Title' | transloco }}</strong>
+              <span class="step-stage">{{ 'auth.showcase.approval.l3Stage' | transloco }}</span>
+            </div>
+            <span>{{ 'auth.showcase.approval.l3Desc' | transloco }}</span>
+          </div>
+        </div>
+
+        <div class="pipeline-step">
+          <div class="step-track">
+            <span class="step-badge">L2</span>
+            <span class="step-connector"></span>
+          </div>
+          <div class="step-detail">
+            <div class="step-title-row">
+              <strong>{{ 'auth.showcase.approval.l2Title' | transloco }}</strong>
+              <span class="step-stage">{{ 'auth.showcase.approval.l2Stage' | transloco }}</span>
+            </div>
+            <span>{{ 'auth.showcase.approval.l2Desc' | transloco }}</span>
+          </div>
+        </div>
+
+        <!-- Execution gate separating pre-purchase authorization from receipt settlement -->
+        <div class="execution-gate-row">
+          <div class="gate-track">
+            <span class="gate-node">
+              <mat-icon>shopping_cart_checkout</mat-icon>
+            </span>
+            <span class="step-connector"></span>
+          </div>
+          <div class="gate-pill">
+            <span>{{ 'auth.showcase.approval.executionGate' | transloco }}</span>
+          </div>
+        </div>
+
+        <div class="pipeline-step">
+          <div class="step-track">
+            <span class="step-badge is-final">L1</span>
+          </div>
+          <div class="step-detail">
+            <div class="step-title-row">
+              <strong>{{ 'auth.showcase.approval.l1Title' | transloco }}</strong>
+              <span class="step-stage is-final">{{ 'auth.showcase.approval.l1Stage' | transloco }}</span>
+            </div>
+            <span>{{ 'auth.showcase.approval.l1Desc' | transloco }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Google SSO & JIT account provisioning flow -->
+    <section class="guide-card">
+      <div class="guide-card-header">
+        <mat-icon>person_add_alt</mat-icon>
+        <h2>{{ 'auth.showcase.jit.heading' | transloco }}</h2>
+      </div>
+
+      <p class="jit-subtitle">
+        {{ 'auth.showcase.jit.subtitle' | transloco }}
+      </p>
+
+      <div class="onboarding-steps-grid">
+        <div class="onboarding-step-item">
+          <div class="step-top">
+            <span class="step-num">01</span>
+            <span class="step-tag">Google SSO</span>
+          </div>
+          <strong>{{ 'auth.showcase.jit.step1Title' | transloco }}</strong>
+          <p>{{ 'auth.showcase.jit.step1Desc' | transloco }}</p>
+        </div>
+
+        <div class="onboarding-step-item">
+          <div class="step-top">
+            <span class="step-num">02</span>
+            <span class="step-tag is-onboarding">Onboarding</span>
+          </div>
+          <strong>{{ 'auth.showcase.jit.step2Title' | transloco }}</strong>
+          <p>{{ 'auth.showcase.jit.step2Desc' | transloco }}</p>
+        </div>
+
+        <div class="onboarding-step-item">
+          <div class="step-top">
+            <span class="step-num">03</span>
+            <span class="step-tag is-pending">Pending</span>
+          </div>
+          <strong>{{ 'auth.showcase.jit.step3Title' | transloco }}</strong>
+          <p>{{ 'auth.showcase.jit.step3Desc' | transloco }}</p>
+        </div>
+
+        <div class="onboarding-step-item">
+          <div class="step-top">
+            <span class="step-num">04</span>
+            <span class="step-tag is-active">Active</span>
+          </div>
+          <strong>{{ 'auth.showcase.jit.step4Title' | transloco }}</strong>
+          <p>{{ 'auth.showcase.jit.step4Desc' | transloco }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Public architecture dossier gateway -->
+    <button type="button" class="dossier-gateway-card" (click)="exploreDossier.emit()">
+      <div class="gateway-left">
+        <div class="gateway-icon">
+          <mat-icon>architecture</mat-icon>
+        </div>
+        <div class="gateway-text">
+          <span class="gateway-eyebrow">{{ 'auth.showcase.dossier.eyebrow' | transloco }}</span>
+          <strong>{{ 'auth.showcase.dossier.title' | transloco }}</strong>
+        </div>
+      </div>
+      <mat-icon class="gateway-arrow">arrow_forward</mat-icon>
+    </button>
+  </div>
+
+  <!-- Bottom architectural highlights strip -->
+  <div class="panel-footer-metrics">
+    <div class="metric-chip">
+      <span class="metric-dot"></span>
+      <span>Angular 22 ⇄ React 19</span>
+    </div>
+    <div class="metric-chip">
+      <span class="metric-dot"></span>
+      <span>In-Memory JWT &amp; Silent Refresh</span>
+    </div>
+    <div class="metric-chip">
+      <span class="metric-dot"></span>
+      <span>Atomic Firestore Ledger</span>
+    </div>
+  </div>
+</aside>

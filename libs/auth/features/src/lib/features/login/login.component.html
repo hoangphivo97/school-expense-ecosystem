@@ -1,121 +1,210 @@
-<div class="login-wrapper">
-  <mat-card class="login-card elevation-z1">
+<div class="login-split-shell">
+  <!-- Left column: Domain case study & onboarding documentation -->
+  <lib-login-case-study (exploreDossier)="navigateToOverview()" />
 
-    @if (!isAdminMode()) {
-    <mat-card-header class="header-center">
-      <mat-card-title class="title-main">
-        {{ 'auth.loginTitle' | transloco }}
-      </mat-card-title>
-    </mat-card-header>
+  <!-- Right column: Authentication portal -->
+  <main class="auth-portal-panel">
+    <div class="portal-ambient-glow" aria-hidden="true"></div>
 
-    <mat-card-content class="content-layout">
-      <p class="description-text">
-        {{ 'auth.loginDesc' | transloco }}
-      </p>
+    <mat-card class="login-card elevation-z1">
+      <div class="card-accent-bar" aria-hidden="true"></div>
 
-      <button type="button" mat-raised-button color="primary" class="google-btn" (click)="onGoogleLoginTriggered()"
-        [disabled]="authService.isLoggingInWithGoogle()">
-        @if (authService.isLoggingInWithGoogle()) {
+      <ng-container
+        *ngTemplateOutlet="isAdminMode() ? sandboxAuthTpl : googleAuthTpl"
+      />
+    </mat-card>
+  </main>
+</div>
+
+<!-- Template 1: Institutional Google SSO entry -->
+<ng-template #googleAuthTpl>
+  <mat-card-header class="header-center">
+    <div class="portal-emblem">
+      <mat-icon>shield_person</mat-icon>
+    </div>
+    <mat-card-title class="title-main">
+      {{ 'auth.loginTitle' | transloco }}
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="content-layout">
+    <p class="description-text">
+      {{ 'auth.loginDesc' | transloco }}
+    </p>
+
+    <button
+      type="button"
+      mat-raised-button
+      color="primary"
+      class="google-btn"
+      (click)="onGoogleLoginTriggered()"
+      [disabled]="authService.isLoggingInWithGoogle()"
+    >
+      @if (authService.isLoggingInWithGoogle()) {
         <mat-spinner diameter="20" class="spinner-align"></mat-spinner>
-        {{ 'auth.authenticating' | transloco }}
-        } @else {
+        <span>{{ 'auth.authenticating' | transloco }}</span>
+      } @else {
         <span class="btn-inner-content">
-          <fa-icon [icon]="faGoogle" size="sm"></fa-icon> {{ 'auth.continueGoogle' | transloco }}
+          <fa-icon [icon]="faGoogle" size="sm"></fa-icon>
+          <span>{{ 'auth.continueGoogle' | transloco }}</span>
         </span>
-        }
-      </button>
+      }
+    </button>
 
-      <span class="domain-badge">
-        <fa-icon [icon]="faShieldHalved" class="icon-success"></fa-icon>
-        {{ 'auth.domainSupport' | transloco }}
-      </span>
-    </mat-card-content>
+    <span class="domain-badge">
+      <fa-icon [icon]="faShieldHalved" class="icon-success"></fa-icon>
+      <span>{{ 'auth.domainSupport' | transloco }}</span>
+    </span>
 
-    <mat-card-footer class="footer-center">
-      <button type="button" mat-button class="toggle-mode-btn" [disabled]="authService.isLoggingInWithGoogle()"
-        (click)="toggleAdminMode(true)">
-        {{ 'auth.toggleAdmin' | transloco }}
-        <fa-icon [icon]="faArrowRight" size="xs"></fa-icon>
-      </button>
-    </mat-card-footer>
+    <div class="session-security-note" [title]="'auth.showcase.sessionSecurityTooltip' | transloco">
+      <mat-icon>memory</mat-icon>
+      <span>{{ 'auth.showcase.sessionSecurity' | transloco }}</span>
+    </div>
 
-    } @else {
-    <mat-card-header class="header-center">
-      <mat-card-title class="title-admin">
-        {{ 'auth.authorizedAccess' | transloco }}
-      </mat-card-title>
-    </mat-card-header>
+    <div class="auth-divider">
+      <span>{{ 'auth.showcase.orSandbox' | transloco }}</span>
+    </div>
 
-    <mat-card-content>
-      <div class="field-wrapper">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'auth.selectPreset' | transloco }}</mat-label>
-          <mat-select (selectionChange)="onRoleSelectionChanged($event.value)">
-            <mat-option [value]="null">{{ 'auth.manualInput' | transloco }}</mat-option>
-            @for (acc of demoAccounts; track acc.email) {
-            <mat-option [value]="acc">{{ 'auth.roles.' + acc.translationKey | transloco }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+    <div class="sandbox-callout">
+      <div class="sandbox-roles-preview">
+        <span class="role-tag">Student</span>
+        <span class="role-tag">Lecturer</span>
+        <span class="role-tag">Dean</span>
+        <span class="role-tag">Finance</span>
+        <span class="role-tag">SysAdmin</span>
       </div>
 
-      @if (selectedAccount(); as activeAccount) {
+      <button
+        type="button"
+        mat-stroked-button
+        class="sandbox-mode-btn"
+        [disabled]="authService.isLoggingInWithGoogle()"
+        (click)="toggleAdminMode(true)"
+      >
+        <span>{{ 'auth.toggleAdmin' | transloco }}</span>
+        <fa-icon [icon]="faArrowRight" size="xs"></fa-icon>
+      </button>
+    </div>
+  </mat-card-content>
+</ng-template>
+
+<!-- Template 2: Evaluator Role Sandbox & administrative login -->
+<ng-template #sandboxAuthTpl>
+  <mat-card-header class="header-center">
+    <div class="portal-emblem is-admin">
+      <mat-icon>admin_panel_settings</mat-icon>
+    </div>
+    <mat-card-title class="title-admin">
+      {{ 'auth.authorizedAccess' | transloco }}
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="field-wrapper">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'auth.selectPreset' | transloco }}</mat-label>
+        <mat-select (selectionChange)="onRoleSelectionChanged($event.value)">
+          <mat-option [value]="null">{{ 'auth.manualInput' | transloco }}</mat-option>
+          @for (acc of demoAccounts; track acc.email) {
+            <mat-option [value]="acc">{{ 'auth.roles.' + acc.translationKey | transloco }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (selectedAccount(); as activeAccount) {
       <div class="sandbox-banner animate-fade-in">
         <p class="banner-notice">{{ 'auth.sandboxNotice' | transloco }}</p>
         <div class="banner-role">
           <fa-icon [icon]="faShieldHalved" class="icon-warn"></fa-icon>
-          {{ 'auth.roles.' + activeAccount.translationKey | transloco }}{{ 'auth.sandboxScopeSuffix' | transloco }}
+          <span>
+            {{ 'auth.roles.' + activeAccount.translationKey | transloco }}{{ 'auth.sandboxScopeSuffix' | transloco }}
+          </span>
         </div>
         <p class="banner-desc">{{ 'auth.descriptions.' + activeAccount.translationKey | transloco }}</p>
       </div>
-      }
-
-      <form (submit)="onAdminLoginSubmitted(); $event.preventDefault()" class="form-layout">
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'auth.emailLabel' | transloco }}</mat-label>
-          <input matInput id="auth-email" type="email" [formField]="adminLoginForm.email"
-            placeholder="username@ntust.edu.tw" autocomplete="email" />
-          <mat-error>
-            {{ adminLoginForm.email().errors() | formErrorSignal:{
-            required: ('auth.emailRequired' | transloco),
-            email: ('auth.emailInvalid' | transloco)
-            } }}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'auth.passwordLabel' | transloco }}</mat-label>
-          <input matInput id="auth-password" type="password" [formField]="adminLoginForm.password"
-            placeholder="••••••••" autocomplete="current-password" />
-          <mat-error>
-            {{ adminLoginForm.password().errors() | formErrorSignal:{ required: ('auth.passwordRequired' | transloco) }
-            }}
-          </mat-error>
-        </mat-form-field>
-
-        <div class="form-actions">
-          <button type="submit" mat-raised-button color="primary" class="full-width submit-btn"
-            [disabled]="adminLoginForm().invalid() || authService.isLoggingInWithEmail()">
-            @if (authService.isLoggingInWithEmail()) {
-            <mat-spinner diameter="20" class="spinner-align"></mat-spinner>
-            {{ 'auth.authenticating' | transloco }}
-            } @else {
-            {{ 'auth.signInRole' | transloco }}
-            }
-          </button>
-        </div>
-      </form>
-    </mat-card-content>
-
-    <mat-card-footer class="footer-center">
-      <button type="button" mat-button color="primary" class="back-portal-btn"
-        [disabled]="authService.isLoggingInWithEmail()" (click)="toggleAdminMode(false)">
-        <fa-icon [icon]="faArrowLeft" size="xs"></fa-icon>
-        {{ 'auth.backPortal' | transloco }}
-      </button>
-    </mat-card-footer>
     }
 
-  </mat-card>
-</div>
+    <form (submit)="onAdminLoginSubmitted(); $event.preventDefault()" class="form-layout">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'auth.emailLabel' | transloco }}</mat-label>
+        <input
+          matInput
+          id="auth-email"
+          type="email"
+          [formField]="adminLoginForm.email"
+          placeholder="username@ntust.edu.tw"
+          autocomplete="email"
+        />
+        <mat-error>
+          {{
+            adminLoginForm.email().errors()
+              | formErrorSignal
+                : {
+                    required: ('auth.emailRequired' | transloco),
+                    email: ('auth.emailInvalid' | transloco),
+                  }
+          }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'auth.passwordLabel' | transloco }}</mat-label>
+        <input
+          matInput
+          id="auth-password"
+          [type]="hidePassword() ? 'password' : 'text'"
+          [formField]="adminLoginForm.password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+        <button
+          type="button"
+          mat-icon-button
+          matSuffix
+          (click)="hidePassword.set(!hidePassword())"
+          [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+        >
+          <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error>
+          {{
+            adminLoginForm.password().errors()
+              | formErrorSignal: { required: ('auth.passwordRequired' | transloco) }
+          }}
+        </mat-error>
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          mat-raised-button
+          color="primary"
+          class="full-width submit-btn"
+          [disabled]="adminLoginForm().invalid() || authService.isLoggingInWithEmail()"
+        >
+          @if (authService.isLoggingInWithEmail()) {
+            <mat-spinner diameter="20" class="spinner-align"></mat-spinner>
+            <span>{{ 'auth.authenticating' | transloco }}</span>
+          } @else {
+            <span>{{ 'auth.signInRole' | transloco }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+
+  <mat-card-footer class="footer-center">
+    <button
+      type="button"
+      mat-button
+      color="primary"
+      class="back-portal-btn"
+      [disabled]="authService.isLoggingInWithEmail()"
+      (click)="toggleAdminMode(false)"
+    >
+      <fa-icon [icon]="faArrowLeft" size="xs"></fa-icon>
+      <span>{{ 'auth.backPortal' | transloco }}</span>
+    </button>
+  </mat-card-footer>
+</ng-template>
