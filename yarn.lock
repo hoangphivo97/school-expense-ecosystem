@@ -26332,6 +26332,7 @@ __metadata:
     tslib: "npm:^2.3.0"
     typescript: "npm:~6.0.0"
     typescript-eslint: "npm:^8.40.0"
+    undici: "npm:^8.13.1"
     webpack-cli: "npm:^5.1.4"
     whatwg-fetch: "npm:^3.6.20"
     zone.js: "npm:~0.15.0"
@@ -28521,6 +28522,13 @@ __metadata:
   version: 6.26.0
   resolution: "undici@npm:6.26.0"
   checksum: 10c0/cf2b4caf58c33d6582970991290cc7a6486d6e738845f25dcdd16952d708ec844815c6d30362919764fcaf30f719891289341f1ada496f003ce2700310453a47
+  languageName: node
+  linkType: hard
+
+"undici@npm:^8.13.1":
+  version: 8.13.1
+  resolution: "undici@npm:8.13.1"
+  checksum: 10c0/ee202b4da4f4a663e723696c6d6f6f27f3424aaddd652ceccf1062beaddce171809445cbdbedc50dcd53f0119a1fe8ce20f7c5d320039e71915418dfc98b58a0
   languageName: node
   linkType: hard
 

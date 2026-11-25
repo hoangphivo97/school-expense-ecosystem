@@ -1,0 +1,57 @@
+{
+  "topbar": {
+    "brandName": "School Expense Ecosystem",
+    "dossierBadge": "Public Architecture Dossier",
+    "trySandbox": "Try Role Sandbox"
+  },
+  "hero": {
+    "badge": "Academic Portfolio Gateway",
+    "title": "School Expense Ecosystem",
+    "description": "Welcome to the core enterprise administration gateway. This platform is architected as an advanced, high-performance <strong>Nx Monorepo</strong> utilizing <strong>Micro-frontends (Module Federation)</strong> with an Angular Shell application and React Remote modules, orchestrated alongside a secure NestJS backend.",
+    "darkModeNotice": "Dark Mode optimization active for all federated views.",
+    "archLink": "View Architecture Documentation"
+  },
+  "sections": {
+    "statusMatrix": "System Status Matrix",
+    "changelogTitle": "Production Deployment Changelog",
+    "changelogSubtitle": "Real-time deployment audit trail generated from verified Git commits.",
+    "commits": "Commits",
+    "emptyChangelog": "No deployment history available.",
+    "futurePlan": "Future Plan & Idea",
+    "history": "Chronological History",
+    "roadmap": "Future Roadmap Backlog"
+  },
+  "rnd": {
+    "idss": {
+      "badge": "Research R&D",
+      "title": "Intelligent Decision Analytics",
+      "desc": "Integrate artificial intelligence as an <strong>Intelligent Decision Support System (IDSS)</strong> to assist user decision-making, evaluate expenditure forecast caps, and automatically detect institutional financial anomalies.",
+      "cta": "View AI Proposal Blueprint"
+    },
+    "linux": {
+      "badge": "Sandbox Stage",
+      "title": "Bare-Metal Linux Topologies",
+      "desc": "Experiment with establishing and hosting localized, dedicated <strong>Linux systems</strong> to measure, benchmark, and optimize response latency compared to pure serverless cloud structures.",
+      "cta": "View Infrastructure Spec"
+    },
+    "edge": {
+      "badge": "Proof of Concept",
+      "title": "Edge AI Processing Hardware",
+      "desc": "Repurpose and orchestrate legacy hardware assets powered by <strong>Snapdragon 855 processors</strong> into localized edge inference pipelines for optimized on-device AI computing and data compilation.",
+      "cta": "View Hardware Pipeline Spec"
+    }
+  },
+  "cta": {
+    "title": "Ready to test the Multi-Tier Approval Workflow?",
+    "desc": "Launch the interactive Role Sandbox to inspect permissions across Student, Lecturer, Faculty Dean, Finance Officer, and SysAdmin views.",
+    "button": "Open Authentication & Sandbox"
+  },
+  "timeline": {
+    "month": "Month",
+    "status": {
+      "completed": "Completed",
+      "in-progress": "In-Progress",
+      "todo": "Todo"
+    }
+  }
+}

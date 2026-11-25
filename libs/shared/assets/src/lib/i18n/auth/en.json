@@ -113,5 +113,42 @@
       "contactAdmin": "Contact Administration",
       "returnLogin": "Return to Login"
     }
+  },
+  "showcase": {
+    "badge": "Portfolio Case Study • RBAC & Governance",
+    "title": "Academic Budget & Reimbursement Governance",
+    "subtitle": "An independent full-stack financial workflow engine enforcing ex-ante budget authorization, role isolation, and real-time auditability.",
+    "approval": {
+      "heading": "Ex-Ante Approval & Reimbursement Pipeline",
+      "l3Title": "Student & Lecturer (Level 3)",
+      "l3Stage": "01 • Pre-Approval",
+      "l3Desc": "Submit a pre-purchase expense proposal with estimated budget allocation before spending.",
+      "l2Title": "Faculty Dean (Level 2)",
+      "l2Stage": "02 • Authorize & Lock",
+      "l2Desc": "Verify academic legitimacy and approve the request, atomically reserving departmental funds.",
+      "executionGate": "Approved → Execute purchase & upload actual receipts for settlement",
+      "l1Title": "Finance Officer (Level 1)",
+      "l1Stage": "03 • Audit & Disburse",
+      "l1Desc": "Reconcile post-purchase receipts against the approved cap and disburse reimbursement."
+    },
+    "jit": {
+      "heading": "Google SSO & JIT Account Provisioning",
+      "subtitle": "No manual password signup is required. First-time institutional Google logins follow an automated 4-step activation flow:",
+      "step1Title": "Authenticate via Google",
+      "step1Desc": "Sign in with your university Google account (@ntust.edu.tw) to verify domain identity.",
+      "step2Title": "Complete Onboarding",
+      "step2Desc": "First-time users are routed to /onboarding to bind Student/Lecturer ID and department.",
+      "step3Title": "Admin Verification",
+      "step3Desc": "Profile enters Pending review (/waiting-approval) until SysAdmin validates credentials.",
+      "step4Title": "Access Workspace",
+      "step4Desc": "Once Active, subsequent Google logins enter /dashboard directly with assigned RBAC permissions."
+    },
+    "dossier": {
+      "eyebrow": "System Architecture & R&D",
+      "title": "Explore Public Architecture Dossier & Changelog"
+    },
+    "sessionSecurity": "In-memory accessToken (no localStorage persistence) + silent refreshToken",
+    "sessionSecurityTooltip": "Short-lived accessToken lives strictly in memory inside AuthSignalStore to eliminate storage-based token theft, while refreshToken restores sessions across page reloads.",
+    "orSandbox": "Or test with Evaluator Sandbox"
   }
 }

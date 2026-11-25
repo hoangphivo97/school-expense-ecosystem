@@ -113,5 +113,42 @@
       "contactAdmin": "聯絡行政部門",
       "returnLogin": "返回登入頁面"
     }
+  },
+  "showcase": {
+    "badge": "作品集系統案例 • RBAC 權限與治理引擎",
+    "title": "學術經費預算與報銷審核系統",
+    "subtitle": "獨立開發的全端財務簽核工作流平台，落實事前預算核准機制、角色權限隔離與即時稽核軌跡。",
+    "approval": {
+      "heading": "事前核准與事後報銷簽核流程",
+      "l3Title": "學生與授課教師（Level 3）",
+      "l3Stage": "01 • 事前申請",
+      "l3Desc": "採購前先行提交經費動支申請與預估額度，綁定所屬計畫預算。",
+      "l2Title": "系主任 / 學術主管（Level 2）",
+      "l2Stage": "02 • 核准並鎖定額度",
+      "l2Desc": "審核經費用途合規性並核准申請，透過交易鎖定系所可用預算。",
+      "executionGate": "核准通過 → 執行實際採購並上傳發票憑證進行核銷",
+      "l1Title": "財務審核人員（Level 1）",
+      "l1Stage": "03 • 稽核與撥付",
+      "l1Desc": "依據核准額度核對採購憑證單據，完成總帳核銷與款項撥付。"
+    },
+    "jit": {
+      "heading": "Google SSO 與即時帳號開通流程（JIT）",
+      "subtitle": "無需手動註冊密碼，首次使用學校 Google 帳號登入將自動引導完成以下 4 個啟用步驟：",
+      "step1Title": "透過 Google 帳號驗證",
+      "step1Desc": "使用學校專屬 Google 帳號（@ntust.edu.tw）登入，完成網域身分驗證。",
+      "step2Title": "填寫個人資料（Onboarding）",
+      "step2Desc": "首次登入將自動導向 /onboarding，綁定學號／教職員編號與所屬系所。",
+      "step3Title": "管理員資格審核",
+      "step3Desc": "送出後帳號進入 Pending 狀態（/waiting-approval），等待系統管理員核准。",
+      "step4Title": "進入系統工作區",
+      "step4Desc": "帳號啟用（Active）後，後續點擊 Google 登入即可依角色權限直接進入 /dashboard。"
+    },
+    "dossier": {
+      "eyebrow": "系統架構與研發藍圖",
+      "title": "檢視公開技術架構檔案與部署更新日誌"
+    },
+    "sessionSecurity": "記憶體內存 accessToken（不寫入 localStorage）+ 無感更新 refreshToken",
+    "sessionSecurityTooltip": "短期 accessToken 僅保存於 AuthSignalStore 記憶體中以避免本地儲存外洩風險，頁面重新整理時透過 refreshToken 自動續期維持登入狀態。",
+    "orSandbox": "或使用評估者角色沙盒測試"
   }
 }

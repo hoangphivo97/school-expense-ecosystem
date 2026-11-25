@@ -1,61 +1,55 @@
-import { Injectable, inject, Injector, effect } from '@angular/core';
+import { Injectable, inject} from '@angular/core';
 import { Firestore, doc, docData } from '@angular/fire/firestore';
-import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
-import { Observable } from 'rxjs';
+import { catchError, filter, from, map, Observable, of, switchMap, take } from 'rxjs';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
+import { AuthService } from './auth.service';
+
+export type ApprovalWatchOutcome =
+  | { status: 'ACTIVATED'; user: UserBase }
+  | { status: 'REJECTED'; reason: string }
+  | { status: 'FE_SESSION_EXPIRED' };
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthRealtimeService {
   private readonly firestore = inject(Firestore);
-  private readonly router = inject(Router);
   private readonly authStore = inject(AuthSignalStore);
+  private readonly authService = inject(AuthService);
 
-  /**
-   * Spawns a clean reactive Signal node bound directly to the Firestore document stream.
-   * Eliminates the need for manual subscription ledger management or ngOnDestroy lifecycles.
-   * @param uid The unique identity record string of the onboarding user.
-   */
-  watchStatusAsSignal(uid: string, componentInjector: Injector): void {
+  watchApprovalOutcome(uid: string): Observable<ApprovalWatchOutcome> {
     const userDocRef = doc(this.firestore, `users/${uid}`);
     const userStream$ = docData(userDocRef) as Observable<UserBase>;
 
-    /**
-     * Interop Bridge: Transform the data stream into a read-only signal.
-     * Passing the local component injector ensures automatic teardown when the view unmounts.
-     */
-    const liveUserSignal = toSignal(userStream$, { injector: componentInjector });
+    return userStream$.pipe(
+      filter(
+        (user): user is UserBase =>
+          Boolean(user) &&
+          (user.status === UserStatus.ACTIVE || user.status === UserStatus.REJECTED)
+      ),
+      take(1),
+      switchMap((updatedUser) => this.synchronizeSessionOutcome(updatedUser))
+    );
+  }
 
-    effect(() => {
-      const updatedUser = liveUserSignal();
+  private synchronizeSessionOutcome(updatedUser: UserBase): Observable<ApprovalWatchOutcome> {
+    if (updatedUser.status === UserStatus.REJECTED) {
+      this.authStore.updateAuthState(null, null);
+      return of({
+        status: 'REJECTED',
+        reason: updatedUser.reason || 'Registration onboarding credentials rejected.',
+      });
+    }
 
-      if (!updatedUser) return;
-
-      switch (updatedUser.status) {
-        case UserStatus.ACTIVE:
-          {
-            const currentToken = this.authStore.token();
-            this.authStore.updateAuthState(currentToken, updatedUser);
-            this.router.navigate(['/dashboard']);
-            break;
-          }
-
-        case UserStatus.REJECTED:
-          this.authStore.updateAuthState(null, null);
-          this.router.navigate(['/auth/rejected'], {
-            state: {
-              status: UserStatus.REJECTED,
-              reason: updatedUser.reason || 'Registration onboarding credentials rejected.'
-            }
-          });
-          break;
-        default:
-          break;
-      }
-    }, { injector: componentInjector }); // Bind the side-effect layer to the component execution lifespan
+    return from(this.authService.restoreOrRefreshSession()).pipe(
+      map((freshToken): ApprovalWatchOutcome =>
+        freshToken
+          ? { status: 'ACTIVATED', user: updatedUser }
+          : { status: 'FE_SESSION_EXPIRED' }
+      ),
+      catchError(() => of<ApprovalWatchOutcome>({ status: 'FE_SESSION_EXPIRED' }))
+    );
   }
 }

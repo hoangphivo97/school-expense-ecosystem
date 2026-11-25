@@ -22,7 +22,7 @@ import { DarkModeToggleProps } from '@school-expense-ecosystem/shared/types'
   selector: 'lib-react-wrapper',
   standalone: true,
   templateUrl: './react-wrapper.component.html',
-  styleUrls: ['./react-wrapper.component.css'],
+  styleUrls: ['./react-wrapper.component.scss'],
 })
 export class ReactWrapperComponent implements AfterViewInit, OnDestroy {
   protected readonly themeService = inject(DarkModeService);
