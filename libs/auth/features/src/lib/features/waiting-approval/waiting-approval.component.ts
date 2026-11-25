@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApprovalWatchOutcome, AuthRealtimeService, AuthService } from '@school-expense-ecosystem/auth/data-access';
 import { MatButton } from '@angular/material/button';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { filter, map, switchMap, take } from 'rxjs';
 import { Router } from '@angular/router';

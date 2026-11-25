@@ -61,7 +61,7 @@
   <section class="status-lane">
     <h2>System Status Matrix</h2>
     <div class="status-grid">
-      @for(status of systemStatuses(); track status){
+      @for(status of systemStatuses; track status.key){
       <div class="status-card" [ngClass]="status.status">
         <span class="label">{{ status.key }}</span>
         <strong class="value">{{ status.value }}</strong>
@@ -247,9 +247,12 @@
         <h3 class="year-header">{{ group.year }}</h3>
         @for(item of group.items; track item){
         <div class="timeline-node dashed">
-          <div class="node-meta"><span [ngClass]="'state-' + item.timelineState">Month {{ item.month }}</span></div>
+          <div class="node-meta">
+            <span [ngClass]="'state-' + item.timelineState">
+              {{ 'overview.timeline.month' | transloco }} {{ item.month }}
+            </span>
+          </div>
           <div class="node-content">
-            <!-- Architect Fix: Structural header wrapper to align dynamic components cleanly -->
             <div class="node-header">
               <div class="title-container">
                 <h4>{{ item.title }}</h4>
@@ -259,7 +262,7 @@
                 </a>
               </div>
               <span class="status-badge" [ngClass]="item.status">
-                {{ item.status === 'completed' ? 'Completed' : item.status === 'in-progress' ? 'In-Progress' : 'Todo' }}
+                {{ 'overview.timeline.status.' + item.status | transloco }}
               </span>
               <div [innerHTML]="item.description"></div>
             </div>

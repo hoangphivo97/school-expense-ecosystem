@@ -6,10 +6,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@jsverse/transloco';
 import { ChangelogService, ProjectLedgerService } from '@school-expense-ecosystem/dashboard/data-access';
-import { ChangelogRelease, ChangelogSection, TimelineGroup } from '@school-expense-ecosystem/dashboard/types';
+import { TimelineGroup } from '@school-expense-ecosystem/dashboard/types';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { HeaderComponent, LanguageSwitcherComponent, ReactWrapperComponent } from '@school-expense-ecosystem/shared/ui';
 import { map } from 'rxjs';
+import { parseChangelogMarkdown, SYSTEM_STATUS_MATRIX } from './project-overview.utils';
 
 @Component({
   selector: 'lib-project-overview',
@@ -28,115 +29,25 @@ export class ProjectOverview {
   private readonly authStore = inject(AuthSignalStore);
   private readonly router = inject(Router);
 
-  readonly currentYear = new Date().getFullYear();
-  readonly currentMonth = new Date().getMonth() + 1;
-
   readonly isAuthenticated = computed(() => Boolean(this.authStore.user()));
+  readonly systemStatuses = SYSTEM_STATUS_MATRIX;
 
-  readonly changelogContent = toSignal(
-    this.changelogService.getChangelog(), { initialValue: '' }
-  );
+  readonly changelogContent = toSignal(this.changelogService.getChangelog(), { initialValue: '' });
+  readonly parsedReleases = computed(() => parseChangelogMarkdown(this.changelogContent()));
 
-  readonly parsedReleases = computed<ChangelogRelease[]>(() => {
-    const raw = this.changelogContent();
-    if (!raw) return [];
+  private readonly ledgerData$ = this.ledgerService.getLedgerTimelines();
 
-    const lines = raw.split('\n');
-    const releases: ChangelogRelease[] = [];
-    let currentRelease: ChangelogRelease | null = null;
-    let currentSection: ChangelogSection | null = null;
-
-    const releaseRegex = /^#{1,3}\s+(?:\[?v?([0-9]+\.[0-9]+\.[0-9]+[^\]\s]*)\]?(?:\([^)]*\))?)\s+\((.*?)\)/;
-
-    const sectionRegex = /^#{3,4}\s+([A-Za-z\s]+)(?:\s*\(\d+\))?$/;
-
-    const itemRegex = /^\*\s+(?:(?:\*\*([^*]+):\*\*\s*)?)(.*?)(?:\s*\(\[?([a-f0-9]+)\]?(?:\((https?:\/\/[^)]+)\))?\))?$/;
-
-    for (const rawLine of lines) {
-      const line = rawLine.trim();
-      if (!line) continue;
-
-      const releaseMatch = line.match(releaseRegex);
-      if (releaseMatch) {
-        currentRelease = {
-          version: releaseMatch[1],
-          date: releaseMatch[2],
-          sections: [],
-          totalCommits: 0,
-        };
-        releases.push(currentRelease);
-        currentSection = null;
-        continue;
-      }
-
-      const sectionMatch = line.match(sectionRegex);
-      if (sectionMatch && currentRelease) {
-        currentSection = {
-          type: sectionMatch[1].trim(),
-          items: [],
-        };
-        currentRelease.sections.push(currentSection);
-        continue;
-      }
-
-      const itemMatch = line.match(itemRegex);
-      if (itemMatch && currentSection && currentRelease) {
-        currentSection.items.push({
-          scope: itemMatch[1]?.trim(),
-          description: itemMatch[2]?.trim(),
-          commitHash: itemMatch[3],
-          commitUrl: itemMatch[4],
-        });
-        currentRelease.totalCommits++;
-      }
-    }
-
-    return releases;
-  });
-
-  systemStatuses = computed(() => {
-    return [
-      {
-        key: 'Federated Remote Nodes',
-        value: 'Angular Host ⇄ React v19 MFE',
-        status: 'active'
-      },
-      {
-        key: 'Defensive Security Tiers',
-        value: 'In-Memory JWT + Refresh & 4x Guards',
-        status: 'success',
-      },
-      {
-        key: 'NoSQL Index Scalability',
-        value: 'O(1) Stateful Cursor Pagination',
-        status: 'info'
-      },
-      {
-        key: 'QA Verification Pipeline',
-        value: 'Jest, Cypress & Storybook Active',
-        status: 'success'
-      },
-      {
-        key: 'Distributed Cloud Topology',
-        value: 'Firebase Hosting & Functions Edge',
-        status: 'warning'
-      }
-    ];
-  });
-
-  private ledgerData$ = this.ledgerService.getLedgerTimelines();
-
-  historicalTimeline = toSignal(
-    this.ledgerData$.pipe(map(data => data.history)),
+  readonly historicalTimeline = toSignal(
+    this.ledgerData$.pipe(map((data) => data.history)),
     { initialValue: [] as TimelineGroup[] }
   );
 
-  roadmapTimeline = toSignal(
-    this.ledgerData$.pipe(map(data => data.roadmap)),
+  readonly roadmapTimeline = toSignal(
+    this.ledgerData$.pipe(map((data) => data.roadmap)),
     { initialValue: [] as TimelineGroup[] }
   );
 
   navigateToLogin(): void {
-    this.router.navigate(['/auth']);
+    void this.router.navigate(['/auth']);
   }
 }

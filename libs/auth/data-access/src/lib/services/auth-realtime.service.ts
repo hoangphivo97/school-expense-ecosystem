@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
-import { catchError, filter, map, Observable, of, switchMap, take } from 'rxjs';
+import { catchError, filter, from, map, Observable, of, switchMap, take } from 'rxjs';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
 import { AuthService } from './auth.service';
 
@@ -45,15 +45,7 @@ export class AuthRealtimeService {
       });
     }
 
-    return new Observable<string | null>((subscriber) => {
-      this.authService
-        .restoreOrRefreshSession()
-        .then((token) => {
-          subscriber.next(token);
-          subscriber.complete();
-        })
-        .catch((err) => subscriber.error(err));
-    }).pipe(
+    return from(this.authService.restoreOrRefreshSession()).pipe(
       map((freshToken): ApprovalWatchOutcome =>
         freshToken
           ? { status: 'ACTIVATED', user: updatedUser }
