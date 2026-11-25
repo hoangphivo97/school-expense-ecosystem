@@ -93,4 +93,16 @@ describe('ProjectOverview', () => {
 
     expect(navigateSpy).toHaveBeenCalledWith(['/auth']);
   });
+
+  it('should switch between public topbar and authenticated header based on auth state', () => {
+  const compiled = fixture.nativeElement as HTMLElement;
+  expect(compiled.querySelector('.public-showcase-topbar')).toBeTruthy();
+  expect(compiled.querySelector('lib-header')).toBeNull();
+
+  mockUserSignal.set({ uid: 'user-01', fullName: 'Lin Wei-Ting' } as UserBase);
+  fixture.detectChanges();
+
+  expect(compiled.querySelector('.public-showcase-topbar')).toBeNull();
+  expect(compiled.querySelector('lib-header')).toBeTruthy();
+});
 });
