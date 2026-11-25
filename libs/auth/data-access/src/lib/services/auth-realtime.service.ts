@@ -4,79 +4,62 @@ import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
-import { Observable } from 'rxjs';
+import { catchError, filter, map, Observable, of, switchMap, take } from 'rxjs';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
 import { AuthService } from './auth.service';
+
+export type ApprovalWatchOutcome =
+  | { status: 'ACTIVATED'; user: UserBase }
+  | { status: 'REJECTED'; reason: string }
+  | { status: 'FE_SESSION_EXPIRED' };
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthRealtimeService {
   private readonly firestore = inject(Firestore);
-  private readonly router = inject(Router);
   private readonly authStore = inject(AuthSignalStore);
   private readonly authService = inject(AuthService);
 
-  /**
-   * Spawns a clean reactive Signal node bound directly to the Firestore document stream.
-   * Eliminates the need for manual subscription ledger management or ngOnDestroy lifecycles.
-   * @param uid The unique identity record string of the onboarding user.
-   */
-  watchStatusAsSignal(uid: string, componentInjector: Injector): void {
+  watchApprovalOutcome(uid: string): Observable<ApprovalWatchOutcome> {
     const userDocRef = doc(this.firestore, `users/${uid}`);
     const userStream$ = docData(userDocRef) as Observable<UserBase>;
-    const liveUserSignal = toSignal(userStream$, { injector: componentInjector });
 
-    /**
-     * Interop Bridge: Transform the data stream into a read-only signal.
-     * Passing the local component injector ensures automatic teardown when the view unmounts.
-     */
-
-    let isTransitioning = false;
-
-    effect(
-      () => {
-        const updatedUser = liveUserSignal();
-        if (!updatedUser || isTransitioning) return;
-
-        if (updatedUser.status === UserStatus.ACTIVE) {
-          isTransitioning = true;
-          void this.handleAccountActivation();
-          return;
-        }
-
-        if (updatedUser.status === UserStatus.REJECTED) {
-          isTransitioning = true;
-          this.handleAccountRejection(updatedUser);
-        }
-      },
-      { injector: componentInjector }
+    return userStream$.pipe(
+      filter(
+        (user): user is UserBase =>
+          Boolean(user) &&
+          (user.status === UserStatus.ACTIVE || user.status === UserStatus.REJECTED)
+      ),
+      take(1),
+      switchMap((updatedUser) => this.synchronizeSessionOutcome(updatedUser))
     );
   }
 
-  private async handleAccountActivation(): Promise<void> {
-    try {
-      // Refreshes Firebase ID token, exchanges it with NestJS, and updates AuthSignalStore
-      const freshToken = await this.authService.restoreOrRefreshSession();
-
-      if (freshToken) {
-        await this.router.navigate(['/dashboard']);
-        return;
-      }
-
-      await this.authService.signOut();
-    } catch {
-      await this.authService.signOut();
-    }
-  }
-
-  private handleAccountRejection(updatedUser: UserBase): void {
-    this.authStore.updateAuthState(null, null);
-    void this.router.navigate(['/auth/rejected'], {
-      state: {
-        status: UserStatus.REJECTED,
+  private synchronizeSessionOutcome(updatedUser: UserBase): Observable<ApprovalWatchOutcome> {
+    if (updatedUser.status === UserStatus.REJECTED) {
+      this.authStore.updateAuthState(null, null);
+      return of({
+        status: 'REJECTED',
         reason: updatedUser.reason || 'Registration onboarding credentials rejected.',
-      },
-    });
+      });
+    }
+
+    return new Observable<string | null>((subscriber) => {
+      this.authService
+        .restoreOrRefreshSession()
+        .then((token) => {
+          subscriber.next(token);
+          subscriber.complete();
+        })
+        .catch((err) => subscriber.error(err));
+    }).pipe(
+      map((freshToken): ApprovalWatchOutcome =>
+        freshToken
+          ? { status: 'ACTIVATED', user: updatedUser }
+          : { status: 'FE_SESSION_EXPIRED' }
+      ),
+      catchError(() => of<ApprovalWatchOutcome>({ status: 'FE_SESSION_EXPIRED' }))
+    );
   }
 }
