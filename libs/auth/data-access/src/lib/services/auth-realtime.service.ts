@@ -6,6 +6,7 @@ import { AuthSignalStore } from '@school-expense-ecosystem/shared/data-access';
 import { UserBase } from '@school-expense-ecosystem/shared/types';
 import { Observable } from 'rxjs';
 import { UserStatus } from '@school-expense-ecosystem/shared/types';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,7 @@ export class AuthRealtimeService {
   private readonly firestore = inject(Firestore);
   private readonly router = inject(Router);
   private readonly authStore = inject(AuthSignalStore);
+  private readonly authService = inject(AuthService);
 
   /**
    * Spawns a clean reactive Signal node bound directly to the Firestore document stream.
@@ -23,39 +25,58 @@ export class AuthRealtimeService {
   watchStatusAsSignal(uid: string, componentInjector: Injector): void {
     const userDocRef = doc(this.firestore, `users/${uid}`);
     const userStream$ = docData(userDocRef) as Observable<UserBase>;
+    const liveUserSignal = toSignal(userStream$, { injector: componentInjector });
 
     /**
      * Interop Bridge: Transform the data stream into a read-only signal.
      * Passing the local component injector ensures automatic teardown when the view unmounts.
      */
-    const liveUserSignal = toSignal(userStream$, { injector: componentInjector });
 
-    effect(() => {
-      const updatedUser = liveUserSignal();
+    let isTransitioning = false;
 
-      if (!updatedUser) return;
+    effect(
+      () => {
+        const updatedUser = liveUserSignal();
+        if (!updatedUser || isTransitioning) return;
 
-      switch (updatedUser.status) {
-        case UserStatus.ACTIVE:
-          {
-            const currentToken = this.authStore.token();
-            this.authStore.updateAuthState(currentToken, updatedUser);
-            this.router.navigate(['/dashboard']);
-            break;
-          }
+        if (updatedUser.status === UserStatus.ACTIVE) {
+          isTransitioning = true;
+          void this.handleAccountActivation();
+          return;
+        }
 
-        case UserStatus.REJECTED:
-          this.authStore.updateAuthState(null, null);
-          this.router.navigate(['/auth/rejected'], {
-            state: {
-              status: UserStatus.REJECTED,
-              reason: updatedUser.reason || 'Registration onboarding credentials rejected.'
-            }
-          });
-          break;
-        default:
-          break;
+        if (updatedUser.status === UserStatus.REJECTED) {
+          isTransitioning = true;
+          this.handleAccountRejection(updatedUser);
+        }
+      },
+      { injector: componentInjector }
+    );
+  }
+
+  private async handleAccountActivation(): Promise<void> {
+    try {
+      // Refreshes Firebase ID token, exchanges it with NestJS, and updates AuthSignalStore
+      const freshToken = await this.authService.restoreOrRefreshSession();
+
+      if (freshToken) {
+        await this.router.navigate(['/dashboard']);
+        return;
       }
-    }, { injector: componentInjector }); // Bind the side-effect layer to the component execution lifespan
+
+      await this.authService.signOut();
+    } catch {
+      await this.authService.signOut();
+    }
+  }
+
+  private handleAccountRejection(updatedUser: UserBase): void {
+    this.authStore.updateAuthState(null, null);
+    void this.router.navigate(['/auth/rejected'], {
+      state: {
+        status: UserStatus.REJECTED,
+        reason: updatedUser.reason || 'Registration onboarding credentials rejected.',
+      },
+    });
   }
 }
