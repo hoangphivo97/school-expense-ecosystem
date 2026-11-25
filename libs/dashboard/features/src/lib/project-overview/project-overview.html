@@ -202,38 +202,41 @@
   <!-- ==========================================================================
      Lanes 2 & 3: Double-Lane Evolutionary & Roadmap Timelines
      ========================================================================== -->
+  <ng-template #timelineNodeTpl let-item let-isDashed="isDashed">
+    <div class="timeline-node" [class.dashed]="isDashed">
+      <div class="node-meta">
+        <span [ngClass]="'state-' + item.timelineState">
+          {{ 'overview.timeline.month' | transloco }} {{ item.month }}
+        </span>
+      </div>
+      <div class="node-content">
+        <div class="node-header">
+          <div class="title-container">
+            <h4>{{ item.title }}</h4>
+            <a [href]="item.issueUrl" target="_blank" rel="noopener noreferrer" class="issue-external-link"
+              title="Open GitHub Issue">
+              <mat-icon>launch</mat-icon>
+            </a>
+          </div>
+          <span class="status-badge" [ngClass]="item.status">
+            {{ 'overview.timeline.status.' + item.status | transloco }}
+          </span>
+          <div [innerHTML]="item.description"></div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
   <div class="timelines-wrapper">
     <!-- Lane 2: Chronological Historical Timeline -->
     <section class="timeline-lane history">
-      <h2>Chronological History</h2>
-      @for(group of historicalTimeline(); track group.year){
+      <h2>{{ 'overview.sections.historyTitle' | transloco }}</h2>
+      @for (group of historicalTimeline(); track group.year) {
       <div class="year-group">
         <h3 class="year-header">{{ group.year }}</h3>
-        @for(item of group.items; track item){
-        <div class="timeline-node">
-          <div class="node-meta">
-            <span [ngClass]="'state-' + item.timelineState">
-              {{ 'overview.timeline.month' | transloco }} {{ item.month }}
-            </span>
-          </div>
-          <div class="node-content">
-            <!-- Architect Fix: Structural header wrapper to align dynamic components cleanly -->
-            <div class="node-header">
-              <div class="title-container">
-                <h4>{{ item.title }}</h4>
-                <a [href]="item.issueUrl" target="_blank" rel="noopener noreferrer" class="issue-external-link"
-                  title="Open GitHub Issue">
-                  <mat-icon>launch</mat-icon>
-                </a>
-              </div>
-              <span class="status-badge" [ngClass]="item.status">
-                {{ 'overview.timeline.status.' + item.status | transloco }}
-              </span>
-              <div [innerHTML]="item.description"></div>
-            </div>
-          </div>
-        </div>
-
+        @for (item of group.items; track item.title) {
+        <ng-container [ngTemplateOutlet]="timelineNodeTpl"
+          [ngTemplateOutletContext]="{ $implicit: item, isDashed: false }" />
         }
       </div>
       }
@@ -241,33 +244,13 @@
 
     <!-- Lane 3: Future Roadmap Backlog -->
     <section class="timeline-lane roadmap">
-      <h2>Future Roadmap Backlog</h2>
-      @for(group of roadmapTimeline() ; track group.year){
+      <h2>{{ 'overview.sections.roadmapTitle' | transloco }}</h2>
+      @for (group of roadmapTimeline(); track group.year) {
       <div class="year-group">
         <h3 class="year-header">{{ group.year }}</h3>
-        @for(item of group.items; track item){
-        <div class="timeline-node dashed">
-          <div class="node-meta">
-            <span [ngClass]="'state-' + item.timelineState">
-              {{ 'overview.timeline.month' | transloco }} {{ item.month }}
-            </span>
-          </div>
-          <div class="node-content">
-            <div class="node-header">
-              <div class="title-container">
-                <h4>{{ item.title }}</h4>
-                <a [href]="item.issueUrl" target="_blank" rel="noopener noreferrer" class="issue-external-link"
-                  title="Open GitHub Issue">
-                  <mat-icon>launch</mat-icon>
-                </a>
-              </div>
-              <span class="status-badge" [ngClass]="item.status">
-                {{ 'overview.timeline.status.' + item.status | transloco }}
-              </span>
-              <div [innerHTML]="item.description"></div>
-            </div>
-          </div>
-        </div>
+        @for (item of group.items; track item.title) {
+        <ng-container [ngTemplateOutlet]="timelineNodeTpl"
+          [ngTemplateOutletContext]="{ $implicit: item, isDashed: true }" />
         }
       </div>
       }

@@ -15,5 +15,4 @@ export default {
   coverageDirectory: '../../../coverage/libs/auth/features',
   setupFilesAfterEnv: ['<rootDir>/../../../apps/mfe-shell-angular/setup-jest.ts'],
   testMatch: ['<rootDir>/src/**/*.spec.ts'],
-  testPathIgnorePatterns: ['register-modal'],
 };

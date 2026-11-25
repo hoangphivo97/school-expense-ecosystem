@@ -38,7 +38,7 @@ const RELEASE_REGEX =
   /^#{1,3}\s+(?:\[?v?([0-9]+\.[0-9]+\.[0-9]+[^\]\s]*)\]?(?:\([^)]*\))?)\s+\((.*?)\)/;
 const SECTION_REGEX = /^#{3,4}\s+([A-Za-z\s]+)(?:\s*\(\d+\))?$/;
 const ITEM_REGEX =
-  /^\*\s+(?:(?:\*\*([^*]+):\*\*\s*)?)(.*?)(?:\s*\(\[?([a-f0-9]+)\]?(?:\((https?:\/\/[^)]+)\))?\))?$/;
+  /^[\*\-]\s+(?:(?:\*\*([^*]+):\*\*\s*)?)(.*?)(?:\s*\(\[?([a-f0-9]+)\]?(?:\((https?:\/\/[^)]+)\))?\))?$/;
 
 export function parseChangelogMarkdown(raw: string): ChangelogRelease[] {
   if (!raw) return [];
