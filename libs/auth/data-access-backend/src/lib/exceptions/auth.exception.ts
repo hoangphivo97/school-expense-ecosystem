@@ -47,3 +47,12 @@ export class RateLimitExceededException extends BaseAuthException {
     );
   }
 }
+
+export class UserReSubmitConflictException extends BaseAuthException {
+  constructor() {
+    super(
+      'AUTH_USER_STATUS_CONFLICT',
+      "Your profile status has already been updated and can no longer be reverted to draft. Please refresh the page to view your current status. "
+    );
+  }
+}

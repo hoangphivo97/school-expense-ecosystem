@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ConflictReason, IAuthIdentityCheck, IConflictResolution, OnboardingData } from '@school-expense-ecosystem/auth/types';
 import { UserBase, UserStatus } from '@school-expense-ecosystem/shared/types';
-import { AuthUserRepository } from './auth-user.repository';
+import { AuthUserRepository, StatusTransitionResult } from './auth-user.repository';
 
 @Injectable()
 export class FirebaseAuthRepository implements AuthUserRepository {
@@ -10,22 +10,38 @@ export class FirebaseAuthRepository implements AuthUserRepository {
         @Inject('FIRESTORE_INSTANCE') private readonly db: admin.firestore.Firestore
     ) { }
 
+    protected get userCollection() {
+        return this.db.collection('users');
+    }
+
+    private timeStampToDate(date: Date) {
+        return admin.firestore.Timestamp.fromDate(date)
+    }
+
+    private mapToUserBase(docId: string, data: admin.firestore.DocumentData): UserBase {
+        const parseTimestamp = (value: unknown, fallback?: Date): Date | undefined => {
+            if (value instanceof admin.firestore.Timestamp) {
+                return value.toDate();
+            }
+            return value ? new Date(value as string | number | Date) : fallback;
+        };
+
+        return {
+            ...data,
+            uid: data['uid'] || docId,
+            createdAt: parseTimestamp(data['createdAt'], new Date()),
+            ...(data['updatedAt'] ? { updatedAt: parseTimestamp(data['updatedAt']) } : {}),
+        } as UserBase;
+    }
+
     async findByUid(uid: string): Promise<UserBase | null> {
-        const doc = await this.db.collection('users').doc(uid).get();
+        const doc = await this.userCollection.doc(uid).get();
         if (!doc.exists) return null;
 
         const data = doc.data();
         if (!data) return null;
 
-        const cleanedCreatedAt = data['createdAt'] instanceof admin.firestore.Timestamp
-            ? data['createdAt'].toDate()
-            : (data['createdAt'] ? new Date(data['createdAt']) : new Date());
-
-        return {
-            ...data,
-            uid: data['uid'] || doc.id,
-            createdAt: cleanedCreatedAt
-        } as UserBase;
+        return this.mapToUserBase(doc.id, data);
     }
 
     async createUser(userData: UserBase): Promise<UserBase> {
@@ -33,20 +49,20 @@ export class FirebaseAuthRepository implements AuthUserRepository {
 
         const firestorePayload = {
             ...userData,
-            createdAt: admin.firestore.Timestamp.fromDate(nativeDate)
+            createdAt: this.timeStampToDate(nativeDate)
         };
 
-        await this.db.collection('users').doc(userData.uid).set(firestorePayload);
+        await this.userCollection.doc(userData.uid).set(firestorePayload);
         return userData;
     }
 
     async updateUser(uid: string, updateData: Partial<UserBase>): Promise<UserBase> {
-        const docRef = this.db.collection('users').doc(uid);
+        const docRef = this.userCollection.doc(uid);
 
         const firestoreUpdateData: Record<string, unknown> = { ...updateData };
 
         if (updateData.createdAt) {
-            firestoreUpdateData['createdAt'] = admin.firestore.Timestamp.fromDate(new Date(updateData.createdAt));
+            firestoreUpdateData['createdAt'] = this.timeStampToDate(new Date(updateData.createdAt));
         }
 
         await docRef.update(firestoreUpdateData);
@@ -98,6 +114,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
     }
 
     async executeOnboarding(uid: string, data: OnboardingData, shouldLink: boolean): Promise<void> {
+        const userRef = this.userCollection.doc(uid);
         // Utilize Firestore Transactions to isolate the mutation and guard against parallel write race conditions
         await this.db.runTransaction(async (transaction) => {
             if (shouldLink) {
@@ -118,18 +135,65 @@ export class FirebaseAuthRepository implements AuthUserRepository {
                 });
 
                 // Purge the temporary shell record generated during the initial handshake step
-                const tempDocRef = this.db.collection('users').doc(uid);
+                const tempDocRef = this.userCollection.doc(uid);
                 transaction.delete(tempDocRef);
             } else {
-                // Standard flow: Mutate the current active document context via structured merge operation
-                const userRef = this.db.collection('users').doc(uid);
-                transaction.set(userRef, {
+                // Standard flow: Read current document state under transaction lock before merging
+                const userRef = this.userCollection.doc(uid);
+                const userDoc = await transaction.get(userRef);
+                const existingData = userDoc.data();
+
+                const payload: Record<string, unknown> = {
                     ...data,
-                    uid: uid,
+                    uid,
                     status: UserStatus.PENDING, // Commit state into the standard verification queue
-                    createdAt: admin.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                };
+
+                // Preserve original creation timestamp across draft re-submissions
+                if (!existingData?.['createdAt']) {
+                    payload['createdAt'] = admin.firestore.FieldValue.serverTimestamp();
+                }
+
+                transaction.set(userRef, payload, { merge: true });
             }
+        });
+    }
+
+    async transitionStatusAtomic(
+        uid: string,
+        allowedCurrentStatuses: UserStatus[],
+        nextStatus: UserStatus
+    ): Promise<StatusTransitionResult> {
+        const userRef = this.userCollection.doc(uid);
+
+        return this.db.runTransaction<StatusTransitionResult>(async (transaction) => {
+            // Read document under pessimistic lock to prevent concurrent state overwrite
+            const doc = await transaction.get(userRef);
+
+            if (!doc.exists) {
+                return { outcome: 'NOT_FOUND' };
+            }
+
+            const rawData = doc.data() as admin.firestore.DocumentData;
+            const currentStatus = rawData['status'] as UserStatus;
+
+            if (!allowedCurrentStatuses.includes(currentStatus)) {
+                return { outcome: 'STATUS_MISMATCH', currentStatus };
+            }
+
+            transaction.update(userRef, {
+                status: nextStatus,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            const normalizedUser = this.mapToUserBase(uid, {
+                ...rawData,
+                status: nextStatus,
+                updatedAt: new Date(),
+            });
+
+            return { outcome: 'SUCCESS', user: normalizedUser };
         });
     }
 }
