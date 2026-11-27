@@ -5,11 +5,12 @@ export interface LoginResponse {
   user: UserBase;
 }
 
-export interface OnboardingResponse {
+export interface OnboardingResponse extends LoginResponse {
   message: string;
-  token: string;
-  user: UserBase;
 }
+
+export type RevertOnboardingResponse = OnboardingResponse;
+
 
 export interface OnboardingData {
   fullName: string;

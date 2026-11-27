@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from '@school-expense-ecosystem/auth/data-access-backend';
 import { AppCheckGuard, Public, AllowStatuses, CurrentUser } from '@school-expense-ecosystem/shared/guards-backend';
-import { OnboardingResponse } from '@school-expense-ecosystem/auth/types';
+import { OnboardingResponse, RevertOnboardingResponse } from '@school-expense-ecosystem/auth/types';
 import { AuthenticatedUser, UserStatus } from '@school-expense-ecosystem/shared/types';
 import { OnboardingDto } from '../dtos/onboarding.dto';
 
@@ -10,47 +10,59 @@ import { OnboardingDto } from '../dtos/onboarding.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  @Public()
-  @Post('login')
-  async login(@Body('token') token: string) {
+  private async authenticateWithFirebase(token: string) {
     const result = await this.authService.handleFirebaseLogin(token);
     return {
       message: 'Login success',
-      ...result
+      ...result,
     };
+  }
+
+  @Public()
+  @Post('login')
+  login(@Body('token') token: string) {
+    return this.authenticateWithFirebase(token);
   }
 
   @Public()
   @Post('google-login')
-  async googleLogin(@Body('token') token: string) {
-    const result = await this.authService.handleFirebaseLogin(token);
-    return {
-      message: 'Login success',
-      ...result
-    };
+  googleLogin(@Body('token') token: string) {
+    return this.authenticateWithFirebase(token);
   }
 
   @Post('onboarding')
-  @AllowStatuses(UserStatus.ONBOARDING)
-  async completeOnboarding(@CurrentUser() user: AuthenticatedUser, @Body() dto: OnboardingDto): Promise<OnboardingResponse> {
-    const payload = {
+  @AllowStatuses(UserStatus.ONBOARDING, UserStatus.DRAFT)
+  async completeOnboarding(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: OnboardingDto
+  ): Promise<OnboardingResponse> {
+    const result = await this.authService.completeOnboarding(user.uid, user.email, {
       fullName: dto.fullName,
       facultyId: dto.facultyId,
       userCode: dto.userCode,
-      dateOfBirth: dto.dateOfBirth
-    };
+      dateOfBirth: dto.dateOfBirth,
+    });
 
-    const result = await this.authService.completeOnboarding(user.uid, user.email, payload);
-
-    const isApproved = result.user.status === UserStatus.ACTIVE;
-    const message = isApproved
-      ? 'Onboarding completed and account activated successfully.'
-      : 'Onboarding completed successfully. Registration is now pending approval.';
+    const message =
+      result.user.status === UserStatus.ACTIVE
+        ? 'Onboarding completed and account activated successfully.'
+        : 'Onboarding completed successfully. Registration is now pending approval.';
 
     return {
       message,
-      token: result.token,
-      user: result.user
+      ...result,
+    };
+  }
+
+  @Post('onboarding/revert')
+  @AllowStatuses(UserStatus.PENDING)
+  async revertOnboardingToDraft(
+    @CurrentUser() user: AuthenticatedUser
+  ): Promise<RevertOnboardingResponse> {
+    const result = await this.authService.revertOnboardingToDraft(user.uid);
+    return {
+      message: 'Onboarding status reverted to draft.',
+      ...result,
     };
   }
 }

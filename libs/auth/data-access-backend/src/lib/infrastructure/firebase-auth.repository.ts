@@ -14,7 +14,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
         return this.db.collection('users');
     }
 
-    private timeStampToDate(date: Date) {
+    private dateToTimestamp(date: Date) {
         return admin.firestore.Timestamp.fromDate(date)
     }
 
@@ -49,7 +49,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
 
         const firestorePayload = {
             ...userData,
-            createdAt: this.timeStampToDate(nativeDate)
+            createdAt: this.dateToTimestamp(nativeDate)
         };
 
         await this.userCollection.doc(userData.uid).set(firestorePayload);
@@ -62,7 +62,7 @@ export class FirebaseAuthRepository implements AuthUserRepository {
         const firestoreUpdateData: Record<string, unknown> = { ...updateData };
 
         if (updateData.createdAt) {
-            firestoreUpdateData['createdAt'] = this.timeStampToDate(new Date(updateData.createdAt));
+            firestoreUpdateData['createdAt'] = this.dateToTimestamp(new Date(updateData.createdAt));
         }
 
         await docRef.update(firestoreUpdateData);
@@ -114,29 +114,31 @@ export class FirebaseAuthRepository implements AuthUserRepository {
     }
 
     async executeOnboarding(uid: string, data: OnboardingData, shouldLink: boolean): Promise<void> {
-        const userRef = this.userCollection.doc(uid);
         // Utilize Firestore Transactions to isolate the mutation and guard against parallel write race conditions
         await this.db.runTransaction(async (transaction) => {
             if (shouldLink) {
                 // Locate the target pre-created administrative skeleton entry
-                const userCodeQuery = await this.db
-                    .collection('users')
-                    .where('userCode', '==', data.userCode)
-                    .limit(1)
-                    .get();
+                const userCodeQuery = await this.userCollection
+                .where('userCode', '==', data.userCode)
+                .limit(1);
 
-                const targetDocRef = userCodeQuery.docs[0].ref;
+                const querySnap = await transaction.get(userCodeQuery);
+
+                const targetDocRef = querySnap.docs[0].ref;
 
                 // Link the active Firebase identity into the pre-created slot
                 transaction.update(targetDocRef, {
-                    uid: uid,
+                    ...data,
+                    uid,
                     status: UserStatus.PENDING, // Transition state to await ultimate approval clearance
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
                 });
 
                 // Purge the temporary shell record generated during the initial handshake step
-                const tempDocRef = this.userCollection.doc(uid);
-                transaction.delete(tempDocRef);
+                if(targetDocRef.id !== uid){
+                    const tempDocRef = this.userCollection.doc(uid);
+                    transaction.delete(tempDocRef);
+                }
             } else {
                 // Standard flow: Read current document state under transaction lock before merging
                 const userRef = this.userCollection.doc(uid);

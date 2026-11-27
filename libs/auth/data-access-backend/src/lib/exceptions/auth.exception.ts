@@ -20,7 +20,7 @@ export class IdentityConflictClaimedException extends BaseAuthException {
 
 export class UserNotFoundException extends BaseAuthException {
   constructor() {
-    super('AUTH_USER_NOT_FOUND', 'User record could not be retrieved after onboarding.');
+    super('AUTH_USER_NOT_FOUND', 'User record could not be found.');
   }
 }
 
@@ -52,7 +52,7 @@ export class UserReSubmitConflictException extends BaseAuthException {
   constructor() {
     super(
       'AUTH_USER_STATUS_CONFLICT',
-      "Your profile status has already been updated and can no longer be reverted to draft. Please refresh the page to view your current status. "
+      'Your profile status has already been updated and can no longer be reverted to draft. Please refresh the page to view your current status.'
     );
   }
 }

@@ -2,12 +2,12 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { CompleteOnboardingPayload, ConflictReason, IdentityProvider, OnboardingData } from '@school-expense-ecosystem/auth/types';
+import { CompleteOnboardingPayload, ConflictReason, IdentityProvider, LoginResponse, OnboardingData } from '@school-expense-ecosystem/auth/types';
 import { UserStatus, Role, UserBase, UserType } from '@school-expense-ecosystem/shared/types';
 import { AccountRestrictedException } from '@school-expense-ecosystem/shared/utils-backend';
 import { FirebaseError } from 'firebase/app';
 import { AuthUserRepository } from '../infrastructure/auth-user.repository';
-import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException } from '../exceptions/auth.exception';
+import { IdentityConflictClaimedException, IdentityConflictEmailException, InvalidTokenException, UserNotFoundException, UserReSubmitConflictException } from '../exceptions/auth.exception';
 
 @Injectable()
 export class AuthService {
@@ -40,6 +40,13 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
+  private buildAuthResponse(user: UserBase): LoginResponse {
+    return {
+      token: this.generateJWT(user),
+      user,
+    };
+  }
+
   async handleFirebaseLogin(token: string): Promise<{ token: string; user: UserBase }> {
     try {
       const decodedProfile = await this.identityProvider.verifyToken(token);
@@ -64,11 +71,10 @@ export class AuthService {
         throw new AccountRestrictedException(user.status, user.reason)
       }
 
-      const authToken = this.generateJWT(user);
-      return { token: authToken, user };
+      return this.buildAuthResponse(user);
     } catch (error: unknown) {
       if (error instanceof AccountRestrictedException) {
-        throw error; // Forward the structured restriction error object
+        throw error;
       }
 
       const isFirebaseDisabled = (error as FirebaseError)?.code === 'auth/user-disabled' || (error as FirebaseError)?.message?.includes('disabled');
@@ -84,24 +90,25 @@ export class AuthService {
     }
   }
 
-  async completeOnboarding(uid: string, email: string, payload: CompleteOnboardingPayload) {
+  async completeOnboarding(uid: string, email: string, payload: CompleteOnboardingPayload): Promise<LoginResponse> {
     const existingUser = await this.authUserRepo.findByUid(uid);
 
     if (!existingUser) {
       throw new UserNotFoundException();
     }
 
-    if (existingUser.status !== UserStatus.ONBOARDING) {
+    const editableStatuses = [UserStatus.ONBOARDING, UserStatus.DRAFT];
+    if (!editableStatuses.includes(existingUser.status)) {
       throw new AccountRestrictedException(
         existingUser.status,
-        'User is not in ONBOARDING status.'
+        'User is not in an editable onboarding status.'
       );
     }
 
     const resolution = await this.authUserRepo.validateIdentityConflict({
       uid,
       email,
-      userCode: payload.userCode // Mapped directly from frontend input boundaries
+      userCode: payload.userCode
     });
 
     // 2. Terminate pipeline and throw explicit standard REST HTTP 409 exceptions upon conflict triggers
@@ -136,6 +143,24 @@ export class AuthService {
     const token = this.generateJWT(updatedUser);
 
     return { token: token, user: updatedUser };
+  }
+
+  async revertOnboardingToDraft(uid: string): Promise<LoginResponse> {
+    const result = await this.authUserRepo.transitionStatusAtomic(
+      uid,
+      [UserStatus.PENDING],
+      UserStatus.DRAFT
+    );
+
+    if (result.outcome === 'NOT_FOUND') {
+      throw new UserNotFoundException();
+    }
+
+    if (result.outcome === 'STATUS_MISMATCH') {
+      throw new UserReSubmitConflictException();
+    }
+
+    return this.buildAuthResponse(result.user);
   }
 }
 
